@@ -3,90 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Full Screen Page</title>
+    <title>Clean Website</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body, html {
+        * {
             margin: 0;
             padding: 0;
-            height: 100%;
-            font-family: Arial, sans-serif;
-            overflow-x: hidden;
+            box-sizing: border-box;
         }
-        .fullscreen {
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: white;
+        }
+        .container {
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             height: 100vh;
-            background-color: #ffffff;
             text-align: center;
-            position: relative;
+        }
+        .hamburger {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .hamburger div {
+            width: 30px;
+            height: 3px;
+            background-color: black;
+            margin: 5px 0;
+        }
+        .menu {
+            display: none;
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            background-color: white;
+            border: 0px solid black;
+            padding: 10px;
+            z-index: 9;
+        }
+        .menu a {
+            display: block;
+            text-decoration: none;
+            color: black;
+            margin: 10px 0;
         }
         .logo {
-            margin-bottom: 1rem;
+            margin-bottom: 20px; /* Space between logo and heading */
         }
         .logo img {
-            max-width: 200px; /* Adjust logo size as needed */
+            width: 200px; /* Adjust as needed */
+            height: auto; /* Maintain aspect ratio */
         }
         h1 {
-            margin: 0.5rem 0;
-            font-size: 2rem;
-            color: #333;
+            margin-top: 0;
+            font-size: 30px;
         }
-        .paragraph {
-            margin: 1rem 0;
-            font-size: 1rem;
-            color: #666;
+        p {
+            margin-top: 10px;
+            font-size: 16px;
             max-width: 600px;
+            padding: 20px;
         }
-        .scroll-down {
-            position: absolute;
-            bottom: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
+        .arrow {
+            margin-top: 30px;
             font-size: 2rem;
             cursor: pointer;
-            animation: bounce 1.5s infinite;
+            animation: bounce 2s infinite;
         }
         @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
+            0%, 100% {
                 transform: translateY(0);
             }
-            40% {
-                transform: translateY(-20px);
-            }
-            60% {
-                transform: translateY(-10px);
+            50% {
+                transform: translateY(10px);
             }
         }
-        .next-section {
+        #section2 {
             height: 100vh;
-            background-color: #f4f4f4;
-            text-align: center;
-            padding: 2rem;
+            background-color: lightgray;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
 <body>
-    <div class="fullscreen">
-        <div class="logo">
-            <img src="https://github.com/r0wanb3zy/bezy.nz/blob/main/images/Bezy%202%20Transparent.png?raw=true" alt="Logo"> <!-- Replace with your logo URL -->
-        </div>
-        <h1>bezy.co.nz</h1>
-        <p class="paragraph">This is a sample paragraph text. Replace this with any text you'd like to display in this section. It will be centered on the page and can span multiple lines.</p>
-        <div class="scroll-down" onclick="scrollToNextSection()">
-            &#9660; <!-- Unicode character for a downward arrow -->
-        </div>
+    <!-- Hamburger Menu -->
+    <div class="hamburger" onclick="toggleMenu()">
+        <div></div>
+        <div></div>
+        <div></div>
     </div>
-    <div class="next-section" id="next-section">
-        <!-- Content for the next section -->
-        <h2>Next Section</h2>
-        <p>This is the content of the next section. You can add more details here.</p>
+
+    <!-- Dropdown Menu -->
+    <div class="menu" id="menu">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </div>
+
+    <!-- Main Section -->
+    <div class="container" id="home">
+        <!-- Logo -->
+        <div class="logo">
+            <img src="https://github.com/r0wanb3zy/bezy.nz/blob/main/images/Bezy%202%20Transparent.png?raw=true" alt="Bezy Logo">
+        </div>
+
+        <!-- Heading -->
+        <h1>Welcome</h1>
+
+        <!-- Paragraph -->
+        <p>3D Printing | 3D Rendering | CAD | Graphic Design</p>
+
+        <!-- Arrow -->
+        <div class="arrow" onclick="scrollToSection2()">↓</div>
+    </div>
+
+    <!-- Section 2 -->
+    <div id="section2">
+        <h1>Second Section</h1>
     </div>
 
     <script>
-        function scrollToNextSection() {
-            document.getElementById('next-section').scrollIntoView({ behavior: 'smooth' });
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            const isMenuVisible = menu.style.display === 'block';
+            menu.style.display = isMenuVisible ? 'none' : 'block';
+            if (!isMenuVisible) {
+                document.addEventListener('click', outsideClickListener);
+            } else {
+                document.removeEventListener('click', outsideClickListener);
+            }
+        }
+
+        function outsideClickListener(event) {
+            const menu = document.getElementById('menu');
+            const hamburger = document.querySelector('.hamburger');
+            if (!menu.contains(event.target) && !hamburger.contains(event.target)) {
+                menu.style.display = 'none';
+                document.removeEventListener('click', outsideClickListener);
+            }
+        }
+
+        function scrollToSection2() {
+            document.getElementById('section2').scrollIntoView({ behavior: 'smooth' });
         }
     </script>
 </body>
