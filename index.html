@@ -14,6 +14,9 @@
         body {
             font-family: 'Roboto', sans-serif;
             background-color: white;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
         .container {
             display: flex;
@@ -22,59 +25,80 @@
             justify-content: center;
             height: 100vh;
             text-align: center;
+            flex-grow: 1; /* Allows content to grow and take up available space */
         }
-        .hamburger {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            cursor: pointer;
+
+        /* Full-width sticky header background */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
             z-index: 10;
+            padding: 10px 0;
+            display: flex;
+            justify-content: center;
         }
+
+        .hamburger {
+            cursor: pointer;
+        }
+
         .hamburger div {
             width: 30px;
             height: 3px;
             background-color: black;
             margin: 5px 0;
         }
+
         .menu {
             display: none;
-            position: absolute;
-            top: 60px;
-            left: 20px;
-            background-color: white;
-            border: 0px solid black;
-            padding: 10px;
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
             z-index: 9;
         }
+
         .menu a {
             display: block;
             text-decoration: none;
             color: black;
             margin: 10px 0;
+            text-align: center;
         }
+
         .logo {
-            margin-bottom: 20px; /* Space between logo and heading */
+            margin-bottom: 5px;
         }
+
         .logo img {
-            width: 200px; /* Adjust as needed */
-            height: auto; /* Maintain aspect ratio */
+            width: 200px;
+            height: auto;
         }
+
         h1 {
             margin-top: 0;
             font-size: 30px;
         }
+
         p {
             margin-top: 10px;
             font-size: 16px;
             max-width: 600px;
             padding: 20px;
         }
+
         .arrow {
             margin-top: 30px;
             font-size: 2rem;
             cursor: pointer;
             animation: bounce 2s infinite;
         }
+
         @keyframes bounce {
             0%, 100% {
                 transform: translateY(0);
@@ -83,6 +107,7 @@
                 transform: translateY(10px);
             }
         }
+
         #section2 {
             height: 100vh;
             background-color: lightgray;
@@ -90,20 +115,57 @@
             align-items: center;
             justify-content: center;
         }
+
+        /* Footer styling */
+        .footer {
+            background-color: #f0f0f0;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .footer .column {
+            display: inline-block;
+            width: 30%;
+            padding: 10px;
+            vertical-align: top;
+        }
+
+        .footer h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .footer p {
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .footer .column {
+                display: block;
+                width: 100%;
+            }
+        }
+
     </style>
 </head>
 <body>
-    <!-- Hamburger Menu -->
-    <div class="hamburger" onclick="toggleMenu()">
-        <div></div>
-        <div></div>
-        <div></div>
+
+    <!-- Full-width sticky header with hamburger menu -->
+    <div class="header">
+        <div class="hamburger" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
     </div>
 
     <!-- Dropdown Menu -->
     <div class="menu" id="menu">
-        <a href="#home">Home</a>
-        <a href="#about">About</a>
+        <a href="#home">3D Printing</a>
+        <a href="#about">3D Rendering</a>
+        <a href="#contact">CAD Design</a>
+        <a href="#contact">Graphic Design</a>
+        <a href="#contact">About</a>
         <a href="#contact">Contact</a>
     </div>
 
@@ -115,7 +177,7 @@
         </div>
 
         <!-- Heading -->
-        <h1>Welcome</h1>
+        <h1>Welcome to bezy.nz</h1>
 
         <!-- Paragraph -->
         <p>3D Printing | 3D Rendering | CAD | Graphic Design</p>
@@ -127,6 +189,22 @@
     <!-- Section 2 -->
     <div id="section2">
         <h1>Second Section</h1>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="column">
+            <h3></h3>
+            <p></p>
+        </div>
+        <div class="column">
+            <h3>bezy.nz</h3>
+            <p><a href="mailto:info@bezy.nz">info@bezy.nz</a></p>
+        </div>
+        <div class="column">
+            <h3></h3>
+            <p></p>
+        </div>
     </div>
 
     <script>
