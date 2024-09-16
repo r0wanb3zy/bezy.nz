@@ -3,128 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Grid with Carousel Images</title>
+    <title>Clean Website</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-
         body {
-            font-family: Arial, sans-serif;
-            background-color: #fff;
+            font-family: 'Roboto', sans-serif;
+            background-color: white;
             padding: 20px;
+            padding-top: 70px; /* Adjust this value to match the height of your header */
         }
-
-        header h1 {
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            z-index: 10;
+            padding: 10px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .logo a {
+            display: block;
+        }
+        .logo img {
+            width: 100px;
+            height: auto;
+        }
+        .hamburger {
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .hamburger div {
+            width: 30px;
+            height: 3px;
+            background-color: black;
+            margin: 5px 0;
+        }
+        .menu {
+            display: none;
+            position: absolute;
+            top: 150px; /* Adjust this if needed */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            z-index: 20;
+            width: 200px;
+        }
+        .menu a {
+            display: block;
+            text-decoration: none;
+            color: black;
+            margin: 10px 0;
             text-align: center;
-            margin-bottom: 40px;
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+            margin-top: 120px; /* Adjust based on header height */
         }
-
+        header h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        header p {
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.5;
+        }
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
             text-align: center;
         }
-
         .product-tile {
             background-color: #fff;
             padding: 0;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden; /* Ensure content doesn't overflow */
+            overflow: hidden;
         }
-
-.carousel {
-    position: relative;
-    width: 100%;
-    padding-top: 100%; /* 1:1 Aspect Ratio */
-    overflow: hidden;
-    border-radius: 0px;
-}
-
-        .carousel .carousel-images {
+        .carousel {
+            position: relative;
+            width: 100%;
+            padding-top: 100%; /* 1:1 Aspect Ratio */
+            overflow: hidden;
+        }
+        .carousel-images {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             display: flex;
-            transition: transform 0.5s ease; /* Smooth transition */
+            transition: transform 0.5s ease;
         }
-
-        .carousel .carousel-images img {
-            width: 100%; /* Adjusted width */
-            height: 100%; /* Ensure the image stretches fully */
+        .carousel-images img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            flex-shrink: 0; /* Prevent image from shrinking */
         }
-
         .carousel button {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0);
             color: #fff;
             border: none;
             padding: 10px;
             cursor: pointer;
-            z-index: 1; /* Ensure buttons are above images */
+            z-index: 1;
         }
-
         .carousel .prev {
             left: 10px;
         }
-
         .carousel .next {
             right: 10px;
         }
-
         .content {
             margin-top: 20px;
         }
-
         h2 {
             margin-bottom: 15px;
+            font-size: 18px;
         }
-
         p {
             margin-bottom: 10px;
             line-height: 1.5;
-            padding: 0px 20px;
+            font-size: 14px;
+            padding: 0px 20px
         }
-
-        ul {
-            list-style-type: disc;
-            padding-left: 20px;
-            margin-bottom: 20px;
-        }
-
         a {
             color: #007BFF;
             text-decoration: none;
         }
-
         a:hover {
             text-decoration: underline;
         }
     </style>
 </head>
 <body>
+
+    <div class="header">
+        <div class="logo">
+            <a href="https://yourwebsite.com">
+                <img src="https://github.com/r0wanb3zy/bezy.nz/blob/main/images/Bezy%202%20Transparent.png?raw=true" alt="Bezy Logo">
+            </a>
+        </div>
+        <div class="hamburger" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div class="menu" id="menu">
+            <a href="https://bezy.nz/">Home</a>
+            <a href="/3d-printing.html">3D Printing</a>
+            <a href="#">CAD Design</a>
+            <a href="#">Graphic Design</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </div>
+    </div>
+
     <div class="container">
         <header>
-            <h1>Product Grid with Carousel Images</h1>
+            <h1>3D Printing</h1>
+            <p>Welcome to our 3D printing showcase. Explore our latest projects and innovations in the world of 3D printing. We offer a variety of products and designs to inspire your creativity and meet your printing needs.</p>
         </header>
         <section class="product-grid">
-            <!-- Product 1 -->
             <div class="product-tile">
                 <div class="carousel">
                     <div class="carousel-images">
@@ -136,46 +191,45 @@
                     <button class="next">&#10095;</button>
                 </div>
                 <div class="content">
-                    <h2>Product Title 1</h2>
+                    <h2>Ryobi Battery Holder 1</h2>
                     <p><strong>Description:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.</p>
                 </div>
             </div>
 
-            <!-- Product 2 -->
             <div class="product-tile">
                 <div class="carousel">
                     <div class="carousel-images">
-                        <img src="https://via.placeholder.com/300x300?text=Product+2+Image+1" alt="Product 2 Image 1">
-                        <img src="https://via.placeholder.com/300x300?text=Product+2+Image+2" alt="Product 2 Image 2">
-                        <img src="https://via.placeholder.com/300x300?text=Product+2+Image+3" alt="Product 2 Image 3">
+                        <img src="https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png" alt="Product 1 Image 1">
+                        <img src="https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png" alt="Product 1 Image 2">
+                        <img src="https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png" alt="Product 1 Image 3">
                     </div>
                     <button class="prev">&#10094;</button>
                     <button class="next">&#10095;</button>
                 </div>
                 <div class="content">
-                    <h2>Product Title 2</h2>
+                    <h2>Ryobi Battery Holder 2</h2>
                     <p><strong>Description:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed nisi. Nulla quis sem at nibh elementum imperdiet.</p>
                 </div>
             </div>
 
-            <!-- Product 3 -->
             <div class="product-tile">
                 <div class="carousel">
                     <div class="carousel-images">
-                        <img src="https://via.placeholder.com/300x300?text=Product+3+Image+1" alt="Product 3 Image 1">
-                        <img src="https://via.placeholder.com/300x300?text=Product+3+Image+2" alt="Product 3 Image 2">
-                        <img src="https://via.placeholder.com/300x300?text=Product+3+Image+3" alt="Product 3 Image 3">
+                        <img src="https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png" alt="Product 1 Image 1">
+                        <img src="https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png" alt="Product 1 Image 2">
+                        <img src="https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png" alt="Product 1 Image 3">
                     </div>
                     <button class="prev">&#10094;</button>
                     <button class="next">&#10095;</button>
                 </div>
                 <div class="content">
-                    <h2>Product Title 3</h2>
+                    <h2>Sellwood Attic Ladder </h2>
                     <p><strong>Description:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras metus. Sed aliquet risus a tortor. Integer id quam.</p>
                 </div>
             </div>
         </section>
     </div>
+
     <script>
         document.querySelectorAll('.carousel').forEach(carousel => {
             const prevButton = carousel.querySelector('.prev');
@@ -198,9 +252,28 @@
                 showImage(index);
             });
 
-            // Initialize the carousel
             showImage(index);
         });
+
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            const isMenuVisible = menu.style.display === 'block';
+            menu.style.display = isMenuVisible ? 'none' : 'block';
+            if (!isMenuVisible) {
+                document.addEventListener('click', outsideClickListener);
+            } else {
+                document.removeEventListener('click', outsideClickListener);
+            }
+        }
+
+        function outsideClickListener(event) {
+            const menu = document.getElementById('menu');
+            const hamburger = document.querySelector('.hamburger');
+            if (!menu.contains(event.target) && !hamburger.contains(event.target)) {
+                menu.style.display = 'none';
+                document.removeEventListener('click', outsideClickListener);
+            }
+        }
     </script>
 </body>
 </html>
