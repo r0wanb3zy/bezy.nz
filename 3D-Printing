@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Grid with Carousel Images</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            padding: 20px;
+        }
+
+        header h1 {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+
+        .product-tile {
+            background-color: #fff;
+            padding: 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden; /* Ensure content doesn't overflow */
+        }
+
+.carousel {
+    position: relative;
+    width: 100%;
+    padding-top: 100%; /* 1:1 Aspect Ratio */
+    overflow: hidden;
+    border-radius: 0px;
+}
+
+        .carousel .carousel-images {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            transition: transform 0.5s ease; /* Smooth transition */
+        }
+
+        .carousel .carousel-images img {
+            width: 100%; /* Adjusted width */
+            height: 100%; /* Ensure the image stretches fully */
+            object-fit: cover;
+            flex-shrink: 0; /* Prevent image from shrinking */
+        }
+
+        .carousel button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 1; /* Ensure buttons are above images */
+        }
+
+        .carousel .prev {
+            left: 10px;
+        }
+
+        .carousel .next {
+            right: 10px;
+        }
+
+        .content {
+            margin-top: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+            padding: 0px 20px;
+        }
+
+        ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Product Grid with Carousel Images</h1>
+        </header>
+        <section class="product-grid">
+            <!-- Product 1 -->
+            <div class="product-tile">
+                <div class="carousel">
+                    <div class="carousel-images">
+                        <img src="https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png" alt="Product 1 Image 1">
+                        <img src="https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png" alt="Product 1 Image 2">
+                        <img src="https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png" alt="Product 1 Image 3">
+                    </div>
+                    <button class="prev">&#10094;</button>
+                    <button class="next">&#10095;</button>
+                </div>
+                <div class="content">
+                    <h2>Product Title 1</h2>
+                    <p><strong>Description:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.</p>
+                </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="product-tile">
+                <div class="carousel">
+                    <div class="carousel-images">
+                        <img src="https://via.placeholder.com/300x300?text=Product+2+Image+1" alt="Product 2 Image 1">
+                        <img src="https://via.placeholder.com/300x300?text=Product+2+Image+2" alt="Product 2 Image 2">
+                        <img src="https://via.placeholder.com/300x300?text=Product+2+Image+3" alt="Product 2 Image 3">
+                    </div>
+                    <button class="prev">&#10094;</button>
+                    <button class="next">&#10095;</button>
+                </div>
+                <div class="content">
+                    <h2>Product Title 2</h2>
+                    <p><strong>Description:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed nisi. Nulla quis sem at nibh elementum imperdiet.</p>
+                </div>
+            </div>
+
+            <!-- Product 3 -->
+            <div class="product-tile">
+                <div class="carousel">
+                    <div class="carousel-images">
+                        <img src="https://via.placeholder.com/300x300?text=Product+3+Image+1" alt="Product 3 Image 1">
+                        <img src="https://via.placeholder.com/300x300?text=Product+3+Image+2" alt="Product 3 Image 2">
+                        <img src="https://via.placeholder.com/300x300?text=Product+3+Image+3" alt="Product 3 Image 3">
+                    </div>
+                    <button class="prev">&#10094;</button>
+                    <button class="next">&#10095;</button>
+                </div>
+                <div class="content">
+                    <h2>Product Title 3</h2>
+                    <p><strong>Description:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras metus. Sed aliquet risus a tortor. Integer id quam.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+    <script>
+        document.querySelectorAll('.carousel').forEach(carousel => {
+            const prevButton = carousel.querySelector('.prev');
+            const nextButton = carousel.querySelector('.next');
+            const carouselImages = carousel.querySelector('.carousel-images');
+            const images = Array.from(carouselImages.children);
+            let index = 0;
+
+            function showImage(index) {
+                carouselImages.style.transform = `translateX(-${index * 100}%)`;
+            }
+
+            prevButton.addEventListener('click', () => {
+                index = (index > 0) ? index - 1 : images.length - 1;
+                showImage(index);
+            });
+
+            nextButton.addEventListener('click', () => {
+                index = (index < images.length - 1) ? index + 1 : 0;
+                showImage(index);
+            });
+
+            // Initialize the carousel
+            showImage(index);
+        });
+    </script>
+</body>
+</html>
