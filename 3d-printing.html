@@ -34,6 +34,9 @@
         .header.hidden {
             top: -110px; /* Adjust this value to hide the header completely */
         }
+        .header.show {
+            top: 0; /* Ensure the header is fully visible when scrolling back to the top */
+        }
         .logo a {
             display: block;
         }
@@ -252,63 +255,63 @@
     </div>
 
     <script>
-        document.querySelectorAll('.carousel').forEach(carousel => {
-            const prevButton = carousel.querySelector('.prev');
-            const nextButton = carousel.querySelector('.next');
-            const carouselImages = carousel.querySelector('.carousel-images');
-            const images = Array.from(carouselImages.children);
-            let index = 0;
+document.querySelectorAll('.carousel').forEach(carousel => {
+    const prevButton = carousel.querySelector('.prev');
+    const nextButton = carousel.querySelector('.next');
+    const carouselImages = carousel.querySelector('.carousel-images');
+    const images = Array.from(carouselImages.children);
+    let index = 0;
 
-            function showImage(index) {
-                carouselImages.style.transform = `translateX(-${index * 100}%)`;
-            }
+    function showImage(index) {
+        carouselImages.style.transform = `translateX(-${index * 100}%)`;
+    }
 
-            prevButton.addEventListener('click', () => {
-                index = (index > 0) ? index - 1 : images.length - 1;
-                showImage(index);
-            });
+    prevButton.addEventListener('click', () => {
+        index = (index > 0) ? index - 1 : images.length - 1;
+        showImage(index);
+    });
 
-            nextButton.addEventListener('click', () => {
-                index = (index < images.length - 1) ? index + 1 : 0;
-                showImage(index);
-            });
+    nextButton.addEventListener('click', () => {
+        index = (index < images.length - 1) ? index + 1 : 0;
+        showImage(index);
+    });
 
-            showImage(index);
-        });
+    showImage(index);
+});
 
-        function toggleMenu() {
-            const menu = document.getElementById('menu');
-            const isMenuVisible = menu.style.display === 'block';
-            menu.style.display = isMenuVisible ? 'none' : 'block';
-            if (!isMenuVisible) {
-                document.addEventListener('click', outsideClickListener);
-            } else {
-                document.removeEventListener('click', outsideClickListener);
-            }
-        }
+function toggleMenu() {
+    const menu = document.getElementById('menu');
+    const isMenuVisible = menu.style.display === 'block';
+    menu.style.display = isMenuVisible ? 'none' : 'block';
+    if (!isMenuVisible) {
+        document.addEventListener('click', outsideClickListener);
+    } else {
+        document.removeEventListener('click', outsideClickListener);
+    }
+}
 
-        function outsideClickListener(event) {
-            const menu = document.getElementById('menu');
-            const hamburger = document.querySelector('.hamburger');
-            if (!menu.contains(event.target) && !hamburger.contains(event.target)) {
-                menu.style.display = 'none';
-                document.removeEventListener('click', outsideClickListener);
-            }
-        }
+function outsideClickListener(event) {
+    const menu = document.getElementById('menu');
+    const hamburger = document.querySelector('.hamburger');
+    if (!menu.contains(event.target) && !hamburger.contains(event.target)) {
+        menu.style.display = 'none';
+        document.removeEventListener('click', outsideClickListener);
+    }
+}
 
-        // JavaScript for hiding the logo on scroll
-        let lastScrollTop = 0;
-        const header = document.getElementById('header');
+// JavaScript for hiding the logo on scroll and showing it only at the top
+const header = document.getElementById('header');
 
-        window.addEventListener('scroll', () => {
-            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-            if (currentScroll > lastScrollTop) {
-                header.classList.add('hidden');
-            } else {
-                header.classList.remove('hidden');
-            }
-            lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // For Mobile or negative scrolling
-        });
+window.addEventListener('scroll', () => {
+    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+    if (currentScroll > 0) {
+        // Hide header if not at the top
+        header.classList.add('hidden');
+    } else {
+        // Show header only if at the top of the page
+        header.classList.remove('hidden');
+    }
+});
     </script>
 </body>
 </html>
