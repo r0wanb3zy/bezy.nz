@@ -488,19 +488,18 @@
             document.getElementById('menu').classList.toggle('show');
         }
 
-        let lastScrollTop = 0;
-        window.addEventListener('scroll', () => {
-            const header = document.getElementById('header');
-            let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        // JavaScript for hiding the logo on scroll and showing it only at the top
+        const header = document.getElementById('header');
 
-            if (currentScroll > lastScrollTop) {
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+            if (currentScroll > 0) {
+                // Hide header if not at the top
                 header.classList.add('hidden');
             } else {
+                // Show header only if at the top of the page
                 header.classList.remove('hidden');
-                header.classList.add('show');
             }
-
-            lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
         });
     </script>
 </body>
