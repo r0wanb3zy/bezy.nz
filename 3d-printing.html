@@ -266,7 +266,7 @@
             padding: 20px;
             border-radius: 8px;
             z-index: 1000;
-            width: 80%;
+            width: 90%;
             max-width: 600px;
         }
 
@@ -358,7 +358,7 @@
 
     <div class="container">
         <header>
-            <h1>Welcome to Bezy 3D Printing</h1>
+            <h1>3D Printing</h1>
             <p>Your one-stop shop for custom 3D-printed parts and prototypes. Explore our wide range of products designed to meet your needs.</p>
         </header>
 
@@ -395,7 +395,7 @@
                     <a href="mailto:info@bezy.nz?subject=Product%20Enquiry" class="order">Order</a>
                 </div>
                 <div class="content">
-                    <h2>Ryobi Battery Holder 1</h2>
+                    <h2>Ryobi Battery Holder 2</h2>
                     <p class="sub-heading">Single Battery</p>
                     <p>Keep your Ryobi batteries organized and ready for action with this custom-made, 3D-printed battery holder...</p>
                     <a href="#" class="learn-more-button" onclick="showPopup('popup1')">Learn More</a>
@@ -414,7 +414,7 @@
                     <a href="mailto:info@bezy.nz?subject=Product%20Enquiry" class="order">Order</a>
                 </div>
                 <div class="content">
-                    <h2>Ryobi Battery Holder 1</h2>
+                    <h2>Ryobi Battery Holder 3</h2>
                     <p class="sub-heading">Single Battery</p>
                     <p>Keep your Ryobi batteries organized and ready for action with this custom-made, 3D-printed battery holder...</p>
                     <a href="#" class="learn-more-button" onclick="showPopup('popup1')">Learn More</a>
@@ -511,6 +511,12 @@
             document.getElementById('overlay').classList.remove('active');
             document.querySelectorAll('.popup').forEach(popup => popup.classList.remove('active'));
         }
+      document.querySelectorAll('.learn-more-button').forEach(button => {
+    button.addEventListener('click', event => {
+        event.preventDefault(); // Prevent the default anchor behavior
+        showPopup(button.getAttribute('onclick').match(/'([^']*)'/)[1]);
+    });
+});
     </script>
 </body>
 
