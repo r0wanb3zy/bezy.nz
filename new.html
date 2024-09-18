@@ -24,10 +24,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            transition: opacity 0.3s ease;
         }
 
         .logo img {
             max-height: 100px;
+        }
+
+        .logo.hidden {
+            opacity: 0;
         }
 
         .menu {
@@ -119,7 +124,6 @@
         .active {
             display: block;
         }
-
     </style>
 </head>
 <body>
@@ -171,6 +175,19 @@
                 menu.classList.remove("active");
             }
         });
+
+        // Function to toggle the logo visibility based on scroll position
+        function handleScroll() {
+            const logo = document.querySelector('.logo');
+            if (window.scrollY > 0) {
+                logo.classList.add('hidden');
+            } else {
+                logo.classList.remove('hidden');
+            }
+        }
+
+        // Add the scroll event listener
+        window.addEventListener('scroll', handleScroll);
     </script>
 
 </body>
