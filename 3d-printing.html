@@ -121,6 +121,7 @@
         }
 
         .product-tile {
+            position: relative;
             background-color: #fff;
             padding: 0;
             border-radius: 8px;
@@ -232,7 +233,87 @@
         }
 
         a:hover {
-            text-decoration: underline;
+            text-decoration: none;
+        }
+
+        /* Button for learning more */
+        .learn-more-button {
+            display: inline-block;
+          
+          margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #000;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .learn-more-button:hover {
+            background-color: gray;
+        }
+
+        /* Popup styles */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .popup.active {
+            display: block;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .popup-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .popup-header .close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .popup-content {
+            margin-top: 20px;
+        }
+
+        .popup-content ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .overlay.active {
+            display: block;
         }
 
         /* Media Queries for Mobile Devices */
@@ -245,6 +326,10 @@
                 top: 180px;
                 /* Adjust if needed for mobile */
             }
+        }
+              /* Prevent scrolling when popup is active */
+        .no-scroll {
+            overflow: hidden;
         }
     </style>
 </head>
@@ -267,18 +352,16 @@
             <a href="/3d-printing.html">3D Printing</a>
             <a href="#">CAD Design</a>
             <a href="#">Graphic Design</a>
-            <a href="#">About</a>
-            <a href="#">Contact</a>
+            <a href="#">Web Development</a>
         </div>
     </div>
 
     <div class="container">
         <header>
-            <h1>3D Printing</h1>
-            <p>Welcome to our 3D printing showcase. Explore our latest projects and innovations in the world of 3D
-                printing. We offer a variety of products and designs to inspire your creativity and meet your printing
-                needs.</p>
+            <h1>Welcome to Bezy 3D Printing</h1>
+            <p>Your one-stop shop for custom 3D-printed parts and prototypes. Explore our wide range of products designed to meet your needs.</p>
         </header>
+
         <section class="product-grid">
             <div class="product-tile">
                 <div class="carousel">
@@ -295,14 +378,11 @@
                 <div class="content">
                     <h2>Ryobi Battery Holder 1</h2>
                     <p class="sub-heading">Single Battery</p>
-
-                    <p>Keep your Ryobi batteries organized and ready for action with this custom-made, 3D-printed
-                        battery holder. Designed to perfectly fit Ryobi 18V batteries, this holder ensures a snug,
-                        secure fit whether you're storing it on a workbench or mounting it on a wall.</p>
+                    <p>Keep your Ryobi batteries organized and ready for action with this custom-made, 3D-printed battery holder...</p>
+                    <a href="#" class="learn-more-button" onclick="showPopup('popup1')">Learn More</a>
                 </div>
             </div>
-
-            <div class="product-tile">
+ <div class="product-tile">
                 <div class="carousel">
                     <div class="carousel-images">
                         <img src="https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png" alt="Product 1 Image 1">
@@ -311,19 +391,17 @@
                     </div>
                     <button class="prev">&#10094;</button>
                     <button class="next">&#10095;</button>
-                    <div class="price-tag">$15.00</div>
+                    <div class="price-tag">$11.00</div>
                     <a href="mailto:info@bezy.nz?subject=Product%20Enquiry" class="order">Order</a>
-
                 </div>
                 <div class="content">
-                    <h2>Ryobi Battery Holder 2</h2>
-                    <p class="sub-heading">Double Battery</p>
-                    <p><strong>Description:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed nisi.
-                        Nulla quis sem at nibh elementum imperdiet.</p>
+                    <h2>Ryobi Battery Holder 1</h2>
+                    <p class="sub-heading">Single Battery</p>
+                    <p>Keep your Ryobi batteries organized and ready for action with this custom-made, 3D-printed battery holder...</p>
+                    <a href="#" class="learn-more-button" onclick="showPopup('popup1')">Learn More</a>
                 </div>
             </div>
-
-            <div class="product-tile">
+           <div class="product-tile">
                 <div class="carousel">
                     <div class="carousel-images">
                         <img src="https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png" alt="Product 1 Image 1">
@@ -332,77 +410,107 @@
                     </div>
                     <button class="prev">&#10094;</button>
                     <button class="next">&#10095;</button>
-                    <div class="price-tag">$30.00</div>
+                    <div class="price-tag">$11.00</div>
                     <a href="mailto:info@bezy.nz?subject=Product%20Enquiry" class="order">Order</a>
                 </div>
                 <div class="content">
-                    <h2>Flush Fit Kit</h2>
-                    <p class="sub-heading">For Sellwood Attic Ladder</p>
-                    <p><strong>Description:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras
-                        metus. Sed aliquet risus a tortor. Integer id quam.</p>
+                    <h2>Ryobi Battery Holder 1</h2>
+                    <p class="sub-heading">Single Battery</p>
+                    <p>Keep your Ryobi batteries organized and ready for action with this custom-made, 3D-printed battery holder...</p>
+                    <a href="#" class="learn-more-button" onclick="showPopup('popup1')">Learn More</a>
                 </div>
             </div>
+            <!-- Additional products go here -->
+
         </section>
+    </div>
+
+    <!-- Popup Structure -->
+    <div class="overlay" id="overlay" onclick="hidePopup()"></div>
+    <div class="popup" id="popup1">
+        <div class="popup-header">
+            <h2>Ryobi Battery Holder 1</h2>
+            <button class="close" onclick="hidePopup()">&times;</button>
+        </div>
+        <div class="popup-content">
+            <p><strong>Description:</strong> Keep your Ryobi batteries organized...</p>
+            <p><strong>Key Features:</strong></p>
+            <ul>
+                <li>Feature 1</li>
+                <li>Feature 2</li>
+                <li>Feature 3</li>
+            </ul>
+        </div>
     </div>
 
     <script>
         document.querySelectorAll('.carousel').forEach(carousel => {
-    const prevButton = carousel.querySelector('.prev');
-    const nextButton = carousel.querySelector('.next');
-    const carouselImages = carousel.querySelector('.carousel-images');
-    const images = Array.from(carouselImages.children);
-    let index = 0;
+            const prevButton = carousel.querySelector('.prev');
+            const nextButton = carousel.querySelector('.next');
+            const carouselImages = carousel.querySelector('.carousel-images');
+            const images = Array.from(carouselImages.children);
+            let index = 0;
 
-    function showImage(index) {
-        carouselImages.style.transform = `translateX(-${index * 100}%)`;
-    }
+            function showImage(index) {
+                carouselImages.style.transform = `translateX(-${index * 100}%)`;
+            }
 
-    prevButton.addEventListener('click', () => {
-        index = (index > 0) ? index - 1 : images.length - 1;
-        showImage(index);
-    });
+            prevButton.addEventListener('click', () => {
+                index = (index > 0) ? index - 1 : images.length - 1;
+                showImage(index);
+            });
 
-    nextButton.addEventListener('click', () => {
-        index = (index < images.length - 1) ? index + 1 : 0;
-        showImage(index);
-    });
+            nextButton.addEventListener('click', () => {
+                index = (index < images.length - 1) ? index + 1 : 0;
+                showImage(index);
+            });
 
-    showImage(index);
-});
+            showImage(index);
+        });
 
-function toggleMenu() {
-    const menu = document.getElementById('menu');
-    const isMenuVisible = menu.style.display === 'block';
-    menu.style.display = isMenuVisible ? 'none' : 'block';
-    if (!isMenuVisible) {
-        document.addEventListener('click', outsideClickListener);
-    } else {
-        document.removeEventListener('click', outsideClickListener);
-    }
-}
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            const isMenuVisible = menu.style.display === 'block';
+            menu.style.display = isMenuVisible ? 'none' : 'block';
+            if (!isMenuVisible) {
+                document.addEventListener('click', outsideClickListener);
+            } else {
+                document.removeEventListener('click', outsideClickListener);
+            }
+        }
 
-function outsideClickListener(event) {
-    const menu = document.getElementById('menu');
-    const hamburger = document.querySelector('.hamburger');
-    if (!menu.contains(event.target) && !hamburger.contains(event.target)) {
-        menu.style.display = 'none';
-        document.removeEventListener('click', outsideClickListener);
-    }
-}
+        function outsideClickListener(event) {
+            const menu = document.getElementById('menu');
+            const hamburger = document.querySelector('.hamburger');
+            if (!menu.contains(event.target) && !hamburger.contains(event.target)) {
+                menu.style.display = 'none';
+                document.removeEventListener('click', outsideClickListener);
+            }
+        }
 
-// JavaScript for hiding the logo on scroll and showing it only at the top
-const header = document.getElementById('header');
+        // JavaScript for hiding the logo on scroll and showing it only at the top
+        const header = document.getElementById('header');
 
-window.addEventListener('scroll', () => {
-    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-    if (currentScroll > 0) {
-        // Hide header if not at the top
-        header.classList.add('hidden');
-    } else {
-        // Show header only if at the top of the page
-        header.classList.remove('hidden');
-    }
-});
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+            if (currentScroll > 0) {
+                // Hide header if not at the top
+                header.classList.add('hidden');
+            } else {
+                // Show header only if at the top of the page
+                header.classList.remove('hidden');
+            }
+        });
+
+        function showPopup(id) {
+            document.getElementById('overlay').classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        function hidePopup() {
+            document.getElementById('overlay').classList.remove('active');
+            document.querySelectorAll('.popup').forEach(popup => popup.classList.remove('active'));
+        }
     </script>
 </body>
 
