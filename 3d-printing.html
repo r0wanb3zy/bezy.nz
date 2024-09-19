@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Printing</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.logo {
+    width: 100%;
+    height: auto;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+}
+
+.logo img {
+    max-height: 100px;
+}
+
+.logo.hidden {
+    opacity: 0;
+}
+
+.menu {
+    width: 100%;
+    height: 60px;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.hamburger {
+    cursor: pointer;
+}
+
+.hamburger div {
+    width: 30px;
+    height: 3px;
+    background-color: black;
+    margin: 5px 0;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.95);
+    width: 100%;
+    max-width: 250px;
+    display: none;
+    text-align: center;
+}
+
+.dropdown-menu a {
+    display: block;
+    text-decoration: none;
+    color: black;
+    padding: 10px 15px;
+}
+
+.title {
+    width: 100%;
+    min-height: 200px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.title h1 {
+    margin: 0;
+}
+
+p {
+    max-width: 600px;
+    margin: 20px 0 0 0;
+    line-height: 1.5;
+}
+
+.footer {
+    width: 100%;
+    background-color: #ddd;
+    color: #000;
+    padding: 20px;
+    text-align: center;
+}
+
+.active {
+    display: block;
+}
+
+.main {
+    width: 100%;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 0px 20px 20px 20px;
+    align-items: center; /* Center content horizontally */
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    text-align: center;
+    max-width: 1200px; /* Set max-width for the grid */
+    width: 100%; /* Ensure it takes full width up to max-width */
+}
+
+.product-tile {
+    position: relative;
+    background-color: #fff;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.carousel {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+    overflow: hidden;
+}
+
+.carousel-images {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    transition: transform 0.5s ease;
+}
+
+.carousel-images img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.carousel button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0);
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.carousel .prev {
+    left: 10px;
+}
+
+.carousel .next {
+    right: 10px;
+}
+
+.price-tag {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 5px 10px;
+    font-size: 18px;
+    font-weight: bold;
+    color: black;
+    border-radius: 5px;
+    z-index: 5;
+}
+
+.order:hover {
+    color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.content {
+    margin-top: 20px;
+}
+
+.sub-heading {
+    font-style: italic;
+    margin-top: -12px;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+h2 {
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+    font-size: 14px;
+    padding: 0 20px;
+}
+
+a {
+    color: #007BFF;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+.learn-more-button {
+    display: inline-block;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    background-color: #000;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+}
+
+.learn-more-button:hover {
+    background-color: gray;
+}
+
+.popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 8px;
+    z-index: 1000;
+    width: 90%;
+    max-width: 600px;
+}
+
+.popup.active {
+    display: block;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popup-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.popup-header .close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.popup-content {
+    margin-top: 20px;
+}
+
+.popup-content ul {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    z-index: 1000;
+}
+
+.overlay.active {
+    display: block;
+}
+
+    </style>
+</head>
+
+<body>
+    <div class="logo">
+        <img src="images/bezy-logo.png" alt="Logo">
+    </div>
+
+    <div class="menu">
+        <div class="hamburger" onclick="toggleMenu(event)">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div class="dropdown-menu" id="dropdownMenu">
+            <a href="/">Home</a>
+            <a href="/3d-printing.html">3D Printing</a>
+            <a href="/3d-rendering.html">3D Rendering</a>
+            <a href="/cad-design.html">CAD Design</a>
+            <a href="graphic-design.html">Graphic Design</a>
+            <a href="contact.html">Contact</a>
+        </div>
+    </div>
+
+    <div class="title">
+        <h1>3D Printing</h1>
+        <p>Your body copy goes here. This is where you can add any additional information or description that you want
+            to appear in this section.</p>
+    </div>
+
+    <div class="main">
+        <section class="product-grid">
+            <template id="product-template">
+                <div class="product-tile">
+                    <div class="carousel">
+                        <div class="carousel-images"></div>
+                        <button class="prev">&#10094;</button>
+                        <button class="next">&#10095;</button>
+                        <div class="price-tag"></div>
+                    </div>
+                    <div class="content">
+                        <h2 class="product-heading"></h2>
+                        <p class="sub-heading"></p>
+                        <p class="price-tag"></p>
+                        <button class="learn-more-button">Learn More</button>
+                    </div>
+                </div>
+            </template>
+        </section>
+    
+        <div class="overlay" id="overlay"></div>
+    
+        <div class="popup" id="popup">
+            <div class="popup-header">
+                <h2 id="popup-heading"></h2>
+                <button class="close" onclick="closePopup()">×</button>
+            </div>
+            <div class="popup-content">
+                <p id="popup-subtitle"></p>
+                <p id="popup-price"></p>
+                <p id="popup-description"></p>
+                <ul id="popup-features"></ul>
+                <p id="popup-download"></p>
+                <p id="popup-colours"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <strong>Bezy</strong><br>info@bezy.nz
+    </div>
+
+    <script>
+function toggleMenu(event) {
+    event.stopPropagation(); // Prevents the click event from propagating to the document
+    var menu = document.getElementById("dropdownMenu");
+    menu.classList.toggle("active");
+}
+
+// Close dropdown menu when clicking outside of it
+document.addEventListener("click", function(event) {
+    var menu = document.getElementById("dropdownMenu");
+    var hamburger = document.querySelector(".hamburger");
+    if (!menu.contains(event.target) && !hamburger.contains(event.target)) {
+        menu.classList.remove("active");
+    }
+});
+
+// Function to toggle the logo visibility based on scroll position
+function handleScroll() {
+    const logo = document.querySelector('.logo');
+    if (window.scrollY > 0) {
+        logo.classList.add('hidden');
+    } else {
+        logo.classList.remove('hidden');
+    }
+}
+
+// Add the scroll event listener
+window.addEventListener('scroll', handleScroll);
+
+const products = [
+    {
+        heading: 'Product 1',
+        subtitle: 'Subtitle 1',
+        price: '$20',
+        description: 'Description for Product 1.',
+        features: ['Feature 1', 'Feature 2', 'Feature 3'],
+        download: 'Link to download',
+        colours: 'Available in various colours',
+        images: ['https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png', 'https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png'],
+    },
+    {
+        heading: 'Product 2',
+        subtitle: 'Subtitle 1',
+        price: '$20',
+        description: 'Description for Product 2.',
+        features: ['Feature 1', 'Feature 2', 'Feature 3'],
+        download: 'Link to download',
+        colours: 'Available in various colours',
+        images: ['https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png', 'https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png'],
+    },
+    {
+        heading: 'Product 3',
+        subtitle: 'Subtitle 1',
+        price: '$20',
+        description: 'Description for Product 3.',
+        features: ['Feature 1', 'Feature 2', 'Feature 3'],
+        download: 'Link to download',
+        colours: 'Available in various colours',
+        images: ['https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png', 'https://s3.amazonaws.com/www-inside-design/uploads/2020/10/aspect-ratios-blogpost-1x1-1.png'],
+    },
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+    const productGrid = document.querySelector('.product-grid');
+    const template = document.getElementById('product-template');
+
+    products.forEach((product, index) => {
+        const clone = document.importNode(template.content, true);
+        const productTile = clone.querySelector('.product-tile');
+        const carouselImages = clone.querySelector('.carousel-images');
+        const priceTag = clone.querySelector('.price-tag');
+        const headingElement = clone.querySelector('.product-heading');
+        const subHeadingElement = clone.querySelector('.sub-heading');
+        const learnMoreButton = clone.querySelector('.learn-more-button');
+
+        headingElement.textContent = product.heading;
+        subHeadingElement.textContent = product.subtitle;
+        priceTag.textContent = product.price;
+
+        product.images.forEach(image => {
+            const imgElement = document.createElement('img');
+            imgElement.src = image;
+            carouselImages.appendChild(imgElement);
+        });
+
+        learnMoreButton.addEventListener('click', () => {
+            showPopup(product);
+        });
+
+        productGrid.appendChild(clone);
+
+        setupCarousel(productTile);
+    });
+});
+
+function setupCarousel(productTile) {
+    const carousel = productTile.querySelector('.carousel');
+    const images = carousel.querySelector('.carousel-images');
+    const prevButton = carousel.querySelector('.prev');
+    const nextButton = carousel.querySelector('.next');
+
+    let index = 0;
+
+    function updateCarousel() {
+        const totalImages = images.children.length;
+        images.style.transform = `translateX(-${index * 100}%)`;
+    }
+
+    prevButton.addEventListener('click', () => {
+        index = (index > 0) ? index - 1 : images.children.length - 1;
+        updateCarousel();
+    });
+
+    nextButton.addEventListener('click', () => {
+        index = (index < images.children.length - 1) ? index + 1 : 0;
+        updateCarousel();
+    });
+
+    updateCarousel();
+}
+
+function showPopup(product) {
+    document.getElementById('popup-heading').textContent = product.heading;
+    document.getElementById('popup-subtitle').textContent = product.subtitle;
+    document.getElementById('popup-price').textContent = product.price;
+    document.getElementById('popup-description').textContent = product.description;
+    document.getElementById('popup-features').innerHTML = product.features.map(feature => `<li>${feature}</li>`).join('');
+    document.getElementById('popup-download').textContent = product.download;
+    document.getElementById('popup-colours').textContent = product.colours;
+    document.getElementById('overlay').classList.add('active');
+    document.getElementById('popup').classList.add('active');
+    document.body.classList.add('no-scroll');
+}
+
+function closePopup() {
+    document.getElementById('popup').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+    document.body.classList.remove('no-scroll');
+}
+
+document.getElementById('overlay').addEventListener('click', closePopup);
+
+    </script>
+</body>
+
+</html>
