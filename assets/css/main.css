@@ -2697,7 +2697,7 @@ button:disabled,
 	-ms-flex-wrap: wrap;
 	flex-wrap: wrap;
 	postiion: relative;
-	margin: -2.5em 0 0 -2.5em;
+	margin: -1.5em 0 0 -1.5em;
 }
 
 .tiles article {
@@ -2707,7 +2707,7 @@ button:disabled,
 	transition: transform 0.5s ease, opacity 0.5s ease;
 	position: relative;
 	width: calc(33.33333% - 2.5em);
-	margin: 2.5em 0 0 2.5em;
+	margin: 1.5em 0 0 1.5em;
 }
 
 .tiles article>.image {
@@ -2935,7 +2935,7 @@ body.is-touch .tiles article .content {
 
 }
 
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 600px) {
 
 	.tiles {
 		margin: 0;
@@ -2946,6 +2946,17 @@ body.is-touch .tiles article .content {
 		margin: 1.25em 0 0 0;
 	}
 
+}
+
+.tiles article .price {
+    background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
+    color: #ffffff; /* Black text for contrast */
+    padding: 0.5em 1em; /* Some padding */
+    border-radius: 4px; /* Rounded corners */
+    z-index: 4; /* Above other content */
+    text-align: center; /* Center text */
+    font-weight: bold; /* Make text bold */
+    margin: .5em auto 0; /* Center it horizontally and add top margin */
 }
 
 /* Header */
