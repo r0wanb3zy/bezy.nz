@@ -2698,6 +2698,7 @@ button:disabled,
 	flex-wrap: wrap;
 	postiion: relative;
 	margin: -1.5em 0 0 -1.5em;
+	
 }
 
 .tiles article {
@@ -2792,7 +2793,7 @@ button:disabled,
 	left: 0;
 	width: 100%;
 	height: 100%;
-	padding: 1em;
+	padding: 3em;
 	border-radius: 4px;
 	border-bottom: 0;
 	color: #ffffff;
@@ -2924,6 +2925,7 @@ body.is-touch .tiles article .content {
 	.tiles article {
 		width: calc(50% - 1.25em);
 		margin: 1.25em 0 0 1.25em;
+		
 	}
 
 	.tiles article:hover>.image {
@@ -2944,6 +2946,7 @@ body.is-touch .tiles article .content {
 	.tiles article {
 		width: 100%;
 		margin: 1.25em 0 0 0;
+		
 	}
 
 }
