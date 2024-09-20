@@ -1,0 +1,231 @@
+<!DOCTYPE HTML>
+<html lang="en"></html>
+<html>
+	<head>
+		<title>Generic - Phantom by HTML5 UP</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<div class="inner">
+
+							<!-- Logo -->
+								<a href="index.html" class="logo">
+									<span class="symbol"><img src="images/bezy-logo.png" alt="" /></span><span class="title"></span>
+								</a>
+
+							<!-- Nav -->
+								<nav>
+									<ul>
+										<li><a href="#menu">Menu</a></li>
+									</ul>
+								</nav>
+
+						</div>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<h2>Menu</h2>
+						<ul>
+							<li><a href="index.html">Home</a></li>
+							<li><a href="3d-printing.html">3D Printing</a></li>
+							<li><a href="generic.html">3D Rending</a></li>
+							<li><a href="generic.html">CAD Design</a></li>
+							<li><a href="generic.html">Graphic Design</a></li>
+							<li><a href="generic.html">Event Planing</a></li>
+							<li><a href="generic.html">Interior Decorating</a></li>
+							<li><a href="generic.html">Building</a></li>
+							<li><a href="generic.html">Contact</a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+
+				<style>
+					.gallery {
+						display: grid;
+						grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+						grid-auto-rows: 200px; /* Set a minimum row height */
+						gap: 10px;
+						padding: 16px;
+						max-width: 1200px;
+						margin: auto;
+						margin-bottom: 20px;
+					}
+			
+					.gallery-item {
+						position: relative;
+						overflow: hidden;
+						border-radius: 8px;
+						box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+						background: #fff; /* Background for better visibility */
+					}
+			
+					.gallery-item img {
+						width: 100%;
+						height: 100%; /* Make images fill the item */
+						object-fit: cover; /* Maintain aspect ratio */
+						object-position: center; /* Center the image */
+						display: block;
+						transition: transform 0.3s ease, filter 0.3s ease;
+					}
+			
+					.gallery-item:hover img {
+						transform: scale(1.05);
+						filter: brightness(0.8);
+					}
+			
+					/* Lightbox */
+					.lightbox {
+						position: fixed;
+						z-index: 1000;
+						display: none;
+						top: 0;
+						left: 0;
+						width: 100%;
+						height: 100%;
+						background-color: rgba(0, 0, 0, 0.9);
+						justify-content: center;
+						align-items: center;
+					}
+			
+					.lightbox img {
+						max-width: 90%;
+						max-height: 90%;
+						border: 3px solid white;
+					}
+			
+					.close {
+						position: absolute;
+						top: 20px;
+						right: 40px;
+						color: white;
+						font-size: 40px;
+						cursor: pointer;
+					}
+			
+					/* Responsive Design */
+					@media (max-width: 768px) {
+						.gallery {
+							grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+						}
+					}
+			
+					@media (max-width: 480px) {
+						.gallery {
+							grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+						}
+					}
+				</style>
+			</head>
+			<body>
+			
+			<!-- Masonry Gallery -->
+			<div class="gallery">
+				<div class="gallery-item">
+					<img src="https://picsum.photos/400/600?random=1" alt="Gallery Image 1" onclick="openLightbox(this)">
+				</div>
+				<div class="gallery-item">
+					<img src="https://picsum.photos/600/400?random=2" alt="Gallery Image 2" onclick="openLightbox(this)">
+				</div>
+				<div class="gallery-item">
+					<img src="https://picsum.photos/300/700?random=3" alt="Gallery Image 3" onclick="openLightbox(this)">
+				</div>
+				<div class="gallery-item">
+					<img src="https://picsum.photos/500/500?random=4" alt="Gallery Image 4" onclick="openLightbox(this)">
+				</div>
+				<div class="gallery-item">
+					<img src="https://picsum.photos/700/300?random=5" alt="Gallery Image 5" onclick="openLightbox(this)">
+				</div>
+				<div class="gallery-item">
+					<img src="https://picsum.photos/600/600?random=6" alt="Gallery Image 6" onclick="openLightbox(this)">
+				</div>
+				<div class="gallery-item">
+					<img src="https://picsum.photos/400/400?random=7" alt="Gallery Image 7" onclick="openLightbox(this)">
+				</div>
+				<div class="gallery-item">
+					<img src="https://picsum.photos/600/800?random=8" alt="Gallery Image 8" onclick="openLightbox(this)">
+				</div>
+			</div>
+			
+			<!-- Lightbox Modal -->
+			<div class="lightbox" id="lightbox">
+				<span class="close" onclick="closeLightbox()">&times;</span>
+				<img id="lightbox-img" src="">
+			</div>
+			
+			<script>
+				// Lightbox Functionality
+				function openLightbox(image) {
+					const lightbox = document.getElementById("lightbox");
+					const lightboxImg = document.getElementById("lightbox-img");
+					lightboxImg.src = image.src;
+					lightbox.style.display = "flex";
+				}
+			
+				function closeLightbox() {
+					const lightbox = document.getElementById("lightbox");
+					lightbox.style.display = "none";
+				}
+			</script>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<div class="inner">
+							<section>
+								<h2>Get in touch</h2>
+								<form method="post" action="#">
+									<div class="fields">
+										<div class="field half">
+											<input type="text" name="name" id="name" placeholder="Name" />
+										</div>
+										<div class="field half">
+											<input type="email" name="email" id="email" placeholder="Email" />
+										</div>
+										<div class="field">
+											<textarea name="message" id="message" placeholder="Message"></textarea>
+										</div>
+									</div>
+									<ul class="actions">
+										<li><input type="submit" value="Send" class="primary" /></li>
+									</ul>
+								</form>
+							</section>
+							<section>
+								<h2>Follow</h2>
+								<ul class="icons">
+									<li><a href="#" class="icon brands style2 fa-twitter"><span class="label">Twitter</span></a></li>
+									<li><a href="#" class="icon brands style2 fa-facebook-f"><span class="label">Facebook</span></a></li>
+									<li><a href="#" class="icon brands style2 fa-instagram"><span class="label">Instagram</span></a></li>
+									<li><a href="#" class="icon brands style2 fa-dribbble"><span class="label">Dribbble</span></a></li>
+									<li><a href="#" class="icon brands style2 fa-github"><span class="label">GitHub</span></a></li>
+									<li><a href="#" class="icon brands style2 fa-500px"><span class="label">500px</span></a></li>
+									<li><a href="#" class="icon solid style2 fa-phone"><span class="label">Phone</span></a></li>
+									<li><a href="#" class="icon solid style2 fa-envelope"><span class="label">Email</span></a></li>
+								</ul>
+							</section>
+							<ul class="copyright">
+								<li>&copy; Untitled. All rights reserved</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
