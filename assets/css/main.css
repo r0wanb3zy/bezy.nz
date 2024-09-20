@@ -2954,7 +2954,7 @@ body.is-touch .tiles article .content {
 .tiles article .price {
     background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
     color: #ffffff; /* Black text for contrast */
-    padding: 0.5em 1em; /* Some padding */
+    padding: 0.3em .8em; /* Some padding */
     border-radius: 4px; /* Rounded corners */
     z-index: 4; /* Above other content */
     text-align: center; /* Center text */
