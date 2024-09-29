@@ -312,6 +312,7 @@ h6 {
 	margin: 0 0 2em 0;
 	text-transform: uppercase;
 	letter-spacing: 0.35em;
+	text-align: center;
 }
 
 h2 a,
@@ -2992,7 +2993,7 @@ body.is-touch .tiles article .content {
 
 #header .logo .symbol img {
 	display: block;
-	max-height: 200px;
+	max-height: 150px;
 
 }
 
