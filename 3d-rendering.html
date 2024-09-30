@@ -7,6 +7,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
 	</head>
 	<body class="is-preload">
 		<!-- Wrapper -->
@@ -161,22 +162,60 @@
 				</div>
 				
 				<script>
-					// Lightbox Functionality
-					function openLightbox(image) {
+					let currentImageIndex = 0; // Track the current image index
+				
+					// Open Lightbox
+					function openLightbox(image, index) {
 						const lightbox = document.getElementById("lightbox");
 						const lightboxImg = document.getElementById("lightbox-img");
 						lightboxImg.src = image.src;
 						lightbox.style.display = "flex";
+						currentImageIndex = index; // Set the current image index
+				
+						// Add pinch and zoom functionality
+						const hammer = new Hammer(lightboxImg);
+						hammer.get('pinch').set({ enable: true });
+						
+						hammer.on("pinch", function (ev) {
+							lightboxImg.style.transform = `scale(${ev.scale})`;
+						});
+				
+						hammer.on("pinchend", function () {
+							lightboxImg.style.transform = 'scale(1)'; // Reset the scale after pinch ends
+						});
 					}
 				
+					// Close Lightbox
 					function closeLightbox(event) {
-						// Close lightbox if clicked outside the image
 						const lightboxImg = document.getElementById("lightbox-img");
 						if (event.target !== lightboxImg) {
 							const lightbox = document.getElementById("lightbox");
 							lightbox.style.display = "none";
 						}
 					}
+				
+					// Swipe functionality
+					const images = document.querySelectorAll('.gallery-item img');
+					const lightboxImg = document.getElementById("lightbox-img");
+					const lightbox = document.getElementById("lightbox");
+					
+					// Setup Hammer.js for swipe gestures
+					const lightboxHammer = new Hammer(lightbox);
+					
+					lightboxHammer.on('swipeleft', function() {
+						currentImageIndex = (currentImageIndex + 1) % images.length; // Move to the next image
+						lightboxImg.src = images[currentImageIndex].src;
+					});
+				
+					lightboxHammer.on('swiperight', function() {
+						currentImageIndex = (currentImageIndex - 1 + images.length) % images.length; // Move to the previous image
+						lightboxImg.src = images[currentImageIndex].src;
+					});
+				
+					// Add click event listeners to open lightbox with the correct index
+					images.forEach((image, index) => {
+						image.addEventListener('click', () => openLightbox(image, index));
+					});
 				</script>
 				
 
