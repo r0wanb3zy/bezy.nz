@@ -175,7 +175,7 @@
 						// Add pinch and zoom functionality
 						const hammer = new Hammer(lightboxImg);
 						hammer.get('pinch').set({ enable: true });
-						
+				
 						hammer.on("pinch", function (ev) {
 							lightboxImg.style.transform = `scale(${ev.scale})`;
 						});
@@ -183,6 +183,9 @@
 						hammer.on("pinchend", function () {
 							lightboxImg.style.transform = 'scale(1)'; // Reset the scale after pinch ends
 						});
+				
+						// Enable keyboard navigation
+						document.addEventListener('keydown', handleKeyDown);
 					}
 				
 					// Close Lightbox
@@ -191,6 +194,7 @@
 						if (event.target !== lightboxImg) {
 							const lightbox = document.getElementById("lightbox");
 							lightbox.style.display = "none";
+							document.removeEventListener('keydown', handleKeyDown); // Remove keydown listener when lightbox is closed
 						}
 					}
 				
@@ -198,19 +202,38 @@
 					const images = document.querySelectorAll('.gallery-item img');
 					const lightboxImg = document.getElementById("lightbox-img");
 					const lightbox = document.getElementById("lightbox");
-					
+				
 					// Setup Hammer.js for swipe gestures
 					const lightboxHammer = new Hammer(lightbox);
-					
+				
 					lightboxHammer.on('swipeleft', function() {
-						currentImageIndex = (currentImageIndex + 1) % images.length; // Move to the next image
-						lightboxImg.src = images[currentImageIndex].src;
+						navigateToNextImage();
 					});
 				
 					lightboxHammer.on('swiperight', function() {
+						navigateToPreviousImage();
+					});
+				
+					// Arrow key navigation
+					function handleKeyDown(event) {
+						if (event.key === 'ArrowRight') {
+							navigateToNextImage();
+						} else if (event.key === 'ArrowLeft') {
+							navigateToPreviousImage();
+						}
+					}
+				
+					// Navigate to the next image
+					function navigateToNextImage() {
+						currentImageIndex = (currentImageIndex + 1) % images.length; // Move to the next image
+						lightboxImg.src = images[currentImageIndex].src;
+					}
+				
+					// Navigate to the previous image
+					function navigateToPreviousImage() {
 						currentImageIndex = (currentImageIndex - 1 + images.length) % images.length; // Move to the previous image
 						lightboxImg.src = images[currentImageIndex].src;
-					});
+					}
 				
 					// Add click event listeners to open lightbox with the correct index
 					images.forEach((image, index) => {
