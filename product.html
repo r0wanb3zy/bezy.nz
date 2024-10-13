@@ -47,85 +47,7 @@
 				<!-- Main -->
 				<h1>Soap Dish Set</h1>
 					<div id="main">
-						<style>
-							.product-page {
-								display: flex;
-								flex-wrap: wrap;
-								gap: 20px;
-								max-width: 1200px;
-								margin: 0 auto;
-							}
-					
-							.product-images {
-								flex: 1;
-								min-width: 300px;
-							}
-					
-							.main-image {
-								width: 100%;
-								padding-top: 100%; /* Creates the 1:1 aspect ratio */
-								position: relative;
-							}
-					
-							.main-image img {
-								position: absolute;
-								top: 0;
-								left: 0;
-								width: 100%;
-								height: 100%;
-								object-fit: cover;
-								border: 2px solid #ddd;
-							}
-					
-							.thumbnails {
-								display: flex;
-								gap: 10px;
-								margin-top: 10px;
-								flex-wrap: wrap;
-							}
-					
-							.thumbnails img {
-								width: 60px;
-								height: 60px;
-								object-fit: cover;
-								cursor: pointer;
-								border: 2px solid transparent;
-								transition: border-color 0.3s;
-							}
-					
-							.thumbnails img:hover {
-								border-color: #000;
-							}
-					
-							.product-info {
-								flex: 1;
-								min-width: 300px;
-							}
-					
-							.buy-now:hover {
-								background-color: #27ae60;
-							}
-					
-							/* Responsive Styles */
-							@media (max-width: 768px) {
-								.product-page {
-									flex-direction: column;
-									align-items: center;
-								}
-					
-								.product-images, .product-info {
-									width: 100%;
-									max-width: 600px;
-								}
-					
-								.thumbnails img {
-									width: 50px;
-									height: 50px;
-								}
-							}
-						</style>
-					</head>
-					<body>
+						<div class="inner">
 						<div class="product-page">
 							<div class="product-images">
 								<div class="main-image">
@@ -229,7 +151,85 @@
 	</body>
 </html>
 
+<style>
+	.product-page {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 20px;
+		max-width: 1200px;
+		margin: 0 auto;
+	}
 
+	.product-images {
+		flex: 1;
+		min-width: 300px;
+	}
+
+	.main-image {
+		width: 100%;
+		padding-top: 100%; /* Creates the 1:1 aspect ratio */
+		position: relative;
+	}
+
+	.main-image img {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border: 2px solid #ddd;
+	}
+
+	.thumbnails {
+		display: flex;
+		gap: 10px;
+		margin-top: 10px;
+		flex-wrap: wrap;
+	}
+
+	.thumbnails img {
+		width: 60px;
+		height: 60px;
+		object-fit: cover;
+		cursor: pointer;
+		border: 2px solid transparent;
+		transition: border-color 0.3s;
+		
+	}
+
+	.thumbnails img:hover {
+		border-color: #000;
+	}
+
+	.product-info {
+		flex: 1;
+		min-width: 300px;
+		padding: 20px;
+	}
+
+	.buy-now:hover {
+		background-color: #27ae60;
+	}
+
+	/* Responsive Styles */
+	@media (max-width: 768px) {
+		.product-page {
+			flex-direction: column;
+			align-items: center;
+		}
+
+		.product-images, .product-info {
+			width: 100%;
+			max-width: 600px;
+		}
+
+		.thumbnails img {
+			width: 50px;
+			height: 50px;
+		}
+	}
+</style>
 
 <script>
 	// Folder path for images
