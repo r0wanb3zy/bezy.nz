@@ -92,6 +92,10 @@
 									</table>
 								</div>
 								<h2>Colours</h2>
+								<div class="colour-container">
+									<div class="colours black"></div>
+									<div class="colours white"></div>
+								</div>
 								<a href="#" class="button primary">Default</a>
 							</div>
 						</div>
@@ -229,6 +233,21 @@
 			height: 50px;
 		}
 	}
+
+	.colours {
+            width: 50px;
+            height: 50px;
+            border: 1px solid black;
+            display: inline-block;
+            margin: 5px;
+        }
+        .black {
+            background-color: black;
+        }
+        .white {
+            background-color: white;
+            border: 1px solid black;
+        }
 </style>
 
 <script>
