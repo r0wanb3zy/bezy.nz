@@ -2835,6 +2835,7 @@ button:disabled,
 	margin-bottom: 0;
 }
 
+
 .tiles article.style0>.image:before {
 	background-color: #222222;
 }
@@ -3174,6 +3175,9 @@ body.is-touch .tiles article .content {
 	line-height: 1.5;
 	border: 0;
 	color: inherit;
+}
+#menu .inner ul li a:hover {
+    color: #ccc !important;
 }
 
 #menu>.inner>ul>li:first-child {
