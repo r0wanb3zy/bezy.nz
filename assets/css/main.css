@@ -2623,7 +2623,7 @@ input[type="button"]:hover,
 button:hover,
 .button:hover {
 	color: #000 !important;
-	box-shadow: inset 0 0 0 2px #f2849e;
+	box-shadow: inset 0 0 0 2px #000;
 }
 
 input[type="submit"]:active,
@@ -2834,7 +2834,6 @@ button:disabled,
 .tiles article>a .content> :last-child {
 	margin-bottom: 0;
 }
-
 
 .tiles article.style0>.image:before {
 	background-color: #222222;
