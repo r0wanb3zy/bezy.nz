@@ -311,7 +311,10 @@ h6 {
 	margin: 0 0 2em 0;
 	text-transform: uppercase;
 	letter-spacing: 0.25em;
-	text-align: center;
+}
+
+.center-text {
+    text-align: center;
 }
 
 h2 a,
