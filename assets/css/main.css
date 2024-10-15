@@ -2835,8 +2835,13 @@ button:disabled,
 	margin-bottom: 0;
 }
 
-.tiles article.style1>.image:before {
+
+.tiles article.style0>.image:before {
 	background-color: #222222;
+}
+
+.tiles article.style1>.image:before {
+	background-color: #c779a8;
 }
 
 .tiles article.style2>.image:before {
