@@ -184,13 +184,13 @@
 	height: 100%;
 	object-fit: cover;
 	border: 2px solid transparent;
-	box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 	.thumbnails {
 		display: flex;
 		gap: 10px;
-		margin-top: 10px;
+		margin-top: 15px;
 		flex-wrap: wrap;
 	}
 
@@ -201,13 +201,18 @@
 		cursor: pointer;
 		border: 2px solid transparent;
 		transition: border-color 0.3s;
-		box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 		
 	}
 
 	.thumbnails img:hover {
-		box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
 	}
+
+	.thumbnails img.active {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.00);
+}
 
 	.product-info {
 		flex: 1;
@@ -254,37 +259,48 @@
 </style>
 
 <script>
-	// Folder path for images
-	const folderPath = 'images/products/product-name/';
-	const thumbnailsDiv = document.getElementById('thumbnails');
-	
-	// Array of potential images (including the main image as the first thumbnail)
-	const images = ['1.png', '2.png', '3.png', '4.png', '5.png', '6.png'];
+    // Folder path for images
+    const folderPath = 'images/products/product-name/';
+    const thumbnailsDiv = document.getElementById('thumbnails');
+    
+    // Array of potential images (including the main image as the first thumbnail)
+    const images = ['1.png', '2.png', '3.png', '4.png', '5.png', '6.png'];
 
-	// Function to check if an image exists
-	function imageExists(imageSrc, callback) {
-		const img = new Image();
-		img.onload = () => callback(true);
-		img.onerror = () => callback(false);
-		img.src = imageSrc;
-	}
+    // Function to check if an image exists
+    function imageExists(imageSrc, callback) {
+        const img = new Image();
+        img.onload = () => callback(true);
+        img.onerror = () => callback(false);
+        img.src = imageSrc;
+    }
 
-	// Populate thumbnails dynamically
-	images.forEach((image, index) => {
-		const imageSrc = `${folderPath}${image}`;
-		imageExists(imageSrc, (exists) => {
-			if (exists) {
-				const imgElement = document.createElement('img');
-				imgElement.src = imageSrc;
-				imgElement.alt = `Thumbnail ${index + 1}`;
-				imgElement.onclick = () => changeImage(imageSrc);
-				thumbnailsDiv.appendChild(imgElement);
-			}
-		});
-	});
+    // Populate thumbnails dynamically
+    images.forEach((image, index) => {
+        const imageSrc = `${folderPath}${image}`;
+        imageExists(imageSrc, (exists) => {
+            if (exists) {
+                const imgElement = document.createElement('img');
+                imgElement.src = imageSrc;
+                imgElement.alt = `Thumbnail ${index + 1}`;
+                
+                // Use the updated changeImage function and pass the imgElement
+                imgElement.onclick = () => changeImage(imageSrc, imgElement);
+                
+                thumbnailsDiv.appendChild(imgElement);
+            }
+        });
+    });
 
-	// Function to change the main image
-	function changeImage(imageSrc) {
-		document.getElementById('displayed-image').src = imageSrc;
-	}
+    // Function to change the main image and apply the active class
+    function changeImage(imageSrc, imgElement) {
+        // Change the main image
+        document.getElementById('displayed-image').src = imageSrc;
+        
+        // Remove the active class from all thumbnails
+        const thumbnails = document.querySelectorAll('.thumbnails img');
+        thumbnails.forEach(thumbnail => thumbnail.classList.remove('active'));
+        
+        // Add the active class to the clicked thumbnail
+        imgElement.classList.add('active');
+    }
 </script>
