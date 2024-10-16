@@ -2836,9 +2836,13 @@ button:disabled,
 	margin-bottom: 0;
 }
 
+.tiles article.style00>.image:before {
+	background-color: #888;
+	z-index: -1;
+}
 
 .tiles article.style0>.image:before {
-	background-color: #222222;
+	background-color: #222;
 }
 
 .tiles article.style1>.image:before {
@@ -2873,8 +2877,11 @@ body:not(.is-touch) .tiles article:hover>.image {
 }
 
 body:not(.is-touch) .tiles article:hover>.image:before {
-	background-color: #333333;
-	opacity: 0.35;
+	background-color: rgba(255, 255, 255, 0.2);
+}
+
+body:not(.is-touch) .tiles article.style00:hover>.image:before {
+	background-color: #888;
 }
 
 body:not(.is-touch) .tiles article:hover>.image:after {
