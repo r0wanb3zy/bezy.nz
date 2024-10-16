@@ -2838,12 +2838,12 @@ button:disabled,
 }
 
 .tiles article.style00>.image:before {
-	background: radial-gradient(circle, transparent 1%, rgb(0, 0, 0) 100%);
+	background: linear-gradient(45deg, #005229, #002714);
 	z-index: -1;
 }
 
 .tiles article.style0>.image:before {
-	background-color: #222;
+	background: linear-gradient(45deg, rgba(0, 82, 41, 0.8), rgba(0, 39, 20, 0.8));
 }
 
 .tiles article.style1>.image:before {
@@ -2878,11 +2878,11 @@ body:not(.is-touch) .tiles article:hover>.image {
 }
 
 body:not(.is-touch) .tiles article:hover>.image:before {
-	background: radial-gradient(circle, transparent 100%, black 100%);
+	background: linear-gradient(45deg, rgba(0, 82, 41, .2), rgba(0, 39, 20, 0.1));
 }
 
 body:not(.is-touch) .tiles article.style00:hover>.image:before {
-	background: radial-gradient(circle, transparent 1%, black 100%);
+	background: linear-gradient(45deg, #005229, #005229);
 }
 
 body:not(.is-touch) .tiles article:hover>.image:after {
@@ -2972,7 +2972,7 @@ body.is-touch .tiles article .content {
 }
 
 .tiles article .price {
-    background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
+    background-color: rgba(255, 255, 255, 0.4); /* Semi-transparent white */
     color: #ffffff; /* Black text for contrast */
     padding: 0.3em .8em; /* Some padding */
     border-radius: 4px; /* Rounded corners */
@@ -3086,7 +3086,7 @@ body.is-touch .tiles article .content {
 }
 
 #header nav ul li a[href="#menu"]:before {
-	background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cstyle%3Eline %7B stroke-width: 8px%3B stroke: %23f2849e%3B %7D%3C/style%3E%3Cline x1='0' y1='25' x2='100' y2='25' /%3E%3Cline x1='0' y1='50' x2='100' y2='50' /%3E%3Cline x1='0' y1='75' x2='100' y2='75' /%3E%3C/svg%3E");
+	background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cstyle%3Eline %7B stroke-width: 8px%3B stroke: %23005229%3B %7D%3C/style%3E%3Cline x1='0' y1='25' x2='100' y2='25' /%3E%3Cline x1='0' y1='50' x2='100' y2='50' /%3E%3Cline x1='0' y1='75' x2='100' y2='75' /%3E%3C/svg%3E");
 	opacity: 0;
 }
 
@@ -3145,7 +3145,7 @@ body.is-touch .tiles article .content {
 	max-width: 80%;
 	height: 100%;
 	-webkit-overflow-scrolling: touch;
-	background: #585858;
+	background: linear-gradient(45deg, #005229, #002714);
 	color: #ffffff;
 	cursor: default;
 	visibility: hidden;
