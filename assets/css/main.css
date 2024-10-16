@@ -2877,7 +2877,7 @@ body:not(.is-touch) .tiles article:hover>.image {
 }
 
 body:not(.is-touch) .tiles article:hover>.image:before {
-	background-color: rgba(255, 255, 255, 0.2);
+	background: radial-gradient(circle, transparent 100%, black 100%);
 }
 
 body:not(.is-touch) .tiles article.style00:hover>.image:before {
