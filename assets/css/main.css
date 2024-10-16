@@ -2969,11 +2969,11 @@ body.is-touch .tiles article .content {
 		
 	}
     .tiles article a h2 {
-        font-size: 1.5em; /* Adjust the size as needed */
+        font-size: 1.2em; /* Adjust the size as needed */
     }
 
     .tiles article .price {
-        font-size: 1.2em; /* Adjust the price text size as needed */
+        font-size: 1em; /* Adjust the price text size as needed */
     }
 }
 
