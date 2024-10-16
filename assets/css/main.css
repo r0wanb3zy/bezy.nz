@@ -2765,7 +2765,7 @@ button:disabled,
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cstyle%3Eline %7B stroke-width: 0.25px%3B stroke: %23ffffff%3B %7D%3C/style%3E%3Cline x1='0' y1='0' x2='100' y2='100' /%3E%3Cline x1='100' y1='0' x2='0' y2='100' /%3E%3C/svg%3E");
+	
 	background-position: center;
 	background-repeat: no-repeat;
 	background-size: 100% 100%;
@@ -2838,7 +2838,7 @@ button:disabled,
 }
 
 .tiles article.style00>.image:before {
-	background-color: #888;
+	background: radial-gradient(circle, transparent 1%, rgb(0, 0, 0) 100%);
 	z-index: -1;
 }
 
@@ -2882,7 +2882,7 @@ body:not(.is-touch) .tiles article:hover>.image:before {
 }
 
 body:not(.is-touch) .tiles article.style00:hover>.image:before {
-	background-color: #888;
+	background: radial-gradient(circle, transparent 1%, black 100%);
 }
 
 body:not(.is-touch) .tiles article:hover>.image:after {
@@ -2925,12 +2925,13 @@ body.is-touch .tiles article .content {
 @media screen and (max-width: 980px) {
 
 	.tiles {
-		margin: -2.5em 0 0 -2.5em;
+		margin: -1.25em 0 0 -1.25em;
 	}
 
 	.tiles article {
-		width: calc(50% - 2.5em);
-		margin: 2.5em 0 0 2.5em;
+		width: calc(50% - 1.25em);
+		margin: 1.25em 0 0 1.25em;
+		
 	}
 
 }
