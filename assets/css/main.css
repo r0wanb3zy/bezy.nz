@@ -2838,12 +2838,12 @@ button:disabled,
 }
 
 .tiles article.style00>.image:before {
-	background: linear-gradient(45deg, #005229, #002714);
+	background: linear-gradient(135deg, #005229, #002714);
 	z-index: -1;
 }
 
 .tiles article.style0>.image:before {
-	background: linear-gradient(45deg, rgba(0, 82, 41, 0.8), rgba(0, 39, 20, 0.8));
+	background: linear-gradient(135deg, rgba(0, 82, 41, 0.8), rgba(0, 39, 20, 0.8));
 }
 
 .tiles article.style1>.image:before {
@@ -2878,11 +2878,11 @@ body:not(.is-touch) .tiles article:hover>.image {
 }
 
 body:not(.is-touch) .tiles article:hover>.image:before {
-	background: linear-gradient(45deg, rgba(0, 82, 41, .2), rgba(0, 39, 20, 0.1));
+	background: linear-gradient(45deg, rgba(0, 82, 41, .2), rgba(0, 39, 20, 0.2));
 }
 
 body:not(.is-touch) .tiles article.style00:hover>.image:before {
-	background: linear-gradient(45deg, #005229, #005229);
+	background: linear-gradient(135deg, #005229, #005229);
 }
 
 body:not(.is-touch) .tiles article:hover>.image:after {
@@ -2968,7 +2968,13 @@ body.is-touch .tiles article .content {
 		margin: 1.25em 0 0 0;
 		
 	}
+    .tiles article a h2 {
+        font-size: 1.5em; /* Adjust the size as needed */
+    }
 
+    .tiles article .price {
+        font-size: 1.2em; /* Adjust the price text size as needed */
+    }
 }
 
 .tiles article .price {
