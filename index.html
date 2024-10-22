@@ -46,9 +46,21 @@
 				<li><a href="3d-printing-service.html">3D printing Service</a></li>
 				<li><a href="cad-design.html">CAD Design</a></li>
 				<li><a href="3d-rendering.html">3D Rendering</a></li>
-				<li><a href="elements.html">Contact</a></li>
+				<li><a href="About.html">About</a></li>
+				<li><a href="contact.html">Contact</a></li>
 			</ul>
 		</nav>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        fetch('menu.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('menu-container').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading the menu:', error));
+    });
+</script>
 
 		<!-- Main -->
 		<div id="main">
@@ -59,10 +71,6 @@
 						services, and CAD design
 						solutions. Whether you need a prototype, a unique part, or full design assistance, we bring your
 						vision to life with precision and creativity.
-					<div align="center">
-						<a href="#" class="button primary">about</a>&nbsp;&nbsp;&nbsp;&nbsp;
-						<a href="#" class="button">Contact</a>
-					</div>
 					</p>
 				</header>
 				<section class="tiles">
@@ -114,9 +122,20 @@
 					</article>
 					<article class="style0">
 						<span class="image">
+							<img src="images/about.jpg" alt="" />
+						</span>
+						<a href="About.html">
+							<h2>About</h2>
+							<div class="content">
+								<p>Short description</p>
+							</div>
+						</a>
+					</article>
+					<article class="style0">
+						<span class="image">
 							<img src="images/contact.jpg" alt="" />
 						</span>
-						<a href="elements.html">
+						<a href="contact.html">
 							<h2>Contact</h2>
 							<div class="content">
 								<p>Short description</p>
