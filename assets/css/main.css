@@ -2843,7 +2843,7 @@ button:disabled,
 }
 
 .tiles article.style0>.image:before {
-	background: linear-gradient(135deg, rgba(0, 82, 41, 0.6), rgba(0, 39, 20, 0.6));
+	background: linear-gradient(135deg, rgba(0, 82, 41, .6), rgba(0, 0, 0, 0.4));
 }
 
 .tiles article.style1>.image:before {
@@ -2878,7 +2878,7 @@ body:not(.is-touch) .tiles article:hover>.image {
 }
 
 body:not(.is-touch) .tiles article:hover>.image:before {
-	background: linear-gradient(45deg, rgba(0, 82, 41, .2), rgba(0, 39, 20, 0.2));
+	background: linear-gradient(135deg, rgba(0, 82, 41, .2), rgba(0, 0, 0, 0.4));
 }
 
 body:not(.is-touch) .tiles article.style00:hover>.image:before {
@@ -2894,7 +2894,14 @@ body:not(.is-touch) .tiles article:hover .content {
 	opacity: 1;
 }
 
+.bw-hover {
+    filter: grayscale(100%);
+    transition: filter 0.3s ease; /* Smooth transition to color */
+}
 
+.bw-hover:hover {
+    filter: grayscale(0%);
+}
 
 body.is-preload .tiles article {
 	-moz-transform: scale(0.9);
