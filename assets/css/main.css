@@ -2878,7 +2878,7 @@ body:not(.is-touch) .tiles article:hover>.image {
 }
 
 body:not(.is-touch) .tiles article:hover>.image:before {
-	background: radial-gradient(circle, rgba(0, 82, 41, 0.6), rgba(0, 0, 0, 0.8));
+	background: radial-gradient(circle, rgba(0, 82, 41, 0.8), rgba(0, 0, 0, 0.8));
 }
 
 body:not(.is-touch) .tiles article.style00:hover>.image:before {
@@ -3619,4 +3619,10 @@ body.is-menu-visible #menu .close {
 	display: inline-block;
 	padding: 10px 15px;
 	border-radius: 5px;
+}
+
+.inner-custom {
+	max-width: 900px !important; /* Adjust this value to your desired width */
+	margin: 0 auto !important; /* This centers the content */
+	padding: 0 20px !important; /* Optional: add some padding for better spacing */
 }
