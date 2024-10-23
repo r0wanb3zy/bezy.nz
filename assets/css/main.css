@@ -2843,7 +2843,7 @@ button:disabled,
 }
 
 .tiles article.style0>.image:before {
-	background: linear-gradient(135deg, rgba(0, 82, 41, .6), rgba(0, 0, 0, 0.4));
+	background: linear-gradient(135deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4));
 }
 
 .tiles article.style1>.image:before {
@@ -2878,7 +2878,7 @@ body:not(.is-touch) .tiles article:hover>.image {
 }
 
 body:not(.is-touch) .tiles article:hover>.image:before {
-	background: linear-gradient(135deg, rgba(0, 82, 41, .2), rgba(0, 0, 0, 0.4));
+	background: linear-gradient(135deg, rgba(0, 82, 41, .6), rgba(0, 0, 0, 0.8));
 }
 
 body:not(.is-touch) .tiles article.style00:hover>.image:before {
