@@ -2995,38 +2995,28 @@ body.is-touch .tiles article .content {
     margin: .5em auto 0; /* Center it horizontally and add top margin */
 }
 
-/* Header */
-
-#header {
-	text-align: center;
-	/* Center content horizontally */
+/* Center the logo in the header */
+#header .inner {
+    text-align: center; /* Center the content */
 }
 
 #header .logo {
-	display: block;
-	border-bottom: 0;
-	color: inherit;
-	font-weight: 900;
-	letter-spacing: 0.35em;
-	margin: 0 0 0 0;
-	text-decoration: none;
-	text-transform: uppercase;
-	display: inline-block;
+    display: inline-block; /* Ensures the logo is treated as inline-block */
+    margin: 0; /* Remove any default margins */
+    padding: 0; /* Remove any default padding */
+    border: none; /* Remove any border */
+    text-decoration: none; /* Remove any underline */
 }
 
-#header .logo>* {
-	display: inline-block;
-	vertical-align: middle;
-}
-
-#header .logo .symbol {
-	margin-right: 0.65em;
+/* Ensure the logo image itself is also centered */
+#header .logo img {
+    max-width: 100%; /* Responsive size */
+    height: auto; /* Maintain aspect ratio */
 }
 
 #header .logo .symbol img {
-	display: block;
-	max-height: 150px;
-
+    display: block;
+    max-height: 150px;
 }
 
 #header nav {
