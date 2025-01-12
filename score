@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card Scoring App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; /* Changed from 20px to 0 */
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    table th, table td {
+      border: 1px solid #ddd;
+      text-align: center;
+      padding: 8px;
+      word-wrap: break-word;
+      cursor: pointer;
+    }
+    table th {
+      background-color: #f4f4f4;
+    }
+    table input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 4px;
+      text-align: center;
+    }
+    .highlight-winner {
+      background-color: #d4f4d4; /* Light green for winner */
+    }
+    .highlight-loser {
+      background-color: #f4d4d4; /* Light red for loser */
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 600px) {
+      table {
+        font-size: 0.8rem;
+      }
+      table input {
+        padding: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <table id="scoreTable">
+    <thead>
+      <tr id="playerRow">
+        <th>#</th>
+      </tr>
+    </thead>
+    <tbody id="scoreBody">
+    </tbody>
+  </table>
+
+  <script>
+    let players = JSON.parse(localStorage.getItem('players')) || [
+      { name: "RB", totalScore: 0, roundScores: [] },
+      { name: "AB", totalScore: 0, roundScores: [] }
+    ];
+    let rounds = JSON.parse(localStorage.getItem('rounds')) || [];
+    let scoringMode = localStorage.getItem('scoringMode') || 'highest'; // Default to highest score wins
+
+    function addRoundScores() {
+      const scores = [];
+      const inputs = document.querySelectorAll("#scoreTable input");
+      inputs.forEach((input, index) => {
+        const score = parseInt(input.value) || 0;
+        players[index].roundScores.push(score);
+        players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
+        scores.push(score);
+      });
+      rounds.push(scores);
+      saveData();
+      updateUI();
+    }
+
+    function saveData() {
+      localStorage.setItem('players', JSON.stringify(players));
+      localStorage.setItem('rounds', JSON.stringify(rounds));
+      localStorage.setItem('scoringMode', scoringMode);
+    }
+
+    function updateUI() {
+      const playerRow = document.getElementById("playerRow");
+      playerRow.innerHTML = `<th onclick="createRoundManagementDialog()">Round</th>`;
+      players.forEach((player, index) => {
+        playerRow.innerHTML += `
+          <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
+            ${player.name}
+            <br>
+            <span>${player.totalScore} (${getRank(player.totalScore)})</span>
+          </th>
+        `;
+      });
+
+      const scoreBody = document.getElementById("scoreBody");
+      scoreBody.innerHTML = "";
+      rounds.forEach((round, roundIndex) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${roundIndex + 1}</td>`;
+        players.forEach((_, playerIndex) => {
+          row.innerHTML += `<td contenteditable="true" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${round[playerIndex] || 0}</td>`;
+        });
+        scoreBody.appendChild(row);
+      });
+
+      // Adding new row for input fields at the bottom of the table with clickable first cell
+      const inputRow = document.createElement('tr');
+      inputRow.innerHTML = `<td onclick="addRoundScores()">Add</td>`; // Clickable cell for adding round
+      players.forEach((player, index) => {
+        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" /></td>`;
+      });
+      scoreBody.appendChild(inputRow);
+
+      // Apply highlighting only if there's at least one round
+      if (rounds.length > 0) {
+        updateRankings();
+      }
+    }
+
+    function getRank(score) {
+      const sortedPlayers = [...players];
+      if (scoringMode === "highest") {
+        sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
+      } else {
+        sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
+      }
+      const rank = sortedPlayers.findIndex(player => player.totalScore === score) + 1;
+      return rank;
+    }
+
+    function updateScore(roundIndex, playerIndex, newScore) {
+      const score = parseInt(newScore) || 0;
+      rounds[roundIndex][playerIndex] = score;
+      players[playerIndex].roundScores[roundIndex] = score;
+      players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+      saveData();
+      updateUI();
+    }
+
+    function updateRankings() {
+      const sortedPlayers = [...players];
+      if (scoringMode === "highest") {
+        sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
+      } else {
+        sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
+      }
+
+      const playerRow = document.getElementById("playerRow");
+      const columns = Array.from(playerRow.children).slice(1);
+      columns.forEach((th) => th.classList.remove("highlight-winner", "highlight-loser"));
+      
+      const highestScore = sortedPlayers[0].totalScore;
+      const lowestScore = sortedPlayers[sortedPlayers.length - 1].totalScore;
+
+      sortedPlayers.forEach((player, index) => {
+        const playerIndex = players.findIndex(p => p.name === player.name);
+        if (player.totalScore === highestScore) {
+          columns[playerIndex].classList.add("highlight-winner");
+        }
+        if (player.totalScore === lowestScore) {
+          columns[playerIndex].classList.add("highlight-loser");
+        }
+      });
+    }
+
+    function removePlayer(index) {
+      players.splice(index, 1);
+      rounds.forEach(round => round.splice(index, 1));
+      saveData();
+      updateUI();
+    }
+
+    function createPlayerManagementDialog(index) {
+      const dialog = document.createElement('div');
+      dialog.style.position = 'fixed';
+      dialog.style.top = '50%';
+      dialog.style.left = '50%';
+      dialog.style.transform = 'translate(-50%, -50%)';
+      dialog.style.background = 'white';
+      dialog.style.border = '1px solid black';
+      dialog.style.padding = '20px';
+      dialog.style.zIndex = '1000';
+
+      const title = document.createElement('h2');
+      title.textContent = `Manage ${players[index].name}`;
+      dialog.appendChild(title);
+
+      // Change Name Input
+      const changeNameDiv = document.createElement('div');
+      const changeNameInput = document.createElement('input');
+      changeNameInput.type = 'text';
+      changeNameInput.placeholder = 'New name';
+      changeNameInput.value = players[index].name;
+      changeNameDiv.appendChild(changeNameInput);
+      
+      const changeNameButton = document.createElement('button');
+      changeNameButton.textContent = 'Change Name';
+      changeNameButton.onclick = function() {
+        const newName = changeNameInput.value.trim();
+        if (newName && newName !== players[index].name) {
+          players[index].name = newName;
+          saveData();
+          updateUI();
+          document.body.removeChild(dialog);
+        }
+      };
+      changeNameDiv.appendChild(changeNameButton);
+      dialog.appendChild(changeNameDiv);
+
+      // Add New Player
+      const addPlayerDiv = document.createElement('div');
+      const addPlayerInput = document.createElement('input');
+      addPlayerInput.type = 'text';
+      addPlayerInput.placeholder = 'New player name';
+      addPlayerDiv.appendChild(addPlayerInput);
+      
+      const addPlayerButton = document.createElement('button');
+      addPlayerButton.textContent = 'Add Player';
+      addPlayerButton.onclick = function() {
+        const newPlayerName = addPlayerInput.value.trim();
+        if (newPlayerName) {
+          players.push({ name: newPlayerName, totalScore: 0, roundScores: [] });
+          saveData();
+          updateUI();
+          addPlayerInput.value = '';
+        }
+      };
+      addPlayerDiv.appendChild(addPlayerButton);
+      dialog.appendChild(addPlayerDiv);
+
+      // Remove Player Button
+      const removeButton = document.createElement('button');
+      removeButton.textContent = 'Remove Player';
+      removeButton.onclick = function() {
+        if (confirm(`Are you sure you want to remove ${players[index].name}?`)) {
+          removePlayer(index);
+          document.body.removeChild(dialog);
+        }
+      };
+      dialog.appendChild(removeButton);
+
+      // Close Dialog Button
+      const closeButton = document.createElement('button');
+      closeButton.textContent = 'Close';
+      closeButton.onclick = function() {
+        document.body.removeChild(dialog);
+      };
+      dialog.appendChild(closeButton);
+
+      document.body.appendChild(dialog);
+    }
+
+    function handlePlayerNameClick(event, index) {
+      event.stopPropagation();
+      createPlayerManagementDialog(index);
+    }
+
+    function createRoundManagementDialog() {
+      const dialog = document.createElement('div');
+      dialog.style.position = 'fixed';
+      dialog.style.top = '50%';
+      dialog.style.left = '50%';
+      dialog.style.transform = 'translate(-50%, -50%)';
+      dialog.style.background = 'white';
+      dialog.style.border = '1px solid black';
+      dialog.style.padding = '20px';
+      dialog.style.zIndex = '1000';
+
+      const title = document.createElement('h2');
+      title.textContent = 'Round Management';
+      dialog.appendChild(title);
+
+      // Reset Scores Button
+      const resetScoresButton = document.createElement('button');
+      resetScoresButton.textContent = 'Reset Scores';
+      resetScoresButton.onclick = function() {
+        resetScores();
+        document.body.removeChild(dialog);
+      };
+      dialog.appendChild(resetScoresButton);
+
+      // Toggle Scoring Mode Button
+      const toggleScoringModeButton = document.createElement('button');
+      toggleScoringModeButton.textContent = `Toggle Scoring Mode (Current: ${scoringMode === 'highest' ? 'Highest Wins' : 'Lowest Wins'})`;
+      toggleScoringModeButton.onclick = function() {
+        toggleScoringMode();
+        toggleScoringModeButton.textContent = `Toggle Scoring Mode (Current: ${scoringMode === 'highest' ? 'Highest Wins' : 'Lowest Wins'})`;
+        document.body.removeChild(dialog);
+      };
+      dialog.appendChild(toggleScoringModeButton);
+
+      // Close Dialog Button
+      const closeButton = document.createElement('button');
+      closeButton.textContent = 'Close';
+      closeButton.onclick = function() {
+        document.body.removeChild(dialog);
+      };
+      dialog.appendChild(closeButton);
+
+      document.body.appendChild(dialog);
+    }
+
+    function toggleScoringMode() {
+      scoringMode = scoringMode === "highest" ? "lowest" : "highest";
+      updateUI(); // Update UI to reflect new scoring mode in rankings if necessary
+      saveData(); // Save the new scoring mode
+    }
+
+    function resetScores() {
+      players.forEach(player => {
+        player.roundScores = [];
+        player.totalScore = 0;
+      });
+      rounds = []; 
+      saveData();
+      updateUI();
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
