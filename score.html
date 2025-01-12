@@ -147,7 +147,7 @@
       const inputRow = document.createElement('tr');
       inputRow.innerHTML = `<td onclick="addRoundScores()">Add</td>`;
       players.forEach((player, index) => {
-        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" onkeyup="checkEnter(event)"/></td>`;
+        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" onkeyup="checkEnter(event)" onblur="checkIfAllScoresEntered(event)"/></td>`;
       });
       scoreBody.appendChild(inputRow);
 
@@ -408,17 +408,24 @@
       }
     }
 
-    // New function to check if Enter was pressed and if all inputs are filled
-function checkEnter(e) {
-  if (e.key === 'Enter' || e.key === 'Tab') {
-    const inputs = Array.from(document.querySelectorAll("#scoreTable input")).filter(input => input.type === 'number');
-    let allFilled = inputs.every(input => input.value.trim() !== '');
-    if (allFilled) {
-      e.preventDefault(); // Prevent the default action of Tab key (moving focus)
-      addRoundScores();
+    function checkEnter(e) {
+      if (e.key === 'Enter') {
+        const inputs = Array.from(document.querySelectorAll("#scoreTable input")).filter(input => input.type === 'number');
+        let allFilled = inputs.every(input => input.value.trim() !== '');
+        if (allFilled) {
+          addRoundScores();
+        }
+      }
     }
-  }
-}
+
+    function checkIfAllScoresEntered(e) {
+      const inputs = Array.from(document.querySelectorAll("#scoreTable input")).filter(input => input.type === 'number');
+      let allFilled = inputs.every(input => input.value.trim() !== '');
+      
+      if (allFilled) {
+        addRoundScores();
+      }
+    }
 
     updateUI();
   </script>
