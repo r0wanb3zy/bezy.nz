@@ -124,7 +124,9 @@
           <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
             ${player.name}
             <br>
-            <span>${player.totalScore === 0 ? '一' : player.totalScore} (${getRank(player.totalScore)})</span>
+            <span>${player.totalScore === 0 ? '一' : player.totalScore}</span>
+            <br>
+            <span>${getRank(player.totalScore)}</span>
           </th>
         `;
       });
@@ -136,7 +138,7 @@
         // Add click event to the round number cell for confirmation to delete row
         row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
         players.forEach((_, playerIndex) => {
-          const displayScore = round[playerIndex] === 0 ? '一' : round[playerIndex];
+          const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] === 0 ? '一' : round[playerIndex]) : '一';
           row.innerHTML += `<td contenteditable="true" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
         });
         scoreBody.appendChild(row);
@@ -164,7 +166,11 @@
         sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
       }
       const rank = sortedPlayers.findIndex(player => player.totalScore === score) + 1;
-      return rank;
+      let suffix = 'th';
+      if (rank % 10 === 1 && rank % 100 !== 11) suffix = 'st';
+      if (rank % 10 === 2 && rank % 100 !== 12) suffix = 'nd';
+      if (rank % 10 === 3 && rank % 100 !== 13) suffix = 'rd';
+      return rank + suffix;
     }
 
     function updateScore(roundIndex, playerIndex, newScore) {
@@ -258,7 +264,18 @@
       addPlayerButton.onclick = function() {
         const newPlayerName = addPlayerInput.value.trim();
         if (newPlayerName) {
-          players.push({ name: newPlayerName, totalScore: 0, roundScores: [] });
+          // Add new player with scores for all existing rounds initialized to 0
+          players.push({ 
+            name: newPlayerName, 
+            totalScore: 0, 
+            roundScores: Array(rounds.length).fill(0)  // Initialize with zeros for all rounds
+          });
+          
+          // Update all rounds to include a score for the new player
+          rounds.forEach(round => {
+            round.push(0); // Add 0 for the new player's score in this round
+          });
+          
           saveData();
           updateUI();
           addPlayerInput.value = '';
@@ -295,49 +312,49 @@
     }
 
     function createRoundManagementDialog() {
-      const dialog = document.createElement('div');
-      dialog.style.position = 'fixed';
-      dialog.style.top = '50%';
-      dialog.style.left = '50%';
-      dialog.style.transform = 'translate(-50%, -50%)';
-      dialog.style.background = 'white';
-      dialog.style.border = '1px solid black';
-      dialog.style.padding = '20px';
-      dialog.style.zIndex = '1000';
+  const dialog = document.createElement('div');
+  dialog.style.position = 'fixed';
+  dialog.style.top = '50%';
+  dialog.style.left = '50%';
+  dialog.style.transform = 'translate(-50%, -50%)';
+  dialog.style.background = 'white';
+  dialog.style.border = '1px solid black';
+  dialog.style.padding = '20px';
+  dialog.style.zIndex = '1000';
 
-      const title = document.createElement('h2');
-      title.textContent = 'Round Management';
-      dialog.appendChild(title);
+  const title = document.createElement('h2');
+  title.textContent = 'Round Management';
+  dialog.appendChild(title);
 
-      // Reset Scores Button
-      const resetScoresButton = document.createElement('button');
-      resetScoresButton.textContent = 'Reset Scores';
-      resetScoresButton.onclick = function() {
-        resetScores();
-        document.body.removeChild(dialog);
-      };
-      dialog.appendChild(resetScoresButton);
+  // Reset Scores Button
+  const resetScoresButton = document.createElement('button');
+  resetScoresButton.textContent = 'Reset';
+  resetScoresButton.onclick = function() {
+    resetScores();
+    document.body.removeChild(dialog);
+  };
+  dialog.appendChild(resetScoresButton);
 
-      // Toggle Scoring Mode Button
-      const toggleScoringModeButton = document.createElement('button');
-      toggleScoringModeButton.textContent = `Toggle Scoring Mode (Current: ${scoringMode === 'highest' ? 'Highest Wins' : 'Lowest Wins'})`;
-      toggleScoringModeButton.onclick = function() {
-        toggleScoringMode();
-        toggleScoringModeButton.textContent = `Toggle Scoring Mode (Current: ${scoringMode === 'highest' ? 'Highest Wins' : 'Lowest Wins'})`;
-        document.body.removeChild(dialog);
-      };
-      dialog.appendChild(toggleScoringModeButton);
+  // Toggle Scoring Mode Button
+  const toggleScoringModeButton = document.createElement('button');
+  toggleScoringModeButton.textContent = scoringMode === 'highest' ? 'High' : 'Low';
+  toggleScoringModeButton.onclick = function() {
+    toggleScoringMode();
+    toggleScoringModeButton.textContent = scoringMode === 'highest' ? '▴' : '▾';
+    document.body.removeChild(dialog);
+  };
+  dialog.appendChild(toggleScoringModeButton);
 
-      // Close Dialog Button
-      const closeButton = document.createElement('button');
-      closeButton.textContent = 'Close';
-      closeButton.onclick = function() {
-        document.body.removeChild(dialog);
-      };
-      dialog.appendChild(closeButton);
+  // Close Dialog Button
+  const closeButton = document.createElement('button');
+  closeButton.textContent = 'Close';
+  closeButton.onclick = function() {
+    document.body.removeChild(dialog);
+  };
+  dialog.appendChild(closeButton);
 
-      document.body.appendChild(dialog);
-    }
+  document.body.appendChild(dialog);
+}
 
     function toggleScoringMode() {
       scoringMode = scoringMode === "highest" ? "lowest" : "highest";
