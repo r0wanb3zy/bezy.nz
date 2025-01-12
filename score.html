@@ -135,7 +135,6 @@
       scoreBody.innerHTML = "";
       rounds.forEach((round, roundIndex) => {
         const row = document.createElement("tr");
-        // Add click event to the round number cell for confirmation to delete row
         row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
         players.forEach((_, playerIndex) => {
           const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] === 0 ? '一' : round[playerIndex]) : '一';
@@ -146,13 +145,12 @@
 
       // Adding new row for input fields at the bottom of the table with clickable first cell
       const inputRow = document.createElement('tr');
-      inputRow.innerHTML = `<td onclick="addRoundScores()">Add</td>`; // Clickable cell for adding round
+      inputRow.innerHTML = `<td onclick="addRoundScores()">Add</td>`;
       players.forEach((player, index) => {
         inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" /></td>`;
       });
       scoreBody.appendChild(inputRow);
 
-      // Apply highlighting only if there's at least one round
       if (rounds.length > 0) {
         updateRankings();
       }
@@ -230,14 +228,39 @@
       title.textContent = `Manage ${players[index].name}`;
       dialog.appendChild(title);
 
-      // Change Name Input
       const changeNameDiv = document.createElement('div');
+
+      // Dropdown for selecting existing names
+      const nameSelect = document.createElement('select');
+      nameSelect.id = 'playerNameSelect';
+      const defaultOption = document.createElement('option');
+      defaultOption.value = players[index].name;
+      defaultOption.text = `Current: ${players[index].name}`;
+      nameSelect.appendChild(defaultOption);
+
+      const standardPlayers = ['RB', 'AB', 'DB', 'DD', 'WJ', 'LJ', 'CB', 'HB', 'SB', 'JB']; // Example standard list
+      standardPlayers.forEach(player => {
+        let option = document.createElement('option');
+        option.value = player;
+        option.text = player;
+        nameSelect.appendChild(option);
+      });
+
+      nameSelect.onchange = function() {
+        const selectedName = this.value;
+        if (selectedName !== players[index].name) {
+          players[index].name = selectedName;
+          saveData();
+          updateUI();
+        }
+      };
+
+      // Input for new name
       const changeNameInput = document.createElement('input');
       changeNameInput.type = 'text';
-      changeNameInput.placeholder = 'New name';
+      changeNameInput.placeholder = 'Enter new name';
       changeNameInput.value = players[index].name;
-      changeNameDiv.appendChild(changeNameInput);
-      
+
       const changeNameButton = document.createElement('button');
       changeNameButton.textContent = 'Change Name';
       changeNameButton.onclick = function() {
@@ -249,6 +272,10 @@
           document.body.removeChild(dialog);
         }
       };
+
+      changeNameDiv.appendChild(nameSelect);
+      changeNameDiv.appendChild(document.createElement('br')); // Add line break for better UI
+      changeNameDiv.appendChild(changeNameInput);
       changeNameDiv.appendChild(changeNameButton);
       dialog.appendChild(changeNameDiv);
 
@@ -257,30 +284,24 @@
       const addPlayerInput = document.createElement('input');
       addPlayerInput.type = 'text';
       addPlayerInput.placeholder = 'New player name';
-      addPlayerDiv.appendChild(addPlayerInput);
-      
       const addPlayerButton = document.createElement('button');
       addPlayerButton.textContent = 'Add Player';
       addPlayerButton.onclick = function() {
         const newPlayerName = addPlayerInput.value.trim();
         if (newPlayerName) {
-          // Add new player with scores for all existing rounds initialized to 0
           players.push({ 
             name: newPlayerName, 
             totalScore: 0, 
-            roundScores: Array(rounds.length).fill(0)  // Initialize with zeros for all rounds
+            roundScores: Array(rounds.length).fill(0)  
           });
           
-          // Update all rounds to include a score for the new player
-          rounds.forEach(round => {
-            round.push(0); // Add 0 for the new player's score in this round
-          });
-          
+          rounds.forEach(round => round.push(0)); 
           saveData();
           updateUI();
           addPlayerInput.value = '';
         }
       };
+      addPlayerDiv.appendChild(addPlayerInput);
       addPlayerDiv.appendChild(addPlayerButton);
       dialog.appendChild(addPlayerDiv);
 
@@ -312,54 +333,54 @@
     }
 
     function createRoundManagementDialog() {
-  const dialog = document.createElement('div');
-  dialog.style.position = 'fixed';
-  dialog.style.top = '50%';
-  dialog.style.left = '50%';
-  dialog.style.transform = 'translate(-50%, -50%)';
-  dialog.style.background = 'white';
-  dialog.style.border = '1px solid black';
-  dialog.style.padding = '20px';
-  dialog.style.zIndex = '1000';
+      const dialog = document.createElement('div');
+      dialog.style.position = 'fixed';
+      dialog.style.top = '50%';
+      dialog.style.left = '50%';
+      dialog.style.transform = 'translate(-50%, -50%)';
+      dialog.style.background = 'white';
+      dialog.style.border = '1px solid black';
+      dialog.style.padding = '20px';
+      dialog.style.zIndex = '1000';
 
-  const title = document.createElement('h2');
-  title.textContent = 'Round Management';
-  dialog.appendChild(title);
+      const title = document.createElement('h2');
+      title.textContent = 'Round Management';
+      dialog.appendChild(title);
 
-  // Reset Scores Button
-  const resetScoresButton = document.createElement('button');
-  resetScoresButton.textContent = 'Reset';
-  resetScoresButton.onclick = function() {
-    resetScores();
-    document.body.removeChild(dialog);
-  };
-  dialog.appendChild(resetScoresButton);
+      // Reset Scores Button
+      const resetScoresButton = document.createElement('button');
+      resetScoresButton.textContent = 'Reset';
+      resetScoresButton.onclick = function() {
+        resetScores();
+        document.body.removeChild(dialog);
+      };
+      dialog.appendChild(resetScoresButton);
 
-  // Toggle Scoring Mode Button
-  const toggleScoringModeButton = document.createElement('button');
-  toggleScoringModeButton.textContent = scoringMode === 'highest' ? 'High' : 'Low';
-  toggleScoringModeButton.onclick = function() {
-    toggleScoringMode();
-    toggleScoringModeButton.textContent = scoringMode === 'highest' ? '▴' : '▾';
-    document.body.removeChild(dialog);
-  };
-  dialog.appendChild(toggleScoringModeButton);
+      // Toggle Scoring Mode Button
+      const toggleScoringModeButton = document.createElement('button');
+      toggleScoringModeButton.textContent = scoringMode === 'highest' ? 'High' : 'Low';
+      toggleScoringModeButton.onclick = function() {
+        toggleScoringMode();
+        toggleScoringModeButton.textContent = scoringMode === 'highest' ? 'High' : 'Low';
+        document.body.removeChild(dialog);
+      };
+      dialog.appendChild(toggleScoringModeButton);
 
-  // Close Dialog Button
-  const closeButton = document.createElement('button');
-  closeButton.textContent = 'Close';
-  closeButton.onclick = function() {
-    document.body.removeChild(dialog);
-  };
-  dialog.appendChild(closeButton);
+      // Close Dialog Button
+      const closeButton = document.createElement('button');
+      closeButton.textContent = 'Close';
+      closeButton.onclick = function() {
+        document.body.removeChild(dialog);
+      };
+      dialog.appendChild(closeButton);
 
-  document.body.appendChild(dialog);
-}
+      document.body.appendChild(dialog);
+    }
 
     function toggleScoringMode() {
       scoringMode = scoringMode === "highest" ? "lowest" : "highest";
-      updateUI(); // Update UI to reflect new scoring mode in rankings if necessary
-      saveData(); // Save the new scoring mode
+      updateUI(); 
+      saveData(); 
     }
 
     function resetScores() {
