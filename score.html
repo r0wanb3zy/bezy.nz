@@ -252,7 +252,6 @@
           players[index].name = selectedName;
           saveData();
           updateUI();
-          // Close the dialog after name selection
           document.body.removeChild(dialog);
         }
       };
@@ -281,32 +280,51 @@
       changeNameDiv.appendChild(changeNameButton);
       dialog.appendChild(changeNameDiv);
 
-      // Add New Player
-      const addPlayerDiv = document.createElement('div');
-      const addPlayerInput = document.createElement('input');
-      addPlayerInput.type = 'text';
-      addPlayerInput.placeholder = 'New player name';
-      const addPlayerButton = document.createElement('button');
-      addPlayerButton.textContent = 'Add Player';
-      addPlayerButton.onclick = function() {
-        const newPlayerName = addPlayerInput.value.trim();
-        if (newPlayerName) {
-          players.push({ 
-            name: newPlayerName, 
-            totalScore: 0, 
-            roundScores: Array(rounds.length).fill(0)  
+      // Move Left Button
+      const moveLeftButton = document.createElement('button');
+      moveLeftButton.textContent = 'Move Left';
+      moveLeftButton.onclick = function() {
+        if (index > 0) {
+          let temp = players[index - 1];
+          players[index - 1] = players[index];
+          players[index] = temp;
+
+          // Reorder rounds scores
+          rounds.forEach(round => {
+            let tempScore = round[index - 1];
+            round[index - 1] = round[index];
+            round[index] = tempScore;
           });
-          
-          rounds.forEach(round => round.push(0)); 
+
           saveData();
           updateUI();
-          addPlayerInput.value = '';
-          document.body.removeChild(dialog); // Close the dialog after adding a new player
+          document.body.removeChild(dialog);
         }
       };
-      addPlayerDiv.appendChild(addPlayerInput);
-      addPlayerDiv.appendChild(addPlayerButton);
-      dialog.appendChild(addPlayerDiv);
+      dialog.appendChild(moveLeftButton);
+
+      // Move Right Button
+      const moveRightButton = document.createElement('button');
+      moveRightButton.textContent = 'Move Right';
+      moveRightButton.onclick = function() {
+        if (index < players.length - 1) {
+          let temp = players[index + 1];
+          players[index + 1] = players[index];
+          players[index] = temp;
+
+          // Reorder rounds scores
+          rounds.forEach(round => {
+            let tempScore = round[index + 1];
+            round[index + 1] = round[index];
+            round[index] = tempScore;
+          });
+
+          saveData();
+          updateUI();
+          document.body.removeChild(dialog);
+        }
+      };
+      dialog.appendChild(moveRightButton);
 
       // Remove Player Button
       const removeButton = document.createElement('button');
@@ -349,6 +367,37 @@
       const title = document.createElement('h2');
       title.textContent = 'Round Management';
       dialog.appendChild(title);
+
+      // Add field to select number of players
+      const playerCountSelect = document.createElement('select');
+      playerCountSelect.id = 'playerCount';
+      for (let i = 2; i <= 10; i++) {
+        let option = document.createElement('option');
+        option.value = i;
+        option.text = i + ' Players';
+        playerCountSelect.appendChild(option);
+      }
+      playerCountSelect.value = players.length; // Set current player count as default
+      playerCountSelect.onchange = function() {
+        const newCount = parseInt(this.value);
+        if (newCount > players.length) {
+          for (let i = players.length; i < newCount; i++) {
+            players.push({ 
+              name: `P${i+1}`, 
+              totalScore: 0, 
+              roundScores: Array(rounds.length).fill(0)  
+            });
+            rounds.forEach(round => round.push(0)); 
+          }
+        } else if (newCount < players.length) {
+          players = players.slice(0, newCount);
+          rounds.forEach(round => round.length = newCount);
+        }
+        saveData();
+        updateUI();
+        document.body.removeChild(dialog);
+      };
+      dialog.appendChild(playerCountSelect);
 
       // Reset Scores Button
       const resetScoresButton = document.createElement('button');
