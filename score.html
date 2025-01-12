@@ -213,119 +213,122 @@
       updateUI();
     }
 
-    function createPlayerManagementDialog(index) {
-      const dialog = document.createElement('div');
-      dialog.style.position = 'fixed';
-      dialog.style.top = '50%';
-      dialog.style.left = '50%';
-      dialog.style.transform = 'translate(-50%, -50%)';
-      dialog.style.background = 'white';
-      dialog.style.border = '1px solid black';
-      dialog.style.padding = '20px';
-      dialog.style.zIndex = '1000';
+function createPlayerManagementDialog(index) {
+  const dialog = document.createElement('div');
+  dialog.style.position = 'fixed';
+  dialog.style.top = '50%';
+  dialog.style.left = '50%';
+  dialog.style.transform = 'translate(-50%, -50%)';
+  dialog.style.background = 'white';
+  dialog.style.border = '1px solid black';
+  dialog.style.padding = '20px';
+  dialog.style.zIndex = '1000';
 
-      const title = document.createElement('h2');
-      title.textContent = `Manage ${players[index].name}`;
-      dialog.appendChild(title);
+  const title = document.createElement('h2');
+  title.textContent = `Manage ${players[index].name}`;
+  dialog.appendChild(title);
 
-      const changeNameDiv = document.createElement('div');
+  const changeNameDiv = document.createElement('div');
 
-      // Dropdown for selecting existing names
-      const nameSelect = document.createElement('select');
-      nameSelect.id = 'playerNameSelect';
-      const defaultOption = document.createElement('option');
-      defaultOption.value = players[index].name;
-      defaultOption.text = `Current: ${players[index].name}`;
-      nameSelect.appendChild(defaultOption);
+  // Dropdown for selecting existing names
+  const nameSelect = document.createElement('select');
+  nameSelect.id = 'playerNameSelect';
+  const defaultOption = document.createElement('option');
+  defaultOption.value = players[index].name;
+  defaultOption.text = `Current: ${players[index].name}`;
+  nameSelect.appendChild(defaultOption);
 
-      const standardPlayers = ['RB', 'AB', 'DB', 'DD', 'WJ', 'LJ', 'CB', 'HB', 'SB', 'JB']; // Example standard list
-      standardPlayers.forEach(player => {
-        let option = document.createElement('option');
-        option.value = player;
-        option.text = player;
-        nameSelect.appendChild(option);
-      });
+const standardPlayers = ['RB', 'AB', 'DB', 'DD', 'WJ', 'LJ', 'CB', 'HB', 'SB', 'JB']; // Example standard list
+  standardPlayers.forEach(player => {
+    let option = document.createElement('option');
+    option.value = player;
+    option.text = player;
+    nameSelect.appendChild(option);
+  });
 
-      nameSelect.onchange = function() {
-        const selectedName = this.value;
-        if (selectedName !== players[index].name) {
-          players[index].name = selectedName;
-          saveData();
-          updateUI();
-        }
-      };
-
-      // Input for new name
-      const changeNameInput = document.createElement('input');
-      changeNameInput.type = 'text';
-      changeNameInput.placeholder = 'Enter new name';
-      changeNameInput.value = players[index].name;
-
-      const changeNameButton = document.createElement('button');
-      changeNameButton.textContent = 'Change Name';
-      changeNameButton.onclick = function() {
-        const newName = changeNameInput.value.trim();
-        if (newName && newName !== players[index].name) {
-          players[index].name = newName;
-          saveData();
-          updateUI();
-          document.body.removeChild(dialog);
-        }
-      };
-
-      changeNameDiv.appendChild(nameSelect);
-      changeNameDiv.appendChild(document.createElement('br')); // Add line break for better UI
-      changeNameDiv.appendChild(changeNameInput);
-      changeNameDiv.appendChild(changeNameButton);
-      dialog.appendChild(changeNameDiv);
-
-      // Add New Player
-      const addPlayerDiv = document.createElement('div');
-      const addPlayerInput = document.createElement('input');
-      addPlayerInput.type = 'text';
-      addPlayerInput.placeholder = 'New player name';
-      const addPlayerButton = document.createElement('button');
-      addPlayerButton.textContent = 'Add Player';
-      addPlayerButton.onclick = function() {
-        const newPlayerName = addPlayerInput.value.trim();
-        if (newPlayerName) {
-          players.push({ 
-            name: newPlayerName, 
-            totalScore: 0, 
-            roundScores: Array(rounds.length).fill(0)  
-          });
-          
-          rounds.forEach(round => round.push(0)); 
-          saveData();
-          updateUI();
-          addPlayerInput.value = '';
-        }
-      };
-      addPlayerDiv.appendChild(addPlayerInput);
-      addPlayerDiv.appendChild(addPlayerButton);
-      dialog.appendChild(addPlayerDiv);
-
-      // Remove Player Button
-      const removeButton = document.createElement('button');
-      removeButton.textContent = 'Remove Player';
-      removeButton.onclick = function() {
-        if (confirm(`Are you sure you want to remove ${players[index].name}?`)) {
-          removePlayer(index);
-          document.body.removeChild(dialog);
-        }
-      };
-      dialog.appendChild(removeButton);
-
-      // Close Dialog Button
-      const closeButton = document.createElement('button');
-      closeButton.textContent = 'Close';
-      closeButton.onclick = function() {
-        document.body.removeChild(dialog);
-      };
-      dialog.appendChild(closeButton);
-
-      document.body.appendChild(dialog);
+  nameSelect.onchange = function() {
+    const selectedName = this.value;
+    if (selectedName !== players[index].name) {
+      players[index].name = selectedName;
+      saveData();
+      updateUI();
+      // Close the dialog after name selection
+      document.body.removeChild(dialog);
     }
+  };
+
+  // Input for new name
+  const changeNameInput = document.createElement('input');
+  changeNameInput.type = 'text';
+  changeNameInput.placeholder = 'Enter new name';
+  changeNameInput.value = players[index].name;
+
+  const changeNameButton = document.createElement('button');
+  changeNameButton.textContent = 'Change Name';
+  changeNameButton.onclick = function() {
+    const newName = changeNameInput.value.trim();
+    if (newName && newName !== players[index].name) {
+      players[index].name = newName;
+      saveData();
+      updateUI();
+      document.body.removeChild(dialog);
+    }
+  };
+
+  changeNameDiv.appendChild(nameSelect);
+  changeNameDiv.appendChild(document.createElement('br')); // Add line break for better UI
+  changeNameDiv.appendChild(changeNameInput);
+  changeNameDiv.appendChild(changeNameButton);
+  dialog.appendChild(changeNameDiv);
+
+  // Add New Player
+  const addPlayerDiv = document.createElement('div');
+  const addPlayerInput = document.createElement('input');
+  addPlayerInput.type = 'text';
+  addPlayerInput.placeholder = 'New player name';
+  const addPlayerButton = document.createElement('button');
+  addPlayerButton.textContent = 'Add Player';
+  addPlayerButton.onclick = function() {
+    const newPlayerName = addPlayerInput.value.trim();
+    if (newPlayerName) {
+      players.push({ 
+        name: newPlayerName, 
+        totalScore: 0, 
+        roundScores: Array(rounds.length).fill(0)  
+      });
+      
+      rounds.forEach(round => round.push(0)); 
+      saveData();
+      updateUI();
+      addPlayerInput.value = '';
+      document.body.removeChild(dialog); // Close the dialog after adding a new player
+    }
+  };
+  addPlayerDiv.appendChild(addPlayerInput);
+  addPlayerDiv.appendChild(addPlayerButton);
+  dialog.appendChild(addPlayerDiv);
+
+  // Remove Player Button
+  const removeButton = document.createElement('button');
+  removeButton.textContent = 'Remove Player';
+  removeButton.onclick = function() {
+    if (confirm(`Are you sure you want to remove ${players[index].name}?`)) {
+      removePlayer(index);
+      document.body.removeChild(dialog);
+    }
+  };
+  dialog.appendChild(removeButton);
+
+  // Close Dialog Button
+  const closeButton = document.createElement('button');
+  closeButton.textContent = 'Close';
+  closeButton.onclick = function() {
+    document.body.removeChild(dialog);
+  };
+  dialog.appendChild(closeButton);
+
+  document.body.appendChild(dialog);
+}
 
     function handlePlayerNameClick(event, index) {
       event.stopPropagation();
