@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Card Scoring App</title>
+  <title>Score</title>
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
   <style>
     body {
@@ -91,25 +91,24 @@
   <script>
     let players = JSON.parse(localStorage.getItem('players')) || [
       { name: "RB", totalScore: 0, roundScores: [] },
-      { name: "AB", totalScore: 0, roundScores: [] }
+      { name: "AB", totalScore: 0, roundScores: [] },
+      { name: "CB", totalScore: 0, roundScores: [] } // Example of three players
     ];
     let rounds = JSON.parse(localStorage.getItem('rounds')) || [];
     let scoringMode = localStorage.getItem('scoringMode') || 'highest'; // Default to highest score wins
-    let isProcessing = false;
 
     function addRoundScores() {
       const scores = [];
-      const inputs = document.querySelectorAll("#scoreTable input");
+      const inputs = document.querySelectorAll("#scoreTable input[type='number']");
       inputs.forEach((input, index) => {
         const score = parseInt(input.value) || 0;
-        scores[index] = score; // Replace instead of push to avoid duplicates
-        players[index].roundScores.push(score); // This should only happen once per score entry
+        scores[index] = score;
+        players[index].roundScores.push(score);
         players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
       });
-      rounds.push(scores); // Push the entire round's scores at once
+      rounds.push(scores);
       saveData();
       updateUI();
-      // Clear the input fields after adding scores to prevent duplicate entries on accidental re-submission
       inputs.forEach(input => input.value = '');
     }
 
@@ -135,7 +134,7 @@
       });
 
       const scoreBody = document.getElementById("scoreBody");
-      scoreBody.innerHTML = ""; // Clear the body to avoid cumulative rows
+      scoreBody.innerHTML = "";
       rounds.forEach((round, roundIndex) => {
         const row = document.createElement("tr");
         row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
@@ -146,17 +145,37 @@
         scoreBody.appendChild(row);
       });
 
-      // Adding new row for input fields at the bottom of the table with clickable first cell
       const inputRow = document.createElement('tr');
       inputRow.innerHTML = `<td onclick="addRoundScores()">Add</td>`;
       players.forEach((player, index) => {
-        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" onkeyup="checkScores(event)" onblur="checkScores(event)"/></td>`;
+        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}"/></td>`;
       });
       scoreBody.appendChild(inputRow);
 
       if (rounds.length > 0) {
         updateRankings();
       }
+      
+      // Set up event listeners for key events
+      const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+      inputs.forEach(input => {
+        input.addEventListener('keypress', function(event) {
+          if (event.key === 'Enter' || event.key === 'Tab') {
+            event.preventDefault();
+            if (allInputsFilled(inputs)) {
+              addRoundScores();
+            }
+          }
+        });
+        input.addEventListener('keydown', function(event) {
+          if (event.key === 'Tab') {
+            event.preventDefault();  // Prevent tab from moving focus
+            if (allInputsFilled(inputs)) {
+              addRoundScores();
+            }
+          }
+        });
+      });
     }
 
     function getRank(score) {
@@ -384,7 +403,7 @@
         option.text = i + ' Players';
         playerCountSelect.appendChild(option);
       }
-      playerCountSelect.value = players.length; // Set current player count as default
+      playerCountSelect.value = players.length;
       playerCountSelect.onchange = function() {
         const newCount = parseInt(this.value);
         if (newCount > players.length) {
@@ -423,7 +442,7 @@
       toggleScoringModeButton.onclick = function() {
         toggleScoringMode();
         toggleScoringModeButton.textContent = scoringMode === 'highest' ? 'High' : 'Low';
-        updateUI(); // UI should reflect the new scoring mode without duplicating data
+        updateUI();
         document.body.removeChild(dialog);
       };
       dialog.appendChild(toggleScoringModeButton);
@@ -447,10 +466,10 @@
 
     function resetScores() {
       players.forEach(player => {
-        player.roundScores = []; // Reset to an empty array
+        player.roundScores = [];
         player.totalScore = 0;
       });
-      rounds = []; // Reset rounds to an empty array
+      rounds = [];
       saveData();
       updateUI();
     }
@@ -467,21 +486,8 @@
       }
     }
 
-    function checkScores(e) {
-      if (isProcessing) return; // Prevent multiple executions
-      isProcessing = true;
-
-      const inputs = Array.from(document.querySelectorAll("#scoreTable input")).filter(input => input.type === 'number');
-      let allFilled = inputs.every(input => input.value.trim() !== '');
-      
-      if (allFilled) {
-        addRoundScores();
-      }
-      
-      // Reset the flag after a short delay to allow for the current operation to complete
-      setTimeout(() => {
-        isProcessing = false;
-      }, 100); // Adjust the delay as needed
+    function allInputsFilled(inputs) {
+      return Array.from(inputs).every(input => input.value.trim() !== '');
     }
 
     updateUI();
