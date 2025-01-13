@@ -92,7 +92,7 @@ table input[type="number"] {
     background-color: #f0f0f0;
     font-weight: bold;
     width: 30px; /* Set the width to 100 pixels, adjust as needed */
-  }
+  
   </style>
 </head>
 <body>
@@ -163,7 +163,7 @@ row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="select
       });
 
       const inputRow = document.createElement('tr');
-      inputRow.innerHTML = `<td onclick="addRoundScores()">🞤</td>`;
+      inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
       players.forEach((player, index) => {
         inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}"/></td>`;
       });
