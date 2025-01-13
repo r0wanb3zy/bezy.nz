@@ -95,19 +95,22 @@
     ];
     let rounds = JSON.parse(localStorage.getItem('rounds')) || [];
     let scoringMode = localStorage.getItem('scoringMode') || 'highest'; // Default to highest score wins
+    let isProcessing = false;
 
     function addRoundScores() {
       const scores = [];
       const inputs = document.querySelectorAll("#scoreTable input");
       inputs.forEach((input, index) => {
         const score = parseInt(input.value) || 0;
-        players[index].roundScores.push(score);
+        scores[index] = score; // Replace instead of push to avoid duplicates
+        players[index].roundScores.push(score); // This should only happen once per score entry
         players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
-        scores.push(score);
       });
-      rounds.push(scores);
+      rounds.push(scores); // Push the entire round's scores at once
       saveData();
       updateUI();
+      // Clear the input fields after adding scores to prevent duplicate entries on accidental re-submission
+      inputs.forEach(input => input.value = '');
     }
 
     function saveData() {
@@ -132,7 +135,7 @@
       });
 
       const scoreBody = document.getElementById("scoreBody");
-      scoreBody.innerHTML = "";
+      scoreBody.innerHTML = ""; // Clear the body to avoid cumulative rows
       rounds.forEach((round, roundIndex) => {
         const row = document.createElement("tr");
         row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
@@ -147,7 +150,7 @@
       const inputRow = document.createElement('tr');
       inputRow.innerHTML = `<td onclick="addRoundScores()">Add</td>`;
       players.forEach((player, index) => {
-        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" onkeyup="checkEnter(event)" onblur="checkIfAllScoresEntered(event)"/></td>`;
+        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" onkeyup="checkScores(event)" onblur="checkScores(event)"/></td>`;
       });
       scoreBody.appendChild(inputRow);
 
@@ -173,9 +176,13 @@
 
     function updateScore(roundIndex, playerIndex, newScore) {
       const score = parseInt(newScore) || 0;
-      rounds[roundIndex][playerIndex] = score;
-      players[playerIndex].roundScores[roundIndex] = score;
-      players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+      if (rounds[roundIndex] && rounds[roundIndex][playerIndex] !== undefined) {
+        rounds[roundIndex][playerIndex] = score;
+        if (players[playerIndex] && players[playerIndex].roundScores[roundIndex] !== undefined) {
+          players[playerIndex].roundScores[roundIndex] = score;
+          players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+        }
+      }
       saveData();
       updateUI();
     }
@@ -403,8 +410,10 @@
       const resetScoresButton = document.createElement('button');
       resetScoresButton.textContent = 'Reset';
       resetScoresButton.onclick = function() {
-        resetScores();
-        document.body.removeChild(dialog);
+        if (confirm("Are you sure you want to reset all scores?")) {
+          resetScores();
+          document.body.removeChild(dialog);
+        }
       };
       dialog.appendChild(resetScoresButton);
 
@@ -414,6 +423,7 @@
       toggleScoringModeButton.onclick = function() {
         toggleScoringMode();
         toggleScoringModeButton.textContent = scoringMode === 'highest' ? 'High' : 'Low';
+        updateUI(); // UI should reflect the new scoring mode without duplicating data
         document.body.removeChild(dialog);
       };
       dialog.appendChild(toggleScoringModeButton);
@@ -437,10 +447,10 @@
 
     function resetScores() {
       players.forEach(player => {
-        player.roundScores = [];
+        player.roundScores = []; // Reset to an empty array
         player.totalScore = 0;
       });
-      rounds = []; 
+      rounds = []; // Reset rounds to an empty array
       saveData();
       updateUI();
     }
@@ -457,23 +467,21 @@
       }
     }
 
-    function checkEnter(e) {
-      if (e.key === 'Enter') {
-        const inputs = Array.from(document.querySelectorAll("#scoreTable input")).filter(input => input.type === 'number');
-        let allFilled = inputs.every(input => input.value.trim() !== '');
-        if (allFilled) {
-          addRoundScores();
-        }
-      }
-    }
+    function checkScores(e) {
+      if (isProcessing) return; // Prevent multiple executions
+      isProcessing = true;
 
-    function checkIfAllScoresEntered(e) {
       const inputs = Array.from(document.querySelectorAll("#scoreTable input")).filter(input => input.type === 'number');
       let allFilled = inputs.every(input => input.value.trim() !== '');
       
       if (allFilled) {
         addRoundScores();
       }
+      
+      // Reset the flag after a short delay to allow for the current operation to complete
+      setTimeout(() => {
+        isProcessing = false;
+      }, 100); // Adjust the delay as needed
     }
 
     updateUI();
