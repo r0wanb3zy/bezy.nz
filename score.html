@@ -92,7 +92,7 @@ table input[type="number"] {
     background-color: #f0f0f0;
     font-weight: bold;
     width: 30px; /* Set the width to 100 pixels, adjust as needed */
-  
+  }
   </style>
 </head>
 <body>
@@ -138,7 +138,7 @@ table input[type="number"] {
 
     function updateUI() {
       const playerRow = document.getElementById("playerRow");
-      playerRow.innerHTML = `<th onclick="createRoundManagementDialog()">☰</th>`;
+      playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
       players.forEach((player, index) => {
         playerRow.innerHTML += `
           <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
@@ -157,7 +157,7 @@ table input[type="number"] {
         row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
         players.forEach((_, playerIndex) => {
           const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] === 0 ? '-' : round[playerIndex]) : '-';
-row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
+          row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
         });
         scoreBody.appendChild(row);
       });
@@ -271,8 +271,9 @@ row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="select
       dialog.style.transform = 'translate(-50%, -50%)';
       dialog.style.background = 'white';
       dialog.style.border = '1px solid black';
-      dialog.style.padding = '20px';
+      dialog.style.padding = '10px';
       dialog.style.zIndex = '1000';
+      dialog.style.textAlign = 'center';
 
       const title = document.createElement('h2');
       title.textContent = `Manage ${players[index].name}`;
@@ -311,6 +312,7 @@ row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="select
       changeNameInput.type = 'text';
       changeNameInput.placeholder = 'Enter new name';
       changeNameInput.value = players[index].name;
+      changeNameInput.style.width = '100px';
 
       const changeNameButton = document.createElement('button');
       changeNameButton.textContent = 'Change Name';
@@ -392,8 +394,20 @@ row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="select
       closeButton.textContent = 'Close';
       closeButton.onclick = function() {
         document.body.removeChild(dialog);
+        document.removeEventListener('click', closeDialogOnOutsideClick);
       };
       dialog.appendChild(closeButton);
+
+      // Function to close dialog if click is outside
+      function closeDialogOnOutsideClick(event) {
+        if (!dialog.contains(event.target) && event.target !== dialog) {
+          document.body.removeChild(dialog);
+          document.removeEventListener('click', closeDialogOnOutsideClick);
+        }
+      }
+
+      // Add click event listener to close dialog if click is outside
+      document.addEventListener('click', closeDialogOnOutsideClick);
 
       document.body.appendChild(dialog);
     }
@@ -411,8 +425,9 @@ row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="select
       dialog.style.transform = 'translate(-50%, -50%)';
       dialog.style.background = 'white';
       dialog.style.border = '1px solid black';
-      dialog.style.padding = '20px';
+      dialog.style.padding = '10px';
       dialog.style.zIndex = '1000';
+      dialog.style.textAlign = 'center';
 
       const title = document.createElement('h2');
       title.textContent = 'Round Management';
@@ -476,8 +491,20 @@ row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="select
       closeButton.textContent = 'Close';
       closeButton.onclick = function() {
         document.body.removeChild(dialog);
+        document.removeEventListener('click', closeDialogOnOutsideClick);
       };
       dialog.appendChild(closeButton);
+
+      // Function to close dialog if click is outside
+      function closeDialogOnOutsideClick(event) {
+        if (!dialog.contains(event.target) && event.target !== dialog) {
+          document.body.removeChild(dialog);
+          document.removeEventListener('click', closeDialogOnOutsideClick);
+        }
+      }
+
+      // Add click event listener to close dialog if click is outside
+      document.addEventListener('click', closeDialogOnOutsideClick);
 
       document.body.appendChild(dialog);
     }
