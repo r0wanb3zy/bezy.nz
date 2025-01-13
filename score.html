@@ -20,7 +20,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9rem;
+      font-size: 18px;
     }
     table th, table td {
       border: 1px solid #ddd;
@@ -46,7 +46,7 @@
     /* New CSS for placeholders to match table font */
     table input::placeholder {
       font-family: 'Economica', sans-serif;
-      font-size: 0.9rem;
+      font-size: 18px;
     }
     
     .highlight-winner {
@@ -58,22 +58,8 @@
     table td:first-child, table th:first-child {
       font-weight: bold; /* Make the first column bold */
     }
-
-    /* Responsive Design */
-    @media screen and (max-width: 600px) {
-      body {
-        font-size: 16px; /* Adjusts font size for smaller screens */
-      }
-      table {
-        font-size: 18px;
-      }
-      table input {
-        padding: 2px;
-      }
-      /* Adjust placeholder for smaller screens */
-      table input::placeholder {
-        font-size: 16px;
-      }
+        table th span:last-child {
+      font-size: 14px;
     }
   </style>
 </head>
@@ -118,65 +104,64 @@
       localStorage.setItem('scoringMode', scoringMode);
     }
 
-    function updateUI() {
-      const playerRow = document.getElementById("playerRow");
-      playerRow.innerHTML = `<th onclick="createRoundManagementDialog()">Round</th>`;
-      players.forEach((player, index) => {
-        playerRow.innerHTML += `
-          <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
-            ${player.name}
-            <br>
-            <span>${player.totalScore === 0 ? '一' : player.totalScore}</span>
-            <br>
-            <span>${getRank(player.totalScore)}</span>
-          </th>
-        `;
-      });
+function updateUI() {
+  const playerRow = document.getElementById("playerRow");
+  playerRow.innerHTML = `<th onclick="createRoundManagementDialog()">Round</th>`;
+  players.forEach((player, index) => {
+    playerRow.innerHTML += `
+      <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
+        ${player.name}
+        <br>
+        <span>${player.totalScore === 0 && rounds.length === 0 ? '-' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+        ${rounds.length > 0 ? `<br><span>${getRank(player.totalScore)}</span>` : ''}
+      </th>
+    `;
+  });
 
-      const scoreBody = document.getElementById("scoreBody");
-      scoreBody.innerHTML = "";
-      rounds.forEach((round, roundIndex) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
-        players.forEach((_, playerIndex) => {
-          const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] === 0 ? '一' : round[playerIndex]) : '一';
-          row.innerHTML += `<td contenteditable="true" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
-        });
-        scoreBody.appendChild(row);
-      });
+  const scoreBody = document.getElementById("scoreBody");
+  scoreBody.innerHTML = "";
+  rounds.forEach((round, roundIndex) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
+    players.forEach((_, playerIndex) => {
+      const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] === 0 ? '-' : round[playerIndex]) : '-';
+      row.innerHTML += `<td contenteditable="true" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
+    });
+    scoreBody.appendChild(row);
+  });
 
-      const inputRow = document.createElement('tr');
-      inputRow.innerHTML = `<td onclick="addRoundScores()">Add</td>`;
-      players.forEach((player, index) => {
-        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}"/></td>`;
-      });
-      scoreBody.appendChild(inputRow);
+  const inputRow = document.createElement('tr');
+  inputRow.innerHTML = `<td onclick="addRoundScores()">Add</td>`;
+  players.forEach((player, index) => {
+    inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}"/></td>`;
+  });
+  scoreBody.appendChild(inputRow);
 
-      if (rounds.length > 0) {
-        updateRankings();
+  if (rounds.length > 0) {
+    updateRankings();
+  }
+  
+  // Set up event listeners for key events
+  const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+  inputs.forEach(input => {
+    input.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter' || event.key === 'Tab') {
+        event.preventDefault();
+        if (allInputsFilled(inputs)) {
+          addRoundScores();
+        }
       }
-      
-      // Set up event listeners for key events
-      const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-      inputs.forEach(input => {
-        input.addEventListener('keypress', function(event) {
-          if (event.key === 'Enter' || event.key === 'Tab') {
-            event.preventDefault();
-            if (allInputsFilled(inputs)) {
-              addRoundScores();
-            }
-          }
-        });
-        input.addEventListener('keydown', function(event) {
-          if (event.key === 'Tab') {
-            event.preventDefault();  // Prevent tab from moving focus
-            if (allInputsFilled(inputs)) {
-              addRoundScores();
-            }
-          }
-        });
-      });
-    }
+    });
+    input.addEventListener('keydown', function(event) {
+      if (event.key === 'Tab') {
+        event.preventDefault();  // Prevent tab from moving focus
+        if (allInputsFilled(inputs)) {
+          addRoundScores();
+        }
+      }
+    });
+  });
+}
 
     function getRank(score) {
       const sortedPlayers = [...players];
@@ -206,31 +191,38 @@
       updateUI();
     }
 
-    function updateRankings() {
-      const sortedPlayers = [...players];
-      if (scoringMode === "highest") {
-        sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
-      } else {
-        sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
+function updateRankings() {
+  const sortedPlayers = [...players];
+  if (scoringMode === "highest") {
+    sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
+  } else {
+    sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
+  }
+
+  const playerRow = document.getElementById("playerRow");
+  const columns = Array.from(playerRow.children).slice(1);
+  columns.forEach((th) => th.classList.remove("highlight-winner", "highlight-loser"));
+  
+  // Check if all scores are the same
+  const allScoresSame = players.every(player => player.totalScore === players[0].totalScore);
+
+  if (allScoresSame) {
+    columns.forEach(th => th.classList.add("highlight-winner"));  // All green if all scores are the same
+  } else {
+    const highestScore = sortedPlayers[0].totalScore;
+    const lowestScore = sortedPlayers[sortedPlayers.length - 1].totalScore;
+
+    sortedPlayers.forEach((player, index) => {
+      const playerIndex = players.findIndex(p => p.name === player.name);
+      if (player.totalScore === highestScore) {
+        columns[playerIndex].classList.add("highlight-winner");
       }
-
-      const playerRow = document.getElementById("playerRow");
-      const columns = Array.from(playerRow.children).slice(1);
-      columns.forEach((th) => th.classList.remove("highlight-winner", "highlight-loser"));
-      
-      const highestScore = sortedPlayers[0].totalScore;
-      const lowestScore = sortedPlayers[sortedPlayers.length - 1].totalScore;
-
-      sortedPlayers.forEach((player, index) => {
-        const playerIndex = players.findIndex(p => p.name === player.name);
-        if (player.totalScore === highestScore) {
-          columns[playerIndex].classList.add("highlight-winner");
-        }
-        if (player.totalScore === lowestScore) {
-          columns[playerIndex].classList.add("highlight-loser");
-        }
-      });
-    }
+      if (player.totalScore === lowestScore) {
+        columns[playerIndex].classList.add("highlight-loser");
+      }
+    });
+  }
+}
 
     function removePlayer(index) {
       players.splice(index, 1);
