@@ -46,6 +46,26 @@
             font-size: 0.8em;
             color: #666; /* or any color you prefer */
         }
+
+        .toggle-state {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            cursor: pointer;
+            min-width: 80px;
+        }
+
+        .toggle-state[state="1"] {
+            background-color: #e6ffe6; /* Light green for checked */
+            border-color: #00ff00;
+        }
+
+        .toggle-state[state="2"] {
+            text-decoration: line-through;
+            color: grey;
+            background-color: #fff; /* Or any color you prefer for crossed off */
+            border-color: #ddd;
+        }
     </style>
 </head>
 <body>
@@ -145,31 +165,31 @@
                 </tr>
                 <tr>
                     <td>Full House</td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="RB" data-score="25"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="AB" data-score="25"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="CR" data-score="25"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="DB" data-score="25"></td>
+                    <td><button class="toggle-state" data-player="RB" data-category="Full House" data-score="25" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="AB" data-category="Full House" data-score="25" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="CR" data-category="Full House" data-score="25" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="DB" data-category="Full House" data-score="25" data-state="0">Standard</button></td>
                 </tr>
                 <tr>
                     <td>Small Straight</td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="RB" data-score="30"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="AB" data-score="30"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="CR" data-score="30"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="DB" data-score="30"></td>
+                    <td><button class="toggle-state" data-player="RB" data-category="Small Straight" data-score="30" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="AB" data-category="Small Straight" data-score="30" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="CR" data-category="Small Straight" data-score="30" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="DB" data-category="Small Straight" data-score="30" data-state="0">Standard</button></td>
                 </tr>
                 <tr>
                     <td>Large Straight</td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="RB" data-score="40"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="AB" data-score="40"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="CR" data-score="40"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="DB" data-score="40"></td>
+                    <td><button class="toggle-state" data-player="RB" data-category="Large Straight" data-score="40" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="AB" data-category="Large Straight" data-score="40" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="CR" data-category="Large Straight" data-score="40" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="DB" data-category="Large Straight" data-score="40" data-state="0">Standard</button></td>
                 </tr>
                 <tr>
                     <td>Yahtzee</td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="RB" data-score="50"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="AB" data-score="50"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="CR" data-score="50"></td>
-                    <td><input type="checkbox" class="checkbox-score" data-player="DB" data-score="50"></td>
+                    <td><button class="toggle-state" data-player="RB" data-category="Yahtzee" data-score="50" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="AB" data-category="Yahtzee" data-score="50" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="CR" data-category="Yahtzee" data-score="50" data-state="0">Standard</button></td>
+                    <td><button class="toggle-state" data-player="DB" data-category="Yahtzee" data-score="50" data-state="0">Standard</button></td>
                 </tr>
                 <tr>
                     <td>Chance</td>
@@ -190,14 +210,46 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const scores = document.querySelectorAll('.score, .checkbox-score');
+            const scores = document.querySelectorAll('.score, .toggle-state');
+
             scores.forEach(score => {
-                score.addEventListener('change', function() {
-                    const player = this.getAttribute('data-player');
-                    calculateTotal(player);
-                });
+                if (score.classList.contains('toggle-state')) {
+                    score.addEventListener('click', function(e) {
+                        e.preventDefault(); // Prevent form-like buttons from submitting
+                        let currentState = parseInt(this.getAttribute('data-state'));
+                        currentState = (currentState + 1) % 3; // Cycle through 0, 1, 2
+                        this.setAttribute('data-state', currentState);
+                        updateButtonState(this);
+
+                        const player = this.getAttribute('data-player');
+                        calculateTotal(player);
+                    });
+                } else {
+                    score.addEventListener('change', function() {
+                        const player = this.getAttribute('data-player');
+                        calculateTotal(player);
+                    });
+                }
             });
         });
+
+        function updateButtonState(button) {
+            let state = parseInt(button.getAttribute('data-state'));
+            switch(state) {
+                case 0:
+                    button.textContent = 'Standard';
+                    button.removeAttribute('state'); // Remove any inline style attribute
+                    break;
+                case 1:
+                    button.textContent = 'Checked';
+                    button.setAttribute('state', '1');
+                    break;
+                case 2:
+                    button.textContent = 'Crossed Off';
+                    button.setAttribute('state', '2');
+                    break;
+            }
+        }
 
         function calculateTotal(player) {
             let total = 0;
@@ -212,9 +264,12 @@
                     } else {
                         lowerSectionTotal += value;
                     }
-                } else if (score.type === 'checkbox' && score.checked) {
-                    total += parseInt(score.getAttribute('data-score'));
-                    lowerSectionTotal += parseInt(score.getAttribute('data-score'));
+                } else if (score.classList.contains('toggle-state')) {
+                    let state = parseInt(score.getAttribute('data-state'));
+                    if (state === 1) { // Only add score if the state is 'Checked'
+                        total += parseInt(score.getAttribute('data-score'));
+                        lowerSectionTotal += parseInt(score.getAttribute('data-score'));
+                    }
                 }
             });
             
