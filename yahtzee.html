@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yahtzee Scorecard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .scorecard {
+            width: 80%;
+            margin: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .score {
+            width: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="scorecard">
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>RB</th>
+                    <th>AB</th>
+                    <th>CR</th>
+                    <th>DB</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Ones</td>
+                    <td><input type="number" min="0" max="5" class="score" data-player="RB"></td>
+                    <td><input type="number" min="0" max="5" class="score" data-player="AB"></td>
+                    <td><input type="number" min="0" max="5" class="score" data-player="CR"></td>
+                    <td><input type="number" min="0" max="5" class="score" data-player="DB"></td>
+                </tr>
+                <tr>
+                    <td>Twos</td>
+                    <td><input type="number" min="0" max="10" class="score" data-player="RB"></td>
+                    <td><input type="number" min="0" max="10" class="score" data-player="AB"></td>
+                    <td><input type="number" min="0" max="10" class="score" data-player="CR"></td>
+                    <td><input type="number" min="0" max="10" class="score" data-player="DB"></td>
+                </tr>
+                <tr>
+                    <td>Threes</td>
+                    <td><input type="number" min="0" max="15" class="score" data-player="RB"></td>
+                    <td><input type="number" min="0" max="15" class="score" data-player="AB"></td>
+                    <td><input type="number" min="0" max="15" class="score" data-player="CR"></td>
+                    <td><input type="number" min="0" max="15" class="score" data-player="DB"></td>
+                </tr>
+                <tr>
+                    <td>Fours</td>
+                    <td><input type="number" min="0" max="20" class="score" data-player="RB"></td>
+                    <td><input type="number" min="0" max="20" class="score" data-player="AB"></td>
+                    <td><input type="number" min="0" max="20" class="score" data-player="CR"></td>
+                    <td><input type="number" min="0" max="20" class="score" data-player="DB"></td>
+                </tr>
+                <tr>
+                    <td>Fives</td>
+                    <td><input type="number" min="0" max="25" class="score" data-player="RB"></td>
+                    <td><input type="number" min="0" max="25" class="score" data-player="AB"></td>
+                    <td><input type="number" min="0" max="25" class="score" data-player="CR"></td>
+                    <td><input type="number" min="0" max="25" class="score" data-player="DB"></td>
+                </tr>
+                <tr>
+                    <td>Sixes</td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="RB"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="AB"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="CR"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="DB"></td>
+                </tr>
+                <tr>
+                    <td>Bonus</td>
+                    <td id="bonusRB">0</td>
+                    <td id="bonusAB">0</td>
+                    <td id="bonusCR">0</td>
+                    <td id="bonusDB">0</td>
+                </tr>
+                <tr>
+                    <td>Three of a Kind</td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="RB"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="AB"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="CR"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="DB"></td>
+                </tr>
+                <tr>
+                    <td>Four of a Kind</td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="RB"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="AB"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="CR"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="DB"></td>
+                </tr>
+                <tr>
+                    <td>Full House</td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="RB" data-score="25"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="AB" data-score="25"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="CR" data-score="25"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="DB" data-score="25"></td>
+                </tr>
+                <tr>
+                    <td>Small Straight</td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="RB" data-score="30"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="AB" data-score="30"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="CR" data-score="30"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="DB" data-score="30"></td>
+                </tr>
+                <tr>
+                    <td>Large Straight</td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="RB" data-score="40"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="AB" data-score="40"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="CR" data-score="40"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="DB" data-score="40"></td>
+                </tr>
+                <tr>
+                    <td>Yahtzee</td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="RB" data-score="50"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="AB" data-score="50"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="CR" data-score="50"></td>
+                    <td><input type="checkbox" class="checkbox-score" data-player="DB" data-score="50"></td>
+                </tr>
+                <tr>
+                    <td>Chance</td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="RB"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="AB"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="CR"></td>
+                    <td><input type="number" min="0" max="30" class="score" data-player="DB"></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>Total Score</td>
+                    <td id="totalRB">0</td>
+                    <td id="totalAB">0</td>
+                    <td id="totalCR">0</td>
+                    <td id="totalDB">0</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const scores = document.querySelectorAll('.score, .checkbox-score');
+            scores.forEach(score => {
+                score.addEventListener('change', function() {
+                    const player = this.getAttribute('data-player');
+                    calculateTotal(player);
+                });
+            });
+        });
+
+        function calculateTotal(player) {
+            let total = 0;
+            let upperSectionTotal = 0;
+            document.querySelectorAll(`[data-player="${player}"]`).forEach(score => {
+                if (score.type === 'number') {
+                    let value = parseInt(score.value) || 0;
+                    total += value;
+                    if (score.closest('tr').cells[0].textContent.match(/Ones|Twos|Threes|Fours|Fives|Sixes/)) {
+                        upperSectionTotal += value;
+                    }
+                } else if (score.type === 'checkbox' && score.checked) {
+                    total += parseInt(score.getAttribute('data-score'));
+                }
+            });
+            
+            // Calculate Bonus
+            let bonus = upperSectionTotal >= 63 ? 35 : 0;
+            document.getElementById(`bonus${player}`).textContent = bonus;
+            
+            // Add Bonus to Total
+            total += bonus;
+            document.getElementById(`total${player}`).textContent = total;
+        }
+    </script>
+</body>
+</html>
