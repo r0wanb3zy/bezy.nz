@@ -44,7 +44,7 @@
 
         th div {
             font-size: 0.8em;
-            color: #666; /* or any color you prefer */
+            color: #666;
         }
 
         .toggle-state {
@@ -56,14 +56,14 @@
         }
 
         .toggle-state[state="1"] {
-            background-color: #e6ffe6; /* Light green for checked */
+            background-color: #e6ffe6;
             border-color: #00ff00;
         }
 
         .toggle-state[state="2"] {
             text-decoration: line-through;
             color: grey;
-            background-color: #fff; /* Or any color you prefer for crossed off */
+            background-color: #fff;
             border-color: #ddd;
         }
     </style>
@@ -215,8 +215,8 @@
             scores.forEach(score => {
                 if (score.classList.contains('toggle-state')) {
                     score.addEventListener('click', function(e) {
-                        e.preventDefault(); // Prevent form-like buttons from submitting
-                        let currentState = parseInt(this.getAttribute('data-state'));
+                        e.preventDefault();
+                        let currentState = parseInt(this.getAttribute('data-state')) || 0;
                         currentState = (currentState + 1) % 3; // Cycle through 0, 1, 2
                         this.setAttribute('data-state', currentState);
                         updateButtonState(this);
@@ -238,7 +238,7 @@
             switch(state) {
                 case 0:
                     button.textContent = 'Standard';
-                    button.removeAttribute('state'); // Remove any inline style attribute
+                    button.removeAttribute('state');
                     break;
                 case 1:
                     button.textContent = 'Checked';
@@ -259,7 +259,7 @@
                 if (score.type === 'number') {
                     let value = parseInt(score.value) || 0;
                     total += value;
-                    if (score.closest('tr').cells[0].textContent.match(/Ones|Twos|Threes|Fours|Fives|Sixes/)) {
+                    if (['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'].includes(score.closest('tr').cells[0].textContent)) {
                         upperSectionTotal += value;
                     } else {
                         lowerSectionTotal += value;
@@ -267,8 +267,9 @@
                 } else if (score.classList.contains('toggle-state')) {
                     let state = parseInt(score.getAttribute('data-state'));
                     if (state === 1) { // Only add score if the state is 'Checked'
-                        total += parseInt(score.getAttribute('data-score'));
-                        lowerSectionTotal += parseInt(score.getAttribute('data-score'));
+                        let scoreValue = parseInt(score.getAttribute('data-score'));
+                        total += scoreValue;
+                        lowerSectionTotal += scoreValue;
                     }
                 }
             });
@@ -284,7 +285,7 @@
                 pointsNeededElement.textContent = '35';
                 pointsNeededElement.classList.add('bonus-achieved');
             } else {
-                pointsNeededElement.textContent = Math.max(63 - upperSectionTotal, 0);
+                pointsNeededElement.textContent = (63 - upperSectionTotal).toString();
                 pointsNeededElement.classList.remove('bonus-achieved');
             }
             
