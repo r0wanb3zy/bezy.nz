@@ -32,6 +32,20 @@
         .score {
             width: 50px;
         }
+
+        .bonus-row .points-needed {
+            color: grey;
+        }
+
+        .bonus-row .points-needed.bonus-achieved {
+            color: black;
+            font-weight: bold;
+        }
+
+        th div {
+            font-size: 0.8em;
+            color: #666; /* or any color you prefer */
+        }
     </style>
 </head>
 <body>
@@ -40,10 +54,22 @@
             <thead>
                 <tr>
                     <th>Category</th>
-                    <th>RB</th>
-                    <th>AB</th>
-                    <th>CR</th>
-                    <th>DB</th>
+                    <th>
+                        RB
+                        <div id="totalRB">0</div>
+                    </th>
+                    <th>
+                        AB
+                        <div id="totalAB">0</div>
+                    </th>
+                    <th>
+                        CR
+                        <div id="totalCR">0</div>
+                    </th>
+                    <th>
+                        DB
+                        <div id="totalDB">0</div>
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -89,12 +115,19 @@
                     <td><input type="number" min="0" max="30" class="score" data-player="CR"></td>
                     <td><input type="number" min="0" max="30" class="score" data-player="DB"></td>
                 </tr>
-                <tr>
+                <tr class="bonus-row">
                     <td>Bonus</td>
-                    <td id="bonusRB">0</td>
-                    <td id="bonusAB">0</td>
-                    <td id="bonusCR">0</td>
-                    <td id="bonusDB">0</td>
+                    <td id="bonusRB"><span id="pointsNeededRB" class="points-needed">63</span></td>
+                    <td id="bonusAB"><span id="pointsNeededAB" class="points-needed">63</span></td>
+                    <td id="bonusCR"><span id="pointsNeededCR" class="points-needed">63</span></td>
+                    <td id="bonusDB"><span id="pointsNeededDB" class="points-needed">63</span></td>
+                </tr>
+                <tr class="upper-score-row">
+                    <td>Upper Score</td>
+                    <td id="upperScoreRB">0</td>
+                    <td id="upperScoreAB">0</td>
+                    <td id="upperScoreCR">0</td>
+                    <td id="upperScoreDB">0</td>
                 </tr>
                 <tr>
                     <td>Three of a Kind</td>
@@ -145,16 +178,14 @@
                     <td><input type="number" min="0" max="30" class="score" data-player="CR"></td>
                     <td><input type="number" min="0" max="30" class="score" data-player="DB"></td>
                 </tr>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td>Total Score</td>
-                    <td id="totalRB">0</td>
-                    <td id="totalAB">0</td>
-                    <td id="totalCR">0</td>
-                    <td id="totalDB">0</td>
+                <tr class="lower-score-row">
+                    <td>Lower Score</td>
+                    <td id="lowerScoreRB">0</td>
+                    <td id="lowerScoreAB">0</td>
+                    <td id="lowerScoreCR">0</td>
+                    <td id="lowerScoreDB">0</td>
                 </tr>
-            </tfoot>
+            </tbody>
         </table>
     </div>
     <script>
@@ -171,22 +202,43 @@
         function calculateTotal(player) {
             let total = 0;
             let upperSectionTotal = 0;
+            let lowerSectionTotal = 0;
             document.querySelectorAll(`[data-player="${player}"]`).forEach(score => {
                 if (score.type === 'number') {
                     let value = parseInt(score.value) || 0;
                     total += value;
                     if (score.closest('tr').cells[0].textContent.match(/Ones|Twos|Threes|Fours|Fives|Sixes/)) {
                         upperSectionTotal += value;
+                    } else {
+                        lowerSectionTotal += value;
                     }
                 } else if (score.type === 'checkbox' && score.checked) {
                     total += parseInt(score.getAttribute('data-score'));
+                    lowerSectionTotal += parseInt(score.getAttribute('data-score'));
                 }
             });
             
             // Calculate Bonus
             let bonus = upperSectionTotal >= 63 ? 35 : 0;
-            document.getElementById(`bonus${player}`).textContent = bonus;
             
+            // Update Bonus Row
+            let bonusElement = document.getElementById(`bonus${player}`);
+            let pointsNeededElement = document.getElementById(`pointsNeeded${player}`);
+            
+            if (bonus > 0) {
+                pointsNeededElement.textContent = '35';
+                pointsNeededElement.classList.add('bonus-achieved');
+            } else {
+                pointsNeededElement.textContent = Math.max(63 - upperSectionTotal, 0);
+                pointsNeededElement.classList.remove('bonus-achieved');
+            }
+            
+            // Update Upper Score
+            document.getElementById(`upperScore${player}`).textContent = upperSectionTotal;
+
+            // Update Lower Score
+            document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
+
             // Add Bonus to Total
             total += bonus;
             document.getElementById(`total${player}`).textContent = total;
