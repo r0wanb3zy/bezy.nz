@@ -57,24 +57,10 @@
             color: #666;
         }
 
-        .toggle-state {
-            padding: 5px 10px;
-            border: 1px solid #ddd;
-            background-color: #fff;
+        .lower-section-cell, .upper-section-cell {
             cursor: pointer;
-            min-width: 80px;
-        }
-
-        .toggle-state[state="1"] {
-            background-color: #e6ffe6;
-            border-color: #00ff00;
-        }
-
-        .toggle-state[state="2"] {
-            text-decoration: line-through;
-            color: grey;
-            background-color: #fff;
-            border-color: #ddd;
+            width: 80px;
+            text-align: center;
         }
 
         #popupModal {
@@ -99,10 +85,6 @@
             border: 1px solid #000;
             padding: 20px;
             z-index: 1000;
-        }
-
-        .upper-section-cell {
-            cursor: pointer;
         }
     </style>
 </head>
@@ -189,52 +171,52 @@
                 </tr>
                 <tr>
                     <td>🤟</td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="RB"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="AB"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="CR"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="DB"></td>
+                    <td onclick="showPopup(this, '🤟', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                    <td onclick="showPopup(this, '🤟', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                    <td onclick="showPopup(this, '🤟', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                    <td onclick="showPopup(this, '🤟', 'DB')" class="upper-section-cell" data-player="DB"></td>
                 </tr>
                 <tr>
                     <td>🖖</td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="RB"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="AB"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="CR"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="DB"></td>
+                    <td onclick="showPopup(this, '🖖', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                    <td onclick="showPopup(this, '🖖', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                    <td onclick="showPopup(this, '🖖', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                    <td onclick="showPopup(this, '🖖', 'DB')" class="upper-section-cell" data-player="DB"></td>
                 </tr>
                 <tr>
                     <td>🏠</td>
-                    <td><button class="toggle-state" data-player="RB" data-category="Full House" data-score="25" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="AB" data-category="Full House" data-score="25" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="CR" data-category="Full House" data-score="25" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="DB" data-category="Full House" data-score="25" data-state="0">Standard</button></td>
+                    <td class="lower-section-cell" data-player="RB" data-category="Full House" data-score="25" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="AB" data-category="Full House" data-score="25" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="CR" data-category="Full House" data-score="25" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="DB" data-category="Full House" data-score="25" data-state="0"></td>
                 </tr>
                 <tr>
                     <td>▪️</td>
-                    <td><button class="toggle-state" data-player="RB" data-category="Small Straight" data-score="30" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="AB" data-category="Small Straight" data-score="30" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="CR" data-category="Small Straight" data-score="30" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="DB" data-category="Small Straight" data-score="30" data-state="0">Standard</button></td>
+                    <td class="lower-section-cell" data-player="RB" data-category="Small Straight" data-score="30" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="AB" data-category="Small Straight" data-score="30" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="CR" data-category="Small Straight" data-score="30" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="DB" data-category="Small Straight" data-score="30" data-state="0"></td>
                 </tr>
                 <tr>
                     <td>◾️</td>
-                    <td><button class="toggle-state" data-player="RB" data-category="Large Straight" data-score="40" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="AB" data-category="Large Straight" data-score="40" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="CR" data-category="Large Straight" data-score="40" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="DB" data-category="Large Straight" data-score="40" data-state="0">Standard</button></td>
+                    <td class="lower-section-cell" data-player="RB" data-category="Large Straight" data-score="40" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="AB" data-category="Large Straight" data-score="40" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="CR" data-category="Large Straight" data-score="40" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="DB" data-category="Large Straight" data-score="40" data-state="0"></td>
                 </tr>
                 <tr>
                     <td>🎯</td>
-                    <td><button class="toggle-state" data-player="RB" data-category="Yahtzee" data-score="50" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="AB" data-category="Yahtzee" data-score="50" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="CR" data-category="Yahtzee" data-score="50" data-state="0">Standard</button></td>
-                    <td><button class="toggle-state" data-player="DB" data-category="Yahtzee" data-score="50" data-state="0">Standard</button></td>
+                    <td class="lower-section-cell" data-player="RB" data-category="Yahtzee" data-score="50" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="AB" data-category="Yahtzee" data-score="50" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="CR" data-category="Yahtzee" data-score="50" data-state="0"></td>
+                    <td class="lower-section-cell" data-player="DB" data-category="Yahtzee" data-score="50" data-state="0"></td>
                 </tr>
                 <tr>
                     <td>©️</td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="RB"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="AB"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="CR"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="DB"></td>
+                    <td onclick="showPopup(this, '©️', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                    <td onclick="showPopup(this, '©️', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                    <td onclick="showPopup(this, '©️', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                    <td onclick="showPopup(this, '©️', 'DB')" class="upper-section-cell" data-player="DB"></td>
                 </tr>
                 <tr class="lower-score-row">
                     <td>🔻</td>
@@ -261,49 +243,44 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const scores = document.querySelectorAll('.score, .toggle-state');
+            const scores = document.querySelectorAll('.score, .lower-section-cell, .upper-section-cell');
 
             scores.forEach(score => {
-                if (score.classList.contains('toggle-state')) {
-                    score.addEventListener('click', function(e) {
-                        e.preventDefault();
+                score.addEventListener('click', function(e) {
+                    if (this.classList.contains('lower-section-cell')) {
                         let currentState = parseInt(this.getAttribute('data-state')) || 0;
                         currentState = (currentState + 1) % 3; // Cycle through 0, 1, 2
                         this.setAttribute('data-state', currentState);
-                        updateButtonState(this);
+
+                        switch(currentState) {
+                            case 0: // Clear
+                                this.textContent = '';
+                                this.style.textDecoration = 'none';
+                                break;
+                            case 1: // Display Score
+                                this.textContent = this.getAttribute('data-score');
+                                this.style.textDecoration = 'none';
+                                break;
+                            case 2: // Cross off
+                                this.textContent = '-';
+                                this.style.textDecoration = 'line-through';
+                                break;
+                        }
 
                         const player = this.getAttribute('data-player');
                         calculateTotal(player);
-                    });
-                } else {
-                    score.addEventListener('change', function() {
-                        const player = this.getAttribute('data-player');
-                        calculateTotal(player);
-                    });
-                }
+                    } else if (this.classList.contains('upper-section-cell')) {
+                        showPopup(this, this.closest('tr').cells[0].textContent, this.getAttribute('data-player'));
+                    } else if (this.classList.contains('score')) {
+                        this.value = this.value || '0'; // Set to '0' if empty to ensure it's treated as a number
+                        calculateTotal(this.getAttribute('data-player'));
+                    }
+                });
             });
 
             // Load game state when the page loads
             loadGameState();
         });
-
-        function updateButtonState(button) {
-            let state = parseInt(button.getAttribute('data-state'));
-            switch(state) {
-                case 0:
-                    button.textContent = 'Standard';
-                    button.removeAttribute('state');
-                    break;
-                case 1:
-                    button.textContent = 'Checked';
-                    button.setAttribute('state', '1');
-                    break;
-                case 2:
-                    button.textContent = 'Crossed Off';
-                    button.setAttribute('state', '2');
-                    break;
-            }
-        }
 
         function calculateTotal(player) {
             let total = 0;
@@ -318,9 +295,9 @@
                     } else {
                         lowerSectionTotal += value;
                     }
-                } else if (score.classList.contains('toggle-state')) {
+                } else if (score.classList.contains('lower-section-cell')) {
                     let state = parseInt(score.getAttribute('data-state'));
-                    if (state === 1) { // Only add score if the state is 'Checked'
+                    if (state === 1) { // Only add score if the state is 'Checked' (1)
                         let scoreValue = parseInt(score.getAttribute('data-score'));
                         total += scoreValue;
                         lowerSectionTotal += scoreValue;
@@ -328,7 +305,11 @@
                 } else if (score.classList.contains('upper-section-cell') && score.textContent !== '-' && score.textContent !== '') {
                     let value = parseInt(score.textContent) || 0;
                     total += value;
-                    upperSectionTotal += value;
+                    if (['🤟', '🖖', '©️'].includes(score.closest('tr').cells[0].textContent)) {
+                        lowerSectionTotal += value;
+                    } else {
+                        upperSectionTotal += value;
+                    }
                 }
             });
             
@@ -366,15 +347,22 @@
             document.getElementById('popupTitle').textContent = `Select Score for ${number}:`;
             
             let options = '';
-            let numberValue = parseInt(number);
             
-            // Custom options for each number
-            for (let i = 1; i <= 5; i++) {
-                let score = i * numberValue;
-                options += `<button onclick="selectScore(${score}, '${player}', '${number}', this)">${score}</button>`;
+            // For 3 of a kind, 4 of a kind, and Chance, provide options from 0 to 30
+            if (['🤟', '🖖', '©️'].includes(number)) {
+                for (let i = 0; i <= 30; i++) {
+                    options += `<button onclick="selectScore(${i}, '${player}', '${number}', this)">${i}</button>`;
+                }
+            } else {
+                // Existing logic for other numbers
+                let numberValue = parseInt(number);
+                for (let i = 1; i <= 5; i++) {
+                    let score = i * numberValue;
+                    options += `<button onclick="selectScore(${score}, '${player}', '${number}', this)">${score}</button>`;
+                }
+                options += `<button onclick="selectScore(0, '${player}', '${number}', this)">-</button>`; // Cross off option
+                options += `<button onclick="selectScore('x', '${player}', '${number}', this)">x</button>`; // Clear option
             }
-            options += `<button onclick="selectScore(0, '${player}', '${number}', this)">-</button>`; // Cross off option
-            options += `<button onclick="selectScore('x', '${player}', '${number}', this)">x</button>`; // Clear option
             document.getElementById('popupOptions').innerHTML = options;
         }
 
@@ -409,20 +397,14 @@
 
         function resetScores() {
             // Reset all scores to their initial state
-            document.querySelectorAll('.score, .upper-section-cell').forEach(cell => {
+            document.querySelectorAll('.score, .upper-section-cell, .lower-section-cell').forEach(cell => {
                 if(cell.type === 'number') {
                     cell.value = '';
                 } else {
                     cell.textContent = '';
                     cell.style.textDecoration = 'none';
+                    cell.setAttribute('data-state', '0');
                 }
-            });
-
-            // Reset toggle states
-            document.querySelectorAll('.toggle-state').forEach(button => {
-                button.setAttribute('data-state', '0');
-                button.textContent = 'Standard';
-                button.removeAttribute('state');
             });
 
             // Reset totals and bonus displays
@@ -442,37 +424,17 @@
 
         function saveGameState() {
             let gameState = {
-                scores: {},
-                totals: {}
+                // Here you should define how to collect all necessary game data
+                // Example:
+                // players: Array.from({ length: 4 }, (_, i) => ({
+                //     player: ['RB', 'AB', 'CR', 'DB'][i],
+                //     scores: Array.from(document.querySelectorAll(`[data-player="${['RB', 'AB', 'CR', 'DB'][i]}"]`)).map(el => ({
+                //         category: el.getAttribute('data-category') || el.closest('tr').cells[0].textContent,
+                //         score: el.type === 'number' ? el.value : el.textContent,
+                //         state: el.getAttribute('data-state')
+                //     })),
             };
-            
-            // Save scores for all players
-            document.querySelectorAll('.score, .upper-section-cell, .toggle-state').forEach(element => {
-                let player = element.getAttribute('data-player');
-                if (!gameState.scores[player]) gameState.scores[player] = {};
-                
-                if (element.type === 'number') {
-                    gameState.scores[player][element.closest('tr').cells[0].textContent] = element.value;
-                } else if (element.classList.contains('upper-section-cell')) {
-                    gameState.scores[player][element.closest('tr').cells[0].textContent] = element.textContent;
-                } else if (element.classList.contains('toggle-state')) {
-                    gameState.scores[player][element.getAttribute('data-category')] = {
-                        state: element.getAttribute('data-state'),
-                        score: element.getAttribute('data-score')
-                    };
-                }
-            });
-
-            // Save totals for each player
-            ['RB', 'AB', 'CR', 'DB'].forEach(player => {
-                gameState.totals[player] = {
-                    total: document.getElementById(`total${player}`).textContent,
-                    upperScore: document.getElementById(`upperScore${player}`).textContent,
-                    lowerScore: document.getElementById(`lowerScore${player}`).textContent,
-                    bonus: document.getElementById(`pointsNeeded${player}`).textContent
-                };
-            });
-
+            // Store gameState in localStorage or similar for persistence
             localStorage.setItem('yahtzeeGameState', JSON.stringify(gameState));
         }
 
@@ -480,57 +442,24 @@
             let savedState = localStorage.getItem('yahtzeeGameState');
             if (savedState) {
                 let gameState = JSON.parse(savedState);
-
-                // Load scores
-                Object.keys(gameState.scores).forEach(player => {
-                    Object.keys(gameState.scores[player]).forEach(key => {
-                        let element;
-                        if (['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'].includes(key)) {
-                            element = document.querySelector(`td[data-player="${player}"][onclick*="showPopup(this, '${key}', '${player}')"]`);
-                            if (element) {
-                                element.textContent = gameState.scores[player][key];
-                                if (gameState.scores[player][key] === '-') {
-                                    element.style.textDecoration = 'line-through';
-                                }
-                            }
-                        } else if (['🤟', '🖖', '©️'].includes(key)) {
-                            element = document.querySelector(`input[data-player="${player}"][type="number"]:not([data-category])`);
-                            if (element) {
-                                element.value = gameState.scores[player][key];
-                            }
-                        } else {
-                            element = document.querySelector(`button[data-player="${player}"][data-category="${key}"]`);
-                            if (element) {
-                                element.setAttribute('data-state', gameState.scores[player][key].state);
-                                updateButtonState(element);
-                            }
-                        }
-                    });
-                    calculateTotal(player); // Recalculate totals after loading scores
-                });
-
-                // Load totals
-                Object.keys(gameState.totals).forEach(player => {
-                    document.getElementById(`total${player}`).textContent = gameState.totals[player].total;
-                    document.getElementById(`upperScore${player}`).textContent = gameState.totals[player].upperScore;
-                    document.getElementById(`lowerScore${player}`).textContent = gameState.totals[player].lowerScore;
-                    let bonusElement = document.getElementById(`pointsNeeded${player}`);
-                    bonusElement.textContent = gameState.totals[player].bonus;
-                    if (bonusElement.textContent === '35') {
-                        bonusElement.classList.add('bonus-achieved');
-                    } else {
-                        bonusElement.classList.remove('bonus-achieved');
-                    }
-                });
+                // Example of how to restore state:
+                // gameState.players.forEach(player => {
+                //     player.scores.forEach(score => {
+                //         let el = document.querySelector(`[data-player="${player.player}"][data-category="${score.category}"]`);
+                //         if (el) {
+                //             if (el.type === 'number') {
+                //                 el.value = score.score;
+                //             } else {
+                //                 el.textContent = score.score;
+                //                 el.style.textDecoration = score.score === '-' ? 'line-through' : 'none';
+                //                 el.setAttribute('data-state', score.state || '0');
+                //             }
+                //             calculateTotal(player.player);
+                //         }
+                //     });
+                // });
             }
         }
-
-        // Save game state on every change
-        document.body.addEventListener('change', saveGameState);
-        document.body.addEventListener('click', function(event) {
-            if (event.target.classList.contains('toggle-state')) {
-                saveGameState();
-            }
-        });
     </script>
-</body
+</body>
+</html>
