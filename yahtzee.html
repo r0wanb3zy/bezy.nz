@@ -19,28 +19,34 @@
             text-align: center;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 18px;
-        }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 18px;
+        table-layout: fixed;
+    }
 
-        table th, table td {
-            border: 1px solid #ddd;
-            text-align: center;
-            padding: 5px;
-            word-wrap: break-word;
-            cursor: pointer;
-        }
+    table th, table td {
+        border: 1px solid #ddd;
+        text-align: center;
+        padding: 5px;
+        word-wrap: break-word;
+        cursor: pointer;
+        overflow: hidden; /* New: prevents content overflow */
+        text-overflow: ellipsis; /* Optional: shows dots for overflow */
+    }
+
+    table th:first-child, table td:first-child {
+        background-color: #f0f0f0;
+        font-weight: bold;
+        width: 30px;
+        min-width: 30px;
+        max-width: 30px;
+        overflow: hidden;
+    }
 
         table th {
             background-color: #f4f4f4;
-        }
-
-        table th:first-child, table td:first-child {
-            background-color: #f0f0f0;
-            font-weight: bold;
-            width: 30px; /* Adjust width as needed */
         }
 
         table input {
@@ -121,136 +127,56 @@
         <thead>
             <tr>
                 <th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>
-                <th>
-                    RB
-                    <div id="totalRB">0</div>
-                </th>
-                <th>
-                    AB
-                    <div id="totalAB">0</div>
-                </th>
-                <th>
-                    CR
-                    <div id="totalCR">0</div>
-                </th>
-                <th>
-                    DB
-                    <div id="totalDB">0</div>
-                </th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>1️⃣</td>
-                <td onclick="showPopup(this, '1️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                <td onclick="showPopup(this, '1️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                <td onclick="showPopup(this, '1️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                <td onclick="showPopup(this, '1️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
             </tr>
             <tr>
                 <td>2️⃣</td>
-                <td onclick="showPopup(this, '2️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                <td onclick="showPopup(this, '2️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                <td onclick="showPopup(this, '2️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                <td onclick="showPopup(this, '2️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
             </tr>
             <tr>
                 <td>3️⃣</td>
-                <td onclick="showPopup(this, '3️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                <td onclick="showPopup(this, '3️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                <td onclick="showPopup(this, '3️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                <td onclick="showPopup(this, '3️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
             </tr>
             <tr>
                 <td>4️⃣</td>
-                <td onclick="showPopup(this, '4️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                <td onclick="showPopup(this, '4️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                <td onclick="showPopup(this, '4️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                <td onclick="showPopup(this, '4️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
             </tr>
             <tr>
                 <td>5️⃣</td>
-                <td onclick="showPopup(this, '5️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                <td onclick="showPopup(this, '5️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                <td onclick="showPopup(this, '5️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                <td onclick="showPopup(this, '5️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
             </tr>
             <tr>
                 <td>6️⃣</td>
-                <td onclick="showPopup(this, '6️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                <td onclick="showPopup(this, '6️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                <td onclick="showPopup(this, '6️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                <td onclick="showPopup(this, '6️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
             </tr>
             <tr class="bonus-row">
                 <td>💰</td>
-                <td id="bonusRB"><span id="pointsNeededRB" class="points-needed">63</span></td>
-                <td id="bonusAB"><span id="pointsNeededAB" class="points-needed">63</span></td>
-                <td id="bonusCR"><span id="pointsNeededCR" class="points-needed">63</span></td>
-                <td id="bonusDB"><span id="pointsNeededDB" class="points-needed">63</span></td>
             </tr>
             <tr class="upper-score-row">
                 <td>🔺️</td>
-                <td id="upperScoreRB">0</td>
-                <td id="upperScoreAB">0</td>
-                <td id="upperScoreCR">0</td>
-                <td id="upperScoreDB">0</td>
             </tr>
             <tr>
                 <td>🤟</td>
-                <td onclick="showPopup(this, '🤟', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                <td onclick="showPopup(this, '🤟', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                <td onclick="showPopup(this, '🤟', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                <td onclick="showPopup(this, '🤟', 'DB')" class="upper-section-cell" data-player="DB"></td>
             </tr>
             <tr>
                 <td>🖖</td>
-                <td onclick="showPopup(this, '🖖', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                <td onclick="showPopup(this, '🖖', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                <td onclick="showPopup(this, '🖖', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                <td onclick="showPopup(this, '🖖', 'DB')" class="upper-section-cell" data-player="DB"></td>
             </tr>
             <tr>
                 <td>🏠</td>
-                <td class="lower-section-cell" data-player="RB" data-category="Full House" data-score="25" data-state="0"></td>
-                <td class="lower-section-cell" data-player="AB" data-category="Full House" data-score="25" data-state="0"></td>
-                <td class="lower-section-cell" data-player="CR" data-category="Full House" data-score="25" data-state="0"></td>
-                <td class="lower-section-cell" data-player="DB" data-category="Full House" data-score="25" data-state="0"></td>
             </tr>
             <tr>
                 <td>▪️</td>
-                <td class="lower-section-cell" data-player="RB" data-category="Small Straight" data-score="30" data-state="0"></td>
-                <td class="lower-section-cell" data-player="AB" data-category="Small Straight" data-score="30" data-state="0"></td>
-                <td class="lower-section-cell" data-player="CR" data-category="Small Straight" data-score="30" data-state="0"></td>
-                <td class="lower-section-cell" data-player="DB" data-category="Small Straight" data-score="30" data-state="0"></td>
             </tr>
             <tr>
                 <td>◾️</td>
-                <td class="lower-section-cell" data-player="RB" data-category="Large Straight" data-score="40" data-state="0"></td>
-                <td class="lower-section-cell" data-player="AB" data-category="Large Straight" data-score="40" data-state="0"></td>
-                <td class="lower-section-cell" data-player="CR" data-category="Large Straight" data-score="40" data-state="0"></td>
-                <td class="lower-section-cell" data-player="DB" data-category="Large Straight" data-score="40" data-state="0"></td>
             </tr>
             <tr>
                 <td>🎯</td>
-                <td class="lower-section-cell" data-player="RB" data-category="Yahtzee" data-score="50" data-state="0"></td>
-                <td class="lower-section-cell" data-player="AB" data-category="Yahtzee" data-score="50" data-state="0"></td>
-                <td class="lower-section-cell" data-player="CR" data-category="Yahtzee" data-score="50" data-state="0"></td>
-                <td class="lower-section-cell" data-player="DB" data-category="Yahtzee" data-score="50" data-state="0"></td>
             </tr>
             <tr>
                 <td>©️</td>
-                <td onclick="showPopup(this, '©️', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                <td onclick="showPopup(this, '©️', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                <td onclick="showPopup(this, '©️', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                <td onclick="showPopup(this, '©️', 'DB')" class="upper-section-cell" data-player="DB"></td>
             </tr>
             <tr class="lower-score-row">
                 <td>🔻</td>
-                <td id="lowerScoreRB">0</td>
-                <td id="lowerScoreAB">0</td>
-                <td id="lowerScoreCR">0</td>
-                <td id="lowerScoreDB">0</td>
             </tr>
         </tbody>
     </table>
@@ -263,42 +189,56 @@
 
     <div id="roundManagementModal">
         <h2>Round Management</h2>
+        <select id="playerCount" onchange="updatePlayerCount()">
+            <option value="2">2 Players</option>
+            <option value="3">3 Players</option>
+            <option value="4">4 Players</option>
+            <option value="5">5 Players</option>
+            <option value="6">6 Players</option>
+            <option value="7">7 Players</option>
+            <option value="8">8 Players</option>
+            <option value="9">9 Players</option>
+            <option value="10">10 Players</option>
+        </select>
         <button onclick="resetScores()">Reset Scores</button>
         <button onclick="closeRoundManagement()">Close</button>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const scores = document.querySelectorAll('.lower-section-cell, .upper-section-cell');
+            updatePlayerCount(); // Initialize with default player count
+            const scoreTable = document.getElementById('scoreTable');
 
-            scores.forEach(score => {
-                score.addEventListener('click', function(e) {
-                    if (this.classList.contains('lower-section-cell')) {
-                        let currentState = parseInt(this.getAttribute('data-state')) || 0;
-                        currentState = (currentState + 1) % 3; // Cycle through 0, 1, 2
-                        this.setAttribute('data-state', currentState);
+            // Event listener for all score cells
+            scoreTable.addEventListener('click', function(e) {
+                const cell = e.target;
+                if (cell.classList.contains('lower-section-cell')) {
+                    let currentState = parseInt(cell.getAttribute('data-state')) || 0;
+                    currentState = (currentState + 1) % 3; // Cycle through 0, 1, 2
+                    cell.setAttribute('data-state', currentState);
 
-                        switch(currentState) {
-                            case 0: // Clear
-                                this.textContent = '';
-                                this.style.textDecoration = 'none';
-                                break;
-                            case 1: // Display Score
-                                this.textContent = this.getAttribute('data-score');
-                                this.style.textDecoration = 'none';
-                                break;
-                            case 2: // Cross off
-                                this.textContent = '-';
-                                this.style.textDecoration = 'line-through';
-                                break;
-                        }
-
-                        const player = this.getAttribute('data-player');
-                        calculateTotal(player);
-                    } else if (this.classList.contains('upper-section-cell')) {
-                        showPopup(this, this.closest('tr').cells[0].textContent, this.getAttribute('data-player'));
+                    switch(currentState) {
+                        case 0: // Clear
+                            cell.textContent = '';
+                            cell.style.textDecoration = 'none';
+                            break;
+                        case 1: // Display Score
+                            cell.textContent = cell.getAttribute('data-score');
+                            cell.style.textDecoration = 'none';
+                            break;
+                        case 2: // Cross off
+                            cell.textContent = '-';
+                            cell.style.textDecoration = 'line-through';
+                            break;
                     }
-                });
+
+                    const player = cell.getAttribute('data-player');
+                    calculateTotal(player);
+                } else if (cell.classList.contains('upper-section-cell')) {
+                    const player = cell.getAttribute('data-player');
+                    const number = cell.closest('tr').cells[0].textContent;
+                    showPopup(cell, number, player);
+                }
             });
 
             // Load game state when the page loads
@@ -371,26 +311,32 @@
             
             let options = '';
             
-            if (['🤟', '🖖', '©️'].includes(number)) {
+            if (['🤟', '🖖', '©️'].includes(number)) { // 3 of a kind, 4 of a kind, Chance
                 for (let i = 1; i <= 30; i++) {
-                    options += `<button onclick="selectScore(${i}, '${player}', '${number}', this)">${i}</button>`;
+                    options += `<button onclick="selectScore(${i}, '${player}', '${number}', event)">${i}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', this)">-</button>`; // Cross off
-                options += `<button onclick="selectScore('x', '${player}', '${number}', this)">x</button>`; // Clear
+                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">-</button>`; // Cross off
+                options += `<button onclick="selectScore('x', '${player}', '${number}', event)">x</button>`; // Clear
             } else {
                 let numberValue = parseInt(number);
                 for (let i = 1; i <= 5; i++) {
                     let score = i * numberValue;
-                    options += `<button onclick="selectScore(${score}, '${player}', '${number}', this)">${score}</button>`;
+                    options += `<button onclick="selectScore(${score}, '${player}', '${number}', event)">${score}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', this)">-</button>`; // Cross off option
-                options += `<button onclick="selectScore('x', '${player}', '${number}', this)">x</button>`; // Clear option
+                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">-</button>`; // Cross off option
+                options += `<button onclick="selectScore('x', '${player}', '${number}', event)">x</button>`; // Clear option
             }
             document.getElementById('popupOptions').innerHTML = options;
+            
+            // Store the cell for later use in selectScore
+            window.lastClickedCell = cell;
         }
 
-        function selectScore(score, player, number, button) {
-            const cell = document.querySelector(`td[data-player="${player}"][onclick*="showPopup(this, '${number}', '${player}')"]`);
+        function selectScore(score, player, number, event) {
+            event.stopPropagation(); // Prevent propagation of the click event
+            
+            // Use the stored cell from showPopup
+            const cell = window.lastClickedCell;
             
             if (score === 0) {
                 cell.textContent = '-';
@@ -427,12 +373,14 @@
             });
 
             // Reset totals and bonus displays
-            ['RB', 'AB', 'CR', 'DB'].forEach(player => {
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            for (let i = 1; i <= playerCount; i++) {
+                let player = `P${i}`;
                 document.getElementById(`total${player}`).textContent = '0';
                 document.getElementById(`upperScore${player}`).textContent = '0';
                 document.getElementById(`lowerScore${player}`).textContent = '0';
                 document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
-            });
+            }
 
             // Save the reset state
             saveGameState();
@@ -443,17 +391,16 @@
 
         function saveGameState() {
             let gameState = {
-                // Here you should define how to collect all necessary game data
-                // Example:
-                // players: Array.from({ length: 4 }, (_, i) => ({
-                //     player: ['RB', 'AB', 'CR', 'DB'][i],
-                //     scores: Array.from(document.querySelectorAll(`[data-player="${['RB', 'AB', 'CR', 'DB'][i]}"]`)).map(el => ({
-                //         category: el.getAttribute('data-category') || el.closest('tr').cells[0].textContent,
-                //         score: el.type === 'number' ? el.value : el.textContent,
-                //         state: el.getAttribute('data-state')
-                //     })),
+                playerCount: parseInt(document.getElementById('playerCount').value),
+                players: Array.from({ length: parseInt(document.getElementById('playerCount').value) }, (_, i) => ({
+                    player: `P${i + 1}`,
+                    scores: Array.from(document.querySelectorAll(`[data-player="P${i + 1}"]`)).map(el => ({
+                        category: el.closest('tr').cells[0].textContent,
+                        score: el.type === 'number' ? el.value : el.textContent,
+                        state: el.getAttribute('data-state')
+                    }))
+                }))
             };
-            // Store gameState in localStorage or similar for persistence
             localStorage.setItem('yahtzeeGameState', JSON.stringify(gameState));
         }
 
@@ -461,23 +408,85 @@
             let savedState = localStorage.getItem('yahtzeeGameState');
             if (savedState) {
                 let gameState = JSON.parse(savedState);
-                // Example of how to restore state:
-                // gameState.players.forEach(player => {
-                //     player.scores.forEach(score => {
-                //         let el = document.querySelector(`[data-player="${player.player}"][data-category="${score.category}"]`);
-                //         if (el) {
-                //             if (el.type === 'number') {
-                //                 el.value = score.score;
-                //             } else {
-                //                 el.textContent = score.score;
-                //                 el.style.textDecoration = score.score === '-' ? 'line-through' : 'none';
-                //                 el.setAttribute('data-state', score.state || '0');
-                //             }
-                //             calculateTotal(player.player);
-                //         }
-                //     });
-                // });
+                document.getElementById('playerCount').value = gameState.playerCount;
+                updatePlayerCount(); // Update table based on saved player count
+                gameState.players.forEach(player => {
+                    player.scores.forEach(score => {
+                        let el = document.querySelector(`[data-player="${player.player}"][onclick*="showPopup(this, '${score.category}', '${player.player}')"]`);
+                        if (el) {
+                            el.textContent = score.score;
+                            el.style.textDecoration = score.score === '-' ? 'line-through' : 'none';
+                        }
+                        el = document.querySelector(`[data-player="${player.player}"][data-category="${score.category}"]`);
+                        if (el) {
+                            el.setAttribute('data-state', score.state || '0');
+                        }
+                        calculateTotal(player.player);
+                    });
+                });
+            } else {
+                // If no saved state, initialize with default player count
+                document.getElementById('playerCount').value = '4'; // Default to 4 players
+                updatePlayerCount();
             }
+        }
+
+ function updatePlayerCount() {
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            const table = document.getElementById('scoreTable');
+            const headers = table.querySelector('thead tr');
+            const rows = table.querySelectorAll('tbody tr');
+
+            // Clear existing player columns
+            const existingPlayers = headers.children.length - 1;
+            if (playerCount < existingPlayers) {
+                // Remove extra columns if we're reducing the number of players
+                for (let i = playerCount + 1; i <= existingPlayers; i++) {
+                    headers.removeChild(headers.lastChild);
+                    rows.forEach(row => {
+                        row.removeChild(row.lastChild);
+                    });
+                }
+            } else {
+                // Add new columns for increasing player count
+                for (let i = existingPlayers + 1; i <= playerCount; i++) {
+                    const newHeader = document.createElement('th');
+                    newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
+                    headers.appendChild(newHeader);
+
+                    rows.forEach(row => {
+                        const newCell = document.createElement('td');
+                        const category = row.firstElementChild.textContent;
+                        if (category === '💰') {
+                            newCell.id = `bonusP${i}`;
+                            newCell.innerHTML = '<span id="pointsNeededP' + i + '" class="points-needed">63</span>';
+                        } else if (category === '🔺️') {
+                            newCell.id = `upperScoreP${i}`;
+                            newCell.textContent = '0';
+                        } else if (category === '🔻') {
+                            newCell.id = `lowerScoreP${i}`;
+                            newCell.textContent = '0';
+                        } else if (['🏠', '▪️', '◾️', '🎯'].includes(category)) {
+                            newCell.className = 'lower-section-cell';
+                            newCell.setAttribute('data-player', `P${i}`);
+                            newCell.setAttribute('data-category', category === '🏠' ? 'Full House' : category === '▪️' ? 'Small Straight' : category === '◾️' ? 'Large Straight' : 'Yahtzee');
+                            newCell.setAttribute('data-score', category === '🏠' ? '25' : category === '▪️' ? '30' : category === '◾️' ? '40' : '50');
+                            newCell.setAttribute('data-state', '0');
+                        } else {
+                            newCell.className = 'upper-section-cell';
+                            newCell.setAttribute('data-player', `P${i}`);
+                            newCell.onclick = function() {
+                                showPopup(this, category, `P${i}`);
+                            };
+                        }
+                        row.appendChild(newCell);
+                    });
+                }
+            }
+
+            // Save the new state after player count change
+            saveGameState();
+            closeRoundManagement();
         }
     </script>
 </body>
