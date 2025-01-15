@@ -79,6 +79,18 @@
             z-index: 1000;
         }
 
+        #roundManagementModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 1px solid #000;
+            padding: 20px;
+            z-index: 1000;
+        }
+
         .upper-section-cell {
             cursor: pointer;
         }
@@ -89,7 +101,7 @@
         <table>
             <thead>
                 <tr>
-                    <th>☰</th>
+                    <th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>
                     <th>
                         RB
                         <div id="totalRB">0</div>
@@ -231,6 +243,12 @@
         <button onclick="closePopup()">Close</button>
     </div>
 
+    <div id="roundManagementModal">
+        <h2>Round Management</h2>
+        <button onclick="resetScores()">Reset Scores</button>
+        <button onclick="closeRoundManagement()">Close</button>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const scores = document.querySelectorAll('.score, .toggle-state');
@@ -254,6 +272,9 @@
                     });
                 }
             });
+
+            // Load game state when the page loads
+            loadGameState();
         });
 
         function updateButtonState(button) {
@@ -325,6 +346,9 @@
             // Add Bonus to Total
             total += bonus;
             document.getElementById(`total${player}`).textContent = total;
+
+            // Save the game state after calculations
+            saveGameState();
         }
 
         function showPopup(cell, number, player) {
@@ -333,14 +357,14 @@
             
             let options = '';
             let numberValue = parseInt(number);
-            for (let i = 0; i <= 5; i++) {
+            
+            // Custom options for each number
+            for (let i = 1; i <= 5; i++) {
                 let score = i * numberValue;
-                if (i === 0) {
-                    options += `<button onclick="selectScore(0, '${player}', '${number}', this)">-</button>`;
-                } else {
-                    options += `<button onclick="selectScore(${score}, '${player}', '${number}', this)">${score}</button>`;
-                }
+                options += `<button onclick="selectScore(${score}, '${player}', '${number}', this)">${score}</button>`;
             }
+            options += `<button onclick="selectScore(0, '${player}', '${number}', this)">-</button>`; // Cross off option
+            options += `<button onclick="selectScore('x', '${player}', '${number}', this)">x</button>`; // Clear option
             document.getElementById('popupOptions').innerHTML = options;
         }
 
@@ -350,11 +374,13 @@
             if (score === 0) {
                 cell.textContent = '-';
                 cell.style.textDecoration = 'line-through';
+            } else if (score === 'x') {
+                cell.textContent = '';
+                cell.style.textDecoration = 'none';
             } else {
                 cell.textContent = score;
                 cell.style.textDecoration = 'none';
             }
-            // Allow re-clicking by not adding a 'scored' class
             calculateTotal(player); // Recalculate total for the player
             closePopup(); // Automatically close the popup after selection
         }
@@ -362,6 +388,139 @@
         function closePopup() {
             document.getElementById('popupModal').style.display = 'none';
         }
+
+        function showRoundManagement() {
+            document.getElementById('roundManagementModal').style.display = 'block';
+        }
+
+        function closeRoundManagement() {
+            document.getElementById('roundManagementModal').style.display = 'none';
+        }
+
+        function resetScores() {
+            // Reset all scores to their initial state
+            document.querySelectorAll('.score, .upper-section-cell').forEach(cell => {
+                if(cell.type === 'number') {
+                    cell.value = '';
+                } else {
+                    cell.textContent = '';
+                    cell.style.textDecoration = 'none';
+                }
+            });
+
+            // Reset toggle states
+            document.querySelectorAll('.toggle-state').forEach(button => {
+                button.setAttribute('data-state', '0');
+                button.textContent = 'Standard';
+                button.removeAttribute('state');
+            });
+
+            // Reset totals and bonus displays
+            ['RB', 'AB', 'CR', 'DB'].forEach(player => {
+                document.getElementById(`total${player}`).textContent = '0';
+                document.getElementById(`upperScore${player}`).textContent = '0';
+                document.getElementById(`lowerScore${player}`).textContent = '0';
+                document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
+            });
+
+            // Save the reset state
+            saveGameState();
+
+            // Close the modal after resetting
+            closeRoundManagement();
+        }
+
+        function saveGameState() {
+            let gameState = {
+                scores: {},
+                totals: {}
+            };
+            
+            // Save scores for all players
+            document.querySelectorAll('.score, .upper-section-cell, .toggle-state').forEach(element => {
+                let player = element.getAttribute('data-player');
+                if (!gameState.scores[player]) gameState.scores[player] = {};
+                
+                if (element.type === 'number') {
+                    gameState.scores[player][element.closest('tr').cells[0].textContent] = element.value;
+                } else if (element.classList.contains('upper-section-cell')) {
+                    gameState.scores[player][element.closest('tr').cells[0].textContent] = element.textContent;
+                } else if (element.classList.contains('toggle-state')) {
+                    gameState.scores[player][element.getAttribute('data-category')] = {
+                        state: element.getAttribute('data-state'),
+                        score: element.getAttribute('data-score')
+                    };
+                }
+            });
+
+            // Save totals for each player
+            ['RB', 'AB', 'CR', 'DB'].forEach(player => {
+                gameState.totals[player] = {
+                    total: document.getElementById(`total${player}`).textContent,
+                    upperScore: document.getElementById(`upperScore${player}`).textContent,
+                    lowerScore: document.getElementById(`lowerScore${player}`).textContent,
+                    bonus: document.getElementById(`pointsNeeded${player}`).textContent
+                };
+            });
+
+            localStorage.setItem('yahtzeeGameState', JSON.stringify(gameState));
+        }
+
+        function loadGameState() {
+            let savedState = localStorage.getItem('yahtzeeGameState');
+            if (savedState) {
+                let gameState = JSON.parse(savedState);
+
+                // Load scores
+                Object.keys(gameState.scores).forEach(player => {
+                    Object.keys(gameState.scores[player]).forEach(key => {
+                        let element;
+                        if (['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'].includes(key)) {
+                            element = document.querySelector(`td[data-player="${player}"][onclick*="showPopup(this, '${key}', '${player}')"]`);
+                            if (element) {
+                                element.textContent = gameState.scores[player][key];
+                                if (gameState.scores[player][key] === '-') {
+                                    element.style.textDecoration = 'line-through';
+                                }
+                            }
+                        } else if (['🤟', '🖖', '©️'].includes(key)) {
+                            element = document.querySelector(`input[data-player="${player}"][type="number"]:not([data-category])`);
+                            if (element) {
+                                element.value = gameState.scores[player][key];
+                            }
+                        } else {
+                            element = document.querySelector(`button[data-player="${player}"][data-category="${key}"]`);
+                            if (element) {
+                                element.setAttribute('data-state', gameState.scores[player][key].state);
+                                updateButtonState(element);
+                            }
+                        }
+                    });
+                    calculateTotal(player); // Recalculate totals after loading scores
+                });
+
+                // Load totals
+                Object.keys(gameState.totals).forEach(player => {
+                    document.getElementById(`total${player}`).textContent = gameState.totals[player].total;
+                    document.getElementById(`upperScore${player}`).textContent = gameState.totals[player].upperScore;
+                    document.getElementById(`lowerScore${player}`).textContent = gameState.totals[player].lowerScore;
+                    let bonusElement = document.getElementById(`pointsNeeded${player}`);
+                    bonusElement.textContent = gameState.totals[player].bonus;
+                    if (bonusElement.textContent === '35') {
+                        bonusElement.classList.add('bonus-achieved');
+                    } else {
+                        bonusElement.classList.remove('bonus-achieved');
+                    }
+                });
+            }
+        }
+
+        // Save game state on every change
+        document.body.addEventListener('change', saveGameState);
+        document.body.addEventListener('click', function(event) {
+            if (event.target.classList.contains('toggle-state')) {
+                saveGameState();
+            }
+        });
     </script>
-</body>
-</html>
+</body
