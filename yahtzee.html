@@ -66,6 +66,22 @@
             background-color: #fff;
             border-color: #ddd;
         }
+
+        #popupModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 1px solid #000;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .upper-section-cell {
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -95,45 +111,45 @@
             <tbody>
                 <tr>
                     <td>1️⃣</td>
-                    <td><input type="number" min="0" max="5" class="score" data-player="RB"></td>
-                    <td><input type="number" min="0" max="5" class="score" data-player="AB"></td>
-                    <td><input type="number" min="0" max="5" class="score" data-player="CR"></td>
-                    <td><input type="number" min="0" max="5" class="score" data-player="DB"></td>
+                    <td onclick="showPopup(this, '1️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                    <td onclick="showPopup(this, '1️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                    <td onclick="showPopup(this, '1️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                    <td onclick="showPopup(this, '1️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
                 </tr>
                 <tr>
                     <td>2️⃣</td>
-                    <td><input type="number" min="0" max="10" class="score" data-player="RB"></td>
-                    <td><input type="number" min="0" max="10" class="score" data-player="AB"></td>
-                    <td><input type="number" min="0" max="10" class="score" data-player="CR"></td>
-                    <td><input type="number" min="0" max="10" class="score" data-player="DB"></td>
+                    <td onclick="showPopup(this, '2️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                    <td onclick="showPopup(this, '2️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                    <td onclick="showPopup(this, '2️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                    <td onclick="showPopup(this, '2️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
                 </tr>
                 <tr>
                     <td>3️⃣</td>
-                    <td><input type="number" min="0" max="15" class="score" data-player="RB"></td>
-                    <td><input type="number" min="0" max="15" class="score" data-player="AB"></td>
-                    <td><input type="number" min="0" max="15" class="score" data-player="CR"></td>
-                    <td><input type="number" min="0" max="15" class="score" data-player="DB"></td>
+                    <td onclick="showPopup(this, '3️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                    <td onclick="showPopup(this, '3️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                    <td onclick="showPopup(this, '3️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                    <td onclick="showPopup(this, '3️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
                 </tr>
                 <tr>
                     <td>4️⃣</td>
-                    <td><input type="number" min="0" max="20" class="score" data-player="RB"></td>
-                    <td><input type="number" min="0" max="20" class="score" data-player="AB"></td>
-                    <td><input type="number" min="0" max="20" class="score" data-player="CR"></td>
-                    <td><input type="number" min="0" max="20" class="score" data-player="DB"></td>
+                    <td onclick="showPopup(this, '4️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                    <td onclick="showPopup(this, '4️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                    <td onclick="showPopup(this, '4️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                    <td onclick="showPopup(this, '4️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
                 </tr>
                 <tr>
                     <td>5️⃣</td>
-                    <td><input type="number" min="0" max="25" class="score" data-player="RB"></td>
-                    <td><input type="number" min="0" max="25" class="score" data-player="AB"></td>
-                    <td><input type="number" min="0" max="25" class="score" data-player="CR"></td>
-                    <td><input type="number" min="0" max="25" class="score" data-player="DB"></td>
+                    <td onclick="showPopup(this, '5️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                    <td onclick="showPopup(this, '5️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                    <td onclick="showPopup(this, '5️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                    <td onclick="showPopup(this, '5️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
                 </tr>
                 <tr>
                     <td>6️⃣</td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="RB"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="AB"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="CR"></td>
-                    <td><input type="number" min="0" max="30" class="score" data-player="DB"></td>
+                    <td onclick="showPopup(this, '6️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                    <td onclick="showPopup(this, '6️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                    <td onclick="showPopup(this, '6️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                    <td onclick="showPopup(this, '6️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
                 </tr>
                 <tr class="bonus-row">
                     <td>💰</td>
@@ -208,6 +224,13 @@
             </tbody>
         </table>
     </div>
+    
+    <div id="popupModal">
+        <h2 id="popupTitle">Select Score:</h2>
+        <div id="popupOptions"></div>
+        <button onclick="closePopup()">Close</button>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const scores = document.querySelectorAll('.score, .toggle-state');
@@ -271,6 +294,10 @@
                         total += scoreValue;
                         lowerSectionTotal += scoreValue;
                     }
+                } else if (score.classList.contains('upper-section-cell') && score.textContent !== '-' && score.textContent !== '') {
+                    let value = parseInt(score.textContent) || 0;
+                    total += value;
+                    upperSectionTotal += value;
                 }
             });
             
@@ -298,6 +325,42 @@
             // Add Bonus to Total
             total += bonus;
             document.getElementById(`total${player}`).textContent = total;
+        }
+
+        function showPopup(cell, number, player) {
+            document.getElementById('popupModal').style.display = 'block';
+            document.getElementById('popupTitle').textContent = `Select Score for ${number}:`;
+            
+            let options = '';
+            let numberValue = parseInt(number);
+            for (let i = 0; i <= 5; i++) {
+                let score = i * numberValue;
+                if (i === 0) {
+                    options += `<button onclick="selectScore(0, '${player}', '${number}', this)">-</button>`;
+                } else {
+                    options += `<button onclick="selectScore(${score}, '${player}', '${number}', this)">${score}</button>`;
+                }
+            }
+            document.getElementById('popupOptions').innerHTML = options;
+        }
+
+        function selectScore(score, player, number, button) {
+            const cell = document.querySelector(`td[data-player="${player}"][onclick*="showPopup(this, '${number}', '${player}')"]`);
+            
+            if (score === 0) {
+                cell.textContent = '-';
+                cell.style.textDecoration = 'line-through';
+            } else {
+                cell.textContent = score;
+                cell.style.textDecoration = 'none';
+            }
+            // Allow re-clicking by not adding a 'scored' class
+            calculateTotal(player); // Recalculate total for the player
+            closePopup(); // Automatically close the popup after selection
+        }
+
+        function closePopup() {
+            document.getElementById('popupModal').style.display = 'none';
         }
     </script>
 </body>
