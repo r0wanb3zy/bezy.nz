@@ -303,9 +303,6 @@
             // Add Bonus to Total
             total += bonus;
             document.getElementById(`total${player}`).textContent = total;
-
-            // Save the game state after calculations
-            saveGameState();
         }
 
         function showPopup(cell, number, player) {
@@ -385,8 +382,6 @@
                 document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
             }
 
-            // Save the reset state
-            saveGameState();
 
             // Close the modal after resetting
             closeRoundManagement();
@@ -405,33 +400,6 @@
                 }))
             };
             localStorage.setItem('yahtzeeGameState', JSON.stringify(gameState));
-        }
-
-        function loadGameState() {
-            let savedState = localStorage.getItem('yahtzeeGameState');
-            if (savedState) {
-                let gameState = JSON.parse(savedState);
-                document.getElementById('playerCount').value = gameState.playerCount;
-                updatePlayerCount(); // Update table based on saved player count
-                gameState.players.forEach(player => {
-                    player.scores.forEach(score => {
-                        let el = document.querySelector(`[data-player="${player.player}"][onclick*="showPopup(this, '${score.category}', '${player.player}')"]`);
-                        if (el) {
-                            el.textContent = score.score;
-                            el.style.textDecoration = score.score === '-' ? 'line-through' : 'none';
-                        }
-                        el = document.querySelector(`[data-player="${player.player}"][data-category="${score.category}"]`);
-                        if (el) {
-                            el.setAttribute('data-state', score.state || '0');
-                        }
-                        calculateTotal(player.player);
-                    });
-                });
-            } else {
-                // If no saved state, initialize with default player count
-                document.getElementById('playerCount').value = '4'; // Default to 4 players
-                updatePlayerCount();
-            }
         }
 
  function updatePlayerCount() {
