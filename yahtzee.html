@@ -120,6 +120,9 @@
         table input[type="number"] {
             -moz-appearance: textfield;
         }
+                #popupModal, #roundManagementModal {
+            text-align: center; /* Center-align text within the modal */
+        }
     </style>
 </head>
 <body>
@@ -200,7 +203,7 @@
             <option value="9">9 Players</option>
             <option value="10">10 Players</option>
         </select>
-        <button onclick="resetScores()">Reset Scores</button>
+        <button onclick="resetScores()">Reset</button>
         <button onclick="closeRoundManagement()">Close</button>
     </div>
 
@@ -307,7 +310,7 @@
 
         function showPopup(cell, number, player) {
             document.getElementById('popupModal').style.display = 'block';
-            document.getElementById('popupTitle').textContent = `Select Score for ${number}:`;
+            document.getElementById('popupTitle').textContent = `${number}`;
             
             let options = '';
             
