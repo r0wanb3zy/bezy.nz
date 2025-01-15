@@ -4,44 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yahtzee Scorecard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Economica&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Economica', sans-serif;
+            font-size: 18px;
+            margin: 0;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .scorecard {
-            width: 80%;
-            margin: auto;
+        h1 {
+            text-align: center;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 18px;
         }
 
-        th, td {
+        table th, table td {
             border: 1px solid #ddd;
-            padding: 8px;
             text-align: center;
+            padding: 5px;
+            word-wrap: break-word;
+            cursor: pointer;
         }
 
-        th {
-            background-color: #f2f2f2;
+        table th {
+            background-color: #f4f4f4;
         }
 
-        /* Grey background for the first column */
-        td:first-child, th:first-child {
-            background-color: #f0f0f0; /* Light grey */
+        table th:first-child, table td:first-child {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            width: 30px; /* Adjust width as needed */
+        }
+
+        table input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 2px;
+            text-align: center;
+            font-size: inherit;
+            font-family: 'Economica', sans-serif;
+        }
+
+        table input::placeholder {
+            font-family: 'Economica', sans-serif;
+            font-size: 12px;
         }
 
         /* Grey background for Bonus, Upper Section, and Lower Section */
         .bonus-row td, .upper-score-row td, .lower-score-row td {
             background-color: #f0f0f0;
-        }
-
-        .score {
-            width: 20px;
         }
 
         .bonus-row .points-needed {
@@ -54,14 +72,12 @@
         }
 
         th div {
-            font-size: 0.8em;
-            color: #666;
+            font-size: 14px; /* Adjusted for better readability */
         }
 
         .lower-section-cell, .upper-section-cell {
             cursor: pointer;
-            width: 80px;
-            text-align: center;
+            width: auto; /* Auto width for cells */
         }
 
         #popupModal {
@@ -87,149 +103,158 @@
             padding: 20px;
             z-index: 1000;
         }
+
+        /* Remove spin buttons from number inputs */
+        table input[type="number"]::-webkit-outer-spin-button,
+        table input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        table input[type="number"] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 <body>
-    <div class="scorecard">
-        <table>
-            <thead>
-                <tr>
-                    <th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>
-                    <th>
-                        RB
-                        <div id="totalRB">0</div>
-                    </th>
-                    <th>
-                        AB
-                        <div id="totalAB">0</div>
-                    </th>
-                    <th>
-                        CR
-                        <div id="totalCR">0</div>
-                    </th>
-                    <th>
-                        DB
-                        <div id="totalDB">0</div>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1️⃣</td>
-                    <td onclick="showPopup(this, '1️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                    <td onclick="showPopup(this, '1️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                    <td onclick="showPopup(this, '1️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                    <td onclick="showPopup(this, '1️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
-                </tr>
-                <tr>
-                    <td>2️⃣</td>
-                    <td onclick="showPopup(this, '2️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                    <td onclick="showPopup(this, '2️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                    <td onclick="showPopup(this, '2️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                    <td onclick="showPopup(this, '2️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
-                </tr>
-                <tr>
-                    <td>3️⃣</td>
-                    <td onclick="showPopup(this, '3️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                    <td onclick="showPopup(this, '3️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                    <td onclick="showPopup(this, '3️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                    <td onclick="showPopup(this, '3️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
-                </tr>
-                <tr>
-                    <td>4️⃣</td>
-                    <td onclick="showPopup(this, '4️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                    <td onclick="showPopup(this, '4️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                    <td onclick="showPopup(this, '4️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                    <td onclick="showPopup(this, '4️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
-                </tr>
-                <tr>
-                    <td>5️⃣</td>
-                    <td onclick="showPopup(this, '5️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                    <td onclick="showPopup(this, '5️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                    <td onclick="showPopup(this, '5️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                    <td onclick="showPopup(this, '5️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
-                </tr>
-                <tr>
-                    <td>6️⃣</td>
-                    <td onclick="showPopup(this, '6️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                    <td onclick="showPopup(this, '6️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                    <td onclick="showPopup(this, '6️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                    <td onclick="showPopup(this, '6️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
-                </tr>
-                <tr class="bonus-row">
-                    <td>💰</td>
-                    <td id="bonusRB"><span id="pointsNeededRB" class="points-needed">63</span></td>
-                    <td id="bonusAB"><span id="pointsNeededAB" class="points-needed">63</span></td>
-                    <td id="bonusCR"><span id="pointsNeededCR" class="points-needed">63</span></td>
-                    <td id="bonusDB"><span id="pointsNeededDB" class="points-needed">63</span></td>
-                </tr>
-                <tr class="upper-score-row">
-                    <td>🔺️</td>
-                    <td id="upperScoreRB">0</td>
-                    <td id="upperScoreAB">0</td>
-                    <td id="upperScoreCR">0</td>
-                    <td id="upperScoreDB">0</td>
-                </tr>
-                <tr>
-                    <td>🤟</td>
-                    <td onclick="showPopup(this, '🤟', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                    <td onclick="showPopup(this, '🤟', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                    <td onclick="showPopup(this, '🤟', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                    <td onclick="showPopup(this, '🤟', 'DB')" class="upper-section-cell" data-player="DB"></td>
-                </tr>
-                <tr>
-                    <td>🖖</td>
-                    <td onclick="showPopup(this, '🖖', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                    <td onclick="showPopup(this, '🖖', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                    <td onclick="showPopup(this, '🖖', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                    <td onclick="showPopup(this, '🖖', 'DB')" class="upper-section-cell" data-player="DB"></td>
-                </tr>
-                <tr>
-                    <td>🏠</td>
-                    <td class="lower-section-cell" data-player="RB" data-category="Full House" data-score="25" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="AB" data-category="Full House" data-score="25" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="CR" data-category="Full House" data-score="25" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="DB" data-category="Full House" data-score="25" data-state="0"></td>
-                </tr>
-                <tr>
-                    <td>▪️</td>
-                    <td class="lower-section-cell" data-player="RB" data-category="Small Straight" data-score="30" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="AB" data-category="Small Straight" data-score="30" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="CR" data-category="Small Straight" data-score="30" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="DB" data-category="Small Straight" data-score="30" data-state="0"></td>
-                </tr>
-                <tr>
-                    <td>◾️</td>
-                    <td class="lower-section-cell" data-player="RB" data-category="Large Straight" data-score="40" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="AB" data-category="Large Straight" data-score="40" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="CR" data-category="Large Straight" data-score="40" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="DB" data-category="Large Straight" data-score="40" data-state="0"></td>
-                </tr>
-                <tr>
-                    <td>🎯</td>
-                    <td class="lower-section-cell" data-player="RB" data-category="Yahtzee" data-score="50" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="AB" data-category="Yahtzee" data-score="50" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="CR" data-category="Yahtzee" data-score="50" data-state="0"></td>
-                    <td class="lower-section-cell" data-player="DB" data-category="Yahtzee" data-score="50" data-state="0"></td>
-                </tr>
-                <tr>
-                    <td>©️</td>
-                    <td onclick="showPopup(this, '©️', 'RB')" class="upper-section-cell" data-player="RB"></td>
-                    <td onclick="showPopup(this, '©️', 'AB')" class="upper-section-cell" data-player="AB"></td>
-                    <td onclick="showPopup(this, '©️', 'CR')" class="upper-section-cell" data-player="CR"></td>
-                    <td onclick="showPopup(this, '©️', 'DB')" class="upper-section-cell" data-player="DB"></td>
-                </tr>
-                <tr class="lower-score-row">
-                    <td>🔻</td>
-                    <td id="lowerScoreRB">0</td>
-                    <td id="lowerScoreAB">0</td>
-                    <td id="lowerScoreCR">0</td>
-                    <td id="lowerScoreDB">0</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    
+    <table id="scoreTable">
+        <thead>
+            <tr>
+                <th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>
+                <th>
+                    RB
+                    <div id="totalRB">0</div>
+                </th>
+                <th>
+                    AB
+                    <div id="totalAB">0</div>
+                </th>
+                <th>
+                    CR
+                    <div id="totalCR">0</div>
+                </th>
+                <th>
+                    DB
+                    <div id="totalDB">0</div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1️⃣</td>
+                <td onclick="showPopup(this, '1️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                <td onclick="showPopup(this, '1️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                <td onclick="showPopup(this, '1️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                <td onclick="showPopup(this, '1️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
+            </tr>
+            <tr>
+                <td>2️⃣</td>
+                <td onclick="showPopup(this, '2️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                <td onclick="showPopup(this, '2️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                <td onclick="showPopup(this, '2️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                <td onclick="showPopup(this, '2️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
+            </tr>
+            <tr>
+                <td>3️⃣</td>
+                <td onclick="showPopup(this, '3️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                <td onclick="showPopup(this, '3️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                <td onclick="showPopup(this, '3️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                <td onclick="showPopup(this, '3️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
+            </tr>
+            <tr>
+                <td>4️⃣</td>
+                <td onclick="showPopup(this, '4️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                <td onclick="showPopup(this, '4️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                <td onclick="showPopup(this, '4️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                <td onclick="showPopup(this, '4️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
+            </tr>
+            <tr>
+                <td>5️⃣</td>
+                <td onclick="showPopup(this, '5️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                <td onclick="showPopup(this, '5️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                <td onclick="showPopup(this, '5️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                <td onclick="showPopup(this, '5️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
+            </tr>
+            <tr>
+                <td>6️⃣</td>
+                <td onclick="showPopup(this, '6️⃣', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                <td onclick="showPopup(this, '6️⃣', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                <td onclick="showPopup(this, '6️⃣', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                <td onclick="showPopup(this, '6️⃣', 'DB')" class="upper-section-cell" data-player="DB"></td>
+            </tr>
+            <tr class="bonus-row">
+                <td>💰</td>
+                <td id="bonusRB"><span id="pointsNeededRB" class="points-needed">63</span></td>
+                <td id="bonusAB"><span id="pointsNeededAB" class="points-needed">63</span></td>
+                <td id="bonusCR"><span id="pointsNeededCR" class="points-needed">63</span></td>
+                <td id="bonusDB"><span id="pointsNeededDB" class="points-needed">63</span></td>
+            </tr>
+            <tr class="upper-score-row">
+                <td>🔺️</td>
+                <td id="upperScoreRB">0</td>
+                <td id="upperScoreAB">0</td>
+                <td id="upperScoreCR">0</td>
+                <td id="upperScoreDB">0</td>
+            </tr>
+            <tr>
+                <td>🤟</td>
+                <td onclick="showPopup(this, '🤟', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                <td onclick="showPopup(this, '🤟', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                <td onclick="showPopup(this, '🤟', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                <td onclick="showPopup(this, '🤟', 'DB')" class="upper-section-cell" data-player="DB"></td>
+            </tr>
+            <tr>
+                <td>🖖</td>
+                <td onclick="showPopup(this, '🖖', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                <td onclick="showPopup(this, '🖖', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                <td onclick="showPopup(this, '🖖', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                <td onclick="showPopup(this, '🖖', 'DB')" class="upper-section-cell" data-player="DB"></td>
+            </tr>
+            <tr>
+                <td>🏠</td>
+                <td class="lower-section-cell" data-player="RB" data-category="Full House" data-score="25" data-state="0"></td>
+                <td class="lower-section-cell" data-player="AB" data-category="Full House" data-score="25" data-state="0"></td>
+                <td class="lower-section-cell" data-player="CR" data-category="Full House" data-score="25" data-state="0"></td>
+                <td class="lower-section-cell" data-player="DB" data-category="Full House" data-score="25" data-state="0"></td>
+            </tr>
+            <tr>
+                <td>▪️</td>
+                <td class="lower-section-cell" data-player="RB" data-category="Small Straight" data-score="30" data-state="0"></td>
+                <td class="lower-section-cell" data-player="AB" data-category="Small Straight" data-score="30" data-state="0"></td>
+                <td class="lower-section-cell" data-player="CR" data-category="Small Straight" data-score="30" data-state="0"></td>
+                <td class="lower-section-cell" data-player="DB" data-category="Small Straight" data-score="30" data-state="0"></td>
+            </tr>
+            <tr>
+                <td>◾️</td>
+                <td class="lower-section-cell" data-player="RB" data-category="Large Straight" data-score="40" data-state="0"></td>
+                <td class="lower-section-cell" data-player="AB" data-category="Large Straight" data-score="40" data-state="0"></td>
+                <td class="lower-section-cell" data-player="CR" data-category="Large Straight" data-score="40" data-state="0"></td>
+                <td class="lower-section-cell" data-player="DB" data-category="Large Straight" data-score="40" data-state="0"></td>
+            </tr>
+            <tr>
+                <td>🎯</td>
+                <td class="lower-section-cell" data-player="RB" data-category="Yahtzee" data-score="50" data-state="0"></td>
+                <td class="lower-section-cell" data-player="AB" data-category="Yahtzee" data-score="50" data-state="0"></td>
+                <td class="lower-section-cell" data-player="CR" data-category="Yahtzee" data-score="50" data-state="0"></td>
+                <td class="lower-section-cell" data-player="DB" data-category="Yahtzee" data-score="50" data-state="0"></td>
+            </tr>
+            <tr>
+                <td>©️</td>
+                <td onclick="showPopup(this, '©️', 'RB')" class="upper-section-cell" data-player="RB"></td>
+                <td onclick="showPopup(this, '©️', 'AB')" class="upper-section-cell" data-player="AB"></td>
+                <td onclick="showPopup(this, '©️', 'CR')" class="upper-section-cell" data-player="CR"></td>
+                <td onclick="showPopup(this, '©️', 'DB')" class="upper-section-cell" data-player="DB"></td>
+            </tr>
+            <tr class="lower-score-row">
+                <td>🔻</td>
+                <td id="lowerScoreRB">0</td>
+                <td id="lowerScoreAB">0</td>
+                <td id="lowerScoreCR">0</td>
+                <td id="lowerScoreDB">0</td>
+            </tr>
+        </tbody>
+    </table>
+
     <div id="popupModal">
         <h2 id="popupTitle">Select Score:</h2>
         <div id="popupOptions"></div>
@@ -244,7 +269,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const scores = document.querySelectorAll('.score, .lower-section-cell, .upper-section-cell');
+            const scores = document.querySelectorAll('.lower-section-cell, .upper-section-cell');
 
             scores.forEach(score => {
                 score.addEventListener('click', function(e) {
@@ -272,9 +297,6 @@
                         calculateTotal(player);
                     } else if (this.classList.contains('upper-section-cell')) {
                         showPopup(this, this.closest('tr').cells[0].textContent, this.getAttribute('data-player'));
-                    } else if (this.classList.contains('score')) {
-                        this.value = this.value || '0'; // Set to '0' if empty to ensure it's treated as a number
-                        calculateTotal(this.getAttribute('data-player'));
                     }
                 });
             });
@@ -349,7 +371,6 @@
             
             let options = '';
             
-            // For 3 of a kind, 4 of a kind, and Chance, provide specific options
             if (['🤟', '🖖', '©️'].includes(number)) {
                 for (let i = 1; i <= 30; i++) {
                     options += `<button onclick="selectScore(${i}, '${player}', '${number}', this)">${i}</button>`;
@@ -357,7 +378,6 @@
                 options += `<button onclick="selectScore(0, '${player}', '${number}', this)">-</button>`; // Cross off
                 options += `<button onclick="selectScore('x', '${player}', '${number}', this)">x</button>`; // Clear
             } else {
-                // Existing logic for other numbers
                 let numberValue = parseInt(number);
                 for (let i = 1; i <= 5; i++) {
                     let score = i * numberValue;
@@ -400,14 +420,10 @@
 
         function resetScores() {
             // Reset all scores to their initial state
-            document.querySelectorAll('.score, .upper-section-cell, .lower-section-cell').forEach(cell => {
-                if(cell.type === 'number') {
-                    cell.value = '';
-                } else {
-                    cell.textContent = '';
-                    cell.style.textDecoration = 'none';
-                    cell.setAttribute('data-state', '0');
-                }
+            document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
+                cell.textContent = '';
+                cell.style.textDecoration = 'none';
+                cell.setAttribute('data-state', '0');
             });
 
             // Reset totals and bonus displays
