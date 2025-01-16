@@ -19,31 +19,31 @@
             text-align: center;
         }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 18px;
-        table-layout: fixed;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 18px;
+            table-layout: fixed;
+        }
 
-    table th, table td {
-        border: 1px solid #ddd;
-        text-align: center;
-        padding: 5px;
-        word-wrap: break-word;
-        cursor: pointer;
-        overflow: hidden; /* New: prevents content overflow */
-        text-overflow: ellipsis; /* Optional: shows dots for overflow */
-    }
+        table th, table td {
+            border: 1px solid #ddd;
+            text-align: center;
+            padding: 5px;
+            word-wrap: break-word;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-    table th:first-child, table td:first-child {
-        background-color: #f0f0f0;
-        font-weight: bold;
-        width: 30px;
-        min-width: 30px;
-        max-width: 30px;
-        overflow: hidden;
-    }
+        table th:first-child, table td:first-child {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+        }
 
         table th {
             background-color: #f4f4f4;
@@ -63,7 +63,6 @@
             font-size: 12px;
         }
 
-        /* Grey background for Bonus, Upper Section, and Lower Section */
         .bonus-row td, .upper-score-row td, .lower-score-row td {
             background-color: #f0f0f0;
         }
@@ -78,12 +77,12 @@
         }
 
         th div {
-            font-size: 14px; /* Adjusted for better readability */
+            font-size: 14px;
         }
 
         .lower-section-cell, .upper-section-cell {
             cursor: pointer;
-            width: auto; /* Auto width for cells */
+            width: auto;
         }
 
         #popupModal {
@@ -110,7 +109,6 @@
             z-index: 1000;
         }
 
-        /* Remove spin buttons from number inputs */
         table input[type="number"]::-webkit-outer-spin-button,
         table input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -120,8 +118,9 @@
         table input[type="number"] {
             -moz-appearance: textfield;
         }
-                #popupModal, #roundManagementModal {
-            text-align: center; /* Center-align text within the modal */
+
+        #popupModal, #roundManagementModal {
+            text-align: center;
         }
     </style>
 </head>
@@ -209,7 +208,14 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            updatePlayerCount(); // Initialize with default player count
+            let savedPlayerCount = localStorage.getItem('playerCount');
+            if (savedPlayerCount) {
+                document.getElementById('playerCount').value = savedPlayerCount;
+                updatePlayerCount(); // This will update the UI with the saved count
+            } else {
+                updatePlayerCount(); // Use default or initial count if none saved
+            }
+            loadScores(); // Load saved scores
             const scoreTable = document.getElementById('scoreTable');
 
             // Event listener for all score cells
@@ -219,18 +225,22 @@
                     let currentState = parseInt(cell.getAttribute('data-state')) || 0;
                     currentState = (currentState + 1) % 3; // Cycle through 0, 1, 2
                     cell.setAttribute('data-state', currentState);
+                    let cellId = cell.getAttribute('data-player') + '-' + cell.closest('tr').cells[0].textContent;
 
                     switch(currentState) {
                         case 0: // Clear
                             cell.textContent = '';
+                            localStorage.removeItem(cellId);
                             cell.style.textDecoration = 'none';
                             break;
                         case 1: // Display Score
                             cell.textContent = cell.getAttribute('data-score');
+                            localStorage.setItem(cellId, cell.getAttribute('data-score'));
                             cell.style.textDecoration = 'none';
                             break;
                         case 2: // Cross off
                             cell.textContent = '-';
+                            localStorage.setItem(cellId, '-');
                             cell.style.textDecoration = 'line-through';
                             break;
                     }
@@ -331,20 +341,23 @@
 
         function selectScore(score, player, number, event) {
             event.stopPropagation(); // Prevent propagation of the click event
-            
-            // Use the stored cell from showPopup
             const cell = window.lastClickedCell;
-            
+            let cellId = `${player}-${number}`; // Create a unique identifier for each cell
+
             if (score === 0) {
                 cell.textContent = '-';
+                localStorage.setItem(cellId, '-');
                 cell.style.textDecoration = 'line-through';
             } else if (score === 'x') {
                 cell.textContent = '';
+                localStorage.removeItem(cellId); // Remove if clearing
                 cell.style.textDecoration = 'none';
             } else {
                 cell.textContent = score;
+                localStorage.setItem(cellId, score);
                 cell.style.textDecoration = 'none';
             }
+            
             calculateTotal(player); // Recalculate total for the player
             closePopup(); // Automatically close the popup after selection
         }
@@ -367,6 +380,7 @@
                 cell.textContent = '';
                 cell.style.textDecoration = 'none';
                 cell.setAttribute('data-state', '0');
+                localStorage.removeItem(cell.getAttribute('data-player') + '-' + cell.closest('tr').cells[0].textContent);
             });
 
             // Reset totals and bonus displays
@@ -378,12 +392,15 @@
                 document.getElementById(`lowerScore${player}`).textContent = '0';
                 document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
             }
+            // Clear localStorage
+            localStorage.clear();
             // Close the modal after resetting
             closeRoundManagement();
         }
 
- function updatePlayerCount() {
+        function updatePlayerCount() {
             const playerCount = parseInt(document.getElementById('playerCount').value);
+            localStorage.setItem('playerCount', playerCount);
             const table = document.getElementById('scoreTable');
             const headers = table.querySelector('thead tr');
             const rows = table.querySelectorAll('tbody tr');
@@ -433,6 +450,33 @@
                         row.appendChild(newCell);
                     });
                 }
+            }
+        }
+
+        function loadScores() {
+            const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
+            cells.forEach(cell => {
+                const player = cell.getAttribute('data-player');
+                const number = cell.closest('tr').cells[0].textContent;
+                const cellId = `${player}-${number}`;
+                const savedScore = localStorage.getItem(cellId);
+                
+                if (savedScore) {
+                    if (savedScore === '-') {
+                        cell.textContent = '-';
+                        cell.style.textDecoration = 'line-through';
+                        cell.setAttribute('data-state', '2'); // Set to crossed off state
+                    } else {
+                        cell.textContent = savedScore;
+                        cell.setAttribute('data-state', '1'); // Set to scored state
+                    }
+                }
+            });
+
+            // Recalculate totals for all players
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            for (let i = 1; i <= playerCount; i++) {
+                calculateTotal(`P${i}`);
             }
         }
     </script>
