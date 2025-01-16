@@ -243,9 +243,6 @@
                     showPopup(cell, number, player);
                 }
             });
-
-            // Load game state when the page loads
-            loadGameState();
         });
 
         function calculateTotal(player) {
@@ -381,25 +378,8 @@
                 document.getElementById(`lowerScore${player}`).textContent = '0';
                 document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
             }
-
-
             // Close the modal after resetting
             closeRoundManagement();
-        }
-
-        function saveGameState() {
-            let gameState = {
-                playerCount: parseInt(document.getElementById('playerCount').value),
-                players: Array.from({ length: parseInt(document.getElementById('playerCount').value) }, (_, i) => ({
-                    player: `P${i + 1}`,
-                    scores: Array.from(document.querySelectorAll(`[data-player="P${i + 1}"]`)).map(el => ({
-                        category: el.closest('tr').cells[0].textContent,
-                        score: el.type === 'number' ? el.value : el.textContent,
-                        state: el.getAttribute('data-state')
-                    }))
-                }))
-            };
-            localStorage.setItem('yahtzeeGameState', JSON.stringify(gameState));
         }
 
  function updatePlayerCount() {
@@ -454,10 +434,6 @@
                     });
                 }
             }
-
-            // Save the new state after player count change
-            saveGameState();
-            closeRoundManagement();
         }
     </script>
 </body>
