@@ -206,15 +206,17 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let savedPlayerCount = localStorage.getItem('playerCount');
-            if (savedPlayerCount) {
-                document.getElementById('playerCount').value = savedPlayerCount;
-                updatePlayerCount(); // This will update the UI with the saved count
-            } else {
-                updatePlayerCount(); // Use default or initial count if none saved
-            }
-            loadScores(); // Load saved scores
+    document.addEventListener('DOMContentLoaded', function() {
+        let savedPlayerCount = localStorage.getItem('playerCount');
+        if (savedPlayerCount) {
+            document.getElementById('playerCount').value = savedPlayerCount;
+            updatePlayerCount(); // This will update the UI with the saved count
+        } else {
+            // Set default to 2 players if no saved data
+            document.getElementById('playerCount').value = '2';
+            updatePlayerCount(); // Update UI with default count
+        }
+        loadScores(); // Load saved scores
             const scoreTable = document.getElementById('scoreTable');
 
             // Event listener for all score cells
