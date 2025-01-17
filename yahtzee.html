@@ -192,6 +192,7 @@
     <div id="roundManagementModal">
         <h2>Round Management</h2>
         <select id="playerCount" onchange="updatePlayerCount()">
+          <option value="1">1 Players</option>
             <option value="2">2 Players</option>
             <option value="3">3 Players</option>
             <option value="4">4 Players</option>
@@ -199,8 +200,6 @@
             <option value="6">6 Players</option>
             <option value="7">7 Players</option>
             <option value="8">8 Players</option>
-            <option value="9">9 Players</option>
-            <option value="10">10 Players</option>
         </select>
         <button onclick="resetScores()">Reset</button>
         <button onclick="closeRoundManagement()">Close</button>
@@ -374,7 +373,8 @@
             document.getElementById('roundManagementModal').style.display = 'none';
         }
 
-        function resetScores() {
+    function resetScores() {
+        if (confirm("Are you sure you want to reset all scores?")) {
             // Reset all scores to their initial state
             document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
                 cell.textContent = '';
@@ -395,6 +395,7 @@
             // Close the modal after resetting
             closeRoundManagement();
         }
+    }
 
         function updatePlayerCount() {
             const playerCount = parseInt(document.getElementById('playerCount').value);
