@@ -107,13 +107,24 @@ table input[type="number"] {
   </table>
 
   <script>
-    let players = JSON.parse(localStorage.getItem('players')) || [
-      { name: "RB", totalScore: 0, roundScores: [] },
-      { name: "AB", totalScore: 0, roundScores: [] },
-      { name: "CB", totalScore: 0, roundScores: [] } // Example of three players
-    ];
-    let rounds = JSON.parse(localStorage.getItem('rounds')) || [];
-    let scoringMode = localStorage.getItem('scoringMode') || 'highest'; // Default to highest score wins
+  // Check if this is the first load in this browser
+if (!localStorage.getItem('initialized')) {
+  players = [
+    { name: "RB", totalScore: 0, roundScores: [] },
+    { name: "AB", totalScore: 0, roundScores: [] },
+    { name: "P3", totalScore: 0, roundScores: [] },
+    { name: "P4", totalScore: 0, roundScores: [] }
+  ];
+  rounds = [];
+  localStorage.setItem('initialized', 'true');  // Set a flag after initial setup
+  localStorage.setItem('players', JSON.stringify(players));
+  localStorage.setItem('rounds', JSON.stringify(rounds));
+} else {
+  players = JSON.parse(localStorage.getItem('players')) || [];
+  rounds = JSON.parse(localStorage.getItem('rounds')) || [];
+}
+
+  let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
 
     function addRoundScores() {
       const scores = [];
