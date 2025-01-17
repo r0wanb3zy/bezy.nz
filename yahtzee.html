@@ -402,6 +402,7 @@
             const table = document.getElementById('scoreTable');
             const headers = table.querySelector('thead tr');
             const rows = table.querySelectorAll('tbody tr');
+            closeRoundManagement();
 
             // Clear existing player columns
             const existingPlayers = headers.children.length - 1;
