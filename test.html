@@ -124,7 +124,7 @@
         }
            /* Light green for first place */
     .rank-1 {
-        background-color: #d4f4d4; /* Light green */
+        background-color: #d4f4d4; /* Light green for winner */
     }
 
     /* Light red for last place */
@@ -541,14 +541,14 @@ function updateRanks() {
         if (anyScoreEntered) {
             // Set first place to green background
             if (rank === 1) {
-                scoreElement.parentElement.style.backgroundColor = 'lightgreen';
+                scoreElement.parentElement.style.backgroundColor = '#d4f4d4';
             } else {
                 scoreElement.parentElement.style.backgroundColor = ''; // Reset to default or another color if desired
             }
 
             // Set all last place players to red background
             if (lastPlaceScores.includes(scoreElement.id)) {
-                scoreElement.parentElement.style.backgroundColor = 'lightcoral';
+                scoreElement.parentElement.style.backgroundColor = '#f4d4d4';
             }
 
             scoreElement.innerHTML = `${score}<br><small>(${ordinalSuffixOf(rank)})</small>`;
