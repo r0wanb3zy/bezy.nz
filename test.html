@@ -529,6 +529,11 @@ function updateRanks() {
         // Remove existing classes
         scoreElement.parentElement.classList.remove('rank-1', 'rank-last');
 
+        // Clear any previous rank indicators
+        while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
+            scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+        }
+
         if (anyScoreEntered) {
             // Set first place to green background
             if (rank === 1) {
@@ -542,14 +547,18 @@ function updateRanks() {
                 scoreElement.parentElement.style.backgroundColor = '#f4d4d4';
             }
 
-            scoreElement.innerHTML = `${score}<br><small>(${ordinalSuffixOf(rank)})</small>`;
+            // Keep the score as is, only add rank below it
+            scoreElement.textContent = score; // Ensure the score is set as text content
+            // Create a new element for the rank
+            const rankElement = document.createElement('small');
+            rankElement.textContent = ordinalSuffixOf(rank);
+            scoreElement.parentElement.appendChild(rankElement);
         } else {
-            scoreElement.innerHTML = `${score}`;
-            scoreElement.parentElement.style.backgroundColor = ''; // Reset if no scores entered
+            scoreElement.textContent = score; // Reset if no scores entered
+            scoreElement.parentElement.style.backgroundColor = ''; 
         }
     });
 }
-
 function ordinalSuffixOf(i) {
     var j = i % 10,
         k = i % 100;
