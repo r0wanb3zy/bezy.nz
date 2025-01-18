@@ -26,15 +26,24 @@
             table-layout: fixed;
         }
 
-        table th, table td {
-            border: 1px solid #ddd;
-            text-align: center;
-            padding: 5px;
-            word-wrap: break-word;
-            cursor: pointer;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+table th, table td {
+    border: 1px solid #ddd;
+    text-align: center;
+    padding: 5px;
+    word-wrap: break-word;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Add or modify this selector */
+[id^="total"] {
+    font-size: 18px; /* Example size, adjust as needed */
+}
+/* New rule for the rank */
+[id^="total"] + small {
+    font-size: 14px; /* Size for the rank */
+}
 
         table th:first-child, table td:first-child {
             background-color: #f0f0f0;
