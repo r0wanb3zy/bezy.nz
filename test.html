@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yahtzee Scorecard</title>
+    <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Economica', sans-serif;
+            font-size: 18px;
+            margin: 0;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 18px;
+            table-layout: fixed;
+        }
+
+        table th, table td {
+            border: 1px solid #ddd;
+            text-align: center;
+            padding: 5px;
+            word-wrap: break-word;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        table th:first-child, table td:first-child {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+        }
+
+        table th {
+            background-color: #f4f4f4;
+        }
+
+        table input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 2px;
+            text-align: center;
+            font-size: inherit;
+            font-family: 'Economica', sans-serif;
+        }
+
+        table input::placeholder {
+            font-family: 'Economica', sans-serif;
+            font-size: 12px;
+        }
+
+        .bonus-row td, .upper-score-row td, .lower-score-row td {
+            background-color: #f0f0f0;
+        }
+
+        .bonus-row .points-needed {
+            color: grey;
+        }
+
+        .bonus-row .points-needed.bonus-achieved {
+            color: black;
+            font-weight: bold;
+        }
+
+        th div {
+            font-size: 14px;
+        }
+
+        .lower-section-cell, .upper-section-cell {
+            cursor: pointer;
+            width: auto;
+        }
+
+        #popupModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 1px solid #000;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        #roundManagementModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 1px solid #000;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        table input[type="number"]::-webkit-outer-spin-button,
+        table input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        table input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        #popupModal, #roundManagementModal {
+            text-align: center;
+        }
+           /* Light green for first place */
+    .rank-1 {
+        background-color: #c6ffcf; /* Light green */
+    }
+
+    /* Light red for last place */
+    .rank-last {
+        background-color: #ffcfcf; /* Light red */
+    }
+    </style>
+</head>
+<body>
+    <table id="scoreTable">
+        <thead>
+            <tr>
+                <th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1️⃣</td>
+            </tr>
+            <tr>
+                <td>2️⃣</td>
+            </tr>
+            <tr>
+                <td>3️⃣</td>
+            </tr>
+            <tr>
+                <td>4️⃣</td>
+            </tr>
+            <tr>
+                <td>5️⃣</td>
+            </tr>
+            <tr>
+                <td>6️⃣</td>
+            </tr>
+            <tr class="bonus-row">
+                <td>💰</td>
+            </tr>
+            <tr class="upper-score-row">
+                <td>🔺️</td>
+            </tr>
+            <tr>
+                <td>🤟</td>
+            </tr>
+            <tr>
+                <td>🖖</td>
+            </tr>
+            <tr>
+                <td>🏠</td>
+            </tr>
+            <tr>
+                <td>▪️</td>
+            </tr>
+            <tr>
+                <td>◾️</td>
+            </tr>
+            <tr>
+                <td>🎯</td>
+            </tr>
+            <tr>
+                <td>©️</td>
+            </tr>
+            <tr class="lower-score-row">
+                <td>🔻</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div id="popupModal">
+        <h2 id="popupTitle">Select Score:</h2>
+        <div id="popupOptions"></div>
+        <button onclick="closePopup()">Close</button>
+    </div>
+
+    <div id="roundManagementModal">
+        <h2>Round Management</h2>
+        <select id="playerCount" onchange="updatePlayerCount()">
+            <option value="1">1 Players</option>
+            <option value="2">2 Players</option>
+            <option value="3">3 Players</option>
+            <option value="4">4 Players</option>
+            <option value="5">5 Players</option>
+            <option value="6">6 Players</option>
+            <option value="7">7 Players</option>
+            <option value="8">8 Players</option>
+        </select>
+        <button onclick="resetScores()">Reset</button>
+        <button onclick="closeRoundManagement()">Close</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let savedPlayerCount = localStorage.getItem('playerCount');
+            if (savedPlayerCount) {
+                document.getElementById('playerCount').value = savedPlayerCount;
+                updatePlayerCount(); // This will update the UI with the saved count
+            } else {
+                // Set default to 2 players if no saved data
+                document.getElementById('playerCount').value = '4';
+                updatePlayerCount(); // Update UI with default count
+            }
+            loadScores(); // Load saved scores
+            const scoreTable = document.getElementById('scoreTable');
+
+            // Event listener for all score cells
+            scoreTable.addEventListener('click', function(e) {
+                const cell = e.target;
+                if (cell.classList.contains('lower-section-cell')) {
+                    let currentState = parseInt(cell.getAttribute('data-state')) || 0;
+                    currentState = (currentState + 1) % 3; // Cycle through 0, 1, 2
+                    cell.setAttribute('data-state', currentState);
+                    let cellId = cell.getAttribute('data-player') + '-' + cell.closest('tr').cells[0].textContent;
+
+                    switch(currentState) {
+                        case 0: // Clear
+                            cell.textContent = '';
+                            localStorage.removeItem(cellId);
+                            cell.style.textDecoration = 'none';
+                            break;
+                        case 1: // Display Score
+                            cell.textContent = cell.getAttribute('data-score');
+                            localStorage.setItem(cellId, cell.getAttribute('data-score'));
+                            cell.style.textDecoration = 'none';
+                            break;
+                        case 2: // Cross off
+                            cell.textContent = '-';
+                            localStorage.setItem(cellId, '-');
+                            cell.style.textDecoration = 'line-through';
+                            break;
+                    }
+
+                    const player = cell.getAttribute('data-player');
+                    calculateTotal(player);
+                    updateRanks();
+                } else if (cell.classList.contains('upper-section-cell')) {
+                    const player = cell.getAttribute('data-player');
+                    const number = cell.closest('tr').cells[0].textContent;
+                    showPopup(cell, number, player);
+                }
+            });
+        });
+
+        function calculateTotal(player) {
+            let total = 0;
+            let upperSectionTotal = 0;
+            let lowerSectionTotal = 0;
+            document.querySelectorAll(`[data-player="${player}"]`).forEach(score => {
+                if (score.type === 'number') {
+                    let value = parseInt(score.value) || 0;
+                    total += value;
+                    if (['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'].includes(score.closest('tr').cells[0].textContent)) {
+                        upperSectionTotal += value;
+                    } else {
+                        lowerSectionTotal += value;
+                    }
+                } else if (score.classList.contains('lower-section-cell')) {
+                    let state = parseInt(score.getAttribute('data-state'));
+                    if (state === 1) { // Only add score if the state is 'Checked' (1)
+                        let scoreValue = parseInt(score.getAttribute('data-score'));
+                        total += scoreValue;
+                        lowerSectionTotal += scoreValue;
+                    }
+                } else if (score.classList.contains('upper-section-cell') && score.textContent !== '-' && score.textContent !== '') {
+                    let value = parseInt(score.textContent) || 0;
+                    total += value;
+                    if (['🤟', '🖖', '©️'].includes(score.closest('tr').cells[0].textContent)) {
+                        lowerSectionTotal += value;
+                    } else {
+                        upperSectionTotal += value;
+                    }
+                }
+            });
+            
+            // Calculate Bonus
+            let bonus = upperSectionTotal >= 63 ? 35 : 0;
+            
+            // Update Bonus Row
+            let bonusElement = document.getElementById(`bonus${player}`);
+            let pointsNeededElement = document.getElementById(`pointsNeeded${player}`);
+            
+            if (bonus > 0) {
+                pointsNeededElement.textContent = '35';
+                pointsNeededElement.classList.add('bonus-achieved');
+            } else {
+                pointsNeededElement.textContent = (63 - upperSectionTotal).toString();
+                pointsNeededElement.classList.remove('bonus-achieved');
+            }
+            
+            // Update Upper Score
+            document.getElementById(`upperScore${player}`).textContent = upperSectionTotal;
+
+            // Update Lower Score
+            document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
+
+            // Add Bonus to Total
+            total += bonus;
+            document.getElementById(`total${player}`).textContent = total;
+        }
+
+        function showPopup(cell, number, player) {
+            document.getElementById('popupModal').style.display = 'block';
+            document.getElementById('popupTitle').textContent = `${number}`;
+            
+            let options = '';
+            
+            if (['🤟', '🖖', '©️'].includes(number)) { // 3 of a kind, 4 of a kind, Chance
+                for (let i = 1; i <= 30; i++) {
+                    options += `<button onclick="selectScore(${i}, '${player}', '${number}', event)">${i}</button>`;
+                }
+                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">-</button>`; // Cross off
+                options += `<button onclick="selectScore('x', '${player}', '${number}', event)">x</button>`; // Clear
+            } else {
+                let numberValue = parseInt(number);
+                for (let i = 1; i <= 5; i++) {
+                    let score = i * numberValue;
+                    options += `<button onclick="selectScore(${score}, '${player}', '${number}', event)">${score}</button>`;
+                }
+                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">-</button>`; // Cross off option
+                options += `<button onclick="selectScore('x', '${player}', '${number}', event)">x</button>`; // Clear option
+            }
+            document.getElementById('popupOptions').innerHTML = options;
+            
+            // Store the cell for later use in selectScore
+            window.lastClickedCell = cell;
+        }
+
+        function selectScore(score, player, number, event) {
+            event.stopPropagation(); // Prevent propagation of the click event
+            const cell = window.lastClickedCell;
+            let cellId = `${player}-${number}`; // Create a unique identifier for each cell
+
+            if (score === 0) {
+                cell.textContent = '-';
+                localStorage.setItem(cellId, '-');
+                cell.style.textDecoration = 'line-through';
+            } else if (score === 'x') {
+                cell.textContent = '';
+                localStorage.removeItem(cellId); // Remove if clearing
+                cell.style.textDecoration = 'none';
+            } else {
+                cell.textContent = score;
+                localStorage.setItem(cellId, score);
+                cell.style.textDecoration = 'none';
+            }
+            
+            calculateTotal(player); // Recalculate total for the player
+            closePopup(); // Automatically close the popup after selection
+            updateRanks(); // Update ranks after score change
+        }
+
+        function closePopup() {
+            document.getElementById('popupModal').style.display = 'none';
+        }
+
+        function showRoundManagement() {
+            document.getElementById('roundManagementModal').style.display = 'block';
+        }
+
+        function closeRoundManagement() {
+            document.getElementById('roundManagementModal').style.display = 'none';
+        }
+
+        function resetScores() {
+            if (confirm("Are you sure you want to reset all scores?")) {
+                // Reset all scores to their initial state
+                document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
+                    cell.textContent = '';
+                    cell.style.textDecoration = 'none';
+                    cell.setAttribute('data-state', '0');
+                    localStorage.removeItem(cell.getAttribute('data-player') + '-' + cell.closest('tr').cells[0].textContent);
+                });
+
+                // Reset totals and bonus displays
+                const playerCount = parseInt(document.getElementById('playerCount').value);
+                for (let i = 1; i <= playerCount; i++) {
+                    let player = `P${i}`;
+                    document.getElementById(`total${player}`).textContent = '0';
+                    document.getElementById(`upperScore${player}`).textContent = '0';
+                    document.getElementById(`lowerScore${player}`).textContent = '0';
+                    document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
+                }
+                // Close the modal after resetting
+                closeRoundManagement();
+                updateRanks(); // Update ranks after reset
+            }
+        }
+
+        function updatePlayerCount() {
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            localStorage.setItem('playerCount', playerCount);
+            const table = document.getElementById('scoreTable');
+            const headers = table.querySelector('thead tr');
+            const rows = table.querySelectorAll('tbody tr');
+            closeRoundManagement();
+
+            // Clear existing player columns
+            const existingPlayers = headers.children.length - 1;
+            if (playerCount < existingPlayers) {
+                // Remove extra columns if we're reducing the number of players
+                for (let i = playerCount + 1; i <= existingPlayers; i++) {
+                    headers.removeChild(headers.lastChild);
+                    rows.forEach(row => {
+                        row.removeChild(row.lastChild);
+                    });
+                }
+            } else {
+                // Add new columns for increasing player count
+                for (let i = existingPlayers + 1; i <= playerCount; i++) {
+                    const newHeader = document.createElement('th');
+                    newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
+                    headers.appendChild(newHeader);
+
+                    rows.forEach(row => {
+                        const newCell = document.createElement('td');
+                        const category = row.firstElementChild.textContent;
+                        if (category === '💰') {
+                            newCell.id = `bonusP${i}`;
+                            newCell.innerHTML = '<span id="pointsNeededP' + i + '" class="points-needed">63</span>';
+                        } else if (category === '🔺️') {
+                            newCell.id = `upperScoreP${i}`;
+                            newCell.textContent = '0';
+                        } else if (category === '🔻') {
+                            newCell.id = `lowerScoreP${i}`;
+                            newCell.textContent = '0';
+                        } else if (['🏠', '▪️', '◾️', '🎯'].includes(category)) {
+                            newCell.className = 'lower-section-cell';
+                            newCell.setAttribute('data-player', `P${i}`);
+                            newCell.setAttribute('data-category', category === '🏠' ? 'Full House' : category === '▪️' ? 'Small Straight' : category === '◾️' ? 'Large Straight' : 'Yahtzee');
+                            newCell.setAttribute('data-score', category === '🏠' ? '25' : category === '▪️' ? '30' : category === '◾️' ? '40' : '50');
+                            newCell.setAttribute('data-state', '0');
+                        } else {
+                            newCell.className = 'upper-section-cell';
+                            newCell.setAttribute('data-player', `P${i}`);
+                            newCell.onclick = function() {
+                                showPopup(this, category, `P${i}`);
+                            };
+                        }
+                        row.appendChild(newCell);
+                    });
+                }
+            }
+            updateRanks(); // Update ranks after player count change
+        }
+
+        function loadScores() {
+            const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
+            cells.forEach(cell => {
+                const player = cell.getAttribute('data-player');
+                const number = cell.closest('tr').cells[0].textContent;
+                const cellId = `${player}-${number}`;
+                const savedScore = localStorage.getItem(cellId);
+                
+                if (savedScore) {
+                    if (savedScore === '-') {
+                        cell.textContent = '-';
+                        cell.style.textDecoration = 'line-through';
+                        cell.setAttribute('data-state', '2'); // Set to crossed off state
+                    } else {
+                        cell.textContent = savedScore;
+                        cell.setAttribute('data-state', '1'); // Set to scored state
+                    }
+                }
+            });
+
+            // Recalculate totals for all players
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            for (let i = 1; i <= playerCount; i++) {
+                calculateTotal(`P${i}`);
+            }
+            updateRanks(); // Update ranks after loading scores
+        }
+
+function updateRanks() {
+    const totalScores = document.querySelectorAll('[id^="total"]');
+    
+    // Calculate if any score has been entered
+    let anyScoreEntered = false;
+    totalScores.forEach(scoreElement => {
+        if (parseInt(scoreElement.textContent) > 0) {
+            anyScoreEntered = true;
+        }
+    });
+
+    const scoresArray = Array.from(totalScores).map(scoreElement => ({
+        player: scoreElement.id,
+        score: parseInt(scoreElement.textContent) || 0
+    }));
+
+    scoresArray.sort((a, b) => b.score - a.score);
+
+    let rank = 1;
+    let lastScore = null;
+    const rankMap = {};
+    let lastPlaceScores = [];
+
+    scoresArray.forEach((player, index) => {
+        if (player.score === lastScore) {
+            rankMap[player.player] = rank;
+            lastPlaceScores.push(player.player); // Add all players with last score to lastPlaceScores
+        } else {
+            rank = index + 1;
+            rankMap[player.player] = rank;
+            lastPlaceScores = [player.player]; // Reset last place array for new score
+        }
+        lastScore = player.score;
+    });
+
+    totalScores.forEach(scoreElement => {
+        const rank = rankMap[scoreElement.id];
+        const score = parseInt(scoreElement.textContent) || 0; 
+
+        // Remove existing classes
+        scoreElement.parentElement.classList.remove('rank-1', 'rank-last');
+
+        if (anyScoreEntered) {
+            // Set first place to green background
+            if (rank === 1) {
+                scoreElement.parentElement.style.backgroundColor = 'lightgreen';
+            } else {
+                scoreElement.parentElement.style.backgroundColor = ''; // Reset to default or another color if desired
+            }
+
+            // Set all last place players to red background
+            if (lastPlaceScores.includes(scoreElement.id)) {
+                scoreElement.parentElement.style.backgroundColor = 'lightcoral';
+            }
+
+            scoreElement.innerHTML = `${score}<br><small>(${ordinalSuffixOf(rank)})</small>`;
+        } else {
+            scoreElement.innerHTML = `${score}`;
+            scoreElement.parentElement.style.backgroundColor = ''; // Reset if no scores entered
+        }
+    });
+}
+
+function ordinalSuffixOf(i) {
+    var j = i % 10,
+        k = i % 100;
+    if (j === 1 && k !== 11) {
+        return i + "st";
+    }
+    if (j === 2 && k !== 12) {
+        return i + "nd";
+    }
+    if (j === 3 && k !== 13) {
+        return i + "rd";
+    }
+    return i + "th";
+}
+
+// Also, ensure updateRanks is called whenever a score is updated or player count changes
+document.getElementById('scoreTable').addEventListener('click', updateRanks);
+document.getElementById('playerCount').addEventListener('change', updateRanks);
+document.addEventListener('DOMContentLoaded', updateRanks);
+    </script>
+</body>
+</html>
