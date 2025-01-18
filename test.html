@@ -499,7 +499,7 @@ table th, table td {
 function updateRanks() {
     const totalScores = document.querySelectorAll('[id^="total"]');
     
-    // Calculate if any score has been entered
+    // Check if any score has been entered
     let anyScoreEntered = false;
     totalScores.forEach(scoreElement => {
         if (parseInt(scoreElement.textContent) > 0) {
@@ -507,43 +507,55 @@ function updateRanks() {
         }
     });
 
-    const scoresArray = Array.from(totalScores).map(scoreElement => ({
-        player: scoreElement.id,
-        score: parseInt(scoreElement.textContent) || 0
-    }));
+    if (!anyScoreEntered) {
+        totalScores.forEach(scoreElement => {
+            // Display "-" if no score has been entered
+            scoreElement.textContent = "-";
+            // Clear any existing rank element
+            while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
+                scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+            }
+            // Reset background color
+            scoreElement.parentElement.style.backgroundColor = '';
+        });
+    } else {
+        // Your existing logic for sorting, ranking, and displaying scores
+        const scoresArray = Array.from(totalScores).map(scoreElement => ({
+            player: scoreElement.id,
+            score: parseInt(scoreElement.textContent) || 0
+        }));
 
-    scoresArray.sort((a, b) => b.score - a.score);
+        scoresArray.sort((a, b) => b.score - a.score);
 
-    let rank = 1;
-    let lastScore = null;
-    const rankMap = {};
-    let lastPlaceScores = [];
+        let rank = 1;
+        let lastScore = null;
+        const rankMap = {};
+        let lastPlaceScores = [];
 
-    scoresArray.forEach((player, index) => {
-        if (player.score === lastScore) {
-            rankMap[player.player] = rank;
-            lastPlaceScores.push(player.player); // Add all players with last score to lastPlaceScores
-        } else {
-            rank = index + 1;
-            rankMap[player.player] = rank;
-            lastPlaceScores = [player.player]; // Reset last place array for new score
-        }
-        lastScore = player.score;
-    });
+        scoresArray.forEach((player, index) => {
+            if (player.score === lastScore) {
+                rankMap[player.player] = rank;
+                lastPlaceScores.push(player.player); // Add all players with last score to lastPlaceScores
+            } else {
+                rank = index + 1;
+                rankMap[player.player] = rank;
+                lastPlaceScores = [player.player]; // Reset last place array for new score
+            }
+            lastScore = player.score;
+        });
 
-    totalScores.forEach(scoreElement => {
-        const rank = rankMap[scoreElement.id];
-        const score = parseInt(scoreElement.textContent) || 0; 
+        totalScores.forEach(scoreElement => {
+            const rank = rankMap[scoreElement.id];
+            const score = parseInt(scoreElement.textContent) || 0; 
 
-        // Remove existing classes
-        scoreElement.parentElement.classList.remove('rank-1', 'rank-last');
+            // Remove existing classes
+            scoreElement.parentElement.classList.remove('rank-1', 'rank-last');
 
-        // Clear any previous rank indicators
-        while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
-            scoreElement.parentElement.removeChild(scoreElement.nextSibling);
-        }
+            // Clear any previous rank indicators
+            while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
+                scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+            }
 
-        if (anyScoreEntered) {
             // Set first place to green background
             if (rank === 1) {
                 scoreElement.parentElement.style.backgroundColor = '#d4f4d4';
@@ -562,11 +574,8 @@ function updateRanks() {
             const rankElement = document.createElement('small');
             rankElement.textContent = ordinalSuffixOf(rank);
             scoreElement.parentElement.appendChild(rankElement);
-        } else {
-            scoreElement.textContent = score; // Reset if no scores entered
-            scoreElement.parentElement.style.backgroundColor = ''; 
-        }
-    });
+        });
+    }
 }
 function ordinalSuffixOf(i) {
     var j = i % 10,
