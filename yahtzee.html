@@ -26,15 +26,24 @@
             table-layout: fixed;
         }
 
-        table th, table td {
-            border: 1px solid #ddd;
-            text-align: center;
-            padding: 5px;
-            word-wrap: break-word;
-            cursor: pointer;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+table th, table td {
+    border: 1px solid #ddd;
+    text-align: center;
+    padding: 5px;
+    word-wrap: break-word;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Add or modify this selector */
+[id^="total"] {
+    font-size: 18px; /* Example size, adjust as needed */
+}
+/* New rule for the rank */
+[id^="total"] + small {
+    font-size: 14px; /* Size for the rank */
+}
 
         table th:first-child, table td:first-child {
             background-color: #f0f0f0;
@@ -192,7 +201,7 @@
     <div id="roundManagementModal">
         <h2>Round Management</h2>
         <select id="playerCount" onchange="updatePlayerCount()">
-          <option value="1">1 Players</option>
+            <option value="1">1 Players</option>
             <option value="2">2 Players</option>
             <option value="3">3 Players</option>
             <option value="4">4 Players</option>
@@ -206,17 +215,17 @@
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let savedPlayerCount = localStorage.getItem('playerCount');
-        if (savedPlayerCount) {
-            document.getElementById('playerCount').value = savedPlayerCount;
-            updatePlayerCount(); // This will update the UI with the saved count
-        } else {
-            // Set default to 2 players if no saved data
-            document.getElementById('playerCount').value = '4';
-            updatePlayerCount(); // Update UI with default count
-        }
-        loadScores(); // Load saved scores
+        document.addEventListener('DOMContentLoaded', function() {
+            let savedPlayerCount = localStorage.getItem('playerCount');
+            if (savedPlayerCount) {
+                document.getElementById('playerCount').value = savedPlayerCount;
+                updatePlayerCount(); // This will update the UI with the saved count
+            } else {
+                // Set default to 2 players if no saved data
+                document.getElementById('playerCount').value = '4';
+                updatePlayerCount(); // Update UI with default count
+            }
+            loadScores(); // Load saved scores
             const scoreTable = document.getElementById('scoreTable');
 
             // Event listener for all score cells
@@ -248,6 +257,7 @@
 
                     const player = cell.getAttribute('data-player');
                     calculateTotal(player);
+                    updateRanks();
                 } else if (cell.classList.contains('upper-section-cell')) {
                     const player = cell.getAttribute('data-player');
                     const number = cell.closest('tr').cells[0].textContent;
@@ -361,6 +371,7 @@
             
             calculateTotal(player); // Recalculate total for the player
             closePopup(); // Automatically close the popup after selection
+            updateRanks(); // Update ranks after score change
         }
 
         function closePopup() {
@@ -375,29 +386,30 @@
             document.getElementById('roundManagementModal').style.display = 'none';
         }
 
-    function resetScores() {
-        if (confirm("Are you sure you want to reset all scores?")) {
-            // Reset all scores to their initial state
-            document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
-                cell.textContent = '';
-                cell.style.textDecoration = 'none';
-                cell.setAttribute('data-state', '0');
-                localStorage.removeItem(cell.getAttribute('data-player') + '-' + cell.closest('tr').cells[0].textContent);
-            });
+        function resetScores() {
+            if (confirm("Are you sure you want to reset all scores?")) {
+                // Reset all scores to their initial state
+                document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
+                    cell.textContent = '';
+                    cell.style.textDecoration = 'none';
+                    cell.setAttribute('data-state', '0');
+                    localStorage.removeItem(cell.getAttribute('data-player') + '-' + cell.closest('tr').cells[0].textContent);
+                });
 
-            // Reset totals and bonus displays
-            const playerCount = parseInt(document.getElementById('playerCount').value);
-            for (let i = 1; i <= playerCount; i++) {
-                let player = `P${i}`;
-                document.getElementById(`total${player}`).textContent = '0';
-                document.getElementById(`upperScore${player}`).textContent = '0';
-                document.getElementById(`lowerScore${player}`).textContent = '0';
-                document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
+                // Reset totals and bonus displays
+                const playerCount = parseInt(document.getElementById('playerCount').value);
+                for (let i = 1; i <= playerCount; i++) {
+                    let player = `P${i}`;
+                    document.getElementById(`total${player}`).textContent = '0';
+                    document.getElementById(`upperScore${player}`).textContent = '0';
+                    document.getElementById(`lowerScore${player}`).textContent = '0';
+                    document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
+                }
+                // Close the modal after resetting
+                closeRoundManagement();
+                updateRanks(); // Update ranks after reset
             }
-            // Close the modal after resetting
-            closeRoundManagement();
         }
-    }
 
         function updatePlayerCount() {
             const playerCount = parseInt(document.getElementById('playerCount').value);
@@ -453,6 +465,7 @@
                     });
                 }
             }
+            updateRanks(); // Update ranks after player count change
         }
 
         function loadScores() {
@@ -480,7 +493,109 @@
             for (let i = 1; i <= playerCount; i++) {
                 calculateTotal(`P${i}`);
             }
+            updateRanks(); // Update ranks after loading scores
         }
+
+function updateRanks() {
+    const totalScores = document.querySelectorAll('[id^="total"]');
+    
+    // Check if any score has been entered
+    let anyScoreEntered = false;
+    totalScores.forEach(scoreElement => {
+        if (parseInt(scoreElement.textContent) > 0) {
+            anyScoreEntered = true;
+        }
+    });
+
+    if (!anyScoreEntered) {
+        totalScores.forEach(scoreElement => {
+            // Display "-" if no score has been entered
+            scoreElement.textContent = "-";
+            // Clear any existing rank element
+            while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
+                scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+            }
+            // Reset background color
+            scoreElement.parentElement.style.backgroundColor = '';
+        });
+    } else {
+        // Your existing logic for sorting, ranking, and displaying scores
+        const scoresArray = Array.from(totalScores).map(scoreElement => ({
+            player: scoreElement.id,
+            score: parseInt(scoreElement.textContent) || 0
+        }));
+
+        scoresArray.sort((a, b) => b.score - a.score);
+
+        let rank = 1;
+        let lastScore = null;
+        const rankMap = {};
+        let lastPlaceScores = [];
+
+        scoresArray.forEach((player, index) => {
+            if (player.score === lastScore) {
+                rankMap[player.player] = rank;
+                lastPlaceScores.push(player.player); // Add all players with last score to lastPlaceScores
+            } else {
+                rank = index + 1;
+                rankMap[player.player] = rank;
+                lastPlaceScores = [player.player]; // Reset last place array for new score
+            }
+            lastScore = player.score;
+        });
+
+        totalScores.forEach(scoreElement => {
+            const rank = rankMap[scoreElement.id];
+            const score = parseInt(scoreElement.textContent) || 0; 
+
+            // Remove existing classes
+            scoreElement.parentElement.classList.remove('rank-1', 'rank-last');
+
+            // Clear any previous rank indicators
+            while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
+                scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+            }
+
+            // Set first place to green background
+            if (rank === 1) {
+                scoreElement.parentElement.style.backgroundColor = '#d4f4d4';
+            } else {
+                scoreElement.parentElement.style.backgroundColor = ''; // Reset to default or another color if desired
+            }
+
+            // Set all last place players to red background
+            if (lastPlaceScores.includes(scoreElement.id)) {
+                scoreElement.parentElement.style.backgroundColor = '#f4d4d4';
+            }
+
+            // Keep the score as is, only add rank below it
+            scoreElement.textContent = score; // Ensure the score is set as text content
+            // Create a new element for the rank
+            const rankElement = document.createElement('small');
+            rankElement.textContent = ordinalSuffixOf(rank);
+            scoreElement.parentElement.appendChild(rankElement);
+        });
+    }
+}
+function ordinalSuffixOf(i) {
+    var j = i % 10,
+        k = i % 100;
+    if (j === 1 && k !== 11) {
+        return i + "st";
+    }
+    if (j === 2 && k !== 12) {
+        return i + "nd";
+    }
+    if (j === 3 && k !== 13) {
+        return i + "rd";
+    }
+    return i + "th";
+}
+
+// Also, ensure updateRanks is called whenever a score is updated or player count changes
+document.getElementById('scoreTable').addEventListener('click', updateRanks);
+document.getElementById('playerCount').addEventListener('change', updateRanks);
+document.addEventListener('DOMContentLoaded', updateRanks);
     </script>
 </body>
 </html>
