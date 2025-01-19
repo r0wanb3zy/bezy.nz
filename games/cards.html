@@ -1,1 +1,567 @@
-q
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Score</title>
+  <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Economica', sans-serif;
+      font-size: 18px;
+      margin: 0;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+table-layout: fixed;
+      border-collapse: collapse;
+      font-size: 18px;
+    }
+    table th, table td {
+      border: 1px solid #ddd;
+      text-align: center;
+      padding: 5px;
+      word-wrap: break-word;
+      cursor: pointer;
+    }
+    table th {
+      background-color: #f4f4f4;
+    }
+    table th:first-child, table td:first-child {
+      background-color: #f0f0f0; /* Grey background for the first column */
+    }
+    table input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 2px;
+      text-align: center;
+      font-size: inherit;
+      font-family: 'Economica', sans-serif;
+      position: relative; /* Added for positioning */
+    }
+
+    table input::placeholder {
+      font-family: 'Economica', sans-serif;
+      font-size: 16px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .highlight-winner {
+      background-color: #d4f4d4; /* Light green for winner */
+    }
+    .highlight-loser {
+      background-color: #f4d4d4; /* Light red for loser */
+    }
+    table td:first-child, table th:first-child {
+      font-weight: bold; /* Make the first column bold */
+    }
+        table th span:last-child {
+      font-size: 14px;
+    }
+    /* Add this to your existing CSS in the <style> section */
+table input[type="number"]::-webkit-outer-spin-button,
+table input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+/* Firefox */
+table input[type="number"] {
+    -moz-appearance: textfield;
+}
+    /* Adjust height for round rows */
+    #scoreBody tr:not(:last-child) td:not(:first-child) {
+      max-height: 5px; /* Set your desired height */
+      height: 5px; /* Ensures all cells have this height unless content exceeds */
+      line-height: 5px; /* Center text vertically if single line */
+      overflow: hidden; /* Hide content that exceeds max height */
+    }
+      table th:first-child, table td:first-child {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    width: 30px; /* Set the width to 100 pixels, adjust as needed */
+  }
+  </style>
+</head>
+<body>
+  <table id="scoreTable">
+    <thead>
+      <tr id="playerRow">
+        <th>#</th>
+      </tr>
+    </thead>
+    <tbody id="scoreBody">
+    </tbody>
+  </table>
+
+  <script>
+  // Check if this is the first load in this browser
+if (!localStorage.getItem('initialized')) {
+  players = [
+    { name: "RB", totalScore: 0, roundScores: [] },
+    { name: "AB", totalScore: 0, roundScores: [] },
+    { name: "P3", totalScore: 0, roundScores: [] },
+    { name: "P4", totalScore: 0, roundScores: [] }
+  ];
+  rounds = [];
+  localStorage.setItem('initialized', 'true');  // Set a flag after initial setup
+  localStorage.setItem('players', JSON.stringify(players));
+  localStorage.setItem('rounds', JSON.stringify(rounds));
+} else {
+  players = JSON.parse(localStorage.getItem('players')) || [];
+  rounds = JSON.parse(localStorage.getItem('rounds')) || [];
+}
+
+  let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
+
+    function addRoundScores() {
+      const scores = [];
+      const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+      inputs.forEach((input, index) => {
+        const score = parseInt(input.value) || 0;
+        scores[index] = score;
+        players[index].roundScores.push(score);
+        players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
+      });
+      rounds.push(scores);
+      saveData();
+      updateUI();
+      inputs.forEach(input => input.value = '');
+    }
+
+    function saveData() {
+      localStorage.setItem('players', JSON.stringify(players));
+      localStorage.setItem('rounds', JSON.stringify(rounds));
+      localStorage.setItem('scoringMode', scoringMode);
+    }
+
+    function updateUI() {
+      const playerRow = document.getElementById("playerRow");
+      playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
+      players.forEach((player, index) => {
+        playerRow.innerHTML += `
+          <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
+            ${player.name}
+            <br>
+            <span>${player.totalScore === 0 && rounds.length === 0 ? '-' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+            ${rounds.length > 0 ? `<br><span>${getRank(player.totalScore)}</span>` : ''}
+          </th>
+        `;
+      });
+
+      const scoreBody = document.getElementById("scoreBody");
+      scoreBody.innerHTML = "";
+      rounds.forEach((round, roundIndex) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
+        players.forEach((_, playerIndex) => {
+          const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] === 0 ? '-' : round[playerIndex]) : '-';
+          row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
+        });
+        scoreBody.appendChild(row);
+      });
+
+      const inputRow = document.createElement('tr');
+      inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
+      players.forEach((player, index) => {
+        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}"/></td>`;
+      });
+      scoreBody.appendChild(inputRow);
+
+      if (rounds.length > 0) {
+        updateRankings();
+      }
+      
+      // Set up event listeners for key events
+      const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+      inputs.forEach(input => {
+        input.addEventListener('keypress', function(event) {
+          if (event.key === 'Enter' || event.key === 'Tab') {
+            event.preventDefault();
+            if (allInputsFilled(inputs)) {
+              addRoundScores();
+            }
+          }
+        });
+        input.addEventListener('keydown', function(event) {
+          if (event.key === 'Tab') {
+            event.preventDefault();  // Prevent tab from moving focus
+            if (allInputsFilled(inputs)) {
+              addRoundScores();
+            }
+          }
+        });
+      });
+    }
+
+    function getRank(score) {
+      const sortedPlayers = [...players];
+      if (scoringMode === "highest") {
+        sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
+      } else {
+        sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
+      }
+      const rank = sortedPlayers.findIndex(player => player.totalScore === score) + 1;
+      let suffix = 'th';
+      if (rank % 10 === 1 && rank % 100 !== 11) suffix = 'st';
+      if (rank % 10 === 2 && rank % 100 !== 12) suffix = 'nd';
+      if (rank % 10 === 3 && rank % 100 !== 13) suffix = 'rd';
+      return rank + suffix;
+    }
+
+    function updateScore(roundIndex, playerIndex, newScore) {
+      const score = parseInt(newScore) || 0;
+      if (rounds[roundIndex] && rounds[roundIndex][playerIndex] !== undefined) {
+        rounds[roundIndex][playerIndex] = score;
+        if (players[playerIndex] && players[playerIndex].roundScores[roundIndex] !== undefined) {
+          players[playerIndex].roundScores[roundIndex] = score;
+          players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+        }
+      }
+      saveData();
+      updateUI();
+    }
+
+    function updateRankings() {
+      const sortedPlayers = [...players];
+      if (scoringMode === "highest") {
+        sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
+      } else {
+        sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
+      }
+
+      const playerRow = document.getElementById("playerRow");
+      const columns = Array.from(playerRow.children).slice(1);
+      columns.forEach((th) => th.classList.remove("highlight-winner", "highlight-loser"));
+      
+      // Check if all scores are the same
+      const allScoresSame = players.every(player => player.totalScore === players[0].totalScore);
+
+      if (allScoresSame) {
+        columns.forEach(th => th.classList.add("highlight-winner"));  // All green if all scores are the same
+      } else {
+        const highestScore = sortedPlayers[0].totalScore;
+        const lowestScore = sortedPlayers[sortedPlayers.length - 1].totalScore;
+
+        sortedPlayers.forEach((player, index) => {
+          const playerIndex = players.findIndex(p => p.name === player.name);
+          if (player.totalScore === highestScore) {
+            columns[playerIndex].classList.add("highlight-winner");
+          }
+          if (player.totalScore === lowestScore) {
+            columns[playerIndex].classList.add("highlight-loser");
+          }
+        });
+      }
+    }
+
+    function removePlayer(index) {
+      players.splice(index, 1);
+      rounds.forEach(round => round.splice(index, 1));
+      saveData();
+      updateUI();
+    }
+
+    function createPlayerManagementDialog(index) {
+      const dialog = document.createElement('div');
+      dialog.style.position = 'fixed';
+      dialog.style.top = '50%';
+      dialog.style.left = '50%';
+      dialog.style.transform = 'translate(-50%, -50%)';
+      dialog.style.background = 'white';
+      dialog.style.border = '1px solid black';
+      dialog.style.padding = '10px';
+      dialog.style.zIndex = '1000';
+      dialog.style.textAlign = 'center';
+
+      const title = document.createElement('h2');
+      title.textContent = `Manage ${players[index].name}`;
+      dialog.appendChild(title);
+
+      const changeNameDiv = document.createElement('div');
+
+      // Dropdown for selecting existing names
+      const nameSelect = document.createElement('select');
+      nameSelect.id = 'playerNameSelect';
+      const defaultOption = document.createElement('option');
+      defaultOption.value = players[index].name;
+      defaultOption.text = `Current: ${players[index].name}`;
+      nameSelect.appendChild(defaultOption);
+
+      const standardPlayers = ['RB', 'AB', 'DB', 'DD', 'WJ', 'LJ', 'CB', 'HB', 'SB', 'JB']; // Example standard list
+      standardPlayers.forEach(player => {
+        let option = document.createElement('option');
+        option.value = player;
+        option.text = player;
+        nameSelect.appendChild(option);
+      });
+
+      nameSelect.onchange = function() {
+        const selectedName = this.value;
+        if (selectedName !== players[index].name) {
+          players[index].name = selectedName;
+          saveData();
+          updateUI();
+          document.body.removeChild(dialog);
+        }
+      };
+
+      // Input for new name
+      const changeNameInput = document.createElement('input');
+      changeNameInput.type = 'text';
+      changeNameInput.placeholder = 'Enter new name';
+      changeNameInput.value = players[index].name;
+      changeNameInput.style.width = '100px';
+
+      const changeNameButton = document.createElement('button');
+      changeNameButton.textContent = 'Change Name';
+      changeNameButton.onclick = function() {
+        const newName = changeNameInput.value.trim();
+        if (newName && newName !== players[index].name) {
+          players[index].name = newName;
+          saveData();
+          updateUI();
+          document.body.removeChild(dialog);
+        }
+      };
+
+      changeNameDiv.appendChild(nameSelect);
+      changeNameDiv.appendChild(document.createElement('br')); // Add line break for better UI
+      changeNameDiv.appendChild(changeNameInput);
+      changeNameDiv.appendChild(changeNameButton);
+      dialog.appendChild(changeNameDiv);
+
+      // Move Left Button
+      const moveLeftButton = document.createElement('button');
+      moveLeftButton.textContent = 'Move Left';
+      moveLeftButton.onclick = function() {
+        if (index > 0) {
+          let temp = players[index - 1];
+          players[index - 1] = players[index];
+          players[index] = temp;
+
+          // Reorder rounds scores
+          rounds.forEach(round => {
+            let tempScore = round[index - 1];
+            round[index - 1] = round[index];
+            round[index] = tempScore;
+          });
+
+          saveData();
+          updateUI();
+          document.body.removeChild(dialog);
+        }
+      };
+      dialog.appendChild(moveLeftButton);
+
+      // Move Right Button
+      const moveRightButton = document.createElement('button');
+      moveRightButton.textContent = 'Move Right';
+      moveRightButton.onclick = function() {
+        if (index < players.length - 1) {
+          let temp = players[index + 1];
+          players[index + 1] = players[index];
+          players[index] = temp;
+
+          // Reorder rounds scores
+          rounds.forEach(round => {
+            let tempScore = round[index + 1];
+            round[index + 1] = round[index];
+            round[index] = tempScore;
+          });
+
+          saveData();
+          updateUI();
+          document.body.removeChild(dialog);
+        }
+      };
+      dialog.appendChild(moveRightButton);
+
+      // Remove Player Button
+      const removeButton = document.createElement('button');
+      removeButton.textContent = 'Remove Player';
+      removeButton.onclick = function() {
+        if (confirm(`Are you sure you want to remove ${players[index].name}?`)) {
+          removePlayer(index);
+          document.body.removeChild(dialog);
+        }
+      };
+      dialog.appendChild(removeButton);
+
+      // Close Dialog Button
+      const closeButton = document.createElement('button');
+      closeButton.textContent = 'Close';
+      closeButton.onclick = function() {
+        document.body.removeChild(dialog);
+        document.removeEventListener('click', closeDialogOnOutsideClick);
+      };
+      dialog.appendChild(closeButton);
+
+      // Function to close dialog if click is outside
+      function closeDialogOnOutsideClick(event) {
+        if (!dialog.contains(event.target) && event.target !== dialog) {
+          document.body.removeChild(dialog);
+          document.removeEventListener('click', closeDialogOnOutsideClick);
+        }
+      }
+
+      // Add click event listener to close dialog if click is outside
+      document.addEventListener('click', closeDialogOnOutsideClick);
+
+      document.body.appendChild(dialog);
+    }
+
+    function handlePlayerNameClick(event, index) {
+      event.stopPropagation();
+      createPlayerManagementDialog(index);
+    }
+
+    function createRoundManagementDialog() {
+      const dialog = document.createElement('div');
+      dialog.style.position = 'fixed';
+      dialog.style.top = '50%';
+      dialog.style.left = '50%';
+      dialog.style.transform = 'translate(-50%, -50%)';
+      dialog.style.background = 'white';
+      dialog.style.border = '1px solid black';
+      dialog.style.padding = '10px';
+      dialog.style.zIndex = '1000';
+      dialog.style.textAlign = 'center';
+
+      const title = document.createElement('h2');
+      title.textContent = 'Round Management';
+      dialog.appendChild(title);
+
+      // Add field to select number of players
+      const playerCountSelect = document.createElement('select');
+      playerCountSelect.id = 'playerCount';
+      for (let i = 2; i <= 8; i++) {
+        let option = document.createElement('option');
+        option.value = i;
+        option.text = i + ' Players';
+        playerCountSelect.appendChild(option);
+      }
+      playerCountSelect.value = players.length;
+      playerCountSelect.onchange = function() {
+        const newCount = parseInt(this.value);
+        if (newCount > players.length) {
+          for (let i = players.length; i < newCount; i++) {
+            players.push({ 
+              name: `P${i+1}`, 
+              totalScore: 0, 
+              roundScores: Array(rounds.length).fill(0)  
+            });
+            rounds.forEach(round => round.push(0)); 
+          }
+        } else if (newCount < players.length) {
+          players = players.slice(0, newCount);
+          rounds.forEach(round => round.length = newCount);
+        }
+        saveData();
+        updateUI();
+        document.body.removeChild(dialog);
+      };
+      dialog.appendChild(playerCountSelect);
+
+      // Reset Scores Button
+      const resetScoresButton = document.createElement('button');
+      resetScoresButton.textContent = 'Reset';
+      resetScoresButton.onclick = function() {
+        if (confirm("Are you sure you want to reset all scores?")) {
+          resetScores();
+          document.body.removeChild(dialog);
+        }
+      };
+      dialog.appendChild(resetScoresButton);
+
+      // Toggle Scoring Mode Button
+      const toggleScoringModeButton = document.createElement('button');
+      toggleScoringModeButton.textContent = scoringMode === 'highest' ? 'High' : 'Low';
+      toggleScoringModeButton.onclick = function() {
+        toggleScoringMode();
+        toggleScoringModeButton.textContent = scoringMode === 'highest' ? 'High' : 'Low';
+        updateUI();
+        document.body.removeChild(dialog);
+      };
+      dialog.appendChild(toggleScoringModeButton);
+
+      // Close Dialog Button
+      const closeButton = document.createElement('button');
+      closeButton.textContent = 'Close';
+      closeButton.onclick = function() {
+        document.body.removeChild(dialog);
+        document.removeEventListener('click', closeDialogOnOutsideClick);
+      };
+      dialog.appendChild(closeButton);
+
+      // Function to close dialog if click is outside
+      function closeDialogOnOutsideClick(event) {
+        if (!dialog.contains(event.target) && event.target !== dialog) {
+          document.body.removeChild(dialog);
+          document.removeEventListener('click', closeDialogOnOutsideClick);
+        }
+      }
+
+      // Add click event listener to close dialog if click is outside
+      document.addEventListener('click', closeDialogOnOutsideClick);
+
+      document.body.appendChild(dialog);
+    }
+
+    function toggleScoringMode() {
+      scoringMode = scoringMode === "highest" ? "lowest" : "highest";
+      updateUI(); 
+      saveData(); 
+    }
+
+    function resetScores() {
+      players.forEach(player => {
+        player.roundScores = [];
+        player.totalScore = 0;
+      });
+      rounds = [];
+      saveData();
+      updateUI();
+    }
+
+    function confirmDeleteRound(roundIndex) {
+      if (confirm("Are you sure you want to delete this round?")) {
+        rounds.splice(roundIndex, 1);
+        players.forEach(player => {
+          player.roundScores.splice(roundIndex, 1);
+          player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
+        });
+        saveData();
+        updateUI();
+      }
+    }
+
+    function allInputsFilled(inputs) {
+      return Array.from(inputs).every(input => input.value.trim() !== '');
+    }
+
+    function selectText(element) {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
