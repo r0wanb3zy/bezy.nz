@@ -6,11 +6,6 @@
   <title>Games</title>
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
-  <!-- Meta tags for splash screen and status bar -->
-  <meta name="theme-color" content="#000000">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
   <!-- Icons for various platforms -->
   <link rel="icon" href="/games/assets/images/favicon.ico" type="image/x-icon">
   <link rel="apple-touch-icon" sizes="180x180" href="/games/assets/images/icon-180.png">
@@ -19,10 +14,6 @@
 
   <!-- Web Manifest for Android -->
   <link rel="manifest" href="/games/assets/manifest.json">
-
-  <!-- Optional custom splash screens for iOS -->
-  <link rel="apple-touch-startup-image" href="/games/assets/images/icon-192.png" media="(device-width: 320px)">
-  <link rel="apple-touch-startup-image" href="/games/assets/images/icon-512.png" media="(device-width: 768px)">
 
   <style>
     * {
@@ -33,7 +24,6 @@
 
     html, body {
       height: 100%;
-      background-color: #000000; /* Fallback background color */
     }
 
     body {
@@ -54,12 +44,12 @@
       color: white;
     }
 
-    .section:nth-child(odd) {
-      background-color: #aaa; /* Blue */
+    .section:nth-child(even) {
+      background-color: #43423E; /* Green */
     }
 
-    .section:nth-child(even) {
-      background-color: #bbb; /* Green */
+    .section:nth-child(odd) {
+      background-color: #585754; /* Blue */
     }
 
     h1 {
