@@ -40,21 +40,21 @@ table-layout: fixed;
       width: 100%;
       box-sizing: border-box;
       padding: 2px;
-      text-align: center;
       font-size: inherit;
       font-family: 'Economica', sans-serif;
-      position: relative; /* Added for positioning */
     }
 
     table input::placeholder {
       font-family: 'Economica', sans-serif;
       font-size: 16px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
       text-align: center;
+      /* Remove absolute positioning and use the following instead for better compatibility */
+      transform: translateY(-50%);
+      position: relative;
+      top: 50%;
+      left: 0;
       width: 100%;
+      box-sizing: border-box; /* Ensures padding does not affect the width */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
