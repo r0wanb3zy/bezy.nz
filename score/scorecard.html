@@ -40,24 +40,32 @@ table-layout: fixed;
       width: 100%;
       box-sizing: border-box;
       padding: 2px;
+      text-align: center;  /* This centers text when there's content */
       font-size: inherit;
       font-family: 'Economica', sans-serif;
+      position: relative;
     }
 
     table input::placeholder {
       font-family: 'Economica', sans-serif;
       font-size: 16px;
-      text-align: center;
-      /* Remove absolute positioning and use the following instead for better compatibility */
-      transform: translateY(-50%);
-      position: relative;
+      position: absolute;
       top: 50%;
-      left: 0;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center; /* Centers text within the placeholder */
       width: 100%;
-      box-sizing: border-box; /* Ensures padding does not affect the width */
-      white-space: nowrap;
+      white-space: nowrap;  /* Prevents wrapping */
       overflow: hidden;
       text-overflow: ellipsis;
+      color: #ccc;  /* Default placeholder color */
+    }
+
+    /* Additional styles for Safari on iOS */
+    @supports (-webkit-touch-callout: none) {
+      table input::placeholder {
+        line-height: normal; /* Ensures vertical centering in older iOS */
+      }
     }
     
     .highlight-winner {
