@@ -36,23 +36,22 @@ table-layout: fixed;
     table th:first-child, table td:first-child {
       background-color: #f0f0f0; /* Grey background for the first column */
     }
-table input {
+    table input {
   width: 100%;
   box-sizing: border-box;
-  padding: 5px; /* Adjust as needed */
+  padding: 4px;
   text-align: center;
   font-size: inherit;
   font-family: 'Economica', sans-serif;
-  height: 100%; /* Makes input fill the table cell */
-  display: flex;
-  align-items: center; /* Centers text vertically */
-  justify-content: center; /* Centers text horizontally */
 }
 
+/* Center placeholder consistently */
 table input::placeholder {
   font-family: 'Economica', sans-serif;
   font-size: 16px;
-  text-align: center;
+  text-align: center; /* Ensure text alignment is center */
+  line-height: normal; /* Use normal line-height for centering */
+  color: #999; /* Optional: Placeholder color */
 }
     
     .highlight-winner {
