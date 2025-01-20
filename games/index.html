@@ -30,10 +30,14 @@
       display: grid;
       grid-template-rows: repeat(auto-fit, 1fr);
       height: 100vh; /* Full viewport height */
+      /* Add this line to remove tap highlight on mobile */
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
     }
 
     a {
       text-decoration: none;
+      /* Add this line to ensure links also do not show highlight */
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
     }
 
     .section {
@@ -43,7 +47,8 @@
       text-align: center;
       color: white;
     }
-        .section:nth-child(odd) {
+
+    .section:nth-child(odd) {
       background-color: rgba(0, 0, 0, 0.9);
     }
     .section:nth-child(even) {
@@ -57,17 +62,17 @@
   </style>
 </head>
 <body>
-<a href="/games/cards" class="section">
-  <h1>
-    <img src="/games/assets/images/cards.png" alt="Playing Cards" style="height: 50px; width: auto; filter: brightness(0) invert(1);"><br>
-    Cards
-  </h1>
-</a>
-<a href="/games/yahtzee" class="section">
-  <h1>
-    <img src="/games/assets/images/dice.png" alt="Dice" style="height: 60px; width: auto; filter: brightness(0) invert(1);"><br>
-    Yahtzee
-  </h1>
-</a>
+  <a href="/games/cards" class="section">
+    <h1>
+      <img src="/games/assets/images/cards.png" alt="Playing Cards" style="height: 50px; width: auto; filter: brightness(0) invert(1);"><br>
+      Cards
+    </h1>
+  </a>
+  <a href="/games/yahtzee" class="section">
+    <h1>
+      <img src="/games/assets/images/dice.png" alt="Dice" style="height: 60px; width: auto; filter: brightness(0) invert(1);"><br>
+      Yahtzee
+    </h1>
+  </a>
 </body>
 </html>
