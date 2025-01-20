@@ -36,45 +36,24 @@ table-layout: fixed;
     table th:first-child, table td:first-child {
       background-color: #f0f0f0; /* Grey background for the first column */
     }
-    table input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 2px;
-      text-align: center; /* This ensures text alignment when there's content */
-      font-size: inherit;
-      font-family: 'Economica', sans-serif;
-      height: 30px; /* Adjust height as needed to ensure vertical space */
-      line-height: 30px; /* Match this with the height for vertical centering */
-      position: relative;
-    }
+table input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px; /* Adjust as needed */
+  text-align: center;
+  font-size: inherit;
+  font-family: 'Economica', sans-serif;
+  height: 100%; /* Makes input fill the table cell */
+  display: flex;
+  align-items: center; /* Centers text vertically */
+  justify-content: center; /* Centers text horizontally */
+}
 
-    table input::placeholder {
-      font-family: 'Economica', sans-serif;
-      font-size: 16px;
-      text-align: center; /* Centers text within the placeholder */
-      color: #ccc; /* Default placeholder color */
-      position: absolute; /* Absolute positioning for centering */
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      white-space: nowrap; 
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Fallback for older browsers or different rendering engines */
-    @supports not (transform: translate(-50%, -50%)) {
-      table input {
-        line-height: 30px; /* Use line-height for vertical centering if transform isn't supported */
-      }
-      table input::placeholder {
-        position: static;
-        top: auto;
-        left: auto;
-        transform: none;
-      }
-    }
+table input::placeholder {
+  font-family: 'Economica', sans-serif;
+  font-size: 16px;
+  text-align: center;
+}
     
     .highlight-winner {
       background-color: #d4f4d4; /* Light green for winner */
