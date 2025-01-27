@@ -295,7 +295,7 @@ if (!localStorage.getItem('initialized')) {
       defaultOption.text = `Current: ${players[index].name}`;
       nameSelect.appendChild(defaultOption);
 
-      const standardPlayers = ['RB', 'AB', 'DB', 'DD', 'WJ', 'LJ', 'CB', 'HB', 'SB', 'JB']; // Example standard list
+      const standardPlayers = ['RB', 'AB', 'DB', 'DD', 'WJ', 'LJ', 'C-R', 'H-G', 'S-B', 'J-L']; // Example standard list
       standardPlayers.forEach(player => {
         let option = document.createElement('option');
         option.value = player;
