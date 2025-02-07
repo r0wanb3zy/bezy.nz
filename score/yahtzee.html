@@ -245,25 +245,6 @@ table th, table td {
                 updatePlayerCount(); // Update UI with default count
             }
             loadScores(); // Load saved scores
-
-
-
-
-// Function to adjust the height of the score table
-    function adjustTableHeight() {
-        // Set the height to 100vh explicitly
-        const scoreTable = document.getElementById('scoreTable');
-        scoreTable.style.height = '100vh';
-        
-        // This line ensures that if there's any overflow due to content, 
-        // it can be scrolled within the table, not outside of it
-        scoreTable.style.overflowY = 'auto';
-    }
-
-
-
-
-
             const scoreTable = document.getElementById('scoreTable');
 
             // Event listener for all score cells
