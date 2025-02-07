@@ -605,6 +605,12 @@ function ordinalSuffixOf(i) {
 document.getElementById('scoreTable').addEventListener('click', updateRanks);
 document.getElementById('playerCount').addEventListener('change', updateRanks);
 document.addEventListener('DOMContentLoaded', updateRanks);
+
+                document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(() => {
+                document.getElementById("scoreTable").style.height = "100vh";
+            }, 10); // Small delay to ensure rendering is complete
+        });
     </script>
 </body>
 </html>
