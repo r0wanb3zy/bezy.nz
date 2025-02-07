@@ -11,9 +11,16 @@
             font-size: 18px;
             margin: 0;
             max-width: 1200px;
+            height: 100vh;
             margin-left: auto;
             margin-right: auto;
         }
+        
+        #scoreTable {
+    flex: 1; /* Allow the table to grow and shrink to fill the available space */
+    height: 100%; /* Ensure table fills the body height */
+    overflow-y: auto; /* Add scroll if content exceeds viewport height */
+}
 
         h1 {
             text-align: center;
