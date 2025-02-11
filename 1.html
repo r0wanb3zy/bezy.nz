@@ -15,8 +15,12 @@
 
         body {
             font-family: 'Satoshi', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure the body takes full viewport height */
         }
 
+        /* Header Section */
         .header {
             display: flex;
             justify-content: center;
@@ -133,43 +137,58 @@
             visibility: visible;
         }
 
+        /* Body Section */
         .content-wrapper {
             max-width: 1200px;
             margin: 0 auto;
             padding: 10px;
+            flex: 1; /* This makes the content grow and push the footer to the bottom */
         }
 
-.main-title {
-    text-align: center;
-    margin: 0px 0;
-    font-size: 28px;
-    color: #333;
-    font-weight: 900;
-    font-family: 'Satoshi', sans-serif;
-}
+        .main-title {
+            text-align: center;
+            margin: 0px 0;
+            font-size: 28px;
+            color: #333;
+            font-weight: 900;
+            font-family: 'Satoshi', sans-serif;
+        }
 
-/* Adjust heading size on larger screens */
-@media (min-width: 768px) {
-    .main-title {
-        font-size: 36px; /* Increase size for larger screens */
-    }
-}
-.main-paragraph {
-    text-align: center;
-    margin: 35px 20px;
-    font-size: 18px;
-    line-height: 1.5;
-    color: #555;
-    font-family: 'Satoshi', sans-serif;
-    font-weight: 300;
-}
+        /* Adjust heading size on larger screens */
+        @media (min-width: 768px) {
+            .main-title {
+                font-size: 36px; /* Increase size for larger screens */
+            }
+        }
 
-/* Adjust body text size on larger screens */
-@media (min-width: 768px) {
-    .main-paragraph {
-        font-size: 20px; /* Increase size for larger screens */
-    }
-}
+        .main-paragraph {
+            text-align: center;
+            margin: 35px 20px;
+            font-size: 18px;
+            line-height: 1.5;
+            color: #555;
+            font-family: 'Satoshi', sans-serif;
+            font-weight: 300;
+        }
+
+        /* Adjust body text size on larger screens */
+        @media (min-width: 768px) {
+            .main-paragraph {
+                font-size: 20px; /* Increase size for larger screens */
+            }
+        }
+
+        /* Footer Section */
+        .footer {
+            background-color: #eee; /* Light grey background */
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #555;
+            position: relative;
+            width: 100%;
+        }
+
     </style>
 </head>
 <body>
@@ -201,6 +220,10 @@
             <li><a href="#">Contact</a></li>
         </ul>
     </nav>
+
+    <div class="footer">
+        <p>&copy; 2025 Bezy. All Rights Reserved.</p>
+    </div>
 
     <script>
         const hamburger = document.getElementById('hamburger');
