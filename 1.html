@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliding Hamburger Menu</title>
+    <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Economica', Arial, sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-color: #fff;
+            position: relative;
+            height: 150px;
+        }
+
+        .logo {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .logo img {
+            height: 150px;
+            width: auto;
+        }
+
+        /* Hamburger Style */
+        .hamburger {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            z-index: 1100;
+            transition: right 0.3s ease;
+        }
+
+        .hamburger .bar {
+            width: 30px;
+            height: 3px;
+            background-color: #000;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        /* Transform to X when active */
+        .hamburger.active .bar:nth-child(1) {
+            transform: translateY(8px) rotate(45deg);
+        }
+
+        .hamburger.active .bar:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active .bar:nth-child(3) {
+            transform: translateY(-8px) rotate(-45deg);
+        }
+
+        /* Sliding Navigation Menu */
+        .nav-menu {
+            position: fixed;
+            top: 0;
+            right: -200px;
+            width: 200px;
+            height: 100vh;
+            background-color: #000;
+            transition: right 0.3s ease;
+            padding-top: 60px;
+            z-index: 1000;
+        }
+
+        .nav-menu ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nav-menu li a {
+            display: block;
+            padding: 15px 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.5em;
+            transition: background 0.3s;
+        }
+
+        .nav-menu li a:hover {
+            color: #ccc;
+        }
+
+        /* Show menu when active */
+        .nav-menu.active {
+            right: 0;
+        }
+
+        /* Move hamburger with the menu */
+        .hamburger.active {
+            right: 220px;
+        }
+
+        /* Overlay (dimming effect) */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.7);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 900;
+        }
+
+        /* Show overlay when menu is active */
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .main-title {
+            text-align: center;
+            margin: 0px 0;
+            font-size: 2.5em;
+            color: #333;
+            font-weight: 900;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        .main-paragraph {
+            text-align: center;
+            margin: 40px 20px;
+            font-size: 1.2em;
+            color: #555;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="https://bezy.nz/images/bezy-logo.png" alt="Bezy Logo">
+        </div>
+    </div>
+    
+    <div class="content-wrapper">
+        <h1 class="main-title">3D Print & Design</h1>
+        <p class="main-paragraph">We specialize in high-quality 3D printed products, custom 3D printing services, and CAD design solutions. Whether you need a prototype, a unique part, or full design assistance, we bring your vision to life with precision and creativity.</p>
+    </div>
+
+    <!-- Overlay for Dimming Effect -->
+    <div class="overlay" id="overlay"></div>
+
+    <div class="hamburger" id="hamburger">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+    </div>
+
+    <nav class="nav-menu" id="nav-menu">
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Services</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </nav>
+
+    <script>
+        const hamburger = document.getElementById('hamburger');
+        const navMenu = document.getElementById('nav-menu');
+        const overlay = document.getElementById('overlay');
+
+        // Toggle menu and overlay on hamburger click
+        hamburger.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+
+        // Close menu when clicking outside (on overlay)
+        overlay.addEventListener('click', () => {
+            navMenu.classList.remove('active');
+            hamburger.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+    </script>
+</body>
+</html>
