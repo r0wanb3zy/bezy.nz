@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sliding Hamburger Menu</title>
+    <title>Bezy</title>
     <link href="https://fonts.cdnfonts.com/css/satoshi" rel="stylesheet">
     
     <style>
@@ -93,6 +93,20 @@
             padding: 0;
         }
 
+        .nav-menu li {
+            position: relative; /* Keep this for positioning the pseudo-element */
+        }
+
+        .nav-menu li::after {
+            content: ""; /* Adds an empty pseudo-element */
+            position: absolute;
+            bottom: 0;
+            left: 10%; /* Start from 10% from left */
+            width: 80%; /* Width set to 80% of the parent's width */
+            height: 1px; /* Line height */
+            background-color: #555; /* Match the previous border color */
+        }
+
         .nav-menu li a {
             display: block;
             padding: 15px 30px;
@@ -105,6 +119,11 @@
 
         .nav-menu li a:hover {
             color: #ccc;
+        }
+
+        /* Remove border for the last item */
+        .nav-menu li:last-child {
+            border-bottom: none;
         }
 
         /* Show menu when active */
@@ -193,11 +212,11 @@
 </head>
 <body>
     <div class="header">
-    <div class="logo">
-        <a href="https://your-website-link.com">
-            <img src="https://bezy.nz/images/bezy-logo.png" alt="Bezy Logo">
-        </a>
-    </div>
+        <div class="logo">
+            <a href="https://your-website-link.com">
+                <img src="https://bezy.nz/images/bezy-logo.png" alt="Bezy Logo">
+            </a>
+        </div>
     </div>
     
     <div class="content-wrapper">
