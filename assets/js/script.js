@@ -22,3 +22,20 @@ document.addEventListener('DOMContentLoaded', async function () {
         overlay.classList.remove('active');
     });
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Apply fade-out effect when clicking on a link
+    document.querySelectorAll("a").forEach(link => {
+      link.addEventListener("click", function(event) {
+        if (link.href.startsWith(window.location.origin)) {
+          event.preventDefault(); // Stop the normal page load
+          document.body.classList.add("fade-out"); // Start fade out effect
+  
+          setTimeout(() => {
+            window.location.href = link.href; // Navigate after effect
+          }, 500); // Match this time with CSS transition
+        }
+      });
+    });
+  });
+  
