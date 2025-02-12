@@ -15,6 +15,125 @@
     <div class="content-wrapper">
         <h1 class="main-title">3D Print & Design</h1>
         <p class="main-paragraph">We specialize in high-quality 3D printed products, custom 3D printing services, and CAD design solutions. Whether you need a prototype, a unique part, or full design assistance, we bring your vision to life with precision and creativity.</p>
+    
+
+
+            <style>
+                .grid-container {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 20px;
+                    max-width: 900px;
+                    margin: 0 auto;
+                }
+        
+                .grid-item {
+                    position: relative;
+                    overflow: hidden;
+                    border-radius: 5px;
+                    aspect-ratio: 6 / 3; /* Landscape aspect ratio */
+                }
+        
+                .grid-item img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover; /* Crops from top and bottom */
+                    object-position: 50% 50%; /* Centers image both horizontally and vertically */
+                    filter: grayscale(100%);
+                }
+        
+                .grid-item a {
+                    display: block;
+                    text-decoration: none;
+                }
+        
+                .text-overlay {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: white;
+                    font-weight: bold;
+                    font-size: 18px; /* Base font size */
+                    text-align: center;
+                    padding: 10px;
+                    background-color: black;
+                    border-radius: 5px;
+                    width: auto;
+                    max-width: 90%;
+                    white-space: nowrap; /* Keeps text on one line */
+                    overflow: hidden; /* Hides overflow if text is too long */
+                    text-overflow: ellipsis; /* Shows ellipsis if text is cut off */
+                }
+        
+                /* Media Queries for responsiveness */
+                @media (max-width: 768px) {
+                    .grid-container {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                    .text-overlay {
+                        font-size: 18px; /* Adjust for tablet screens */
+                    }
+                    .grid-container {
+                        gap: 10px;
+                }
+        
+                @media (max-width: 480px) {
+                    .grid-container {
+                        grid-template-columns: 1fr;
+                    }
+                    .text-overlay {
+                        font-size: 18px; /* Adjust for mobile screens */
+                    }
+                    .grid-container {
+                        gap: 10px;
+                }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="grid-container">
+                <!-- Repeat this block for each image -->
+                <div class="grid-item">
+                    <a href="3d-print-products.html">
+                        <img src="assets/images/3d-print-products.jpg" alt="Image Description">
+                        <div class="text-overlay">3D Print Products</div>
+                    </a>
+                </div>
+                <div class="grid-item">
+                    <a href="3d-print-service.html">
+                        <img src="assets/images/3d-print-service.jpg" alt="Image Description">
+                        <div class="text-overlay">3D Print Service</div>
+                    </a>
+                </div>
+                <div class="grid-item">
+                    <a href="cad-design.html">
+                        <img src="assets/images/cad-design.jpg" alt="Image Description">
+                        <div class="text-overlay">CAD Design</div>
+                    </a>
+                </div>
+                <div class="grid-item">
+                    <a href="3d-rendering.html">
+                        <img src="assets/images/3d-rendering.jpg" alt="Image Description">
+                        <div class="text-overlay">3D Rendering</div>
+                    </a>
+                </div>
+                <div class="grid-item">
+                    <a href="about.html">
+                        <img src="assets/images/about.jpg" alt="Image Description">
+                        <div class="text-overlay">About</div>
+                    </a>
+                </div>
+                <div class="grid-item">
+                    <a href="contact.html">
+                        <img src="assets/images/contact.jpg" alt="Image Description">
+                        <div class="text-overlay">Contact</div>
+                    </a>
+                </div>
+            </div>
+
+
+        
     </div>
 
     <!-- Overlay for Dimming Effect -->
