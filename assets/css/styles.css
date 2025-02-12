@@ -1,0 +1,191 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+    font-family: 'Satoshi', Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header Section Styling */
+.header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-color: #fff;
+    position: relative;
+    height: 150px;
+}
+
+.header .logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.header .logo img {
+    height: 150px;
+    width: auto;
+}
+
+/* Hamburger Menu Styling */
+.hamburger {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    z-index: 1100;
+}
+
+.hamburger .bar {
+    width: 30px;
+    height: 3px;
+    background-color: #000;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Transform to X when active */
+.hamburger.active .bar:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.hamburger.active .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active .bar:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Navigation Menu Styling (Initially hidden on mobile) */
+.nav-menu {
+    position: fixed;
+    top: 0;
+    right: -220px;
+    width: 220px;
+    height: 100vh;
+    background-color: #000;
+    transition: right 0.3s ease;
+    padding-top: 10px;
+    z-index: 1000;
+}
+
+.nav-menu ul {
+    list-style: none;
+    padding: 0;
+}
+
+.nav-menu li {
+    position: relative;
+}
+
+/* Pseudo-element for menu item divider line */
+.nav-menu li::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    width: 80%;
+    height: 1px;
+    background-color: #555;
+}
+
+/* Menu Item Styling */
+.nav-menu li a {
+    display: block;
+    padding: 15px 30px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+    transition: background 0.3s;
+}
+
+/* Hover Effect for Menu Links */
+.nav-menu li a:hover {
+    color: #ccc;
+}
+
+/* Show Menu when active (on hamburger click) */
+.nav-menu.active {
+    right: 0;
+}
+
+/* Move hamburger icon when menu is active */
+.hamburger.active {
+    right: 240px;
+}
+
+/* Overlay for dimming effect */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.7);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 900;
+}
+
+/* Show overlay when menu is active */
+.overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Main Content Section Styling */
+.content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px;
+    flex: 1;
+}
+
+.main-title {
+    text-align: center;
+    font-size: 28px;
+    color: #000;
+    font-weight: 900;
+}
+
+.main-paragraph {
+    text-align: center;
+    margin: 30px 20px;
+    font-size: 18px;
+    line-height: 1.5;
+    color: #555;
+}
+
+/* Adjust styles for larger screens */
+@media (min-width: 768px) {
+    .main-title {
+        font-size: 36px;
+    }
+
+    .main-paragraph {
+        font-size: 20px;
+    }
+}
+
+/* Footer Section Styling */
+.footer {
+    background-color: #eee;
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+    color: #555;
+    position: relative;
+    width: 100%;
+}

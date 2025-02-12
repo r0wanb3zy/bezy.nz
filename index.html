@@ -1,204 +1,36 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="en">
-
-</html>
-<html>
-
 <head>
-	<title>bezy.nz</title>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-	<link rel="stylesheet" href="assets/css/main.css" />
-	<noscript>
-		<link rel="stylesheet" href="assets/css/noscript.css" />
-	</noscript>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bezy</title>
+    <link href="https://fonts.cdnfonts.com/css/satoshi" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
+<body>
+    <!-- Include Header -->
+    <div id="header-placeholder"></div>
 
-<body class="is-preload">
-	<!-- Wrapper -->
-	<div id="wrapper">
+    <!-- Content Section -->
+    <div class="content-wrapper">
+        <h1 class="main-title">3D Print & Design</h1>
+        <p class="main-paragraph">We specialize in high-quality 3D printed products, custom 3D printing services, and CAD design solutions. Whether you need a prototype, a unique part, or full design assistance, we bring your vision to life with precision and creativity.</p>
+    </div>
 
-		<!-- Header -->
-		<header id="header">
-			<div class="inner">
+    <!-- Overlay for Dimming Effect -->
+    <div class="overlay" id="overlay"></div>
 
-				<!-- Logo -->
-				<a href="/" class="logo">
-					<span class="symbol"><img src="images/bezy-logo.png" alt="" /></span><span class="title"></span>
-				</a>
+    <!-- Include Footer -->
+    <div id="footer-placeholder"></div>
 
-				<!-- Nav -->
-				<nav>
-					<ul>
-						<li><a href="#menu">Menu</a></li>
-					</ul>
-				</nav>
-
-			</div>
-		</header>
-
-		<!-- Menu -->
-		<nav id="menu">
-			<h2>Menu</h2>
-			<ul>
-				<li><a href="/">Home</a></li>
-				<li><a href="3d-printed-products.html">3D Print Products</a></li>
-				<li><a href="3d-printing-service.html">3D printing Service</a></li>
-				<li><a href="cad-design.html">CAD Design</a></li>
-				<li><a href="3d-rendering.html">3D Rendering</a></li>
-				<li><a href="about.html">About</a></li>
-				<li><a href="contact.html">Contact</a></li>
-			</ul>
-		</nav>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        fetch('menu.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('menu-container').innerHTML = data;
-            })
-            .catch(error => console.error('Error loading the menu:', error));
-    });
-</script>
-
-		<!-- Main -->
-		<div id="main">
-			<div class="inner">
-				<header>
-					<h1>3D Print & Design</h1>
-					<p class="center-text">We specialize in high-quality 3D printed products, custom 3D printing
-						services, and CAD design
-						solutions. Whether you need a prototype, a unique part, or full design assistance, we bring your
-						vision to life with precision and creativity.
-					</p>
-				</header>
-				<section class="tiles">
-					<article class="style0">
-						<span class="image">
-							<img src="images/3d-printed-products.jpg" alt="" style="filter: grayscale(100%);" />
-						</span>
-						<a href="3d-printed-products.html">
-							<div class="text-background">
-							<h2>3D Printed Products</h2>
-							<div class="content">
-								<p>Short description</p>
-							</div>
-							</div>
-						</a>
-					</article>
-					<article class="style0">
-						<span class="image">
-							<img src="images/3d-printing-service.jpg" alt="" style="filter: grayscale(100%);"/>
-						</span>
-						<a href="3d-printing-service.html">
-							<h2>3D printing Service</h2>
-							<div class="content">
-								<p>Short description</p>
-							</div>
-						</a>
-					</article>
-					<article class="style0">
-						<span class="image">
-							<img src="images/cad-design.jpg" alt="" style="filter: grayscale(100%);"/>
-						</span>
-						<a href="cad-design.html">
-							<h2>CAD Design</h2>
-							<div class="content">
-								<p>Short description</p>
-							</div>
-						</a>
-					</article>
-					<article class="style0">
-						<span class="image">
-							<img src="images/3d-rendering.jpg" alt="" style="filter: grayscale(100%);"/>
-						</span>
-						<a href="3d-rendering.html">
-							<h2>3D Rendering</h2>
-							<div class="content">
-								<p>Short description</p>
-							</div>
-						</a>
-					</article>
-					<article class="style0">
-						<span class="image">
-							<img src="images/about.jpg" alt="" style="filter: grayscale(100%);"/>
-						</span>
-						<a href="about.html">
-							<h2>About</h2>
-							<div class="content">
-								<p>Short description</p>
-							</div>
-						</a>
-					</article>
-					<article class="style0">
-						<span class="image">
-							<img src="images/contact.jpg" alt="" style="filter: grayscale(100%);"/>
-						</span>
-						<a href="contact.html">
-							<h2>Contact</h2>
-							<div class="content">
-								<p>Short description</p>
-							</div>
-						</a>
-					</article>
-				</section>
-			</div>
-		</div>
-
-		<!-- Footer -->
-		<footer id="footer">
-			<div class="inner">
-				<section>
-					<h2>Get in touch</h2>
-					<form method="post" action="#">
-						<div class="fields">
-							<div class="field half">
-								<input type="text" name="name" id="name" placeholder="Name" />
-							</div>
-							<div class="field half">
-								<input type="email" name="email" id="email" placeholder="Email" />
-							</div>
-							<div class="field">
-								<textarea name="message" id="message" placeholder="Message"></textarea>
-							</div>
-						</div>
-						<ul class="actions">
-							<li><input type="submit" value="Send" class="primary" /></li>
-						</ul>
-					</form>
-				</section>
-				<section>
-					<h2>Follow</h2>
-					<ul class="icons">
-						<li><a href="#" class="icon brands style2 fa-twitter"><span class="label">Twitter</span></a>
-						</li>
-						<li><a href="#" class="icon brands style2 fa-facebook-f"><span class="label">Facebook</span></a>
-						</li>
-						<li><a href="#" class="icon brands style2 fa-instagram"><span class="label">Instagram</span></a>
-						</li>
-						<li><a href="#" class="icon brands style2 fa-dribbble"><span class="label">Dribbble</span></a>
-						</li>
-						<li><a href="#" class="icon brands style2 fa-github"><span class="label">GitHub</span></a></li>
-						<li><a href="#" class="icon brands style2 fa-500px"><span class="label">500px</span></a></li>
-						<li><a href="#" class="icon solid style2 fa-phone"><span class="label">Phone</span></a></li>
-						<li><a href="#" class="icon solid style2 fa-envelope"><span class="label">Email</span></a></li>
-					</ul>
-				</section>
-				<ul class="copyright">
-					<li>&copy; Bezy All rights reserved</li>
-				</ul>
-			</div>
-		</footer>
-	</div>
-
-	<!-- Scripts -->
-	<script src="assets/js/jquery.min.js"></script>
-	<script src="assets/js/browser.min.js"></script>
-	<script src="assets/js/breakpoints.min.js"></script>
-	<script src="assets/js/util.js"></script>
-	<script src="assets/js/main.js"></script>
-
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+    // JavaScript to dynamically load header and footer
+    document.getElementById("header-placeholder").innerHTML = await fetch('header.html').then(response => response.text());
+    document.getElementById("footer-placeholder").innerHTML = await fetch('footer.html').then(response => response.text());
+});
+    </script>
+        <!-- JavaScript for Hamburger and Menu Toggle -->
+        <script src="assets/js/script.js"></script>
 </body>
-
 </html>
