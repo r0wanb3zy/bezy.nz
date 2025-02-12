@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', async function () {
-    // Smooth page load transition
-    document.body.classList.remove("loading"); // Fade in when the page loads
 
     // Dynamically load the header and footer
     document.getElementById("header-placeholder").innerHTML = await fetch('header.html').then(response => response.text());
@@ -31,17 +29,4 @@ document.addEventListener('DOMContentLoaded', async function () {
     } else {
         console.warn("Navigation elements not found. Ensure 'header.html' is properly loaded.");
     }
-
-    // Add smooth transition on link clicks
-    document.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', function (event) {
-            if (this.hostname === window.location.hostname && this.href !== window.location.href) {
-                event.preventDefault();
-                document.body.classList.add("loading"); // Fade out
-                setTimeout(() => {
-                    window.location.href = this.href; // Change page
-                }, 300);
-            }
-        });
-    });
 });
