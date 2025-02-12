@@ -187,6 +187,7 @@ body.loading {
 
 /* Footer Section Styling */
 .footer {
+    margin-top: 20px;
     background-color: #eee;
     text-align: center;
     padding: 20px;
