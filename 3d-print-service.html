@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bezy</title>
+    <link href="https://fonts.cdnfonts.com/css/satoshi" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <!-- Include Header -->
+    <div id="header-placeholder"></div>
+
+    <!-- Content Section -->
+    <div class="content-wrapper-900">
+        <h1 class="main-title">3D Print Service</h1>
+        <p class="main-paragraph">At our 3D printing service, we can bring your vision to life! Whether you have a specific design in mind, have found a model online that you’d like us to print, or need assistance in creating a custom design from scratch, we're here to help. Let us transform your ideas into reality with our expert printing and design services!
+            <p class="main-paragraph">
+            <strong>Printing Rates</strong><br>
+            $0.30 cents per gram of filament.<br>
+            $1.00 for each printing hour<br>
+            No setup fees.<br>
+            <p class="main-paragraph">
+                <strong>Colours</strong><br>
+            We stock black and white PLA+ and PETG filaments. If you need a different color, please note that there is a minimum order requirement of 100g of filament per colour.
+        </p>
+            <p class="main-paragraph">
+            <strong>Materials</strong><br>
+            <strong>PLA+ (Polylactic Acid):</strong> A biodegradable plastic that's easy to print with and available in a wide range of colors. Ideal for prototypes, decorative items & toys.</p>
+            <p class="main-paragraph"><strong>PETG (Polyethylene Terephthalate Glycol):</strong> A strong, flexible material that offers excellent chemical resistance, making it perfect for practical applications.</p>
+            <p class="main-paragraph"><strong>TPU (Thermoplastic Polyurethane):</strong> A strong, flexible material that offers excellent chemical resistance, making it perfect for practical applications.</p>
+            <p class="main-paragraph">
+            <strong>Design</strong><br>
+            In addition to our 3D printing services, we also offer comprehensive CAD design services. Whether you need assistance bringing your concept to life or modifying an existing design, our experienced team can help you create precise models that meet your specifications.
+            
+            Contact us today and let's discuss how we can help with your 3D printing and design needs!</p>
+    </div>
+
+    <!-- Overlay for Dimming Effect -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Include Footer -->
+    <div id="footer-placeholder"></div>
+
+    <!-- JavaScript for Hamburger and Menu Toggle -->
+    <script src="assets/js/script.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+    // JavaScript to dynamically load header and footer
+    document.getElementById("header-placeholder").innerHTML = await fetch('header.html').then(response => response.text());
+    document.getElementById("footer-placeholder").innerHTML = await fetch('footer.html').then(response => response.text());
+});
+    </script>
+</body>
+</html>

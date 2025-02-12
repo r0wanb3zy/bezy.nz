@@ -41,7 +41,6 @@ body.loading {
     width: auto;
 }
 
-/* Hamburger Menu Styling */
 .hamburger {
     cursor: pointer;
     display: flex;
@@ -51,6 +50,10 @@ body.loading {
     top: 25px;
     right: 25px;
     z-index: 1100;
+    background-color: rgba(255, 255, 255); /* White background with transparency */
+    padding: 10px; /* Optional: adds space around the icon */
+    border-radius: 5px; /* Optional: rounded corners for a more polished look */
+    transition: right 0.3s ease; /* Smooth transition for the right property */
 }
 
 .hamburger .bar {
@@ -154,6 +157,13 @@ body.loading {
 /* Main Content Section Styling */
 .content-wrapper {
     max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px;
+    flex: 1;
+}
+/* Main Content Section Styling */
+.content-wrapper-900 {
+    max-width: 900px;
     margin: 0 auto;
     padding: 10px;
     flex: 1;
