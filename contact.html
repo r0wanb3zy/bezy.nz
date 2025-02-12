@@ -37,9 +37,9 @@
                 font-family: 'Satoshi', Arial, sans-serif;
             }
             input:focus, textarea:focus {
-        outline: none; /* Remove the browser's default outline */
-        border-color: #000; /* Change border color to black when focused */
-    }
+                outline: none; /* Remove the browser's default outline */
+                border-color: #000; /* Change border color to black when focused */
+            }
             
             input[type="submit"] {
                 background-color: #000;
@@ -54,11 +54,11 @@
         </style>
         </head>
         <body>
-            <form action="https://formspree.io/f/xbldazql" method="POST" enctype="multipart/form-data">
-                <input type="email" name="_replyto" placeholder="Your Email" required>
-                <input type="tel" name="phone" placeholder="Your Phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" title="Enter your phone number in the format XXX-XXX-XXXX">
+            <form action="https://formspree.io/f/xbldazql" method="POST">
+                <input type="text" name="fullName" placeholder="Full Name" required>
+                <input type="email" name="email" placeholder="Your Email" required>
+                <input type="tel" name="phone" placeholder="Your Phone" pattern="[0-9]+" title="Enter your phone number (only numbers)">
                 <textarea name="message" placeholder="Your Message" required></textarea>
-                <input type="file" name="file" accept="image/*,application/pdf" multiple>
                 <input type="submit" value="Send">
             </form>
         </body>
