@@ -103,7 +103,7 @@ table th, table td {
             width: auto;
         }
 
-        #popupModal {
+#popupModal {
     display: none;
     position: fixed;
     top: 50%;
@@ -162,22 +162,6 @@ table th, table td {
         #popupModal, #roundManagementModal {
             text-align: center;
         }
-        /* Target specific emojis to reduce their size */
-.emoji-small {
-    font-size: 8px; /* Adjust this value to your desired size */
-}
-
-/* Apply this class to elements containing the specific emojis */
-table td:contains("⭕️"),
-table td:contains("❌") {
-    font-size: 8px;
-}
-
-/* Specifically for the popup buttons */
-#popupOptions button:contains("⭕️"),
-#popupOptions button:contains("❌") {
-    font-size: 8px; /* Or a smaller size if needed */
-}
     </style>
 </head>
 <body>
@@ -292,7 +276,7 @@ table td:contains("❌") {
                     let currentState = parseInt(cell.getAttribute('data-state')) || 0;
                     currentState = (currentState + 1) % 3; // Cycle through 0, 1, 2
                     cell.setAttribute('data-state', currentState);
-                    let cellId = cell.getAttribute('data-player') + '❌' + cell.closest('tr').cells[0].textContent;
+                    let cellId = cell.getAttribute('data-player') + '-' + cell.closest('tr').cells[0].textContent;
 
                     switch(currentState) {
                         case 0: // Clear
@@ -306,8 +290,8 @@ table td:contains("❌") {
                             cell.style.textDecoration = 'none';
                             break;
                         case 2: // Cross off
-                            cell.textContent = '❌';
-                            localStorage.setItem(cellId, '❌');
+                            cell.textContent = '-';
+                            localStorage.setItem(cellId, '-');
                             cell.style.textDecoration = 'line-through';
                             break;
                     }
@@ -343,7 +327,7 @@ table td:contains("❌") {
                         total += scoreValue;
                         lowerSectionTotal += scoreValue;
                     }
-                } else if (score.classList.contains('upper-section-cell') && score.textContent !== '❌' && score.textContent !== '') {
+                } else if (score.classList.contains('upper-section-cell') && score.textContent !== '-' && score.textContent !== '') {
                     let value = parseInt(score.textContent) || 0;
                     total += value;
                     if (['🤟', '🖖', '©️'].includes(score.closest('tr').cells[0].textContent)) {
@@ -390,16 +374,16 @@ table td:contains("❌") {
                 for (let i = 1; i <= 30; i++) {
                     options += `<button onclick="selectScore(${i}, '${player}', '${number}', event)">${i}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">❌</button>`; // Cross off
-                options += `<button onclick="selectScore('x', '${player}', '${number}', event)">⭕️</button>`; // Clear
+                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">-</button>`; // Cross off
+                options += `<button onclick="selectScore('x', '${player}', '${number}', event)">x</button>`; // Clear
             } else {
                 let numberValue = parseInt(number);
                 for (let i = 1; i <= 5; i++) {
                     let score = i * numberValue;
                     options += `<button onclick="selectScore(${score}, '${player}', '${number}', event)">${score}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">❌</button>`; // Cross off option
-                options += `<button onclick="selectScore('x', '${player}', '${number}', event)">⭕️</button>`; // Clear option
+                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">-</button>`; // Cross off option
+                options += `<button onclick="selectScore('x', '${player}', '${number}', event)">x</button>`; // Clear option
             }
             document.getElementById('popupOptions').innerHTML = options;
             
@@ -411,19 +395,20 @@ table td:contains("❌") {
             event.stopPropagation(); // Prevent propagation of the click event
             const cell = window.lastClickedCell;
             let cellId = `${player}-${number}`; // Create a unique identifier for each cell
+
             if (score === 0) {
-    cell.innerHTML = '<span style="font-size: 12px;">❌</span>';
-    localStorage.setItem(cellId, '❌');
-    cell.style.textDecoration = 'none';
-} else if (score === 'x') {
-    cell.textContent = '';
-    localStorage.removeItem(cellId); // Remove if clearing
-    cell.style.textDecoration = 'none';
-} else {
-    cell.textContent = score;
-    localStorage.setItem(cellId, score);
-    cell.style.textDecoration = 'none';
-}
+                cell.textContent = '-';
+                localStorage.setItem(cellId, '-');
+                cell.style.textDecoration = 'line-through';
+            } else if (score === 'x') {
+                cell.textContent = '';
+                localStorage.removeItem(cellId); // Remove if clearing
+                cell.style.textDecoration = 'none';
+            } else {
+                cell.textContent = score;
+                localStorage.setItem(cellId, score);
+                cell.style.textDecoration = 'none';
+            }
             
             calculateTotal(player); // Recalculate total for the player
             closePopup(); // Automatically close the popup after selection
@@ -449,7 +434,7 @@ table td:contains("❌") {
                     cell.textContent = '';
                     cell.style.textDecoration = 'none';
                     cell.setAttribute('data-state', '0');
-                    localStorage.removeItem(cell.getAttribute('data-player') + '❌' + cell.closest('tr').cells[0].textContent);
+                    localStorage.removeItem(cell.getAttribute('data-player') + '-' + cell.closest('tr').cells[0].textContent);
                 });
 
                 // Reset totals and bonus displays
@@ -533,8 +518,8 @@ table td:contains("❌") {
                 const savedScore = localStorage.getItem(cellId);
                 
                 if (savedScore) {
-                    if (savedScore === '❌') {
-                        cell.textContent = '❌';
+                    if (savedScore === '-') {
+                        cell.textContent = '-';
                         cell.style.textDecoration = 'line-through';
                         cell.setAttribute('data-state', '2'); // Set to crossed off state
                     } else {
