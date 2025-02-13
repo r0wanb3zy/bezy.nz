@@ -114,11 +114,21 @@ table th, table td {
             padding: 20px;
             z-index: 1000;
         }
-
-        #popupModal button {
+            #popupModal button {
         font-size: 24px; /* Increase font size for better visibility */
         padding: 10px 20px; /* Add more padding for larger touch area */
-        margin: 5px; /* Space out buttons for easier selection */
+        margin: 2px; /* Space out buttons for easier selection */
+        cursor: pointer;
+    }
+        #popupOptions {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr); /* 5 equal-width columns */
+        gap: 1px; /* Gap between grid items */
+    }
+
+    #popupOptions button {
+        font-size: 24px; /* Increase font size for better visibility */
+        padding: 10px 20px; /* Add more padding for larger touch area */
         cursor: pointer;
     }
 
