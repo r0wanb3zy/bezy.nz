@@ -290,9 +290,9 @@ table th, table td {
                             cell.style.textDecoration = 'none';
                             break;
                         case 2: // Cross off
-                            cell.textContent = '-';
-                            localStorage.setItem(cellId, '-');
-                            cell.style.textDecoration = 'line-through';
+                            cell.innerHTML = '<span style="font-size: 12px;">❌</span>';
+                            localStorage.setItem(cellId, '❌');
+                            cell.style.textDecoration = 'none';
                             break;
                     }
 
@@ -327,7 +327,7 @@ table th, table td {
                         total += scoreValue;
                         lowerSectionTotal += scoreValue;
                     }
-                } else if (score.classList.contains('upper-section-cell') && score.textContent !== '-' && score.textContent !== '') {
+                } else if (score.classList.contains('upper-section-cell') && score.textContent !== '❌' && score.textContent !== '') {
                     let value = parseInt(score.textContent) || 0;
                     total += value;
                     if (['🤟', '🖖', '©️'].includes(score.closest('tr').cells[0].textContent)) {
@@ -374,16 +374,16 @@ table th, table td {
                 for (let i = 1; i <= 30; i++) {
                     options += `<button onclick="selectScore(${i}, '${player}', '${number}', event)">${i}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">-</button>`; // Cross off
-                options += `<button onclick="selectScore('x', '${player}', '${number}', event)">x</button>`; // Clear
+                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">❌</button>`; // Cross off
+                options += `<button onclick="selectScore('', '${player}', '${number}', event)">⭕️</button>`; // Clear (blank)
             } else {
                 let numberValue = parseInt(number);
                 for (let i = 1; i <= 5; i++) {
                     let score = i * numberValue;
                     options += `<button onclick="selectScore(${score}, '${player}', '${number}', event)">${score}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">-</button>`; // Cross off option
-                options += `<button onclick="selectScore('x', '${player}', '${number}', event)">x</button>`; // Clear option
+                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">❌</button>`; // Cross off option
+                options += `<button onclick="selectScore('', '${player}', '${number}', event)">⭕️</button>`; // Clear (blank) option
             }
             document.getElementById('popupOptions').innerHTML = options;
             
@@ -397,10 +397,10 @@ table th, table td {
             let cellId = `${player}-${number}`; // Create a unique identifier for each cell
 
             if (score === 0) {
-                cell.textContent = '-';
-                localStorage.setItem(cellId, '-');
-                cell.style.textDecoration = 'line-through';
-            } else if (score === 'x') {
+                cell.innerHTML = '<span style="font-size: 12px;">❌</span>';
+                localStorage.setItem(cellId, '❌');
+                cell.style.textDecoration = 'none';
+            } else if (score === '') {
                 cell.textContent = '';
                 localStorage.removeItem(cellId); // Remove if clearing
                 cell.style.textDecoration = 'none';
@@ -520,7 +520,7 @@ table th, table td {
                 if (savedScore) {
                     if (savedScore === '-') {
                         cell.textContent = '-';
-                        cell.style.textDecoration = 'line-through';
+                        cell.style.textDecoration = 'none';
                         cell.setAttribute('data-state', '2'); // Set to crossed off state
                     } else {
                         cell.textContent = savedScore;
