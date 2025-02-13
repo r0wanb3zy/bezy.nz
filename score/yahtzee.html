@@ -260,7 +260,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 table.style.height = "100vh";
             }
         });
-    }, 10); // small delay
+    }, 100); // small delay
 });
 
         
@@ -313,7 +313,15 @@ document.addEventListener("DOMContentLoaded", function() {
                     showPopup(cell, number, player);
                 }
             });
+
+            // Add this new event listener for touch events
+    document.querySelectorAll('.lower-section-cell, .upper-section-cell').forEach(cell => {
+        cell.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            // Here you can add code for what should happen on touch if needed
         });
+    });
+});
 
         function calculateTotal(player) {
             let total = 0;
