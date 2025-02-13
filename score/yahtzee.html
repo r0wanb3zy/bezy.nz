@@ -104,33 +104,38 @@ table th, table td {
         }
 
         #popupModal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border: 1px solid #000;
-            padding: 20px;
-            z-index: 1000;
-        }
-            #popupModal button {
-        font-size: 24px; /* Increase font size for better visibility */
-        padding: 10px 20px; /* Add more padding for larger touch area */
-        margin: 2px; /* Space out buttons for easier selection */
-        cursor: pointer;
-    }
-        #popupOptions {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr); /* 5 equal-width columns */
-        gap: 1px; /* Gap between grid items */
-    }
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid #000;
+    padding: 20px;
+    z-index: 1000;
+}
 
-    #popupOptions button {
-        font-size: 24px; /* Increase font size for better visibility */
-        padding: 10px 20px; /* Add more padding for larger touch area */
-        cursor: pointer;
-    }
+#popupModal button {
+    font-size: 24px; /* Increase font size for better visibility */
+    padding: 10px 20px; /* Add more padding for larger touch area */
+    margin: 2px; /* Space out buttons for easier selection */
+    cursor: pointer;
+}
+
+#popupOptions {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5 equal-width columns */
+    gap: 1px; /* Gap between grid items */
+}
+
+#popupOptions button {
+    width: 50px; /* Full width of grid cell */
+    height: 50px; /* Fixed height */
+    font-size: 24px; /* Consistent with #popupModal button */
+    padding: 0; /* Remove padding since we set a fixed size */
+    box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
+    cursor: pointer;
+}
 
         #roundManagementModal {
             display: none;
