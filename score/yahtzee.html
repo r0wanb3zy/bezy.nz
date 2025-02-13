@@ -14,7 +14,7 @@
 
     body {
         font-family: 'Economica', sans-serif;
-        font-size: 18px;
+        font-size: 22px;
         max-width: 1200px;
         margin-left: auto;
         margin-right: auto;
@@ -32,7 +32,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 18px;
+            font-size: 20px;
             table-layout: fixed;
         }
 
@@ -48,11 +48,11 @@ table th, table td {
 
 /* Add or modify this selector */
 [id^="total"] {
-    font-size: 18px; /* Example size, adjust as needed */
+    font-size: 22px; /* Example size, adjust as needed */
 }
 /* New rule for the rank */
 [id^="total"] + small {
-    font-size: 14px; /* Size for the rank */
+    font-size: 16px; /* Size for the rank */
 }
 
         table th:first-child, table td:first-child {
@@ -103,7 +103,9 @@ table th, table td {
             cursor: pointer;
             width: auto;
         }
-
+#scoreTable thead th {
+    height: 70px; /* Set top row height */
+}
 #popupModal {
     display: none;
     position: fixed;
@@ -298,8 +300,8 @@ document.addEventListener("DOMContentLoaded", function() {
                             cell.style.textDecoration = 'none';
                             break;
                         case 2: // Cross off
-                            cell.innerHTML = '<span style="font-size: 12px;">❌</span>';
-                            localStorage.setItem(cellId, '❌');
+                            cell.innerHTML = '⤬';
+                            localStorage.setItem(cellId, '⤬');
                             cell.style.textDecoration = 'none';
                             break;
                     }
@@ -335,7 +337,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         total += scoreValue;
                         lowerSectionTotal += scoreValue;
                     }
-                } else if (score.classList.contains('upper-section-cell') && score.textContent !== '❌' && score.textContent !== '') {
+                } else if (score.classList.contains('upper-section-cell') && score.textContent !== '⤬' && score.textContent !== '') {
                     let value = parseInt(score.textContent) || 0;
                     total += value;
                     if (['🤟', '🖖', '©️'].includes(score.closest('tr').cells[0].textContent)) {
@@ -382,16 +384,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 for (let i = 1; i <= 30; i++) {
                     options += `<button onclick="selectScore(${i}, '${player}', '${number}', event)">${i}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">❌</button>`; // Cross off
-                options += `<button onclick="selectScore('', '${player}', '${number}', event)">⭕️</button>`; // Clear (blank)
+                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">⤬</button>`; // Cross off
+                options += `<button onclick="selectScore('', '${player}', '${number}', event)">㊀</button>`; // Clear (blank)
             } else {
                 let numberValue = parseInt(number);
                 for (let i = 1; i <= 5; i++) {
                     let score = i * numberValue;
                     options += `<button onclick="selectScore(${score}, '${player}', '${number}', event)">${score}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">❌</button>`; // Cross off option
-                options += `<button onclick="selectScore('', '${player}', '${number}', event)">⭕️</button>`; // Clear (blank) option
+                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">⤬</button>`; // Cross off option
+                options += `<button onclick="selectScore('', '${player}', '${number}', event)">㊀</button>`; // Clear (blank) option
             }
             document.getElementById('popupOptions').innerHTML = options;
             
@@ -405,8 +407,8 @@ document.addEventListener("DOMContentLoaded", function() {
             let cellId = `${player}-${number}`; // Create a unique identifier for each cell
 
             if (score === 0) {
-                cell.innerHTML = '<span style="font-size: 12px;">❌</span>';
-                localStorage.setItem(cellId, '❌');
+                cell.innerHTML = '⤬';
+                localStorage.setItem(cellId, '⤬');
                 cell.style.textDecoration = 'none';
             } else if (score === '') {
                 cell.textContent = '';
@@ -526,8 +528,8 @@ function loadScores() {
         const savedScore = localStorage.getItem(cellId);
         
         if (savedScore) {
-            if (savedScore === '❌') {
-                cell.innerHTML = '<span style="font-size: 12px;">❌</span>';
+            if (savedScore === '⤬') {
+                cell.innerHTML = '⤬';
                 cell.setAttribute('data-state', '2'); // Set to crossed off state
             } else {
                 cell.textContent = savedScore;
