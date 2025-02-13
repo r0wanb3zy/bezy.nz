@@ -228,7 +228,7 @@ table input[type="number"] {
                 <td>🎯</td>
             </tr>
             <tr>
-                <td>©️</td>
+                <td>🎲</td>
             </tr>
             <tr class="lower-score-row">
                 <td>🔻</td>
@@ -345,7 +345,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 } else if (score.classList.contains('upper-section-cell') && score.textContent !== '❌' && score.textContent !== '') {
                     let value = parseInt(score.textContent) || 0;
                     total += value;
-                    if (['🤟', '🖖', '©️'].includes(score.closest('tr').cells[0].textContent)) {
+                    if (['🤟', '🖖', '🎲'].includes(score.closest('tr').cells[0].textContent)) {
                         lowerSectionTotal += value;
                     } else {
                         upperSectionTotal += value;
@@ -385,7 +385,7 @@ document.addEventListener("DOMContentLoaded", function() {
             
             let options = '';
             
-            if (['🤟', '🖖', '©️'].includes(number)) { // 3 of a kind, 4 of a kind, Chance
+            if (['🤟', '🖖', '🎲'].includes(number)) { // 3 of a kind, 4 of a kind, Chance
                 for (let i = 1; i <= 30; i++) {
                     options += `<button onclick="selectScore(${i}, '${player}', '${number}', event)">${i}</button>`;
                 }
