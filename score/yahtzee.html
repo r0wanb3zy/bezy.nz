@@ -462,62 +462,73 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
 
-        function updatePlayerCount() {
-            const playerCount = parseInt(document.getElementById('playerCount').value);
-            localStorage.setItem('playerCount', playerCount);
-            const table = document.getElementById('scoreTable');
-            const headers = table.querySelector('thead tr');
-            const rows = table.querySelectorAll('tbody tr');
-            closeRoundManagement();
+function updatePlayerCount() {
+    const playerCount = parseInt(document.getElementById('playerCount').value);
+    localStorage.setItem('playerCount', playerCount);
+    const table = document.getElementById('scoreTable');
+    const headers = table.querySelector('thead tr');
+    const rows = table.querySelectorAll('tbody tr');
+    closeRoundManagement();
 
-            // Clear existing player columns
-            const existingPlayers = headers.children.length - 1;
-            if (playerCount < existingPlayers) {
-                // Remove extra columns if we're reducing the number of players
-                for (let i = playerCount + 1; i <= existingPlayers; i++) {
-                    headers.removeChild(headers.lastChild);
-                    rows.forEach(row => {
-                        row.removeChild(row.lastChild);
-                    });
-                }
-            } else {
-                // Add new columns for increasing player count
-                for (let i = existingPlayers + 1; i <= playerCount; i++) {
-                    const newHeader = document.createElement('th');
-                    newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
-                    headers.appendChild(newHeader);
-
-                    rows.forEach(row => {
-                        const newCell = document.createElement('td');
-                        const category = row.firstElementChild.textContent;
-                        if (category === '💰') {
-                            newCell.id = `bonusP${i}`;
-                            newCell.innerHTML = '<span id="pointsNeededP' + i + '" class="points-needed">63</span>';
-                        } else if (category === '🔺️') {
-                            newCell.id = `upperScoreP${i}`;
-                            newCell.textContent = '0';
-                        } else if (category === '🔻') {
-                            newCell.id = `lowerScoreP${i}`;
-                            newCell.textContent = '0';
-                        } else if (['🏠', '▪️', '◾️', '🎯'].includes(category)) {
-                            newCell.className = 'lower-section-cell';
-                            newCell.setAttribute('data-player', `P${i}`);
-                            newCell.setAttribute('data-category', category === '🏠' ? 'Full House' : category === '▪️' ? 'Small Straight' : category === '◾️' ? 'Large Straight' : 'Yahtzee');
-                            newCell.setAttribute('data-score', category === '🏠' ? '25' : category === '▪️' ? '30' : category === '◾️' ? '40' : '50');
-                            newCell.setAttribute('data-state', '0');
-                        } else {
-                            newCell.className = 'upper-section-cell';
-                            newCell.setAttribute('data-player', `P${i}`);
-                            newCell.onclick = function() {
-                                showPopup(this, category, `P${i}`);
-                            };
-                        }
-                        row.appendChild(newCell);
-                    });
-                }
+    // Clear existing player columns
+    const existingPlayers = headers.children.length - 1;
+    if (playerCount < existingPlayers) {
+        // Remove extra columns if we're reducing the number of players
+        for (let i = existingPlayers; i > playerCount; i--) {
+            headers.removeChild(headers.lastChild);
+            rows.forEach(row => {
+                row.removeChild(row.lastChild);
+            });
+            // Remove saved scores for the removed player
+            const player = `P${i}`;
+            for (let j = 0; j < rows.length; j++) {
+                const category = rows[j].firstElementChild.textContent;
+                const cellId = `${player}-${category}`;
+                localStorage.removeItem(cellId);
             }
-            updateRanks(); // Update ranks after player count change
         }
+    } else {
+        // Add new columns for increasing player count
+        for (let i = existingPlayers + 1; i <= playerCount; i++) {
+            const newHeader = document.createElement('th');
+            newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
+            headers.appendChild(newHeader);
+
+            rows.forEach(row => {
+                const newCell = document.createElement('td');
+                const category = row.firstElementChild.textContent;
+                if (category === '💰') {
+                    newCell.id = `bonusP${i}`;
+                    newCell.innerHTML = '<span id="pointsNeededP' + i + '" class="points-needed">63</span>';
+                } else if (category === '🔺️') {
+                    newCell.id = `upperScoreP${i}`;
+                    newCell.textContent = '0';
+                } else if (category === '🔻') {
+                    newCell.id = `lowerScoreP${i}`;
+                    newCell.textContent = '0';
+                } else if (['🏠', '▪️', '◾️', '🎯'].includes(category)) {
+                    newCell.className = 'lower-section-cell';
+                    newCell.setAttribute('data-player', `P${i}`);
+                    newCell.setAttribute('data-category', category === '🏠' ? 'Full House' : category === '▪️' ? 'Small Straight' : category === '◾️' ? 'Large Straight' : 'Yahtzee');
+                    newCell.setAttribute('data-score', category === '🏠' ? '25' : category === '▪️' ? '30' : category === '◾️' ? '40' : '50');
+                    newCell.setAttribute('data-state', '0');
+                } else {
+                    newCell.className = 'upper-section-cell';
+                    newCell.setAttribute('data-player', `P${i}`);
+                    newCell.onclick = function() {
+                        showPopup(this, category, `P${i}`);
+                    };
+                }
+                row.appendChild(newCell);
+            });
+        }
+    }
+    // Recalculate scores for all players
+    for (let i = 1; i <= playerCount; i++) {
+        calculateTotal(`P${i}`);
+    }
+    updateRanks(); // Update ranks after player count change
+}
 
 function loadScores() {
     const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
