@@ -170,6 +170,11 @@ table input[type="number"] {
 .upper-section-cell:active {
     background-color: transparent !important;
 }
+  .scaled-emoji {
+    transform: scale(.6); /* Scales the emoji to 2 times its original size */
+    transform-origin: center; /* Ensures scaling happens from the center */
+    display: inline-block; /* Necessary for transform to work on inline elements */
+  }
     </style>
 </head>
 <body>
@@ -300,7 +305,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             cell.style.textDecoration = 'none';
                             break;
                         case 2: // Cross off
-                            cell.innerHTML = '❌';
+                            cell.innerHTML = '<span class="scaled-emoji">❌</span>';
                             localStorage.setItem(cellId, '❌');
                             cell.style.textDecoration = 'none';
                             break;
@@ -407,7 +412,7 @@ document.addEventListener("DOMContentLoaded", function() {
             let cellId = `${player}-${number}`; // Create a unique identifier for each cell
 
             if (score === 0) {
-                cell.innerHTML = '❌';
+                cell.innerHTML = '<span class="scaled-emoji">❌</span>';
                 localStorage.setItem(cellId, '❌');
                 cell.style.textDecoration = 'none';
             } else if (score === '') {
@@ -540,7 +545,7 @@ function loadScores() {
         
         if (savedScore) {
             if (savedScore === '❌') {
-                cell.innerHTML = '❌';
+                cell.innerHTML = '<span class="scaled-emoji">❌</span>';
                 cell.setAttribute('data-state', '2'); // Set to crossed off state
             } else {
                 cell.textContent = savedScore;
