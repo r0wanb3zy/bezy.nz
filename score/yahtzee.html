@@ -565,7 +565,7 @@ function updateRanks() {
 
     if (!anyScoreEntered) {
         totalScores.forEach(scoreElement => {
-            scoreElement.textContent = "❌";
+            scoreElement.textContent = "-";
             // Clear any existing rank element
             while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
                 scoreElement.parentElement.removeChild(scoreElement.nextSibling);
