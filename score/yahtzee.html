@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yahtzee Scorecard</title>
@@ -509,25 +510,24 @@ table th, table td {
             updateRanks(); // Update ranks after player count change
         }
 
-        function loadScores() {
-            const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
-            cells.forEach(cell => {
-                const player = cell.getAttribute('data-player');
-                const number = cell.closest('tr').cells[0].textContent;
-                const cellId = `${player}-${number}`;
-                const savedScore = localStorage.getItem(cellId);
-                
-                if (savedScore) {
-                    if (savedScore === '-') {
-                        cell.textContent = '-';
-                        cell.style.textDecoration = 'none';
-                        cell.setAttribute('data-state', '2'); // Set to crossed off state
-                    } else {
-                        cell.textContent = savedScore;
-                        cell.setAttribute('data-state', '1'); // Set to scored state
-                    }
-                }
-            });
+function loadScores() {
+    const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
+    cells.forEach(cell => {
+        const player = cell.getAttribute('data-player');
+        const number = cell.closest('tr').cells[0].textContent;
+        const cellId = `${player}-${number}`;
+        const savedScore = localStorage.getItem(cellId);
+        
+        if (savedScore) {
+            if (savedScore === '❌') {
+                cell.innerHTML = '<span style="font-size: 12px;">❌</span>';
+                cell.setAttribute('data-state', '2'); // Set to crossed off state
+            } else {
+                cell.textContent = savedScore;
+                cell.setAttribute('data-state', '1'); // Set to scored state
+            }
+        }
+    });
 
             // Recalculate totals for all players
             const playerCount = parseInt(document.getElementById('playerCount').value);
