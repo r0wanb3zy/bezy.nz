@@ -596,7 +596,8 @@ function reattachEventListeners() {
         header.clickHandler = function(e) {
             e.stopPropagation();
             const player = this.getAttribute('data-player');  
-            const playerName = this.textContent.split('<')[0].trim();
+            // Extract just the name, ignoring any HTML elements that follow
+            const playerName = this.innerText.split('\n')[0].trim();
             document.getElementById('playerNameInput').value = playerName;
             document.getElementById('playerNameModal').style.display = 'block';
             window.currentPlayer = player;
