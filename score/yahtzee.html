@@ -739,7 +739,15 @@ function updatePlayerName() {
     if (newName) {
         const playerHeader = document.querySelector(`#scoreTable thead th[data-player="${window.currentPlayer}"]`);
         if (playerHeader) {
-            playerHeader.innerHTML = `${newName}<div id="${playerHeader.querySelector('div').id}">${playerHeader.querySelector('div').textContent}</div>`;
+            // Preserve the total score div and any rank indicators
+            const totalDiv = playerHeader.querySelector('div');
+            const score = totalDiv.textContent; // Save the current score
+            const rankElement = playerHeader.querySelector('small'); // Save the rank element if exists
+            let rankHTML = rankElement ? rankElement.outerHTML : ''; // Store rank HTML if it exists
+
+            // Update the header content, ensuring to keep the score and rank
+            playerHeader.innerHTML = `${newName}<div id="${totalDiv.id}">${score}</div>${rankHTML}`;
+            
             localStorage.setItem(`playerName-${window.currentPlayer}`, newName); // Save name to localStorage
             closePlayerNameModal();
         }
