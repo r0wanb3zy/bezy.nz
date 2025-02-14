@@ -331,6 +331,16 @@ document.addEventListener("DOMContentLoaded", function() {
             loadScores(); // Load saved scores
             // Since player count has changed, we need to ensure event listeners are in place
             reattachEventListeners();
+                // Load player names
+    const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
+    headers.forEach(header => {
+        const player = header.getAttribute('data-player');
+        const savedName = localStorage.getItem(`playerName-${player}`);
+        if (savedName) {
+            const totalDiv = header.querySelector('div');
+            header.innerHTML = `${savedName}<div id="${totalDiv.id}">${totalDiv.textContent}</div>`;
+        }
+    });
         });
 
         function calculateTotal(player) {
@@ -727,10 +737,10 @@ document.addEventListener('DOMContentLoaded', updateRanks);
 function updatePlayerName() {
     const newName = document.getElementById('playerNameInput').value;
     if (newName) {
-        // Find the header for the current player
         const playerHeader = document.querySelector(`#scoreTable thead th[data-player="${window.currentPlayer}"]`);
         if (playerHeader) {
             playerHeader.innerHTML = `${newName}<div id="${playerHeader.querySelector('div').id}">${playerHeader.querySelector('div').textContent}</div>`;
+            localStorage.setItem(`playerName-${window.currentPlayer}`, newName); // Save name to localStorage
             closePlayerNameModal();
         }
     }
