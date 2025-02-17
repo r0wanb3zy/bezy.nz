@@ -167,6 +167,46 @@ table th, table td {
         margin: 5px; /* Space out buttons for easier selection */
         cursor: pointer;
     }
+
+    #playerNameModal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid #000;
+    padding: 20px;
+    z-index: 1001; /* Ensure it's above other modals */
+    width: 200px; /* Set the width here, matching round management modal */
+    max-width: 90%;
+    text-align: center; /* Center align the content */
+}
+
+#playerNameModal h2 {
+    margin-top: 0; /* Remove any top margin if necessary */
+}
+
+#playerNameModal input[type="text"] {
+    font-size: 24px; /* Match with other modal elements */
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 5px 0;  /* match spacing */
+    text-align: center;
+}
+#playerNameModal input[type="text"]:focus {
+    outline: none; /* Removes the default focus outline */
+    border: 1px solid black; /* Adds a black border when focused */
+}
+
+#playerNameModal button {
+    font-size: 24px;
+    padding: 10px 20px;
+    margin: 5px; /* Space out buttons for easier selection */
+    cursor: pointer;
+}
+    
 table input[type="number"]::-webkit-outer-spin-button,
 table input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
