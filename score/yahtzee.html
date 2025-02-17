@@ -195,6 +195,9 @@ table th, table td {
     margin: 5px 0;  /* match spacing */
     text-align: center;
 }
+#playerNameInput {
+    text-transform: uppercase; /* Forces display to uppercase */
+}
 #playerNameModal input[type="text"]:focus {
     outline: none; /* Removes the default focus outline */
     border: 1px solid black; /* Adds a black border when focused */
@@ -341,7 +344,7 @@ table input[type="number"] {
 
     <div id="playerNameModal">
         <h2>Player Name</h2>
-        <input type="text" id="playerNameInput" placeholder="Enter player name">
+        <input type="text" id="playerNameInput" placeholder="" autocapitalize="characters" inputmode="text">
         <button onclick="updatePlayerName()">Update</button>
         <button onclick="closePlayerNameModal()">Close</button>
     </div>
