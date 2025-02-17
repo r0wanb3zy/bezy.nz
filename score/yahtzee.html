@@ -187,9 +187,9 @@ th div {
 #playerNameModal {
     display: none;
     position: fixed;
-    top: 50%;
+    top: 15%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -15%);
     background: white;
     border: 1px solid #000;
     padding: 5px 20px 20px 20px;
@@ -208,6 +208,12 @@ th div {
     margin: 5px 0; /* match spacing */
     text-align: center;
     font-family: 'Economica', sans-serif; /* Ensure input text uses Economica */
+    border: 1px solid #ccc; /* Define a consistent border in the default state */
+}
+
+#playerNameModal input[type="text"]:focus {
+    outline: none; /* Removes the default focus outline */
+    border: 1px solid black; /* Consistent border on focus, same width as default */
 }
 
 #playerNameInput {
