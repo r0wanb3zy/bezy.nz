@@ -521,7 +521,9 @@ function updatePlayerCount() {
                 const cellId = `${player}-${category}`;
                 localStorage.removeItem(cellId);
             }
-        }
+                // Remove saved player name
+    localStorage.removeItem(`playerName-${player}`);
+}
     } else {
         // Add new columns for increasing player count
         for (let i = existingPlayers + 1; i <= playerCount; i++) {
