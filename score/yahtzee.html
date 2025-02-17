@@ -8,34 +8,37 @@
     <title>Yahtzee Scorecard</title>
     <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
     <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-    }
+/* Ensure all elements inherit the font-family from body */
+html, body {
+    height: 100%;
+    margin: 0;
+}
 
-    body {
-        font-family: 'Economica', sans-serif;
-        font-size: 22px;
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+body {
+    font-family: 'Economica', sans-serif;
+    font-size: 22px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
 
-    #scoreTable {
-        height: 100vh;
-        overflow-y: auto;
-    }
+#scoreTable {
+    height: 100vh;
+    overflow-y: auto;
+}
 
-        h1 {
-            text-align: center;
-        }
+h1, h2 {
+    text-align: center;
+    font-family: 'Economica', sans-serif; /* Ensure headings use Economica */
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 20px;
-            table-layout: fixed;
-        }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 20px;
+    table-layout: fixed;
+    font-family: 'Economica', sans-serif; /* Ensure table text uses Economica */
+}
 
 table th, table td {
     border: 1px solid #ddd;
@@ -45,68 +48,75 @@ table th, table td {
     cursor: pointer;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-family: 'Economica', sans-serif; /* Ensure table cells use Economica */
 }
 
 /* Add or modify this selector */
 [id^="total"] {
     font-size: 22px; /* Example size, adjust as needed */
+    font-family: 'Economica', sans-serif; /* Ensure total elements use Economica */
 }
+
 /* New rule for the rank */
 [id^="total"] + small {
     font-size: 16px; /* Size for the rank */
+    font-family: 'Economica', sans-serif; /* Ensure rank elements use Economica */
 }
 
-        table th:first-child, table td:first-child {
-            background-color: #f0f0f0;
-            font-weight: bold;
-            width: 30px;
-            min-width: 30px;
-            max-width: 30px;
-            overflow: hidden;
-        }
+table th:first-child, table td:first-child {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    width: 30px;
+    min-width: 30px;
+    max-width: 30px;
+    overflow: hidden;
+}
 
-        table th {
-            background-color: #f4f4f4;
-        }
+table th {
+    background-color: #f4f4f4;
+}
 
-        table input {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 2px;
-            text-align: center;
-            font-size: inherit;
-            font-family: 'Economica', sans-serif;
-        }
+table input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 2px;
+    text-align: center;
+    font-size: inherit;
+    font-family: 'Economica', sans-serif; /* Already set, but keeping for clarity */
+}
 
-        table input::placeholder {
-            font-family: 'Economica', sans-serif;
-            font-size: 12px;
-        }
+table input::placeholder {
+    font-family: 'Economica', sans-serif; /* Already set, but keeping for clarity */
+    font-size: 12px;
+}
 
-        .bonus-row td, .upper-score-row td, .lower-score-row td {
-            background-color: #f0f0f0;
-        }
+.bonus-row td, .upper-score-row td, .lower-score-row td {
+    background-color: #f0f0f0;
+}
 
-        .bonus-row .points-needed {
-            color: grey;
-        }
+.bonus-row .points-needed {
+    color: grey;
+}
 
-        .bonus-row .points-needed.bonus-achieved {
-            color: black;
-            font-weight: bold;
-        }
+.bonus-row .points-needed.bonus-achieved {
+    color: black;
+    font-weight: bold;
+}
 
-        th div {
-            font-size: 14px;
-        }
+th div {
+    font-size: 14px;
+    font-family: 'Economica', sans-serif; /* Ensure divs in th use Economica */
+}
 
-        .lower-section-cell, .upper-section-cell {
-            cursor: pointer;
-            width: auto;
-        }
+.lower-section-cell, .upper-section-cell {
+    cursor: pointer;
+    width: auto;
+}
+
 #scoreTable thead th {
     height: 75px; /* Set top row height */
 }
+
 #popupModal {
     display: none;
     position: fixed;
@@ -115,8 +125,9 @@ table th, table td {
     transform: translate(-50%, -50%);
     background: white;
     border: 1px solid #000;
-    padding: 20px;
+    padding: 5px 20px 20px 20px;
     z-index: 1000;
+    font-family: 'Economica', sans-serif; /* Ensure popup modal text uses Economica */
 }
 
 #popupModal button {
@@ -124,6 +135,7 @@ table th, table td {
     padding: 10px 20px; /* Add more padding for larger touch area */
     margin: 2px; /* Space out buttons for easier selection */
     cursor: pointer;
+    font-family: 'Economica', sans-serif; /* Ensure buttons use Economica */
 }
 
 #popupOptions {
@@ -139,6 +151,7 @@ table th, table td {
     padding: 0; /* Remove padding since we set a fixed size */
     box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
     cursor: pointer;
+    font-family: 'Economica', sans-serif; /* Ensure buttons use Economica */
 }
 
 #roundManagementModal {
@@ -149,26 +162,29 @@ table th, table td {
     transform: translate(-50%, -50%);
     background: white;
     border: 1px solid #000;
-    padding: 20px;
+    padding: 5px 20px 20px 20px;
     z-index: 1001;
-            width: 200px; /* Set the width here */
-        max-width: 90%;
+    width: 200px; /* Set the width here */
+    max-width: 90%;
+    font-family: 'Economica', sans-serif; /* Ensure round management modal text uses Economica */
 }
 
-    #roundManagementModal select {
-        font-size: 24px; /* Increase font size for better visibility */
-        padding: 10px; /* Add padding for larger touch area */
-        margin: 5px 0; /* Add some margin for spacing */
-    }
+#roundManagementModal select {
+    font-size: 24px; /* Increase font size for better visibility */
+    padding: 10px; /* Add padding for larger touch area */
+    margin: 5px 0; /* Add some margin for spacing */
+    font-family: 'Economica', sans-serif; /* Ensure select uses Economica */
+}
 
-    #roundManagementModal button {
-        font-size: 24px; /* Increase font size for better visibility */
-        padding: 10px 20px; /* Add more padding for larger touch area */
-        margin: 5px; /* Space out buttons for easier selection */
-        cursor: pointer;
-    }
+#roundManagementModal button {
+    font-size: 24px; /* Increase font size for better visibility */
+    padding: 10px 20px; /* Add more padding for larger touch area */
+    margin: 5px; /* Space out buttons for easier selection */
+    cursor: pointer;
+    font-family: 'Economica', sans-serif; /* Ensure buttons use Economica */
+}
 
-    #playerNameModal {
+#playerNameModal {
     display: none;
     position: fixed;
     top: 50%;
@@ -176,15 +192,12 @@ table th, table td {
     transform: translate(-50%, -50%);
     background: white;
     border: 1px solid #000;
-    padding: 20px;
+    padding: 5px 20px 20px 20px;
     z-index: 1001; /* Ensure it's above other modals */
     width: 200px; /* Set the width here, matching round management modal */
     max-width: 90%;
     text-align: center; /* Center align the content */
-}
-
-#playerNameModal h2 {
-    margin-top: 0; /* Remove any top margin if necessary */
+    font-family: 'Economica', sans-serif; /* Ensure player name modal text uses Economica */
 }
 
 #playerNameModal input[type="text"] {
@@ -192,12 +205,15 @@ table th, table td {
     padding: 10px;
     width: 100%;
     box-sizing: border-box;
-    margin: 5px 0;  /* match spacing */
+    margin: 5px 0; /* match spacing */
     text-align: center;
+    font-family: 'Economica', sans-serif; /* Ensure input text uses Economica */
 }
+
 #playerNameInput {
     text-transform: uppercase; /* Forces display to uppercase */
 }
+
 #playerNameModal input[type="text"]:focus {
     outline: none; /* Removes the default focus outline */
     border: 1px solid black; /* Adds a black border when focused */
@@ -208,8 +224,9 @@ table th, table td {
     padding: 10px 20px;
     margin: 5px; /* Space out buttons for easier selection */
     cursor: pointer;
+    font-family: 'Economica', sans-serif; /* Ensure buttons use Economica */
 }
-    
+
 table input[type="number"]::-webkit-outer-spin-button,
 table input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -219,31 +236,22 @@ table input[type="number"]::-webkit-inner-spin-button {
 table input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield; /* Standard property, though less supported */
+    font-family: 'Economica', sans-serif; /* Ensure number inputs use Economica */
 }
 
 #popupModal, #roundManagementModal {
     text-align: center;
 }
+
 .lower-section-cell:active, 
 .upper-section-cell:active {
     background-color: transparent !important;
 }
-  .scaled-emoji {
+
+.scaled-emoji {
     transform: scale(.6); /* Scales the emoji to 2 times its original size */
     transform-origin: center; /* Ensures scaling happens from the center */
     display: inline-block; /* Necessary for transform to work on inline elements */
-  }
-
-#playerNameModal {
-    display: none;
-    position: fixed;
-    top: 15%;
-    left: 50%;
-    transform: translate(-50%, -15%);
-    background: white;
-    border: 1px solid #000;
-    padding: 20px;
-    z-index: 1000; /* Ensure it's above other modals */
 }
 
 #playerNameModal input[type="text"] {
@@ -251,6 +259,7 @@ table input[type="number"] {
     padding: 10px;
     width: 100%;
     box-sizing: border-box;
+    font-family: 'Economica', sans-serif; /* Ensure input text uses Economica */
 }
 
 #playerNameModal button {
@@ -258,6 +267,7 @@ table input[type="number"] {
     padding: 10px 20px;
     margin: 5px;
     cursor: pointer;
+    font-family: 'Economica', sans-serif; /* Ensure buttons use Economica */
 }
     </style>
 </head>
