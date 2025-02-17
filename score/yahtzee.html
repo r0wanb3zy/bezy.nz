@@ -453,6 +453,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         function showPopup(cell, number, player) {
+            closeAllPopups(); // Close any open popup before showing the new one
             document.getElementById('popupModal').style.display = 'block';
             document.getElementById('popupTitle').textContent = `${number}`;
             
@@ -508,6 +509,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         function showRoundManagement() {
+            closeAllPopups(); // Close any open popup before showing the new one
             document.getElementById('roundManagementModal').style.display = 'block';
         }
 
@@ -654,6 +656,7 @@ function reattachEventListeners() {
             const playerName = this.innerText.split('\n')[0].trim();
             const playerNameInput = document.getElementById('playerNameInput');
             playerNameInput.value = playerName;
+            closeAllPopups(); // Close all popups before opening the player name modal
             document.getElementById('playerNameModal').style.display = 'block';
             window.currentPlayer = player;
 
@@ -815,6 +818,11 @@ function updatePlayerName() {
 }
 
 function closePlayerNameModal() {
+    document.getElementById('playerNameModal').style.display = 'none';
+}
+function closeAllPopups() {
+    document.getElementById('popupModal').style.display = 'none';
+    document.getElementById('roundManagementModal').style.display = 'none';
     document.getElementById('playerNameModal').style.display = 'none';
 }
     </script>
