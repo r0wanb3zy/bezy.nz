@@ -814,6 +814,18 @@ function updatePlayerName() {
 function closePlayerNameModal() {
     document.getElementById('playerNameModal').style.display = 'none';
 }
+
+function adjustModalForKeyboard() {
+    const modal = document.getElementById('playerNameModal');
+    if (window.innerHeight < 500) { // Example threshold
+        modal.style.top = '10%'; // Adjust as needed
+    } else {
+        modal.style.top = '50%'; // Reset to center if no keyboard
+    }
+}
+
+window.addEventListener('resize', adjustModalForKeyboard);
+document.getElementById('playerNameInput').addEventListener('focus', adjustModalForKeyboard);
     </script>
 </body>
 </html>
