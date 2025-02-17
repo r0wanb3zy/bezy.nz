@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -341,7 +342,15 @@ document.addEventListener("DOMContentLoaded", function() {
             header.innerHTML = `${savedName}<div id="${totalDiv.id}">${totalDiv.textContent}</div>`;
         }
     });
-        });
+        // Add Enter key event listener to the player name input
+    const playerNameInput = document.getElementById('playerNameInput');
+    playerNameInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            updatePlayerName();
+            closePlayerNameModal();
+        }
+    });
+});
 
         function calculateTotal(player) {
             let total = 0;
@@ -598,9 +607,14 @@ function reattachEventListeners() {
             const player = this.getAttribute('data-player');  
             // Extract just the name, ignoring any HTML elements that follow
             const playerName = this.innerText.split('\n')[0].trim();
-            document.getElementById('playerNameInput').value = playerName;
+            const playerNameInput = document.getElementById('playerNameInput');
+            playerNameInput.value = playerName;
             document.getElementById('playerNameModal').style.display = 'block';
             window.currentPlayer = player;
+
+            // Focus on the input field and select the text
+            playerNameInput.focus();
+            playerNameInput.select();
         };
         header.addEventListener('click', header.clickHandler);
     });
