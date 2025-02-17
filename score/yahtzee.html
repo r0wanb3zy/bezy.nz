@@ -284,9 +284,13 @@ table input[type="number"] {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    background: rgba(255, 255, 255, 0.5); /* Semi-transparent black */
     z-index: 999; /* Below popups but above everything else */
     cursor: pointer;
+}
+/* Remove blue highlight on mobile for table cells */
+table td {
+    -webkit-tap-highlight-color: transparent; /* Removes blue highlight on tap for WebKit browsers */
 }
     </style>
 </head>
