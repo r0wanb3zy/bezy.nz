@@ -275,6 +275,19 @@ table input[type="number"] {
     cursor: pointer;
     font-family: 'Economica', sans-serif; /* Ensure buttons use Economica */
 }
+
+/* New overlay styles */
+#overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 999; /* Below popups but above everything else */
+    cursor: pointer;
+}
     </style>
 </head>
 <body>
@@ -364,6 +377,8 @@ table input[type="number"] {
         <button onclick="updatePlayerName()">Update</button>
         <button onclick="closePlayerNameModal()">Close</button>
     </div>
+
+    <div id="overlay" style="display: none;"></div>
 
     <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -468,9 +483,20 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById(`total${player}`).textContent = total;
         }
 
+        // Function to show the overlay
+        function showOverlay() {
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        // Function to hide the overlay
+        function hideOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+        }
+
         function showPopup(cell, number, player) {
             closeAllPopups(); // Close any open popup before showing the new one
             document.getElementById('popupModal').style.display = 'block';
+            showOverlay(); // Show overlay
             document.getElementById('popupTitle').textContent = `${number}`;
             
             let options = '';
@@ -522,15 +548,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
         function closePopup() {
             document.getElementById('popupModal').style.display = 'none';
+            hideOverlay(); // Hide overlay
         }
 
         function showRoundManagement() {
             closeAllPopups(); // Close any open popup before showing the new one
             document.getElementById('roundManagementModal').style.display = 'block';
+            showOverlay(); // Show overlay
         }
 
         function closeRoundManagement() {
             document.getElementById('roundManagementModal').style.display = 'none';
+            hideOverlay(); // Hide overlay
         }
 
         function resetScores() {
@@ -674,6 +703,7 @@ function reattachEventListeners() {
             playerNameInput.value = playerName;
             closeAllPopups(); // Close all popups before opening the player name modal
             document.getElementById('playerNameModal').style.display = 'block';
+            showOverlay(); // Show overlay
             window.currentPlayer = player;
 
             // Focus on the input field and select the text
@@ -835,12 +865,20 @@ function updatePlayerName() {
 
 function closePlayerNameModal() {
     document.getElementById('playerNameModal').style.display = 'none';
+    hideOverlay(); // Hide overlay
 }
+
 function closeAllPopups() {
     document.getElementById('popupModal').style.display = 'none';
     document.getElementById('roundManagementModal').style.display = 'none';
     document.getElementById('playerNameModal').style.display = 'none';
+    hideOverlay(); // Hide overlay
 }
+
+// Add click event listener to overlay to close popups
+document.getElementById('overlay').addEventListener('click', function() {
+    closeAllPopups();
+});
     </script>
 </body>
 </html>
