@@ -239,7 +239,7 @@
   const inputRow = document.createElement('tr');
   inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
   players.forEach((player, index) => {
-    inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}"/></td>`;
+    inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" /></td>`;
   });
   scoreBody.appendChild(inputRow);
 
@@ -250,18 +250,20 @@
   const inputs = document.querySelectorAll("#scoreTable input[type='number']");
   inputs.forEach((input, index) => {
     input.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' || event.key === 'Tab' || event.key === 'Done') {
+      // Handle Enter (keyCode 13) and Tab (keyCode 9) for Android compatibility
+      if (event.key === 'Enter' || event.keyCode === 13 || event.key === 'Tab' || event.keyCode === 9) {
         event.preventDefault();
         const allFilled = allInputsFilled(inputs);
-        
+
         if (allFilled) {
-          // If all inputs are filled, submit the round
+          // If all inputs are filled, submit the round and reset focus
           addRoundScores();
+          inputs[0].focus(); // Move focus back to first input after submission
         } else if (index < inputs.length - 1) {
           // Move to the next input if not the last one
           inputs[index + 1].focus();
         } else {
-          // If last input and not all filled, loop back to first empty input
+          // If last input and not all filled, loop to first empty input
           const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
           if (firstEmpty !== -1) {
             inputs[firstEmpty].focus();
