@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scorecard</title>
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
-  <style>
+<style>
     body {
       font-family: 'Economica', sans-serif;
       font-size: 22px;
@@ -101,7 +101,6 @@
       text-align: center;
       font-family: 'Economica', sans-serif;
     }
-    /* Specific styling for playerManagementModal to match Yahtzee height */
     #playerManagementModal {
       top: 15%;
       transform: translate(-50%, -15%);
@@ -126,10 +125,17 @@
       border: 1px solid black;
     }
     .popup-modal select {
+      /* Removed width: 100% to match Yahtzee implicitly */
       font-size: 24px;
       padding: 10px;
       margin: 5px 0;
-      width: 100%;
+      font-family: 'Economica', sans-serif;
+    }
+    /* Specific styling to match Yahtzee’s #roundManagementModal select */
+    #roundManagementModal select {
+      font-size: 24px;
+      padding: 10px;
+      margin: 5px 0;
       font-family: 'Economica', sans-serif;
     }
     .popup-modal button {
