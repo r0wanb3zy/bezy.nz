@@ -1,777 +1,513 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
-<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yahtzee Scorecard</title>
-    <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
-    <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-    }
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scorecard</title>
+  <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
+  <style>
     body {
-        font-family: 'Economica', sans-serif;
-        font-size: 22px;
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
+      font-family: 'Economica', sans-serif;
+      font-size: 22px;
+      margin: 0;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
     }
-
-    #scoreTable {
-        height: 100vh;
-        overflow-y: auto;
+    h1 {
+      text-align: center;
     }
-
-        h1 {
-            text-align: center;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 20px;
-            table-layout: fixed;
-        }
-
-table th, table td {
-    border: 1px solid #ddd;
-    text-align: center;
-    padding: 5px;
-    word-wrap: break-word;
-    cursor: pointer;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Add or modify this selector */
-[id^="total"] {
-    font-size: 22px; /* Example size, adjust as needed */
-}
-/* New rule for the rank */
-[id^="total"] + small {
-    font-size: 16px; /* Size for the rank */
-}
-
-        table th:first-child, table td:first-child {
-            background-color: #f0f0f0;
-            font-weight: bold;
-            width: 30px;
-            min-width: 30px;
-            max-width: 30px;
-            overflow: hidden;
-        }
-
-        table th {
-            background-color: #f4f4f4;
-        }
-
-        table input {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 2px;
-            text-align: center;
-            font-size: inherit;
-            font-family: 'Economica', sans-serif;
-        }
-
-        table input::placeholder {
-            font-family: 'Economica', sans-serif;
-            font-size: 12px;
-        }
-
-        .bonus-row td, .upper-score-row td, .lower-score-row td {
-            background-color: #f0f0f0;
-        }
-
-        .bonus-row .points-needed {
-            color: grey;
-        }
-
-        .bonus-row .points-needed.bonus-achieved {
-            color: black;
-            font-weight: bold;
-        }
-
-        th div {
-            font-size: 14px;
-        }
-
-        .lower-section-cell, .upper-section-cell {
-            cursor: pointer;
-            width: auto;
-        }
-#scoreTable thead th {
-    height: 75px; /* Set top row height */
-}
-#popupModal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border: 1px solid #000;
-    padding: 20px;
-    z-index: 1000;
-}
-
-#popupModal button {
-    font-size: 24px; /* Increase font size for better visibility */
-    padding: 10px 20px; /* Add more padding for larger touch area */
-    margin: 2px; /* Space out buttons for easier selection */
-    cursor: pointer;
-}
-
-#popupOptions {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr); /* 5 equal-width columns */
-    gap: 1px; /* Gap between grid items */
-}
-
-#popupOptions button {
-    width: 40px; /* Full width of grid cell */
-    height: 40px; /* Fixed height */
-    font-size: 24px; /* Consistent with #popupModal button */
-    padding: 0; /* Remove padding since we set a fixed size */
-    box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
-    cursor: pointer;
-}
-
-#roundManagementModal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border: 1px solid #000;
-    padding: 20px;
-    z-index: 1000;
-            width: 200px; /* Set the width here */
-        max-width: 90%;
-}
-
-    #roundManagementModal select {
-        font-size: 24px; /* Increase font size for better visibility */
-        padding: 10px; /* Add padding for larger touch area */
-        margin: 5px 0; /* Add some margin for spacing */
+    table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      font-size: 20px;
     }
-
-    #roundManagementModal button {
-        font-size: 24px; /* Increase font size for better visibility */
-        padding: 10px 20px; /* Add more padding for larger touch area */
-        margin: 5px; /* Space out buttons for easier selection */
-        cursor: pointer;
+    table th, table td {
+      border: 1px solid #ddd;
+      text-align: center;
+      padding: 5px;
+      word-wrap: break-word;
+      cursor: pointer;
     }
-table input[type="number"]::-webkit-outer-spin-button,
-table input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-table input[type="number"] {
-    -moz-appearance: textfield;
-    appearance: textfield; /* Standard property, though less supported */
-}
-
-#popupModal, #roundManagementModal {
-    text-align: center;
-}
-.lower-section-cell:active, 
-.upper-section-cell:active {
-    background-color: transparent !important;
-}
-  .scaled-emoji {
-    transform: scale(.6); /* Scales the emoji to 2 times its original size */
-    transform-origin: center; /* Ensures scaling happens from the center */
-    display: inline-block; /* Necessary for transform to work on inline elements */
-  }
-
-#playerNameModal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border: 1px solid #000;
-    padding: 20px;
-    z-index: 1001; /* Ensure it's above other modals */
-}
-
-#playerNameModal input[type="text"] {
-    font-size: 24px; /* Match with other modal elements */
-    padding: 10px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-#playerNameModal button {
-    font-size: 24px;
-    padding: 10px 20px;
-    margin: 5px;
-    cursor: pointer;
-}
-    </style>
+    table th {
+      background-color: #f4f4f4;
+    }
+    table th:first-child, table td:first-child {
+      background-color: #f0f0f0;
+      font-weight: bold;
+      width: 30px;
+      min-width: 30px;
+      max-width: 30px;
+      overflow: hidden;
+    }
+    #scoreTable thead th {
+      height: 75px;
+      font-family: 'Economica', sans-serif;
+    }
+    table th span:last-child {
+      font-size: 14px;
+      font-family: 'Economica', sans-serif;
+    }
+    table input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 4px;
+      text-align: center;
+      font-size: inherit;
+      font-family: 'Economica', sans-serif;
+    }
+    table input::placeholder {
+      font-family: 'Economica', sans-serif;
+      font-size: 16px;
+      text-align: center;
+      line-height: normal;
+      color: #999;
+    }
+    .highlight-winner {
+      background-color: #d4f4d4;
+    }
+    .highlight-loser {
+      background-color: #f4d4d4;
+    }
+    table input[type="number"]::-webkit-outer-spin-button,
+    table input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    table input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    #scoreBody tr:not(:last-child) td:not(:first-child) {
+      max-height: 5px;
+      height: 5px;
+      line-height: 5px;
+      overflow: hidden;
+    }
+    /* Popup styling to match Yahtzee */
+    .popup-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 1px solid #000;
+      padding: 5px 20px 20px 20px;
+      z-index: 1000;
+      width: 200px;
+      max-width: 90%;
+      text-align: center;
+      font-family: 'Economica', sans-serif;
+    }
+    .popup-modal h2 {
+      font-size: 22px;
+      margin: 10px 0;
+      font-family: 'Economica', sans-serif;
+    }
+    .popup-modal input[type="text"] {
+      font-size: 24px;
+      padding: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      margin: 5px 0;
+      text-align: center;
+      font-family: 'Economica', sans-serif;
+      border: 1px solid #ccc;
+    }
+    .popup-modal input[type="text"]:focus {
+      outline: none;
+      border: 1px solid black;
+    }
+    .popup-modal select {
+      font-size: 24px;
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+      font-family: 'Economica', sans-serif;
+    }
+    .popup-modal button {
+      font-size: 24px;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-family: 'Economica', sans-serif;
+    }
+    /* Overlay styling to match Yahtzee */
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.5);
+      z-index: 999;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <table id="scoreTable">
-        <thead>
-            <tr>
-                <th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>1️⃣</td>
-            </tr>
-            <tr>
-                <td>2️⃣</td>
-            </tr>
-            <tr>
-                <td>3️⃣</td>
-            </tr>
-            <tr>
-                <td>4️⃣</td>
-            </tr>
-            <tr>
-                <td>5️⃣</td>
-            </tr>
-            <tr>
-                <td>6️⃣</td>
-            </tr>
-            <tr class="bonus-row">
-                <td>💰</td>
-            </tr>
-            <tr class="upper-score-row">
-                <td>🔺️</td>
-            </tr>
-            <tr>
-                <td>🤟</td>
-            </tr>
-            <tr>
-                <td>🖖</td>
-            </tr>
-            <tr>
-                <td>🏠</td>
-            </tr>
-            <tr>
-                <td>▪️</td>
-            </tr>
-            <tr>
-                <td>◾️</td>
-            </tr>
-            <tr>
-                <td>🎯</td>
-            </tr>
-            <tr>
-                <td>🎲</td>
-            </tr>
-            <tr class="lower-score-row">
-                <td>🔻</td>
-            </tr>
-        </tbody>
-    </table>
+  <table id="scoreTable">
+    <thead>
+      <tr id="playerRow">
+        <th>#</th>
+      </tr>
+    </thead>
+    <tbody id="scoreBody">
+    </tbody>
+  </table>
 
-    <div id="popupModal">
-        <h2 id="popupTitle">Select Score:</h2>
-        <div id="popupOptions"></div>
-        <button onclick="closePopup()">Close</button>
-    </div>
+  <div id="playerManagementModal" class="popup-modal"></div>
+  <div id="roundManagementModal" class="popup-modal"></div>
+  <div id="overlay"></div>
 
-    <div id="roundManagementModal">
+  <script>
+    // Initial setup with localStorage
+    if (!localStorage.getItem('initialized')) {
+      players = [
+        { name: "RB", totalScore: 0, roundScores: [] },
+        { name: "AB", totalScore: 0, roundScores: [] },
+        { name: "P3", totalScore: 0, roundScores: [] },
+        { name: "P4", totalScore: 0, roundScores: [] }
+      ];
+      rounds = [];
+      localStorage.setItem('initialized', 'true');
+      localStorage.setItem('players', JSON.stringify(players));
+      localStorage.setItem('rounds', JSON.stringify(rounds));
+    } else {
+      players = JSON.parse(localStorage.getItem('players')) || [];
+      rounds = JSON.parse(localStorage.getItem('rounds')) || [];
+    }
+
+    let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
+
+    function addRoundScores() {
+      const scores = [];
+      const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+      inputs.forEach((input, index) => {
+        const score = parseInt(input.value) || 0;
+        scores[index] = score;
+        players[index].roundScores.push(score);
+        players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
+      });
+      rounds.push(scores);
+      saveData();
+      updateUI();
+      inputs.forEach(input => input.value = '');
+    }
+
+    function saveData() {
+      localStorage.setItem('players', JSON.stringify(players));
+      localStorage.setItem('rounds', JSON.stringify(rounds));
+      localStorage.setItem('scoringMode', scoringMode);
+    }
+
+    function updateUI() {
+      const playerRow = document.getElementById("playerRow");
+      playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
+      players.forEach((player, index) => {
+        playerRow.innerHTML += `
+          <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
+            ${player.name}
+            <br>
+            <span>${player.totalScore === 0 && rounds.length === 0 ? '-' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+            ${rounds.length > 0 ? `<br><span>${getRank(player.totalScore)}</span>` : ''}
+          </th>
+        `;
+      });
+
+      const scoreBody = document.getElementById("scoreBody");
+      scoreBody.innerHTML = "";
+      rounds.forEach((round, roundIndex) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
+        players.forEach((_, playerIndex) => {
+          const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] === 0 ? '-' : round[playerIndex]) : '-';
+          row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
+        });
+        scoreBody.appendChild(row);
+      });
+
+      const inputRow = document.createElement('tr');
+      inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
+      players.forEach((player, index) => {
+        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}"/></td>`;
+      });
+      scoreBody.appendChild(inputRow);
+
+      if (rounds.length > 0) {
+        updateRankings();
+      }
+
+      const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+      inputs.forEach(input => {
+        input.addEventListener('keypress', function(event) {
+          if (event.key === 'Enter' || event.key === 'Tab') {
+            event.preventDefault();
+            if (allInputsFilled(inputs)) {
+              addRoundScores();
+            }
+          }
+        });
+        input.addEventListener('keydown', function(event) {
+          if (event.key === 'Tab') {
+            event.preventDefault();
+            if (allInputsFilled(inputs)) {
+              addRoundScores();
+            }
+          }
+        });
+      });
+    }
+
+    function getRank(score) {
+      const sortedPlayers = [...players];
+      if (scoringMode === "highest") {
+        sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
+      } else {
+        sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
+      }
+      const rank = sortedPlayers.findIndex(player => player.totalScore === score) + 1;
+      let suffix = 'th';
+      if (rank % 10 === 1 && rank % 100 !== 11) suffix = 'st';
+      if (rank % 10 === 2 && rank % 100 !== 12) suffix = 'nd';
+      if (rank % 10 === 3 && rank % 100 !== 13) suffix = 'rd';
+      return rank + suffix;
+    }
+
+    function updateScore(roundIndex, playerIndex, newScore) {
+      const score = parseInt(newScore) || 0;
+      if (rounds[roundIndex] && rounds[roundIndex][playerIndex] !== undefined) {
+        rounds[roundIndex][playerIndex] = score;
+        if (players[playerIndex] && players[playerIndex].roundScores[roundIndex] !== undefined) {
+          players[playerIndex].roundScores[roundIndex] = score;
+          players[index].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+        }
+      }
+      saveData();
+      updateUI();
+    }
+
+    function updateRankings() {
+      const sortedPlayers = [...players];
+      if (scoringMode === "highest") {
+        sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
+      } else {
+        sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
+      }
+
+      const playerRow = document.getElementById("playerRow");
+      const columns = Array.from(playerRow.children).slice(1);
+      columns.forEach((th) => th.classList.remove("highlight-winner", "highlight-loser"));
+
+      const allScoresSame = players.every(player => player.totalScore === players[0].totalScore);
+
+      if (allScoresSame) {
+        columns.forEach(th => th.classList.add("highlight-winner"));
+      } else {
+        const highestScore = sortedPlayers[0].totalScore;
+        const lowestScore = sortedPlayers[sortedPlayers.length - 1].totalScore;
+
+        sortedPlayers.forEach((player, index) => {
+          const playerIndex = players.findIndex(p => p.name === player.name);
+          if (player.totalScore === highestScore) {
+            columns[playerIndex].classList.add("highlight-winner");
+          }
+          if (player.totalScore === lowestScore) {
+            columns[playerIndex].classList.add("highlight-loser");
+          }
+        });
+      }
+    }
+
+    function removePlayer(index) {
+      players.splice(index, 1);
+      rounds.forEach(round => round.splice(index, 1));
+      saveData();
+      updateUI();
+    }
+
+    function createPlayerManagementDialog(index) {
+      const modal = document.getElementById('playerManagementModal');
+      modal.innerHTML = `
+        <h2>Manage ${players[index].name}</h2>
+        <input type="text" id="playerNameInput" value="${players[index].name}" autocapitalize="characters" inputmode="text">
+        <button onclick="updatePlayerName(${index})">Update</button>
+        <button onclick="movePlayerLeft(${index})">Move Left</button>
+        <button onclick="movePlayerRight(${index})">Move Right</button>
+        <button onclick="confirmRemovePlayer(${index})">Remove Player</button>
+        <button onclick="closePopup('playerManagementModal')">Close</button>
+      `;
+      modal.style.display = 'block';
+      showOverlay();
+      const input = modal.querySelector('#playerNameInput');
+      input.focus();
+      input.select();
+      input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          updatePlayerName(index);
+          closePopup('playerManagementModal');
+        }
+      });
+    }
+
+    function updatePlayerName(index) {
+      const input = document.getElementById('playerNameInput');
+      const newName = input.value.trim().toUpperCase();
+      if (newName && newName !== players[index].name) {
+        players[index].name = newName;
+        saveData();
+        updateUI();
+        closePopup('playerManagementModal');
+      }
+    }
+
+    function movePlayerLeft(index) {
+      if (index > 0) {
+        let temp = players[index - 1];
+        players[index - 1] = players[index];
+        players[index] = temp;
+        rounds.forEach(round => {
+          let tempScore = round[index - 1];
+          round[index - 1] = round[index];
+          round[index] = tempScore;
+        });
+        saveData();
+        updateUI();
+        closePopup('playerManagementModal');
+      }
+    }
+
+    function movePlayerRight(index) {
+      if (index < players.length - 1) {
+        let temp = players[index + 1];
+        players[index + 1] = players[index];
+        players[index] = temp;
+        rounds.forEach(round => {
+          let tempScore = round[index + 1];
+          round[index + 1] = round[index];
+          round[index] = tempScore;
+        });
+        saveData();
+        updateUI();
+        closePopup('playerManagementModal');
+      }
+    }
+
+    function confirmRemovePlayer(index) {
+      if (confirm(`Are you sure you want to remove ${players[index].name}?`)) {
+        removePlayer(index);
+        closePopup('playerManagementModal');
+      }
+    }
+
+    function handlePlayerNameClick(event, index) {
+      event.stopPropagation();
+      closeAllPopups();
+      createPlayerManagementDialog(index);
+    }
+
+    function createRoundManagementDialog() {
+      const modal = document.getElementById('roundManagementModal');
+      modal.innerHTML = `
         <h2>Round Management</h2>
         <select id="playerCount" onchange="updatePlayerCount()">
-            <option value="1">1 Players</option>
-            <option value="2">2 Players</option>
-            <option value="3">3 Players</option>
-            <option value="4">4 Players</option>
-            <option value="5">5 Players</option>
-            <option value="6">6 Players</option>
-            <option value="7">7 Players</option>
-            <option value="8">8 Players</option>
+          ${[2,3,4,5,6,7,8].map(i => `<option value="${i}" ${players.length === i ? 'selected' : ''}>${i} Players</option>`).join('')}
         </select>
         <button onclick="resetScores()">Reset</button>
-        <button onclick="closeRoundManagement()">Close</button>
-    </div>
+        <button onclick="toggleScoringMode(); updateUI(); closePopup('roundManagementModal')">Toggle ${scoringMode === 'highest' ? 'High' : 'Low'}</button>
+        <button onclick="closePopup('roundManagementModal')">Close</button>
+      `;
+      modal.style.display = 'block';
+      showOverlay();
+    }
 
-    <div id="playerNameModal">
-        <h2>Player Name</h2>
-        <input type="text" id="playerNameInput" placeholder="Enter player name">
-        <button onclick="updatePlayerName()">Update</button>
-        <button onclick="closePlayerNameModal()">Close</button>
-    </div>
+    function updatePlayerCount() {
+      const newCount = parseInt(document.getElementById('playerCount').value);
+      if (newCount > players.length) {
+        for (let i = players.length; i < newCount; i++) {
+          players.push({ 
+            name: `P${i+1}`, 
+            totalScore: 0, 
+            roundScores: Array(rounds.length).fill(0)  
+          });
+          rounds.forEach(round => round.push(0));
+        }
+      } else if (newCount < players.length) {
+        players = players.slice(0, newCount);
+        rounds.forEach(round => round.length = newCount);
+      }
+      saveData();
+      updateUI();
+      closePopup('roundManagementModal');
+    }
 
-    <script>
-document.addEventListener("DOMContentLoaded", function() {
-    setTimeout(() => {
-        requestAnimationFrame(() => {
-            const table = document.getElementById("scoreTable");
-            if (table) {
-                table.style.height = "100vh";
-            }
+    function toggleScoringMode() {
+      scoringMode = scoringMode === "highest" ? "lowest" : "highest";
+      saveData();
+    }
+
+    function resetScores() {
+      if (confirm("Are you sure you want to reset all scores?")) {
+        players.forEach(player => {
+          player.roundScores = [];
+          player.totalScore = 0;
         });
-    }, 100); // small delay
-});
-
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            let savedPlayerCount = localStorage.getItem('playerCount');
-            if (savedPlayerCount) {
-                document.getElementById('playerCount').value = savedPlayerCount;
-                updatePlayerCount(); // This will update the UI with the saved count
-            } else {
-                // Set default to 2 players if no saved data
-                document.getElementById('playerCount').value = '4';
-                updatePlayerCount(); // Update UI with default count
-            }
-            loadScores(); // Load saved scores
-            // Since player count has changed, we need to ensure event listeners are in place
-            reattachEventListeners();
-                // Load player names
-    const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
-    headers.forEach(header => {
-        const player = header.getAttribute('data-player');
-        const savedName = localStorage.getItem(`playerName-${player}`);
-        if (savedName) {
-            const totalDiv = header.querySelector('div');
-            header.innerHTML = `${savedName}<div id="${totalDiv.id}">${totalDiv.textContent}</div>`;
-        }
-    });
-        // Add Enter key event listener to the player name input
-    const playerNameInput = document.getElementById('playerNameInput');
-    playerNameInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            updatePlayerName();
-            closePlayerNameModal();
-        }
-    });
-});
-
-        function calculateTotal(player) {
-            let total = 0;
-            let upperSectionTotal = 0;
-            let lowerSectionTotal = 0;
-            document.querySelectorAll(`[data-player="${player}"]`).forEach(score => {
-                if (score.type === 'number') {
-                    let value = parseInt(score.value) || 0;
-                    total += value;
-                    if (['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'].includes(score.closest('tr').cells[0].textContent)) {
-                        upperSectionTotal += value;
-                    } else {
-                        lowerSectionTotal += value;
-                    }
-                } else if (score.classList.contains('lower-section-cell')) {
-                    let state = parseInt(score.getAttribute('data-state'));
-                    if (state === 1) { // Only add score if the state is 'Checked' (1)
-                        let scoreValue = parseInt(score.getAttribute('data-score'));
-                        total += scoreValue;
-                        lowerSectionTotal += scoreValue;
-                    }
-                } else if (score.classList.contains('upper-section-cell') && score.textContent !== '❌' && score.textContent !== '') {
-                    let value = parseInt(score.textContent) || 0;
-                    total += value;
-                    if (['🤟', '🖖', '🎲'].includes(score.closest('tr').cells[0].textContent)) {
-                        lowerSectionTotal += value;
-                    } else {
-                        upperSectionTotal += value;
-                    }
-                }
-            });
-            
-            // Calculate Bonus
-            let bonus = upperSectionTotal >= 63 ? 35 : 0;
-            
-            // Update Bonus Row
-            let bonusElement = document.getElementById(`bonus${player}`);
-            let pointsNeededElement = document.getElementById(`pointsNeeded${player}`);
-            
-            if (bonus > 0) {
-                pointsNeededElement.textContent = '35';
-                pointsNeededElement.classList.add('bonus-achieved');
-            } else {
-                pointsNeededElement.textContent = (63 - upperSectionTotal).toString();
-                pointsNeededElement.classList.remove('bonus-achieved');
-            }
-            
-            // Update Upper Score
-            document.getElementById(`upperScore${player}`).textContent = upperSectionTotal;
-
-            // Update Lower Score
-            document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
-
-            // Add Bonus to Total
-            total += bonus;
-            document.getElementById(`total${player}`).textContent = total;
-        }
-
-        function showPopup(cell, number, player) {
-            document.getElementById('popupModal').style.display = 'block';
-            document.getElementById('popupTitle').textContent = `${number}`;
-            
-            let options = '';
-            
-            if (['🤟', '🖖', '🎲'].includes(number)) { // 3 of a kind, 4 of a kind, Chance
-                for (let i = 1; i <= 30; i++) {
-                    options += `<button onclick="selectScore(${i}, '${player}', '${number}', event)">${i}</button>`;
-                }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">❌</button>`; // Cross off
-                options += `<button onclick="selectScore('', '${player}', '${number}', event)">⭕️</button>`; // Clear (blank)
-            } else {
-                let numberValue = parseInt(number);
-                for (let i = 1; i <= 5; i++) {
-                    let score = i * numberValue;
-                    options += `<button onclick="selectScore(${score}, '${player}', '${number}', event)">${score}</button>`;
-                }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">❌</button>`; // Cross off option
-                options += `<button onclick="selectScore('', '${player}', '${number}', event)">⭕️</button>`; // Clear (blank) option
-            }
-            document.getElementById('popupOptions').innerHTML = options;
-            
-            // Store the cell for later use in selectScore
-            window.lastClickedCell = cell;
-        }
-
-        function selectScore(score, player, number, event) {
-            event.stopPropagation(); // Prevent propagation of the click event
-            const cell = window.lastClickedCell;
-            let cellId = `${player}-${number}`; // Create a unique identifier for each cell
-
-            if (score === 0) {
-                cell.innerHTML = '<span class="scaled-emoji">❌</span>';
-                localStorage.setItem(cellId, '❌');
-                cell.style.textDecoration = 'none';
-            } else if (score === '') {
-                cell.textContent = '';
-                localStorage.removeItem(cellId); // Remove if clearing
-                cell.style.textDecoration = 'none';
-            } else {
-                cell.textContent = score;
-                localStorage.setItem(cellId, score);
-                cell.style.textDecoration = 'none';
-            }
-            
-            calculateTotal(player); // Recalculate total for the player
-            closePopup(); // Automatically close the popup after selection
-            updateRanks(); // Update ranks after score change
-        }
-
-        function closePopup() {
-            document.getElementById('popupModal').style.display = 'none';
-        }
-
-        function showRoundManagement() {
-            document.getElementById('roundManagementModal').style.display = 'block';
-        }
-
-        function closeRoundManagement() {
-            document.getElementById('roundManagementModal').style.display = 'none';
-        }
-
-        function resetScores() {
-            if (confirm("Are you sure you want to reset all scores?")) {
-                // Reset all scores to their initial state
-                document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
-                    cell.textContent = '';
-                    cell.style.textDecoration = 'none';
-                    cell.setAttribute('data-state', '0');
-                    localStorage.removeItem(cell.getAttribute('data-player') + '-' + cell.closest('tr').cells[0].textContent);
-                });
-
-                // Reset totals and bonus displays
-                const playerCount = parseInt(document.getElementById('playerCount').value);
-                for (let i = 1; i <= playerCount; i++) {
-                    let player = `P${i}`;
-                    document.getElementById(`total${player}`).textContent = '0';
-                    document.getElementById(`upperScore${player}`).textContent = '0';
-                    document.getElementById(`lowerScore${player}`).textContent = '0';
-                    document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
-                }
-                // Close the modal after resetting
-                closeRoundManagement();
-                updateRanks(); // Update ranks after reset
-            }
-        }
-
-function updatePlayerCount() {
-    const playerCount = parseInt(document.getElementById('playerCount').value);
-    localStorage.setItem('playerCount', playerCount);
-    const table = document.getElementById('scoreTable');
-    const headers = table.querySelector('thead tr');
-    const rows = table.querySelectorAll('tbody tr');
-    closeRoundManagement();
-
-    // Clear existing player columns
-    const existingPlayers = headers.children.length - 1;
-    if (playerCount < existingPlayers) {
-        // Remove extra columns if we're reducing the number of players
-        for (let i = existingPlayers; i > playerCount; i--) {
-            headers.removeChild(headers.lastChild);
-            rows.forEach(row => {
-                row.removeChild(row.lastChild);
-            });
-            // Remove saved scores for the removed player
-            const player = `P${i}`;
-            for (let j = 0; j < rows.length; j++) {
-                const category = rows[j].firstElementChild.textContent;
-                const cellId = `${player}-${category}`;
-                localStorage.removeItem(cellId);
-            }
-        }
-    } else {
-        // Add new columns for increasing player count
-        for (let i = existingPlayers + 1; i <= playerCount; i++) {
-            const newHeader = document.createElement('th');
-            newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
-            newHeader.setAttribute('data-player', `P${i}`); // Ensure this is set for all headers
-            headers.appendChild(newHeader);
-
-            rows.forEach(row => {
-                const newCell = document.createElement('td');
-                const category = row.firstElementChild.textContent;
-                if (category === '💰') {
-                    newCell.id = `bonusP${i}`;
-                    newCell.innerHTML = '<span id="pointsNeededP' + i + '" class="points-needed">63</span>';
-                } else if (category === '🔺️') {
-                    newCell.id = `upperScoreP${i}`;
-                    newCell.textContent = '0';
-                } else if (category === '🔻') {
-                    newCell.id = `lowerScoreP${i}`;
-                    newCell.textContent = '0';
-                } else if (['🏠', '▪️', '◾️', '🎯'].includes(category)) {
-                    newCell.className = 'lower-section-cell';
-                    newCell.setAttribute('data-player', `P${i}`);
-                    newCell.setAttribute('data-category', category === '🏠' ? 'Full House' : category === '▪️' ? 'Small Straight' : category === '◾️' ? 'Large Straight' : 'Yahtzee');
-                    newCell.setAttribute('data-score', category === '🏠' ? '25' : category === '▪️' ? '30' : category === '◾️' ? '40' : '50');
-                    newCell.setAttribute('data-state', '0');
-                    // Add click event for lower section cells
-                    newCell.onclick = function(e) {
-                        let currentState = parseInt(this.getAttribute('data-state')) || 0;
-                        currentState = (currentState + 1) % 3;
-                        this.setAttribute('data-state', currentState);
-                        
-                        let cellId = this.getAttribute('data-player') + '-' + this.closest('tr').cells[0].textContent;
-                        switch(currentState) {
-                            case 0: // Clear
-                                this.textContent = '';
-                                localStorage.removeItem(cellId);
-                                this.style.textDecoration = 'none';
-                                break;
-                            case 1: // Display Score
-                                this.textContent = this.getAttribute('data-score');
-                                localStorage.setItem(cellId, this.getAttribute('data-score'));
-                                this.style.textDecoration = 'none';
-                                break;
-                            case 2: // Cross off
-                                this.innerHTML = '<span class="scaled-emoji">❌</span>';
-                                localStorage.setItem(cellId, '❌');
-                                this.style.textDecoration = 'none';
-                                break;
-                        }
-                        calculateTotal(this.getAttribute('data-player'));
-                        updateRanks();
-                    };
-                } else {
-                    newCell.className = 'upper-section-cell';
-                    newCell.setAttribute('data-player', `P${i}`);
-                    newCell.onclick = function() {
-                        showPopup(this, category, `P${i}`);
-                    };
-                }
-                row.appendChild(newCell);
-            });
-        }
+        rounds = [];
+        saveData();
+        updateUI();
+        closePopup('roundManagementModal');
+      }
     }
-    // Recalculate scores for all players
-    for (let i = 1; i <= playerCount; i++) {
-        calculateTotal(`P${i}`);
-    }
-    
-    // Reattach event listeners after updating the player count
-    reattachEventListeners();
-    
-    updateRanks(); // Update ranks after player count change
-}
 
-function reattachEventListeners() {
-    document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
-        // Remove existing listeners to prevent duplicates
-        header.removeEventListener('click', header.clickHandler);
-        // Attach new listener
-        header.clickHandler = function(e) {
-            e.stopPropagation();
-            const player = this.getAttribute('data-player');  
-            // Extract just the name, ignoring any HTML elements that follow
-            const playerName = this.innerText.split('\n')[0].trim();
-            const playerNameInput = document.getElementById('playerNameInput');
-            playerNameInput.value = playerName;
-            document.getElementById('playerNameModal').style.display = 'block';
-            window.currentPlayer = player;
-
-            // Focus on the input field and select the text
-            playerNameInput.focus();
-            playerNameInput.select();
-        };
-        header.addEventListener('click', header.clickHandler);
-    });
-}
-
-function loadScores() {
-    const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
-    cells.forEach(cell => {
-        const player = cell.getAttribute('data-player');
-        const number = cell.closest('tr').cells[0].textContent;
-        const cellId = `${player}-${number}`;
-        const savedScore = localStorage.getItem(cellId);
-        
-        if (savedScore) {
-            if (savedScore === '❌') {
-                cell.innerHTML = '<span class="scaled-emoji">❌</span>';
-                cell.setAttribute('data-state', '2'); // Set to crossed off state
-            } else {
-                cell.textContent = savedScore;
-                cell.setAttribute('data-state', '1'); // Set to scored state
-            }
-        }
-    });
-
-            // Recalculate totals for all players
-            const playerCount = parseInt(document.getElementById('playerCount').value);
-            for (let i = 1; i <= playerCount; i++) {
-                calculateTotal(`P${i}`);
-            }
-            updateRanks(); // Update ranks after loading scores
-        }
-
-function updateRanks() {
-    const totalScores = document.querySelectorAll('[id^="total"]');
-    
-    // Check if any score has been entered
-    let anyScoreEntered = false;
-    totalScores.forEach(scoreElement => {
-        if (parseInt(scoreElement.textContent) > 0) {
-            anyScoreEntered = true;
-        }
-    });
-
-    if (!anyScoreEntered) {
-        totalScores.forEach(scoreElement => {
-            scoreElement.textContent = "-";
-            // Clear any existing rank element
-            while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
-                scoreElement.parentElement.removeChild(scoreElement.nextSibling);
-            }
-            // Reset background color
-            scoreElement.parentElement.style.backgroundColor = '';
+    function confirmDeleteRound(roundIndex) {
+      if (confirm("Are you sure you want to delete this round?")) {
+        rounds.splice(roundIndex, 1);
+        players.forEach(player => {
+          player.roundScores.splice(roundIndex, 1);
+          player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
         });
-    } else {
-        // Sorting scores for ranking
-        const scoresArray = Array.from(totalScores).map(scoreElement => ({
-            player: scoreElement.id,
-            score: parseInt(scoreElement.textContent) || 0
-        }));
-
-        scoresArray.sort((a, b) => b.score - a.score);
-
-        let rank = 1;
-        let lastScore = null;
-        const rankMap = {};
-        let lastPlaceScores = [];
-
-        scoresArray.forEach((player, index) => {
-            if (player.score === lastScore) {
-                rankMap[player.player] = rank;
-                lastPlaceScores.push(player.player);
-            } else {
-                rank = index + 1;
-                rankMap[player.player] = rank;
-                lastPlaceScores = [player.player];
-            }
-            lastScore = player.score;
-        });
-
-        // Check if all scores are the same
-        const allScoresSame = scoresArray.every(player => player.score === scoresArray[0].score);
-
-        totalScores.forEach(scoreElement => {
-            const rank = rankMap[scoreElement.id];
-            const score = parseInt(scoreElement.textContent) || 0; 
-
-            // Remove existing classes
-            scoreElement.parentElement.classList.remove('rank-1', 'rank-last');
-
-            // Clear any previous rank indicators
-            while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
-                scoreElement.parentElement.removeChild(scoreElement.nextSibling);
-            }
-
-            // Set background color based on condition
-            if (allScoresSame) {
-                scoreElement.parentElement.style.backgroundColor = '#d4f4d4'; // Light green for all same scores
-            } else if (rank === 1) {
-                scoreElement.parentElement.style.backgroundColor = '#d4f4d4'; // Green for first place
-            } else if (lastPlaceScores.includes(scoreElement.id)) {
-                scoreElement.parentElement.style.backgroundColor = '#f4d4d4'; // Light red for last place
-            } else {
-                scoreElement.parentElement.style.backgroundColor = ''; // Reset to default for others
-            }
-
-            scoreElement.textContent = score;
-            const rankElement = document.createElement('small');
-            rankElement.textContent = ordinalSuffixOf(rank);
-            scoreElement.parentElement.appendChild(rankElement);
-        });
+        saveData();
+        updateUI();
+      }
     }
-}
 
-function ordinalSuffixOf(i) {
-    var j = i % 10,
-        k = i % 100;
-    if (j === 1 && k !== 11) {
-        return i + "st";
+    function allInputsFilled(inputs) {
+      return Array.from(inputs).every(input => input.value.trim() !== '');
     }
-    if (j === 2 && k !== 12) {
-        return i + "nd";
+
+    function selectText(element) {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
     }
-    if (j === 3 && k !== 13) {
-        return i + "rd";
+
+    function showOverlay() {
+      document.getElementById('overlay').style.display = 'block';
     }
-    return i + "th";
-}
 
-// Also, ensure updateRanks is called whenever a score is updated or player count changes
-document.getElementById('scoreTable').addEventListener('click', updateRanks);
-document.getElementById('playerCount').addEventListener('change', updateRanks);
-document.addEventListener('DOMContentLoaded', updateRanks);
-
-// New functions for player name management
-function updatePlayerName() {
-    const newName = document.getElementById('playerNameInput').value;
-    if (newName) {
-        const playerHeader = document.querySelector(`#scoreTable thead th[data-player="${window.currentPlayer}"]`);
-        if (playerHeader) {
-            // Preserve the total score div and any rank indicators
-            const totalDiv = playerHeader.querySelector('div');
-            const score = totalDiv.textContent; // Save the current score
-            const rankElement = playerHeader.querySelector('small'); // Save the rank element if exists
-            let rankHTML = rankElement ? rankElement.outerHTML : ''; // Store rank HTML if it exists
-
-            // Update the header content, ensuring to keep the score and rank
-            playerHeader.innerHTML = `${newName}<div id="${totalDiv.id}">${score}</div>${rankHTML}`;
-            
-            localStorage.setItem(`playerName-${window.currentPlayer}`, newName); // Save name to localStorage
-            closePlayerNameModal();
-        }
+    function hideOverlay() {
+      document.getElementById('overlay').style.display = 'none';
     }
-}
 
-function closePlayerNameModal() {
-    document.getElementById('playerNameModal').style.display = 'none';
-}
-    </script>
+    function closePopup(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+      hideOverlay();
+    }
+
+    function closeAllPopups() {
+      document.getElementById('playerManagementModal').style.display = 'none';
+      document.getElementById('roundManagementModal').style.display = 'none';
+      hideOverlay();
+    }
+
+    document.getElementById('overlay').addEventListener('click', closeAllPopups);
+
+    updateUI();
+  </script>
 </body>
 </html>
