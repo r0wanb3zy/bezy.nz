@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scorecard</title>
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
-<style>
+  <style>
     body {
       font-family: 'Economica', sans-serif;
       font-size: 22px;
@@ -44,9 +44,14 @@
     #scoreTable thead th {
       height: 75px;
       font-family: 'Economica', sans-serif;
+      font-size: 22px; /* Player name size matches Yahtzee */
     }
-    table th span:last-child {
-      font-size: 14px;
+    #scoreTable thead th span.score {
+      font-size: 22px; /* Score size matches Yahtzee */
+      font-family: 'Economica', sans-serif;
+    }
+    #scoreTable thead th small {
+      font-size: 16px; /* Rank size matches Yahtzee */
       font-family: 'Economica', sans-serif;
     }
     table input {
@@ -148,7 +153,7 @@
       z-index: 999;
       cursor: pointer;
     }
-  </style>
+</style>
 </head>
 <body>
   <table id="scoreTable">
@@ -206,62 +211,62 @@
     }
 
     function updateUI() {
-      const playerRow = document.getElementById("playerRow");
-      playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
-      players.forEach((player, index) => {
-        playerRow.innerHTML += `
-          <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
-            ${player.name}
-            <br>
-            <span>${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
-            ${rounds.length > 0 ? `<br><span>${getRank(player.totalScore)}</span>` : ''}
-          </th>
-        `;
-      });
+  const playerRow = document.getElementById("playerRow");
+  playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
+  players.forEach((player, index) => {
+    playerRow.innerHTML += `
+      <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
+        ${player.name}
+        <br>
+        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+      </th>
+    `;
+  });
 
-      const scoreBody = document.getElementById("scoreBody");
-      scoreBody.innerHTML = "";
-      rounds.forEach((round, roundIndex) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
-        players.forEach((_, playerIndex) => {
-          const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] == 0 ? '-' : round[playerIndex]) : '-';
-          row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
-        });
-        scoreBody.appendChild(row);
-      });
+  const scoreBody = document.getElementById("scoreBody");
+  scoreBody.innerHTML = "";
+  rounds.forEach((round, roundIndex) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
+    players.forEach((_, playerIndex) => {
+      const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] == 0 ? '-' : round[playerIndex]) : '-';
+      row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
+    });
+    scoreBody.appendChild(row);
+  });
 
-      const inputRow = document.createElement('tr');
-      inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
-      players.forEach((player, index) => {
-        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}"/></td>`;
-      });
-      scoreBody.appendChild(inputRow);
+  const inputRow = document.createElement('tr');
+  inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
+  players.forEach((player, index) => {
+    inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}"/></td>`;
+  });
+  scoreBody.appendChild(inputRow);
 
-      if (rounds.length > 0) {
-        updateRankings();
+  if (rounds.length > 0) {
+    updateRankings();
+  }
+
+  const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+  inputs.forEach(input => {
+    input.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter' || event.key === 'Tab') {
+        event.preventDefault();
+        if (allInputsFilled(inputs)) {
+          addRoundScores();
+        }
       }
-
-      const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-      inputs.forEach(input => {
-        input.addEventListener('keypress', function(event) {
-          if (event.key === 'Enter' || event.key === 'Tab') {
-            event.preventDefault();
-            if (allInputsFilled(inputs)) {
-              addRoundScores();
-            }
-          }
-        });
-        input.addEventListener('keydown', function(event) {
-          if (event.key === 'Tab') {
-            event.preventDefault();
-            if (allInputsFilled(inputs)) {
-              addRoundScores();
-            }
-          }
-        });
-      });
-    }
+    });
+    input.addEventListener('keydown', function(event) {
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        if (allInputsFilled(inputs)) {
+          addRoundScores();
+        }
+      }
+    });
+  });
+}
 
     function getRank(score) {
       if (players.length === 1) return "1st";
