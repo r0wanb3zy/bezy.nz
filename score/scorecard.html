@@ -85,7 +85,6 @@
       line-height: 5px;
       overflow: hidden;
     }
-    /* Popup styling to match Yahtzee */
     .popup-modal {
       display: none;
       position: fixed;
@@ -167,13 +166,10 @@
   <div id="overlay"></div>
 
   <script>
-    // Initial setup with localStorage
     if (!localStorage.getItem('initialized')) {
       players = [
-        { name: "RB", totalScore: 0, roundScores: [] },
-        { name: "AB", totalScore: 0, roundScores: [] },
-        { name: "P3", totalScore: 0, roundScores: [] },
-        { name: "P4", totalScore: 0, roundScores: [] }
+        { name: "P1", totalScore: 0, roundScores: [] },
+        { name: "P2", totalScore: 0, roundScores: [] }
       ];
       rounds = [];
       localStorage.setItem('initialized', 'true');
@@ -227,7 +223,7 @@
         const row = document.createElement("tr");
         row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
         players.forEach((_, playerIndex) => {
-          const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] === 0 ? '-' : round[playerIndex]) : '-';
+          const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] == 0 ? '-' : round[playerIndex]) : '-';
           row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
         });
         scoreBody.appendChild(row);
@@ -266,6 +262,7 @@
     }
 
     function getRank(score) {
+      if (players.length === 1) return "1st";
       const sortedPlayers = [...players];
       if (scoringMode === "highest") {
         sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
@@ -294,7 +291,7 @@
     }
 
     function updateRankings() {
-      if (rounds.length === 0) return; // Skip if no rounds
+      if (rounds.length === 0 || players.length === 1) return;
 
       const sortedPlayers = [...players];
       if (scoringMode === "highest") {
@@ -306,7 +303,6 @@
       const playerRow = document.getElementById("playerRow");
       const columns = Array.from(playerRow.children).slice(1);
 
-      // Ensure columns match players length
       if (columns.length !== players.length) {
         console.error("Mismatch between players and columns!", players.length, columns.length);
         return;
@@ -315,23 +311,31 @@
       // Clear existing highlights
       columns.forEach((th) => th.classList.remove("highlight-winner", "highlight-loser"));
 
-      // Highlight based on rank 1 and last
-      const winner = sortedPlayers[0];
-      const loser = sortedPlayers[sortedPlayers.length - 1];
+      // Get winning and losing scores
+      const winningScore = sortedPlayers[0].totalScore;
+      const losingScore = sortedPlayers[sortedPlayers.length - 1].totalScore;
 
-      players.forEach((player, index) => {
-        if (player.name === winner.name && ((scoringMode === "highest" && player.totalScore === winner.totalScore) || (scoringMode === "lowest" && player.totalScore === winner.totalScore))) {
-          columns[index].classList.add("highlight-winner"); // Highlight first winner only
-          return; // Stop after first match to avoid tie issues
-        }
-      });
+      // Check if all players have the same score
+      const allSameScore = players.every(player => player.totalScore === winningScore);
 
-      players.forEach((player, index) => {
-        if (player.name === loser.name && ((scoringMode === "highest" && player.totalScore === loser.totalScore) || (scoringMode === "lowest" && player.totalScore === loser.totalScore))) {
-          columns[index].classList.add("highlight-loser"); // Highlight last loser only
-          return; // Stop after first match
-        }
-      });
+      if (allSameScore) {
+        // If all scores are equal, highlight all as winners
+        columns.forEach((th) => th.classList.add("highlight-winner"));
+      } else {
+        // Highlight all winners
+        players.forEach((player, index) => {
+          if (player.totalScore === winningScore) {
+            columns[index].classList.add("highlight-winner");
+          }
+        });
+
+        // Highlight all losers
+        players.forEach((player, index) => {
+          if (player.totalScore === losingScore) {
+            columns[index].classList.add("highlight-loser");
+          }
+        });
+      }
     }
 
     function removePlayer(index) {
@@ -392,7 +396,7 @@
       modal.innerHTML = `
         <h2>Round Management</h2>
         <select id="playerCount" onchange="updatePlayerCount()">
-          ${[2,3,4,5,6,7,8].map(i => `<option value="${i}" ${players.length === i ? 'selected' : ''}>${i} Players</option>`).join('')}
+          ${[1,2,3,4,5,6,7,8].map(i => `<option value="${i}" ${players.length === i ? 'selected' : ''}>${i} Players</option>`).join('')}
         </select>
         <button onclick="toggleScoringMode(); updateUI(); closePopup('roundManagementModal')">Toggle ${scoringMode === 'highest' ? 'High' : 'Low'}</button>
         <button onclick="resetScores()">Reset</button>
@@ -445,7 +449,7 @@
         rounds.splice(roundIndex, 1);
         players.forEach(player => {
           player.roundScores.splice(roundIndex, 1);
-          player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
+          player.totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
         });
         saveData();
         updateUI();
