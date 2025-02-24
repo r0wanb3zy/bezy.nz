@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scorecard</title>
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
-<style>
+  <style>
     body {
       font-family: 'Economica', sans-serif;
       font-size: 22px;
@@ -44,9 +44,14 @@
     #scoreTable thead th {
       height: 75px;
       font-family: 'Economica', sans-serif;
+      font-size: 22px; /* Player name size matches Yahtzee */
     }
-    table th span:last-child {
-      font-size: 14px;
+    #scoreTable thead th span.score {
+      font-size: 22px; /* Score size matches Yahtzee */
+      font-family: 'Economica', sans-serif;
+    }
+    #scoreTable thead th small {
+      font-size: 16px; /* Rank size matches Yahtzee */
       font-family: 'Economica', sans-serif;
     }
     table input {
@@ -148,10 +153,7 @@
       z-index: 999;
       cursor: pointer;
     }
-    .small-score {
-      font-size: 16px; /* Reduced font size for scores >= 1000 with 8 players */
-    }
-  </style>
+</style>
 </head>
 <body>
   <table id="scoreTable">
@@ -172,7 +174,9 @@
     if (!localStorage.getItem('initialized')) {
       players = [
         { name: "P1", totalScore: 0, roundScores: [] },
-        { name: "P2", totalScore: 0, roundScores: [] }
+        { name: "P2", totalScore: 0, roundScores: [] },
+        { name: "P3", totalScore: 0, roundScores: [] },
+        { name: "P4", totalScore: 0, roundScores: [] }
       ];
       rounds = [];
       localStorage.setItem('initialized', 'true');
@@ -207,65 +211,95 @@
     }
 
     function updateUI() {
-      const playerRow = document.getElementById("playerRow");
-      playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
-      players.forEach((player, index) => {
-        const totalScoreDisplay = player.totalScore === 0 && rounds.length === 0 ? '-' : (player.totalScore === 0 ? '0' : player.totalScore);
-        const totalScoreClass = (players.length === 8 && Math.abs(player.totalScore) >= 1000) ? 'small-score' : '';
-        playerRow.innerHTML += `
-          <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
-            ${player.name}
-            <br>
-            <span class="${totalScoreClass}">${totalScoreDisplay}</span>
-            ${rounds.length > 0 ? `<br><span>${getRank(player.totalScore)}</span>` : ''}
-          </th>
-        `;
-      });
+  const playerRow = document.getElementById("playerRow");
+  playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
+  players.forEach((player, index) => {
+    playerRow.innerHTML += `
+      <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
+        ${player.name}
+        <br>
+        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+      </th>
+    `;
+  });
 
-      const scoreBody = document.getElementById("scoreBody");
-      scoreBody.innerHTML = "";
-      rounds.forEach((round, roundIndex) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
-        players.forEach((_, playerIndex) => {
-          const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] == 0 ? '-' : round[playerIndex]) : '-';
-          const scoreClass = (players.length === 8 && Math.abs(round[playerIndex]) >= 1000) ? 'small-score' : '';
-          row.innerHTML += `<td class="${scoreClass}" contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
-        });
-        scoreBody.appendChild(row);
-      });
+  const scoreBody = document.getElementById("scoreBody");
+  scoreBody.innerHTML = "";
+  rounds.forEach((round, roundIndex) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
+    players.forEach((_, playerIndex) => {
+      const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] == 0 ? '-' : round[playerIndex]) : '-';
+      row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
+    });
+    scoreBody.appendChild(row);
+  });
 
-      const inputRow = document.createElement('tr');
-      inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
-      players.forEach((player, index) => {
-        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}"/></td>`;
-      });
-      scoreBody.appendChild(inputRow);
+  const inputRow = document.createElement('tr');
+  inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
+  players.forEach((player, index) => {
+    inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" /></td>`;
+  });
+  scoreBody.appendChild(inputRow);
 
-      if (rounds.length > 0) {
-        updateRankings();
+  if (rounds.length > 0) {
+    updateRankings();
+  }
+
+  const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+  inputs.forEach((input, index) => {
+    // Handle physical keyboard Enter key
+    input.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' || event.keyCode === 13) {
+        event.preventDefault();
+        handleInputSubmission(inputs, index);
       }
+    });
 
-      const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-      inputs.forEach(input => {
-        input.addEventListener('keypress', function(event) {
-          if (event.key === 'Enter' || event.key === 'Tab') {
-            event.preventDefault();
-            if (allInputsFilled(inputs)) {
-              addRoundScores();
-            }
-          }
-        });
-        input.addEventListener('keydown', function(event) {
-          if (event.key === 'Tab') {
-            event.preventDefault();
-            if (allInputsFilled(inputs)) {
-              addRoundScores();
-            }
-          }
-        });
-      });
+    // Handle Android numeric keyboard "Done" or "Submit" action
+    input.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter' || event.keyCode === 13) {
+        event.preventDefault();
+        handleInputSubmission(inputs, index);
+      }
+    });
+
+    // Ensure IME action triggers submission
+    input.setAttribute('imeOptions', 'actionDone'); // Optional: Suggests "Done" action on keyboard
+    input.addEventListener('input', function() {
+      // Optional: Trigger on input change if needed
+    });
+  });
+}
+
+// Helper function to handle submission logic
+function handleInputSubmission(inputs, index) {
+  const allFilled = allInputsFilled(inputs);
+
+  if (allFilled) {
+    addRoundScores();
+    inputs[0].focus(); // Reset focus to first input after submission
+  } else {
+    if (index < inputs.length - 1) {
+      inputs[index + 1].focus(); // Move to next input
+    } else {
+      const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
+      if (firstEmpty !== -1) {
+        inputs[firstEmpty].focus(); // Focus on first empty input
+      } else {
+        inputs[0].focus(); // Reset to first input if all filled
+      }
     }
+  }
+}
+
+// Assuming this function exists to check if all inputs are filled
+function allInputsFilled(inputs) {
+  return Array.from(inputs).every(input => input.value.trim() !== '');
+}
+
+
 
     function getRank(score) {
       if (players.length === 1) return "1st";
