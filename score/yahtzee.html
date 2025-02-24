@@ -758,7 +758,7 @@ function updateRanks() {
 
     if (!anyScoreEntered) {
         totalScores.forEach(scoreElement => {
-            scoreElement.textContent = "-";
+            scoreElement.textContent = ""; // Changed from "-" to "" to remove the dash
             // Clear any existing rank element
             while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
                 scoreElement.parentElement.removeChild(scoreElement.nextSibling);
