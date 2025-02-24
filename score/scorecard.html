@@ -125,13 +125,11 @@
       border: 1px solid black;
     }
     .popup-modal select {
-      /* Removed width: 100% to match Yahtzee implicitly */
       font-size: 24px;
       padding: 10px;
       margin: 5px 0;
       font-family: 'Economica', sans-serif;
     }
-    /* Specific styling to match Yahtzee’s #roundManagementModal select */
     #roundManagementModal select {
       font-size: 24px;
       padding: 10px;
@@ -145,7 +143,6 @@
       cursor: pointer;
       font-family: 'Economica', sans-serif;
     }
-    /* Overlay styling to match Yahtzee */
     #overlay {
       display: none;
       position: fixed;
@@ -302,6 +299,8 @@
     }
 
     function updateRankings() {
+      if (rounds.length === 0) return; // Skip if no rounds
+
       const sortedPlayers = [...players];
       if (scoringMode === "highest") {
         sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
@@ -311,26 +310,33 @@
 
       const playerRow = document.getElementById("playerRow");
       const columns = Array.from(playerRow.children).slice(1);
+
+      // Ensure columns match players length
+      if (columns.length !== players.length) {
+        console.error("Mismatch between players and columns!", players.length, columns.length);
+        return;
+      }
+
+      // Clear existing highlights
       columns.forEach((th) => th.classList.remove("highlight-winner", "highlight-loser"));
 
-      const allScoresSame = players.every(player => player.totalScore === players[0].totalScore);
+      // Highlight based on rank 1 and last
+      const winner = sortedPlayers[0];
+      const loser = sortedPlayers[sortedPlayers.length - 1];
 
-      if (allScoresSame) {
-        columns.forEach(th => th.classList.add("highlight-winner"));
-      } else {
-        const highestScore = sortedPlayers[0].totalScore;
-        const lowestScore = sortedPlayers[sortedPlayers.length - 1].totalScore;
+      players.forEach((player, index) => {
+        if (player.name === winner.name && ((scoringMode === "highest" && player.totalScore === winner.totalScore) || (scoringMode === "lowest" && player.totalScore === winner.totalScore))) {
+          columns[index].classList.add("highlight-winner"); // Highlight first winner only
+          return; // Stop after first match to avoid tie issues
+        }
+      });
 
-        sortedPlayers.forEach((player, index) => {
-          const playerIndex = players.findIndex(p => p.name === player.name);
-          if (player.totalScore === highestScore) {
-            columns[playerIndex].classList.add("highlight-winner");
-          }
-          if (player.totalScore === lowestScore) {
-            columns[playerIndex].classList.add("highlight-loser");
-          }
-        });
-      }
+      players.forEach((player, index) => {
+        if (player.name === loser.name && ((scoringMode === "highest" && player.totalScore === loser.totalScore) || (scoringMode === "lowest" && player.totalScore === loser.totalScore))) {
+          columns[index].classList.add("highlight-loser"); // Highlight last loser only
+          return; // Stop after first match
+        }
+      });
     }
 
     function removePlayer(index) {
