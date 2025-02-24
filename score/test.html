@@ -283,7 +283,7 @@
         rounds[roundIndex][playerIndex] = score;
         if (players[playerIndex] && players[playerIndex].roundScores[roundIndex] !== undefined) {
           players[playerIndex].roundScores[roundIndex] = score;
-          players[index].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+          players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
         }
       }
       saveData();
@@ -335,8 +335,6 @@
         <h2>Manage ${players[index].name}</h2>
         <input type="text" id="playerNameInput" value="${players[index].name}" autocapitalize="characters" inputmode="text">
         <button onclick="updatePlayerName(${index})">Update</button>
-        <button onclick="movePlayerLeft(${index})">Move Left</button>
-        <button onclick="movePlayerRight(${index})">Move Right</button>
         <button onclick="confirmRemovePlayer(${index})">Remove Player</button>
         <button onclick="closePopup('playerManagementModal')">Close</button>
       `;
@@ -358,38 +356,6 @@
       const newName = input.value.trim().toUpperCase();
       if (newName && newName !== players[index].name) {
         players[index].name = newName;
-        saveData();
-        updateUI();
-        closePopup('playerManagementModal');
-      }
-    }
-
-    function movePlayerLeft(index) {
-      if (index > 0) {
-        let temp = players[index - 1];
-        players[index - 1] = players[index];
-        players[index] = temp;
-        rounds.forEach(round => {
-          let tempScore = round[index - 1];
-          round[index - 1] = round[index];
-          round[index] = tempScore;
-        });
-        saveData();
-        updateUI();
-        closePopup('playerManagementModal');
-      }
-    }
-
-    function movePlayerRight(index) {
-      if (index < players.length - 1) {
-        let temp = players[index + 1];
-        players[index + 1] = players[index];
-        players[index] = temp;
-        rounds.forEach(round => {
-          let tempScore = round[index + 1];
-          round[index + 1] = round[index];
-          round[index] = tempScore;
-        });
         saveData();
         updateUI();
         closePopup('playerManagementModal');
