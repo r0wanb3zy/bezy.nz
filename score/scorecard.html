@@ -239,7 +239,9 @@
   const inputRow = document.createElement('tr');
   inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
   players.forEach((player, index) => {
-    inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" /></td>`;
+    // Set imeOptions based on position: "next" for all but last, "done" for last
+    const imeOption = index === players.length - 1 ? 'actionDone' : 'actionNext';
+    inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" imeOptions="${imeOption}" /></td>`;
   });
   scoreBody.appendChild(inputRow);
 
@@ -250,30 +252,38 @@
   const inputs = document.querySelectorAll("#scoreTable input[type='number']");
   inputs.forEach((input, index) => {
     input.addEventListener('keydown', function(event) {
-      // Detect Enter key (↵) with key or keyCode
+      // Handle Enter key (for consistency) and IME action simulation
       if (event.key === 'Enter' || event.keyCode === 13) {
         event.preventDefault();
         const allFilled = allInputsFilled(inputs);
-
         if (allFilled) {
-          // Submit the round if all inputs are filled
           addRoundScores();
-          inputs[0].focus(); // Reset focus to first input after submission
+          inputs[0].focus();
+        } else if (index < inputs.length - 1) {
+          inputs[index + 1].focus();
         } else {
-          // Only move focus if not all inputs are filled
-          if (index < inputs.length - 1) {
-            inputs[index + 1].focus();
+          const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
+          if (firstEmpty !== -1) {
+            inputs[firstEmpty].focus();
           } else {
-            const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
-            if (firstEmpty !== -1) {
-              inputs[firstEmpty].focus();
-            } else {
-              inputs[0].focus();
-            }
+            inputs[0].focus();
           }
         }
       }
     });
+
+    // Handle IME "Next" or "Done" action
+    input.onkeypress = function(event) {
+      // IME actions often trigger keypress with keyCode 13 or no keyCode on last input
+      if (event.keyCode === 13 || (index === inputs.length - 1 && allInputsFilled(inputs))) {
+        event.preventDefault();
+        const allFilled = allInputsFilled(inputs);
+        if (allFilled) {
+          addRoundScores();
+          inputs[0].focus();
+        }
+      }
+    };
   });
 }
 
