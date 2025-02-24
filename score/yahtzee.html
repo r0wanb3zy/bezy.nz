@@ -138,27 +138,29 @@
         }
 
         #popupOptions {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(40px, 1fr)); /* Adjusted for consistency */
-            gap: 5px;
-            justify-items: center; /* Center items in grid cells */
-        }
+    display: grid;
+    grid-template-columns: repeat(5, 40px); /* Fixed width for consistency */
+    gap: 10px; /* Equal gap between rows and columns */
+    justify-content: center; /* Center the grid in the modal */
+    padding: 10px 0; /* Add vertical padding to balance space */
+}
 
-        #popupOptions button {
-            width: 40px;
-            height: 40px;
-            font-size: 24px;
-            padding: 0;
-            box-sizing: border-box;
-            cursor: pointer;
-            font-family: 'Economica', sans-serif, Arial; /* Added fallback */
-            display: flex; /* Added for centering */
-            justify-content: center; /* Center horizontally */
-            align-items: center; /* Center vertically */
-            text-align: center; /* Fallback */
-            overflow: hidden; /* Prevent overflow issues */
-            white-space: nowrap; /* Prevent wrapping */
-        }
+#popupOptions button {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    padding: 0; /* Remove padding to rely on width/height */
+    margin: 0; /* Ensure no extra margins */
+    box-sizing: border-box;
+    cursor: pointer;
+    font-family: 'Economica', sans-serif, Arial;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+}
 
         #roundManagementModal {
             display: none;
