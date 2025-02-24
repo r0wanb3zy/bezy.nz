@@ -385,18 +385,6 @@ table td {
     <div id="overlay" style="display: none;"></div>
 
     <script>
-document.addEventListener("DOMContentLoaded", function() {
-    setTimeout(() => {
-        requestAnimationFrame(() => {
-            const table = document.getElementById("scoreTable");
-            if (table) {
-                table.style.height = "100vh";
-            }
-        });
-    }, 100); // small delay
-});
-
-        
         document.addEventListener('DOMContentLoaded', function() {
             let savedPlayerCount = localStorage.getItem('playerCount');
             if (savedPlayerCount) {
