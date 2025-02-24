@@ -239,7 +239,6 @@
   const inputRow = document.createElement('tr');
   inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
   players.forEach((player, index) => {
-    // Set imeOptions based on position: "next" for all but last, "done" for last
     const imeOption = index === players.length - 1 ? 'actionDone' : 'actionNext';
     inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" imeOptions="${imeOption}" /></td>`;
   });
@@ -250,41 +249,54 @@
   }
 
   const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+  
+  // Function to check and submit if all filled
+  const trySubmitScores = () => {
+    const allFilled = allInputsFilled(inputs);
+    if (allFilled) {
+      addRoundScores();
+      inputs[0].focus(); // Reset focus after submission
+      return true;
+    }
+    return false;
+  };
+
   inputs.forEach((input, index) => {
+    // Handle Enter key explicitly
     input.addEventListener('keydown', function(event) {
-      // Handle Enter key (for consistency) and IME action simulation
       if (event.key === 'Enter' || event.keyCode === 13) {
         event.preventDefault();
-        const allFilled = allInputsFilled(inputs);
-        if (allFilled) {
-          addRoundScores();
-          inputs[0].focus();
-        } else if (index < inputs.length - 1) {
-          inputs[index + 1].focus();
-        } else {
-          const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
-          if (firstEmpty !== -1) {
-            inputs[firstEmpty].focus();
-          } else {
-            inputs[0].focus();
-          }
-        }
+        trySubmitScores();
       }
     });
 
-    // Handle IME "Next" or "Done" action
-    input.onkeypress = function(event) {
-      // IME actions often trigger keypress with keyCode 13 or no keyCode on last input
-      if (event.keyCode === 13 || (index === inputs.length - 1 && allInputsFilled(inputs))) {
-        event.preventDefault();
-        const allFilled = allInputsFilled(inputs);
-        if (allFilled) {
-          addRoundScores();
-          inputs[0].focus();
-        }
+    // Handle "Next" by checking on blur (when focus shifts)
+    input.addEventListener('blur', function(event) {
+      // Only attempt submission if this was triggered by "Next" moving focus
+      if (document.activeElement !== input && document.activeElement.tagName === 'INPUT') {
+        trySubmitScores();
       }
-    };
+    });
+
+    // Set IME options dynamically via JS for better control
+    input.setAttribute('imeOptions', index === inputs.length - 1 ? 'actionDone' : 'actionNext');
+    
+    // Add input event to catch value changes and try submission
+    input.addEventListener('input', function() {
+      if (index === inputs.length - 1 && allInputsFilled(inputs)) {
+        trySubmitScores();
+      }
+    });
   });
+
+  // Override default form-like submission if wrapped in a form
+  const scoreTable = document.getElementById("scoreTable");
+  if (scoreTable.form) {
+    scoreTable.form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      trySubmitScores();
+    });
+  }
 }
 
 
