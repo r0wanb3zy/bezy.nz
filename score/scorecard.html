@@ -239,8 +239,7 @@
   const inputRow = document.createElement('tr');
   inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
   players.forEach((player, index) => {
-    const imeOption = index === players.length - 1 ? 'actionDone' : 'actionNext';
-    inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" imeOptions="${imeOption}" /></td>`;
+    inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" imeOptions="actionDone" /></td>`;
   });
   scoreBody.appendChild(inputRow);
 
@@ -249,20 +248,29 @@
   }
 
   const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-  
-  // Function to check and submit if all filled
+
+  // Function to check and submit scores
   const trySubmitScores = () => {
     const allFilled = allInputsFilled(inputs);
     if (allFilled) {
       addRoundScores();
-      inputs[0].focus(); // Reset focus after submission
+      setTimeout(() => inputs[0].focus(), 0); // Reset focus after UI update
       return true;
     }
     return false;
   };
 
-  inputs.forEach((input, index) => {
-    // Handle Enter key explicitly
+  // Wrap inputs in a form to catch IME actions
+  const scoreTable = document.getElementById("scoreTable");
+  scoreTable.innerHTML = `<form id="scoreForm">${scoreTable.innerHTML}</form>`;
+  const form = document.getElementById("scoreForm");
+  const formInputs = form.querySelectorAll("input[type='number']");
+
+  formInputs.forEach((input, index) => {
+    // Set all inputs to actionDone for consistency
+    input.setAttribute('imeOptions', 'actionDone');
+
+    // Handle Enter key
     input.addEventListener('keydown', function(event) {
       if (event.key === 'Enter' || event.keyCode === 13) {
         event.preventDefault();
@@ -270,33 +278,27 @@
       }
     });
 
-    // Handle "Next" by checking on blur (when focus shifts)
-    input.addEventListener('blur', function(event) {
-      // Only attempt submission if this was triggered by "Next" moving focus
-      if (document.activeElement !== input && document.activeElement.tagName === 'INPUT') {
-        trySubmitScores();
+    // Handle focus attempts to intercept "Next"
+    input.addEventListener('focus', function(event) {
+      if (trySubmitScores()) {
+        event.preventDefault(); // Block focus if submitting
+        input.blur(); // Remove focus to avoid shifting
       }
     });
 
-    // Set IME options dynamically via JS for better control
-    input.setAttribute('imeOptions', index === inputs.length - 1 ? 'actionDone' : 'actionNext');
-    
-    // Add input event to catch value changes and try submission
-    input.addEventListener('input', function() {
-      if (index === inputs.length - 1 && allInputsFilled(inputs)) {
+    // Catch input changes on last field
+    if (index === formInputs.length - 1) {
+      input.addEventListener('input', function() {
         trySubmitScores();
-      }
-    });
+      });
+    }
   });
 
-  // Override default form-like submission if wrapped in a form
-  const scoreTable = document.getElementById("scoreTable");
-  if (scoreTable.form) {
-    scoreTable.form.addEventListener('submit', function(event) {
-      event.preventDefault();
-      trySubmitScores();
-    });
-  }
+  // Catch form submission from IME action
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    trySubmitScores();
+  });
 }
 
 
