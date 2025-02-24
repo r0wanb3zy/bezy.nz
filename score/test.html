@@ -217,8 +217,8 @@
 
 
 
-    
-    function updateUI() {
+
+function updateUI() {
   const playerRow = document.getElementById("playerRow");
   playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
   players.forEach((player, index) => {
@@ -257,39 +257,29 @@
 
   const inputs = document.querySelectorAll("#scoreTable input[type='number']");
   inputs.forEach((input, index) => {
-    // Handle both Enter key and Android "Done" action
+    // Set IME options to suggest "Done" (behavior depends on keyboard)
+    input.setAttribute('imeOptions', 'actionDone');
+
+    // Handle Enter/Done key press
     input.addEventListener('keydown', function(event) {
       if (event.key === 'Enter' || event.keyCode === 13) {
         event.preventDefault();
-        handleInputAction(inputs, index);
+        if (allInputsFilled(inputs)) {
+          addRoundScores(); // Submit scores
+          clearInputs(inputs); // Clear for next round
+          inputs[0].focus(); // Reset focus to first input
+        }
       }
     });
 
-    // Handle input change to check if all are filled
+    // Update keyboard state on input (optional, for visual feedback)
     input.addEventListener('input', function() {
-      handleInputAction(inputs, index);
+      updateKeyboardState(inputs);
     });
-
-    // Optional: Suggest "Done" action on Android keyboard
-    input.setAttribute('imeOptions', 'actionDone');
   });
-}
 
-// Helper function to handle input actions
-function handleInputAction(inputs, currentIndex) {
-  const allFilled = allInputsFilled(inputs);
-
-  if (allFilled) {
-    addRoundScores(); // Submit the round
-    inputs[0].focus(); // Reset focus to first input
-    clearInputs(inputs); // Clear inputs for next round
-  } else {
-    // Move focus to the next empty input, looping back if needed
-    const nextEmptyIndex = findNextEmptyInput(inputs, currentIndex);
-    if (nextEmptyIndex !== -1 && nextEmptyIndex !== currentIndex) {
-      inputs[nextEmptyIndex].focus();
-    }
-  }
+  // Initial keyboard state setup
+  updateKeyboardState(inputs);
 }
 
 // Check if all inputs are filled
@@ -297,21 +287,21 @@ function allInputsFilled(inputs) {
   return Array.from(inputs).every(input => input.value.trim() !== '');
 }
 
-// Find the next empty input, starting after the current index
-function findNextEmptyInput(inputs, currentIndex) {
-  const inputArray = Array.from(inputs);
-  for (let i = 1; i <= inputArray.length; i++) {
-    const nextIndex = (currentIndex + i) % inputArray.length;
-    if (inputArray[nextIndex].value.trim() === '') {
-      return nextIndex;
-    }
-  }
-  return -1; // No empty inputs found
-}
-
 // Clear all inputs after submission
 function clearInputs(inputs) {
   inputs.forEach(input => input.value = '');
+}
+
+// Update keyboard IME options based on whether all fields are filled
+function updateKeyboardState(inputs) {
+  const allFilled = allInputsFilled(inputs);
+  inputs.forEach((input, index) => {
+    if (allFilled) {
+      input.setAttribute('imeOptions', 'actionDone'); // Show "Done" when all filled
+    } else {
+      input.setAttribute('imeOptions', 'actionNext'); // Show "Next" otherwise
+    }
+  });
 }
 
 
