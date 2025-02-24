@@ -4,7 +4,7 @@
 <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Yahtzee Scorecard</title>
     <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
     <style>
@@ -23,7 +23,7 @@ body {
 }
 
 #scoreTable {
-    height: 100vh;
+    height: 100vh; /* Fallback for non-JS scenarios */
     overflow-y: auto;
 }
 
@@ -385,38 +385,52 @@ table td {
     <div id="overlay" style="display: none;"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Function to set the table height to the full window height
+        function setFullHeight() {
+            const table = document.getElementById("scoreTable");
+            if (table) {
+                table.style.height = `${window.innerHeight}px`;
+            }
+        }
+
+        // Set height on initial load
+        document.addEventListener("DOMContentLoaded", function() {
+            setFullHeight(); // Set height immediately
+
             let savedPlayerCount = localStorage.getItem('playerCount');
             if (savedPlayerCount) {
                 document.getElementById('playerCount').value = savedPlayerCount;
                 updatePlayerCount(); // This will update the UI with the saved count
             } else {
-                // Set default to 2 players if no saved data
+                // Set default to 4 players if no saved data
                 document.getElementById('playerCount').value = '4';
                 updatePlayerCount(); // Update UI with default count
             }
             loadScores(); // Load saved scores
             // Since player count has changed, we need to ensure event listeners are in place
             reattachEventListeners();
-                // Load player names
-    const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
-    headers.forEach(header => {
-        const player = header.getAttribute('data-player');
-        const savedName = localStorage.getItem(`playerName-${player}`);
-        if (savedName) {
-            const totalDiv = header.querySelector('div');
-            header.innerHTML = `${savedName}<div id="${totalDiv.id}">${totalDiv.textContent}</div>`;
-        }
-    });
-        // Add Enter key event listener to the player name input
-    const playerNameInput = document.getElementById('playerNameInput');
-    playerNameInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            updatePlayerName();
-            closePlayerNameModal();
-        }
-    });
-});
+            // Load player names
+            const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
+            headers.forEach(header => {
+                const player = header.getAttribute('data-player');
+                const savedName = localStorage.getItem(`playerName-${player}`);
+                if (savedName) {
+                    const totalDiv = header.querySelector('div');
+                    header.innerHTML = `${savedName}<div id="${totalDiv.id}">${totalDiv.textContent}</div>`;
+                }
+            });
+            // Add Enter key event listener to the player name input
+            const playerNameInput = document.getElementById('playerNameInput');
+            playerNameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    updatePlayerName();
+                    closePlayerNameModal();
+                }
+            });
+        });
+
+        // Update height on window resize (e.g., address bar hiding/showing)
+        window.addEventListener('resize', setFullHeight);
 
         function calculateTotal(player) {
             let total = 0;
