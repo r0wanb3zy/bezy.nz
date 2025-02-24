@@ -250,25 +250,26 @@
   const inputs = document.querySelectorAll("#scoreTable input[type='number']");
   inputs.forEach((input, index) => {
     input.addEventListener('keydown', function(event) {
-      // Handle Enter (keyCode 13) and Tab (keyCode 9) for Android compatibility
-      if (event.key === 'Enter' || event.keyCode === 13 || event.key === 'Tab' || event.keyCode === 9) {
+      // Detect Enter key (↵) with key or keyCode
+      if (event.key === 'Enter' || event.keyCode === 13) {
         event.preventDefault();
         const allFilled = allInputsFilled(inputs);
 
         if (allFilled) {
-          // If all inputs are filled, submit the round and reset focus
+          // Submit the round if all inputs are filled
           addRoundScores();
-          inputs[0].focus(); // Move focus back to first input after submission
-        } else if (index < inputs.length - 1) {
-          // Move to the next input if not the last one
-          inputs[index + 1].focus();
+          inputs[0].focus(); // Reset focus to first input after submission
         } else {
-          // If last input and not all filled, loop to first empty input
-          const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
-          if (firstEmpty !== -1) {
-            inputs[firstEmpty].focus();
+          // Only move focus if not all inputs are filled
+          if (index < inputs.length - 1) {
+            inputs[index + 1].focus();
           } else {
-            inputs[0].focus(); // Fallback to first input
+            const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
+            if (firstEmpty !== -1) {
+              inputs[firstEmpty].focus();
+            } else {
+              inputs[0].focus();
+            }
           }
         }
       }
