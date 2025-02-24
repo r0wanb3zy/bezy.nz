@@ -393,8 +393,8 @@
         <select id="playerCount" onchange="updatePlayerCount()">
           ${[2,3,4,5,6,7,8].map(i => `<option value="${i}" ${players.length === i ? 'selected' : ''}>${i} Players</option>`).join('')}
         </select>
-        <button onclick="resetScores()">Reset</button>
         <button onclick="toggleScoringMode(); updateUI(); closePopup('roundManagementModal')">Toggle ${scoringMode === 'highest' ? 'High' : 'Low'}</button>
+        <button onclick="resetScores()">Reset</button>
         <button onclick="closePopup('roundManagementModal')">Close</button>
       `;
       modal.style.display = 'block';
