@@ -211,7 +211,7 @@
           <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
             ${player.name}
             <br>
-            <span>${player.totalScore === 0 && rounds.length === 0 ? '-' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+            <span>${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
             ${rounds.length > 0 ? `<br><span>${getRank(player.totalScore)}</span>` : ''}
           </th>
         `;
@@ -449,7 +449,7 @@
         rounds.splice(roundIndex, 1);
         players.forEach(player => {
           player.roundScores.splice(roundIndex, 1);
-          player.totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+          player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
         });
         saveData();
         updateUI();
