@@ -210,6 +210,14 @@
       localStorage.setItem('scoringMode', scoringMode);
     }
 
+
+
+
+
+
+
+
+    
     function updateUI() {
   const playerRow = document.getElementById("playerRow");
   playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
@@ -249,29 +257,75 @@
 
   const inputs = document.querySelectorAll("#scoreTable input[type='number']");
   inputs.forEach((input, index) => {
-    // Handle physical keyboard Enter key
+    // Handle both Enter key and Android "Done" action
     input.addEventListener('keydown', function(event) {
       if (event.key === 'Enter' || event.keyCode === 13) {
         event.preventDefault();
-        handleInputSubmission(inputs, index);
+        handleInputAction(inputs, index);
       }
     });
 
-    // Handle Android numeric keyboard "Done" or "Submit" action
-    input.addEventListener('keypress', function(event) {
-      if (event.key === 'Enter' || event.keyCode === 13) {
-        event.preventDefault();
-        handleInputSubmission(inputs, index);
-      }
-    });
-
-    // Ensure IME action triggers submission
-    input.setAttribute('imeOptions', 'actionDone'); // Optional: Suggests "Done" action on keyboard
+    // Handle input change to check if all are filled
     input.addEventListener('input', function() {
-      // Optional: Trigger on input change if needed
+      handleInputAction(inputs, index);
     });
+
+    // Optional: Suggest "Done" action on Android keyboard
+    input.setAttribute('imeOptions', 'actionDone');
   });
 }
+
+// Helper function to handle input actions
+function handleInputAction(inputs, currentIndex) {
+  const allFilled = allInputsFilled(inputs);
+
+  if (allFilled) {
+    addRoundScores(); // Submit the round
+    inputs[0].focus(); // Reset focus to first input
+    clearInputs(inputs); // Clear inputs for next round
+  } else {
+    // Move focus to the next empty input, looping back if needed
+    const nextEmptyIndex = findNextEmptyInput(inputs, currentIndex);
+    if (nextEmptyIndex !== -1 && nextEmptyIndex !== currentIndex) {
+      inputs[nextEmptyIndex].focus();
+    }
+  }
+}
+
+// Check if all inputs are filled
+function allInputsFilled(inputs) {
+  return Array.from(inputs).every(input => input.value.trim() !== '');
+}
+
+// Find the next empty input, starting after the current index
+function findNextEmptyInput(inputs, currentIndex) {
+  const inputArray = Array.from(inputs);
+  for (let i = 1; i <= inputArray.length; i++) {
+    const nextIndex = (currentIndex + i) % inputArray.length;
+    if (inputArray[nextIndex].value.trim() === '') {
+      return nextIndex;
+    }
+  }
+  return -1; // No empty inputs found
+}
+
+// Clear all inputs after submission
+function clearInputs(inputs) {
+  inputs.forEach(input => input.value = '');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Helper function to handle submission logic
 function handleInputSubmission(inputs, index) {
