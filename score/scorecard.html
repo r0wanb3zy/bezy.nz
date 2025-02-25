@@ -18,8 +18,8 @@
     background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
     min-height: 100vh;
     background-size: cover;
-    overflow: hidden; /* Disable scrolling on the body */
-    touch-action: none; /* Prevent touch scrolling on mobile */
+    overflow: hidden;
+    touch-action: none;
   }
   h1 {
     text-align: center;
@@ -41,17 +41,28 @@
     border-bottom: 1px solid rgba(200, 200, 200, 0.3);
   }
   table th {
-    background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%); /* Changed from blue to dark black */
+    background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
     color: white;
   }
-  table th:first-child, table td:first-child {
-    background: #ddd;
+  table th:first-child {
+    background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%); /* Gradient for top-left cell */
     font-weight: bold;
     width: 30px;
     min-width: 30px;
     max-width: 30px;
     overflow: hidden;
-    color: #333;
+    color: white;
+    border-bottom: 1px solid #333333; /* Dark line */
+  }
+  table td:first-child {
+    background: #333333; /* Solid color for rest of first column */
+    font-weight: bold;
+    width: 30px;
+    min-width: 30px;
+    max-width: 30px;
+    overflow: hidden;
+    color: white;
+    border-bottom: 1px solid #333333; /* Dark line */
   }
   #scoreTable thead th {
     height: 75px;
@@ -70,28 +81,28 @@
   table input {
     width: 100%;
     box-sizing: border-box;
-    padding: 8px; /* Increased padding for a more spacious feel */
+    padding: 8px;
     text-align: center;
     font-size: inherit;
     font-family: 'Economica', sans-serif;
-    border: 1px solid #d0d7de; /* Slightly darker border for definition */
-    border-radius: 6px; /* Slightly more rounded */
-    background: #ffffff; /* Pure white for a crisp look */
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05); /* Subtle inner shadow */
-    transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Smooth transitions */
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    background: #ffffff;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
   table input:focus {
     outline: none;
-    border-color: #333333; /* Changed from blue to dark black */
-    box-shadow: 0 0 5px rgba(51, 51, 51, 0.5); /* Adjusted glow to match */
+    border-color: #333333;
+    box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
   }
   table input::placeholder {
     font-family: 'Economica', sans-serif;
     font-size: 16px;
     text-align: center;
     line-height: normal;
-    color: #6b7280; /* Modern gray for placeholder text */
-    opacity: 0.8; /* Slightly less intense */
+    color: #6b7280;
+    opacity: 0.8;
   }
   .highlight-winner {
     background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
@@ -149,7 +160,7 @@
   }
   .popup-modal input[type="text"]:focus {
     outline: none;
-    border: 1px solid #333333; /* Changed from blue to dark black */
+    border: 1px solid #333333;
   }
   .popup-modal select {
     font-size: 24px;
@@ -175,14 +186,14 @@
     margin: 5px;
     cursor: pointer;
     font-family: 'Economica', sans-serif;
-    background: #333333; /* Changed from blue to dark black */
+    background: #333333;
     color: white;
     border: none;
     border-radius: 6px;
     transition: background 0.2s;
   }
   .popup-modal button:hover {
-    background: #4d4d4d; /* Slightly lighter dark black for hover */
+    background: #4d4d4d;
   }
   #overlay {
     display: none;
@@ -199,14 +210,12 @@
   -webkit-tap-highlight-color: transparent;
 }
   
-      .scaled-emoji {
-        transform: scale(.75);
-        transform-origin: center;
-        display: inline-block;
-    }
-
+  .scaled-emoji {
+    transform: scale(.75);
+    transform-origin: center;
+    display: inline-block;
+  }
 </style>
-
 
 </head>
 <body>
