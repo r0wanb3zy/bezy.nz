@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Yahtzee Scorecard</title>
     <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
+
+
     <style>
         html, body {
             height: 100%;
@@ -14,8 +16,6 @@
         }
     
         body {
-            display: flex;
-            flex-direction: column;
             font-family: 'Economica', sans-serif;
             font-size: 22px;
             max-width: 1200px;
@@ -27,24 +27,18 @@
         }
     
         #scoreTable {
-            flex: 1; /* Take up all available space */
-            display: flex;
-            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            overflow: hidden; /* Prevent scrolling */
+            overflow: hidden;
         }
     
-        #scoreTable thead {
-            flex: 0 0 auto; /* Fixed height for header */
-        }
-    
-        #scoreTable tbody {
-            flex: 1; /* Take up remaining space */
-            overflow: hidden; /* No scrolling */
+        h1, h2 {
+            text-align: center;
+            font-family: 'Economica', sans-serif;
         }
     
         table {
-            height: 100%; /* Ensure table fills its container */
             width: 100%;
             border-collapse: collapse;
             font-size: 20px;
@@ -75,13 +69,15 @@
         }
     
         table th:first-child, table td:first-child {
-            background: #ddd;
+            background: rgba(0, 0, 0, 0.9);
             font-weight: bold;
             width: 30px;
             min-width: 30px;
             max-width: 30px;
             overflow: hidden;
-            color: #333;
+            color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.6); /* Darker line (increased opacity) */
+            border-right: 1px solid rgba(0, 0, 0, 0.6); /* Darker vertical line */
         }
     
         table th {
@@ -118,15 +114,24 @@
         }
     
         .bonus-row td, .upper-score-row td, .lower-score-row td {
-            background: #ddd;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.6); /* Darker line (increased opacity) */
+        }
+    
+        /* Ensure vertical lines in these rows are also darker */
+        .bonus-row td:not(:last-child), 
+        .upper-score-row td:not(:last-child), 
+        .lower-score-row td:not(:last-child) {
+            border-right: 1px solid rgba(0, 0, 0, 0.6); /* Darker vertical line */
         }
     
         .bonus-row .points-needed {
-            color: #6b7280;
+            color: #b0b0b0;
         }
     
         .bonus-row .points-needed.bonus-achieved {
-            color: #333;
+            color: white;
             font-weight: bold;
         }
     
@@ -382,11 +387,13 @@
         table td {
             -webkit-tap-highlight-color: transparent;
         }
-    
         #scoreTable thead th:not(:first-child) {
             -webkit-tap-highlight-color: transparent;
         }
     </style>
+
+
+
 </head>
 <body>
     <table id="scoreTable">
@@ -479,7 +486,15 @@
     <div id="overlay" style="display: none;"></div>
 
     <script>
+        function setFullHeight() {
+            const table = document.getElementById("scoreTable");
+            if (table) {
+                table.style.height = `${window.innerHeight}px`;
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
+            setFullHeight();
             let savedPlayerCount = localStorage.getItem('playerCount');
             if (savedPlayerCount) {
                 document.getElementById('playerCount').value = savedPlayerCount;
@@ -507,6 +522,8 @@
                 }
             });
         });
+
+        window.addEventListener('resize', setFullHeight);
 
         function calculateTotal(player) {
             let total = 0;
@@ -789,77 +806,80 @@
             updateRanks();
         }
 
-        function updateRanks() {
-            const totalScores = document.querySelectorAll('[id^="total"]');
-            let anyScoreEntered = false;
-            totalScores.forEach(scoreElement => {
-                if (parseInt(scoreElement.textContent) > 0) {
-                    anyScoreEntered = true;
-                }
-            });
-
-            if (!anyScoreEntered) {
-                totalScores.forEach(scoreElement => {
-                    scoreElement.textContent = "";
-                    while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
-                        scoreElement.parentElement.removeChild(scoreElement.nextSibling);
-                    }
-                    scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
-                });
-            } else {
-                const scoresArray = Array.from(totalScores).map(scoreElement => ({
-                    player: scoreElement.id,
-                    score: parseInt(scoreElement.textContent) || 0
-                }));
-                scoresArray.sort((a, b) => b.score - a.score);
-
-                let rank = 1;
-                let lastScore = null;
-                const rankMap = {};
-                let lastPlaceScores = [];
-
-                scoresArray.forEach((player, index) => {
-                    if (lastScore !== null && player.score === lastScore) {
-                        rankMap[player.player] = rank;
-                    } else {
-                        rank = index + 1;
-                        rankMap[player.player] = rank;
-                    }
-                    lastScore = player.score;
-
-                    if (index === scoresArray.length - 1) {
-                        lastPlaceScores = scoresArray.filter(p => p.score === player.score).map(p => p.player);
-                    }
-                });
-
-                const allScoresSame = scoresArray.every(player => player.score === scoresArray[0].score);
-                const maxScore = scoresArray[0].score;
-                const minScore = scoresArray[scoresArray.length - 1].score;
-
-                totalScores.forEach(scoreElement => {
-                    const rank = rankMap[scoreElement.id];
-                    const score = parseInt(scoreElement.textContent) || 0;
-
-                    scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
-                    while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
-                        scoreElement.parentElement.removeChild(scoreElement.nextSibling);
-                    }
-
-                    if (allScoresSame) {
-                        scoreElement.parentElement.classList.add('highlight-winner');
-                    } else if (score === maxScore && score > minScore) {
-                        scoreElement.parentElement.classList.add('highlight-winner');
-                    } else if (lastPlaceScores.includes(scoreElement.id) && score < maxScore) {
-                        scoreElement.parentElement.classList.add('highlight-loser');
-                    }
-
-                    scoreElement.textContent = score;
-                    const rankElement = document.createElement('small');
-                    rankElement.textContent = ordinalSuffixOf(rank);
-                    scoreElement.parentElement.appendChild(rankElement);
-                });
-            }
+function updateRanks() {
+    const totalScores = document.querySelectorAll('[id^="total"]');
+    let anyScoreEntered = false;
+    totalScores.forEach(scoreElement => {
+        if (parseInt(scoreElement.textContent) > 0) {
+            anyScoreEntered = true;
         }
+    });
+
+    if (!anyScoreEntered) {
+        totalScores.forEach(scoreElement => {
+            scoreElement.textContent = "";
+            while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
+                scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+            }
+            scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
+        });
+    } else {
+        const scoresArray = Array.from(totalScores).map(scoreElement => ({
+            player: scoreElement.id,
+            score: parseInt(scoreElement.textContent) || 0
+        }));
+        scoresArray.sort((a, b) => b.score - a.score); // Highest score is 1st
+
+        let rank = 1;
+        let lastScore = null;
+        const rankMap = {};
+        let lastPlaceScores = [];
+
+        // Determine ranks and collect all players tied for last
+        scoresArray.forEach((player, index) => {
+            if (lastScore !== null && player.score === lastScore) {
+                rankMap[player.player] = rank;
+            } else {
+                rank = index + 1;
+                rankMap[player.player] = rank;
+            }
+            lastScore = player.score;
+
+            // Collect all players with the lowest score
+            if (index === scoresArray.length - 1) {
+                // Last player, check for ties with the lowest score
+                lastPlaceScores = scoresArray.filter(p => p.score === player.score).map(p => p.player);
+            }
+        });
+
+        const allScoresSame = scoresArray.every(player => player.score === scoresArray[0].score);
+        const maxScore = scoresArray[0].score;
+        const minScore = scoresArray[scoresArray.length - 1].score;
+
+        totalScores.forEach(scoreElement => {
+            const rank = rankMap[scoreElement.id];
+            const score = parseInt(scoreElement.textContent) || 0;
+
+            scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
+            while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
+                scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+            }
+
+            if (allScoresSame) {
+                scoreElement.parentElement.classList.add('highlight-winner');
+            } else if (score === maxScore && score > minScore) {
+                scoreElement.parentElement.classList.add('highlight-winner'); // Highest score gets green
+            } else if (lastPlaceScores.includes(scoreElement.id) && score < maxScore) {
+                scoreElement.parentElement.classList.add('highlight-loser'); // Tied for lowest score gets red
+            }
+
+            scoreElement.textContent = score;
+            const rankElement = document.createElement('small');
+            rankElement.textContent = ordinalSuffixOf(rank);
+            scoreElement.parentElement.appendChild(rankElement);
+        });
+    }
+}
 
         function ordinalSuffixOf(i) {
             var j = i % 10,
