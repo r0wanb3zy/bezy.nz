@@ -361,7 +361,11 @@
         transform: scale(.6);
         transform-origin: center;
         display: inline-block;
-        color: white; /* Covers small and large straight emojis */
+    }
+        .scaled-emoji-2 {
+        transform: scale(.6);
+        transform-origin: center;
+        display: inline-block;
     }
 
     #overlay {
@@ -423,10 +427,10 @@
                 <td>🏠</td>
             </tr>
             <tr>
-                <td>▪️</td>
+                <td><span class="scaled-emoji-2">◽️</span></td>
             </tr>
             <tr>
-                <td>◾️</td>
+                <td>◽️</td>
             </tr>
             <tr>
                 <td>🎯</td>
@@ -698,11 +702,11 @@
                         } else if (category === '🔻') {
                             newCell.id = `lowerScoreP${i}`;
                             newCell.textContent = '0';
-                        } else if (['🏠', '▪️', '◾️', '🎯'].includes(category)) {
+                        } else if (['🏠', '<span class="scaled-emoji-2">◽️</span>', '◽️', '🎯'].includes(category)) {
                             newCell.className = 'lower-section-cell';
                             newCell.setAttribute('data-player', `P${i}`);
-                            newCell.setAttribute('data-category', category === '🏠' ? 'Full House' : category === '▪️' ? 'Small Straight' : category === '◾️' ? 'Large Straight' : 'Yahtzee');
-                            newCell.setAttribute('data-score', category === '🏠' ? '25' : category === '▪️' ? '30' : category === '◾️' ? '40' : '50');
+                            newCell.setAttribute('data-category', category === '🏠' ? 'Full House' : category === '<span class="scaled-emoji-2">◽️</span>' ? 'Small Straight' : category === '◽️' ? 'Large Straight' : 'Yahtzee');
+                            newCell.setAttribute('data-score', category === '🏠' ? '25' : category === '<span class="scaled-emoji-2">◽️</span>' ? '30' : category === '◽️' ? '40' : '50');
                             newCell.setAttribute('data-state', '0');
                             newCell.onclick = function(e) {
                                 let currentState = parseInt(this.getAttribute('data-state')) || 0;
