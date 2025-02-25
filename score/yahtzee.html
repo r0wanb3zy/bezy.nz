@@ -12,7 +12,7 @@
             height: 100%;
             margin: 0;
         }
-
+    
         body {
             font-family: 'Economica', sans-serif;
             font-size: 22px;
@@ -23,19 +23,19 @@
             min-height: 100vh;
             background-size: cover;
         }
-
+    
         #scoreTable {
             height: 100vh;
             overflow-y: auto;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             overflow: hidden;
         }
-
+    
         h1, h2 {
             text-align: center;
             font-family: 'Economica', sans-serif;
         }
-
+    
         table {
             width: 100%;
             border-collapse: collapse;
@@ -43,30 +43,31 @@
             table-layout: fixed;
             font-family: 'Economica', sans-serif;
         }
-
-table th, table td {
-    border: none;
-    text-align: center;
-    padding: 5px;
-    word-wrap: break-word;
-    cursor: pointer;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-family: 'Economica', sans-serif;
-    border-bottom: 1px solid rgba(200, 200, 200, 0.3);
-}
-
-/* Add vertical lines only to td elements (body cells) */
-table td {
-    border-right: 1px solid rgba(200, 200, 200, 0.3);
-}
-
-/* Remove the right border from the last column in the body */
-table td:last-child {
-    border-right: none;
-}
+    
+        table th, table td {
+            border: none;
+            text-align: center;
+            padding: 5px;
+            word-wrap: break-word;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: 'Economica', sans-serif;
+            border-bottom: 1px solid rgba(200, 200, 200, 0.3);
+        }
+    
+        /* Add vertical lines only to td elements (body cells) */
+        table td {
+            border-right: 1px solid rgba(200, 200, 200, 0.3);
+        }
+    
+        /* Remove the right border from the last column in the body */
+        table td:last-child {
+            border-right: none;
+        }
+    
         table th:first-child, table td:first-child {
-            background: linear-gradient(to bottom, #e0e4e8 0%, #d1d5db 100%);
+            background: #ddd; /* Updated to flat light blue */
             font-weight: bold;
             width: 30px;
             min-width: 30px;
@@ -74,12 +75,12 @@ table td:last-child {
             overflow: hidden;
             color: #333;
         }
-
+    
         table th {
             background: linear-gradient(to bottom, #4a90e2 0%, #357abd 100%);
             color: white;
         }
-
+    
         table input {
             width: 100%;
             box-sizing: border-box;
@@ -93,13 +94,13 @@ table td:last-child {
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-
+    
         table input:focus {
             outline: none;
             border-color: #4a90e2;
             box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
         }
-
+    
         table input::placeholder {
             font-family: 'Economica', sans-serif;
             font-size: 12px;
@@ -107,55 +108,55 @@ table td:last-child {
             color: #6b7280;
             opacity: 0.8;
         }
-
+    
         .bonus-row td, .upper-score-row td, .lower-score-row td {
-            background: linear-gradient(to bottom, #e0e4e8 0%, #d1d5db 100%);
+            background: #ddd; /* Updated to flat light blue */
         }
-
+    
         .bonus-row .points-needed {
             color: #6b7280;
         }
-
+    
         .bonus-row .points-needed.bonus-achieved {
             color: #333;
             font-weight: bold;
         }
-
+    
         th div {
             font-size: 14px;
             font-family: 'Economica', sans-serif;
         }
-
+    
         .lower-section-cell, .upper-section-cell {
             cursor: pointer;
             width: auto;
         }
-
+    
         #scoreTable thead th {
             height: 75px;
             font-family: 'Economica', sans-serif;
             font-size: 22px;
         }
-
+    
         #scoreTable thead th div {
             font-size: 22px;
             font-family: 'Economica', sans-serif;
         }
-
+    
         #scoreTable thead th small {
             font-size: 16px;
             font-family: 'Economica', sans-serif;
             color: rgba(255, 255, 255, 0.8);
         }
-
+    
         .highlight-winner {
             background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
         }
-
+    
         .highlight-loser {
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
-
+    
         #popupModal {
             display: none;
             position: fixed;
@@ -171,7 +172,7 @@ table td:last-child {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
-
+    
         #popupModal button {
             font-size: 24px;
             padding: 10px 20px;
@@ -184,11 +185,11 @@ table td:last-child {
             border-radius: 6px;
             transition: background 0.2s;
         }
-
+    
         #popupModal button:hover {
             background: #357abd;
         }
-
+    
         #popupOptions {
             display: grid;
             grid-template-columns: repeat(5, 40px);
@@ -197,36 +198,37 @@ table td:last-child {
             padding: 10px 0;
             box-sizing: border-box;
         }
-
-#popupOptions button {
-    width: 40px;
-    height: 40px;
-    font-size: 24px;
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-    cursor: pointer;
-    font-family: 'Economica', sans-serif, Arial;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    overflow: hidden;
-    white-space: nowrap;
-    background: linear-gradient(to bottom, #4a90e2 0%, #357abd 100%); /* Consistent gradient */
-    color: white;
-    border: none;
-    border-radius: 6px;
-    transition: background 0.2s ease; /* Keep transition for smooth effect */
-    -webkit-appearance: none;
-    appearance: none;
-    line-height: 1;
-    outline: none;
-}
-
-#popupOptions button:hover {
-    background: linear-gradient(to bottom, #357abd 0%, #2a6399 100%); /* Slightly darker gradient */
-}
+    
+        #popupOptions button {
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            cursor: pointer;
+            font-family: 'Economica', sans-serif, Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            background: linear-gradient(to bottom, #4a90e2 0%, #357abd 100%); /* Updated for no flicker */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s ease; /* Smooth transition */
+            -webkit-appearance: none;
+            appearance: none;
+            line-height: 1;
+            outline: none;
+        }
+    
+        #popupOptions button:hover {
+            background: linear-gradient(to bottom, #357abd 0%, #2a6399 100%); /* Updated for no flicker */
+        }
+    
         #roundManagementModal {
             display: none;
             position: fixed;
@@ -243,7 +245,7 @@ table td:last-child {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
-
+    
         #roundManagementModal select {
             font-size: 24px;
             padding: 10px;
@@ -253,7 +255,7 @@ table td:last-child {
             border-radius: 6px;
             background: #ffffff;
         }
-
+    
         #roundManagementModal button {
             font-size: 24px;
             padding: 10px 20px;
@@ -266,11 +268,11 @@ table td:last-child {
             border-radius: 6px;
             transition: background 0.2s;
         }
-
+    
         #roundManagementModal button:hover {
             background: #357abd;
         }
-
+    
         #playerNameModal {
             display: none;
             position: fixed;
@@ -288,7 +290,7 @@ table td:last-child {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
-
+    
         #playerNameModal input[type="text"] {
             font-size: 24px;
             padding: 10px;
@@ -303,16 +305,16 @@ table td:last-child {
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
             transition: border-color 0.2s ease;
         }
-
+    
         #playerNameModal input[type="text"]:focus {
             outline: none;
             border: 1px solid #4a90e2;
         }
-
+    
         #playerNameInput {
             text-transform: uppercase;
         }
-
+    
         #playerNameModal button {
             font-size: 24px;
             padding: 10px 20px;
@@ -325,38 +327,38 @@ table td:last-child {
             border-radius: 6px;
             transition: background 0.2s;
         }
-
+    
         #playerNameModal button:hover {
             background: #357abd;
         }
-
+    
         table input[type="number"]::-webkit-outer-spin-button,
         table input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-
+    
         table input[type="number"] {
             -moz-appearance: textfield;
             appearance: textfield;
             font-family: 'Economica', sans-serif;
         }
-
+    
         #popupModal, #roundManagementModal {
             text-align: center;
         }
-
+    
         .lower-section-cell:active, 
         .upper-section-cell:active {
             background-color: transparent !important;
         }
-
+    
         .scaled-emoji {
             transform: scale(.6);
             transform-origin: center;
             display: inline-block;
         }
-
+    
         #overlay {
             display: none;
             position: fixed;
@@ -368,7 +370,7 @@ table td:last-child {
             z-index: 999;
             cursor: pointer;
         }
-
+    
         table td {
             -webkit-tap-highlight-color: transparent;
         }
