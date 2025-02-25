@@ -6,6 +6,7 @@
   <title>Scorecard</title>
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
+
 <style>
   body {
     font-family: 'Economica', sans-serif;
@@ -40,7 +41,7 @@
     border-bottom: 1px solid rgba(200, 200, 200, 0.3);
   }
   table th {
-    background: linear-gradient(to bottom, #4a90e2 0%, #357abd 100%);
+    background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%); /* Changed from blue to dark black */
     color: white;
   }
   table th:first-child, table td:first-child {
@@ -81,8 +82,8 @@
   }
   table input:focus {
     outline: none;
-    border-color: #4a90e2; /* Matches the blue theme */
-    box-shadow: 0 0 5px rgba(74, 144, 226, 0.5); /* Glow effect on focus */
+    border-color: #333333; /* Changed from blue to dark black */
+    box-shadow: 0 0 5px rgba(51, 51, 51, 0.5); /* Adjusted glow to match */
   }
   table input::placeholder {
     font-family: 'Economica', sans-serif;
@@ -148,7 +149,7 @@
   }
   .popup-modal input[type="text"]:focus {
     outline: none;
-    border: 1px solid #4a90e2;
+    border: 1px solid #333333; /* Changed from blue to dark black */
   }
   .popup-modal select {
     font-size: 24px;
@@ -174,14 +175,14 @@
     margin: 5px;
     cursor: pointer;
     font-family: 'Economica', sans-serif;
-    background: #4a90e2;
+    background: #333333; /* Changed from blue to dark black */
     color: white;
     border: none;
     border-radius: 6px;
     transition: background 0.2s;
   }
   .popup-modal button:hover {
-    background: #357abd;
+    background: #4d4d4d; /* Slightly lighter dark black for hover */
   }
   #overlay {
     display: none;
@@ -196,8 +197,9 @@
   }
   #scoreTable thead th:not(:first-child) {
     -webkit-tap-highlight-color: transparent;
-}
+  }
 </style>
+
 
 </head>
 <body>
