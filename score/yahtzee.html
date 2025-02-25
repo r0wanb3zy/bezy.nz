@@ -773,25 +773,24 @@ table tr:last-child td {
         }
 
         function reattachEventListeners() {
-            document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
-                header.removeEventListener('click', header.clickHandler);
-                header.clickHandler = function(e) {
-                    e.stopPropagation();
-                    const player = this.getAttribute('data-player');
-                    const playerName = this.innerText.split('\n')[0].trim();
-                    const playerNameInput = document.getElementById('playerNameInput');
-                    playerNameInput.value = playerName;
-                    closeAllPopups();
-                    document.getElementById('playerNameModal').style.display = 'block';
-                    showOverlay();
-                    window.currentPlayer = player;
-                    playerNameInput.focus();
-                    newCell.setAttribute('data-player', `P${i}`);
-                    playerNameInput.select();
-                };
-                header.addEventListener('click', header.clickHandler);
-            });
-        }
+    document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
+        header.removeEventListener('click', header.clickHandler);
+        header.clickHandler = function(e) {
+            e.stopPropagation();
+            const player = this.getAttribute('data-player');
+            const playerName = this.innerText.split('\n')[0].trim();
+            const playerNameInput = document.getElementById('playerNameInput');
+            playerNameInput.value = playerName;
+            closeAllPopups();
+            document.getElementById('playerNameModal').style.display = 'block';
+            showOverlay();
+            window.currentPlayer = player;
+            playerNameInput.focus();
+            playerNameInput.select(); // This line auto-selects the text
+        };
+        header.addEventListener('click', header.clickHandler);
+    });
+}
 
         function loadScores() {
             const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
