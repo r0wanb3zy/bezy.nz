@@ -213,15 +213,25 @@
       transform-origin: center;
       display: inline-block;
     }
-    /* New CSS for reducing font size on mobile when player count >= 7 */
-    @media (max-width: 768px) {
-      table.small-scores tbody td {
-        font-size: 16px; /* Reduced from default 20px for score rows */
-      }
-      table.small-scores thead th span.score {
-        font-size: 16px; /* Reduced from 22px for total scores */
-      }
-    }
+    @media (max-width: 576px) {
+  #scoreTable.small-scores thead th {
+    padding: 3px;
+  }
+  #scoreTable.small-scores thead th span.score {
+    font-size: 14px; /* Smaller total scores */
+    line-height: 1.2;
+  }
+  #scoreTable.small-scores thead th small {
+    font-size: 12px;
+  }
+  #scoreTable.small-scores tbody td {
+    font-size: 16px; /* Round scores */
+  }
+  #scoreTable.small-scores tbody tr:last-child input[type="number"] {
+    font-size: 12px; /* Smaller input text in bottom row */
+    padding: 2px; /* Slightly reduce padding to match smaller text */
+  }
+}
   </style>
 </head>
 <body>
