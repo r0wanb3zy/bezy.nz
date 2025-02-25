@@ -380,13 +380,13 @@
             -webkit-tap-highlight-color: transparent;
         }
     </style>
-    <!-- New script for long-press refresh functionality -->
+    <!-- Script for long-press refresh, preserving short-click for round management -->
     <script>
         // Long press detection for the first cell
         let longPressTimer;
         const longPressDuration = 1000; // 1 second
 
-        function startLongPress() {
+        function startLongPress(e) {
             longPressTimer = setTimeout(() => {
                 // Refresh the page
                 location.reload();
@@ -402,8 +402,8 @@
 
             // Touch events for mobile
             firstCell.addEventListener("touchstart", function(e) {
-                e.preventDefault(); // Prevent default touch behavior
-                startLongPress();
+                e.preventDefault(); // Prevent default touch behavior (e.g., zooming)
+                startLongPress(e);
             });
 
             firstCell.addEventListener("touchend", function(e) {
@@ -418,8 +418,8 @@
 
             // Mouse events for desktop
             firstCell.addEventListener("mousedown", function(e) {
-                e.preventDefault();
-                startLongPress();
+                e.preventDefault(); // Prevent default mouse behavior (e.g., text selection)
+                startLongPress(e);
             });
 
             firstCell.addEventListener("mouseup", function(e) {
@@ -438,6 +438,7 @@
     <table id="scoreTable">
         <thead>
             <tr>
+                <!-- Short click triggers round management, long press triggers refresh -->
                 <th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>
             </tr>
         </thead>
