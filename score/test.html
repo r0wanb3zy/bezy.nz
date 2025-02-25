@@ -54,7 +54,7 @@
       border-bottom: 1px solid #333333;
     }
     table td:first-child {
-      background: #333333;
+      background: #4d4d4d;
       font-weight: bold;
       width: 30px;
       min-width: 30px;
@@ -202,6 +202,23 @@
     .popup-modal button:hover {
       background: #4d4d4d;
     }
+    table input::placeholder {
+  font-family: 'Economica', sans-serif;
+  font-size: 16px;
+  text-align: center;
+  line-height: 16px;
+  color: #6b7280;
+  opacity: 0.8;
+}
+
+/* Add these new rules */
+#scoreBody tr:last-child td input {
+  font-size: 16px; /* Smaller default text */
+}
+
+#scoreBody tr:last-child td input::placeholder {
+  font-size: 16px; /* Smaller placeholder text */
+}
     #overlay {
       display: none;
       position: fixed;
