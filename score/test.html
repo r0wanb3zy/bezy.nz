@@ -77,19 +77,52 @@
       font-family: 'Economica', sans-serif;
       color: rgba(255, 255, 255, 0.8);
     }
-    table input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 8px;
-      text-align: center;
-      font-size: inherit;
-      font-family: 'Economica', sans-serif;
-      border: 1px solid #d0d7de;
-      border-radius: 6px;
-      background: #ffffff;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
+table input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  text-align: center;
+  font-size: inherit;
+  font-family: 'Economica', sans-serif;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  height: 34px; /* Fixed height for consistent centering */
+}
+
+table input::placeholder {
+  font-family: 'Economica', sans-serif;
+  font-size: 16px;
+  text-align: center;
+  line-height: 16px; /* Centers vertically */
+  color: #6b7280;
+  opacity: 0.8;
+  
+}table input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  text-align: center;
+  font-size: inherit;
+  font-family: 'Economica', sans-serif;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  height: 34px; /* Fixed height for consistent centering */
+}
+
+table input::placeholder {
+  font-family: 'Economica', sans-serif;
+  font-size: 16px;
+  text-align: center;
+  line-height: 16px; /* Centers vertically */
+  color: #6b7280;
+  opacity: 0.8;
+}
     table input:focus {
       outline: none;
       border-color: #333333;
@@ -213,23 +246,30 @@
       transform-origin: center;
       display: inline-block;
     }
-    @media (max-width: 576px) {
+@media (max-width: 576px) {
   #scoreTable.small-scores thead th {
     padding: 3px;
   }
   #scoreTable.small-scores thead th span.score {
-    font-size: 18px; /* Smaller total scores */
+    font-size: 18px;
     line-height: 1.2;
   }
   #scoreTable.small-scores thead th small {
     font-size: 12px;
   }
   #scoreTable.small-scores tbody td {
-    font-size: 16px; /* Round scores */
+    font-size: 16px;
+  }
+  #scoreTable.small-scores tbody tr:last-child td {
+    padding: 5px; /* Consistent with other td */
   }
   #scoreTable.small-scores tbody tr:last-child input[type="number"] {
-    font-size: 10px; /* Smaller input text in bottom row */
-    padding: 5px; /* Slightly reduce padding to match smaller text */
+    font-size: 10px;
+    padding: 5px;
+    height: 22px; /* Adjusted height */
+  }
+  #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
+    font-size: 10px;
   }
 }
   </style>
