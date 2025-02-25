@@ -146,7 +146,14 @@
             border-bottom: 1px solid #666; /* Darker border for dark area */
             border-right: 1px solid #666; /* Vertical border for dark area */
         }
-    
+        .bonus-row td:first-child,
+.upper-score-row td:first-child,
+.lower-score-row td:first-child {
+    border-right: 1px solid #666;
+}
+table tr:last-child td {
+    border-bottom: none;
+}
         /* Remove right border from the last cell in bonus/score rows */
         .bonus-row td:last-child, .upper-score-row td:last-child, .lower-score-row td:last-child {
             border-right: none;
