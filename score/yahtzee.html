@@ -8,7 +8,6 @@
     <title>Yahtzee Scorecard</title>
     <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
     <style>
-        /* Ensure all elements inherit the font-family from body */
         html, body {
             height: 100%;
             margin: 0;
@@ -20,11 +19,17 @@
             max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
+            background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
+            min-height: 100vh;
+            background-size: cover;
         }
 
         #scoreTable {
-            height: 100vh; /* Fallback for non-JS scenarios */
+            height: 100vh;
             overflow-y: auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         h1, h2 {
@@ -40,54 +45,80 @@
             font-family: 'Economica', sans-serif;
         }
 
-        table th, table td {
-            border: 1px solid #ddd;
-            text-align: center;
-            padding: 5px;
-            word-wrap: break-word;
-            cursor: pointer;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-family: 'Economica', sans-serif;
-        }
+table th, table td {
+    border: none;
+    text-align: center;
+    padding: 5px;
+    word-wrap: break-word;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'Economica', sans-serif;
+    border-bottom: 1px solid rgba(200, 200, 200, 0.3);
+}
 
+/* Add vertical lines only to td elements (body cells) */
+table td {
+    border-right: 1px solid rgba(200, 200, 200, 0.3);
+}
+
+/* Remove the right border from the last column in the body */
+table td:last-child {
+    border-right: none;
+}
         table th:first-child, table td:first-child {
-            background-color: #f0f0f0;
+            background: linear-gradient(to bottom, #e0e4e8 0%, #d1d5db 100%);
             font-weight: bold;
             width: 30px;
             min-width: 30px;
             max-width: 30px;
             overflow: hidden;
+            color: #333;
         }
 
         table th {
-            background-color: #f4f4f4;
+            background: linear-gradient(to bottom, #4a90e2 0%, #357abd 100%);
+            color: white;
         }
 
         table input {
             width: 100%;
             box-sizing: border-box;
-            padding: 2px;
+            padding: 8px;
             text-align: center;
             font-size: inherit;
             font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        table input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
         }
 
         table input::placeholder {
             font-family: 'Economica', sans-serif;
             font-size: 12px;
+            text-align: center;
+            color: #6b7280;
+            opacity: 0.8;
         }
 
         .bonus-row td, .upper-score-row td, .lower-score-row td {
-            background-color: #f0f0f0;
+            background: linear-gradient(to bottom, #e0e4e8 0%, #d1d5db 100%);
         }
 
         .bonus-row .points-needed {
-            color: grey;
+            color: #6b7280;
         }
 
         .bonus-row .points-needed.bonus-achieved {
-            color: black;
+            color: #333;
             font-weight: bold;
         }
 
@@ -102,20 +133,29 @@
         }
 
         #scoreTable thead th {
-        height: 75px;
-        font-family: 'Economica', sans-serif;
-        font-size: 22px; /* Player name size matches Scorecard */
-    }
+            height: 75px;
+            font-family: 'Economica', sans-serif;
+            font-size: 22px;
+        }
 
-    #scoreTable thead th div {
-        font-size: 22px; /* Score size matches Scorecard */
-        font-family: 'Economica', sans-serif;
-    }
+        #scoreTable thead th div {
+            font-size: 22px;
+            font-family: 'Economica', sans-serif;
+        }
 
-    #scoreTable thead th small {
-        font-size: 16px; /* Rank size matches Scorecard */
-        font-family: 'Economica', sans-serif;
-    }
+        #scoreTable thead th small {
+            font-size: 16px;
+            font-family: 'Economica', sans-serif;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .highlight-winner {
+            background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
+        }
+
+        .highlight-loser {
+            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
 
         #popupModal {
             display: none;
@@ -123,12 +163,14 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: white;
-            border: 1px solid #000;
+            background: #ffffff;
+            border: none;
             padding: 5px 20px 20px 20px;
             z-index: 1000;
-            font-family: 'Economica', sans-serif, Arial; /* Added fallback */
+            font-family: 'Economica', sans-serif, Arial;
             text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
         }
 
         #popupModal button {
@@ -137,24 +179,33 @@
             margin: 2px;
             cursor: pointer;
             font-family: 'Economica', sans-serif;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        #popupModal button:hover {
+            background: #357abd;
         }
 
         #popupOptions {
-    display: grid;
-    grid-template-columns: repeat(5, 40px); /* Fixed width columns */
-    gap: 5px; /* Consistent gap for rows and columns */
-    justify-content: center; /* Center the grid */
-    padding: 10px 0; /* Vertical padding for balance */
-    box-sizing: border-box; /* Ensure padding fits within container */
-}
+            display: grid;
+            grid-template-columns: repeat(5, 40px);
+            gap: 5px;
+            justify-content: center;
+            padding: 10px 0;
+            box-sizing: border-box;
+        }
 
 #popupOptions button {
     width: 40px;
     height: 40px;
     font-size: 24px;
-    padding: 0; /* Remove default padding */
-    margin: 0; /* Remove default margins */
-    box-sizing: border-box; /* Ensure size is exact */
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
     cursor: pointer;
     font-family: 'Economica', sans-serif, Arial;
     display: flex;
@@ -163,12 +214,19 @@
     text-align: center;
     overflow: hidden;
     white-space: nowrap;
-    background: #fff; /* Explicit background to override iOS defaults */
-    border: 1px solid #ccc; /* Consistent border to avoid iOS default styles */
-    -webkit-appearance: none; /* Remove iOS button styling */
+    background: linear-gradient(to bottom, #4a90e2 0%, #357abd 100%); /* Consistent gradient */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    transition: background 0.2s ease; /* Keep transition for smooth effect */
+    -webkit-appearance: none;
     appearance: none;
-    line-height: 1; /* Prevent line-height issues on iOS */
-    outline: none; /* Remove focus outline that might affect spacing */
+    line-height: 1;
+    outline: none;
+}
+
+#popupOptions button:hover {
+    background: linear-gradient(to bottom, #357abd 0%, #2a6399 100%); /* Slightly darker gradient */
 }
         #roundManagementModal {
             display: none;
@@ -176,13 +234,15 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: white;
-            border: 1px solid #000;
+            background: #ffffff;
+            border: none;
             padding: 5px 20px 20px 20px;
             z-index: 1001;
             width: 200px;
             max-width: 90%;
             font-family: 'Economica', sans-serif;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
         }
 
         #roundManagementModal select {
@@ -190,6 +250,9 @@
             padding: 10px;
             margin: 5px 0;
             font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
         }
 
         #roundManagementModal button {
@@ -198,6 +261,15 @@
             margin: 5px;
             cursor: pointer;
             font-family: 'Economica', sans-serif;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        #roundManagementModal button:hover {
+            background: #357abd;
         }
 
         #playerNameModal {
@@ -206,14 +278,16 @@
             top: 15%;
             left: 50%;
             transform: translate(-50%, -15%);
-            background: white;
-            border: 1px solid #000;
+            background: #ffffff;
+            border: none;
             padding: 5px 20px 20px 20px;
             z-index: 1001;
             width: 200px;
             max-width: 90%;
             text-align: center;
             font-family: 'Economica', sans-serif;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
         }
 
         #playerNameModal input[type="text"] {
@@ -224,12 +298,16 @@
             margin: 5px 0;
             text-align: center;
             font-family: 'Economica', sans-serif;
-            border: 1px solid #ccc;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.2s ease;
         }
 
         #playerNameModal input[type="text"]:focus {
             outline: none;
-            border: 1px solid black;
+            border: 1px solid #4a90e2;
         }
 
         #playerNameInput {
@@ -242,6 +320,15 @@
             margin: 5px;
             cursor: pointer;
             font-family: 'Economica', sans-serif;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        #playerNameModal button:hover {
+            background: #357abd;
         }
 
         table input[type="number"]::-webkit-outer-spin-button,
@@ -278,7 +365,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(0, 0, 0, 0.3);
             z-index: 999;
             cursor: pointer;
         }
@@ -714,14 +801,14 @@
                     while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
                         scoreElement.parentElement.removeChild(scoreElement.nextSibling);
                     }
-                    scoreElement.parentElement.style.backgroundColor = '';
+                    scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
                 });
             } else {
                 const scoresArray = Array.from(totalScores).map(scoreElement => ({
                     player: scoreElement.id,
                     score: parseInt(scoreElement.textContent) || 0
                 }));
-                scoresArray.sort((a, b) => b.score - a.score);
+                scoresArray.sort((a, b) => b.score - a.score); // Highest score is 1st
 
                 let rank = 1;
                 let lastScore = null;
@@ -731,11 +818,17 @@
                 scoresArray.forEach((player, index) => {
                     if (player.score === lastScore) {
                         rankMap[player.player] = rank;
-                        lastPlaceScores.push(player.player);
+                        if (index === scoresArray.length - 1 || scoresArray[index + 1].score !== player.score) {
+                            lastPlaceScores.push(player.player);
+                        }
                     } else {
                         rank = index + 1;
                         rankMap[player.player] = rank;
-                        lastPlaceScores = [player.player];
+                        if (index === scoresArray.length - 1) {
+                            lastPlaceScores = [player.player];
+                        } else {
+                            lastPlaceScores = [];
+                        }
                     }
                     lastScore = player.score;
                 });
@@ -746,19 +839,17 @@
                     const rank = rankMap[scoreElement.id];
                     const score = parseInt(scoreElement.textContent) || 0;
 
-                    scoreElement.parentElement.classList.remove('rank-1', 'rank-last');
+                    scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
                     while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
                         scoreElement.parentElement.removeChild(scoreElement.nextSibling);
                     }
 
                     if (allScoresSame) {
-                        scoreElement.parentElement.style.backgroundColor = '#d4f4d4';
+                        scoreElement.parentElement.classList.add('highlight-winner');
                     } else if (rank === 1) {
-                        scoreElement.parentElement.style.backgroundColor = '#d4f4d4';
+                        scoreElement.parentElement.classList.add('highlight-winner'); // 1st place gets green
                     } else if (lastPlaceScores.includes(scoreElement.id)) {
-                        scoreElement.parentElement.style.backgroundColor = '#f4d4d4';
-                    } else {
-                        scoreElement.parentElement.style.backgroundColor = '';
+                        scoreElement.parentElement.classList.add('highlight-loser'); // Last place gets red
                     }
 
                     scoreElement.textContent = score;
