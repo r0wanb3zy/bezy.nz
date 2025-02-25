@@ -792,79 +792,80 @@
             updateRanks();
         }
 
-        function updateRanks() {
-            const totalScores = document.querySelectorAll('[id^="total"]');
-            let anyScoreEntered = false;
-            totalScores.forEach(scoreElement => {
-                if (parseInt(scoreElement.textContent) > 0) {
-                    anyScoreEntered = true;
-                }
-            });
-
-            if (!anyScoreEntered) {
-                totalScores.forEach(scoreElement => {
-                    scoreElement.textContent = "";
-                    while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
-                        scoreElement.parentElement.removeChild(scoreElement.nextSibling);
-                    }
-                    scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
-                });
-            } else {
-                const scoresArray = Array.from(totalScores).map(scoreElement => ({
-                    player: scoreElement.id,
-                    score: parseInt(scoreElement.textContent) || 0
-                }));
-                scoresArray.sort((a, b) => b.score - a.score); // Highest score is 1st
-
-                let rank = 1;
-                let lastScore = null;
-                const rankMap = {};
-                let lastPlaceScores = [];
-
-                scoresArray.forEach((player, index) => {
-                    if (player.score === lastScore) {
-                        rankMap[player.player] = rank;
-                        if (index === scoresArray.length - 1 || scoresArray[index + 1].score !== player.score) {
-                            lastPlaceScores.push(player.player);
-                        }
-                    } else {
-                        rank = index + 1;
-                        rankMap[player.player] = rank;
-                        if (index === scoresArray.length - 1) {
-                            lastPlaceScores = [player.player];
-                        } else {
-                            lastPlaceScores = [];
-                        }
-                    }
-                    lastScore = player.score;
-                });
-
-                const allScoresSame = scoresArray.every(player => player.score === scoresArray[0].score);
-
-                totalScores.forEach(scoreElement => {
-                    const rank = rankMap[scoreElement.id];
-                    const score = parseInt(scoreElement.textContent) || 0;
-
-                    scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
-                    while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
-                        scoreElement.parentElement.removeChild(scoreElement.nextSibling);
-                    }
-
-                    if (allScoresSame) {
-                        scoreElement.parentElement.classList.add('highlight-winner');
-                    } else if (rank === 1) {
-                        scoreElement.parentElement.classList.add('highlight-winner'); // 1st place gets green
-                    } else if (lastPlaceScores.includes(scoreElement.id)) {
-                        scoreElement.parentElement.classList.add('highlight-loser'); // Last place gets red
-                    }
-
-                    scoreElement.textContent = score;
-                    const rankElement = document.createElement('small');
-                    rankElement.textContent = ordinalSuffixOf(rank);
-                    scoreElement.parentElement.appendChild(rankElement);
-                });
-            }
+function updateRanks() {
+    const totalScores = document.querySelectorAll('[id^="total"]');
+    let anyScoreEntered = false;
+    totalScores.forEach(scoreElement => {
+        if (parseInt(scoreElement.textContent) > 0) {
+            anyScoreEntered = true;
         }
+    });
+
+    if (!anyScoreEntered) {
+        totalScores.forEach(scoreElement => {
+            scoreElement.textContent = "";
+            while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
+                scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+            }
+            scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
+        });
+    } else {
+        const scoresArray = Array.from(totalScores).map(scoreElement => ({
+            player: scoreElement.id,
+            score: parseInt(scoreElement.textContent) || 0
+        }));
+        scoresArray.sort((a, b) => b.score - a.score); // Highest score is 1st
+
+        let rank = 1;
+        let lastScore = null;
+        const rankMap = {};
+        let lastPlaceScores = [];
+
+        // Determine ranks and collect all players tied for last
+        scoresArray.forEach((player, index) => {
+            if (lastScore !== null && player.score === lastScore) {
+                rankMap[player.player] = rank;
+            } else {
+                rank = index + 1;
+                rankMap[player.player] = rank;
+            }
+            lastScore = player.score;
+
+            // Collect all players with the lowest score
+            if (index === scoresArray.length - 1) {
+                // Last player, check for ties with the lowest score
+                lastPlaceScores = scoresArray.filter(p => p.score === player.score).map(p => p.player);
+            }
+        });
+
+        const allScoresSame = scoresArray.every(player => player.score === scoresArray[0].score);
+        const maxScore = scoresArray[0].score;
+        const minScore = scoresArray[scoresArray.length - 1].score;
+
+        totalScores.forEach(scoreElement => {
+            const rank = rankMap[scoreElement.id];
+            const score = parseInt(scoreElement.textContent) || 0;
+
+            scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
+            while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
+                scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+            }
+
+            if (allScoresSame) {
+                scoreElement.parentElement.classList.add('highlight-winner');
+            } else if (score === maxScore && score > minScore) {
+                scoreElement.parentElement.classList.add('highlight-winner'); // Highest score gets green
+            } else if (lastPlaceScores.includes(scoreElement.id) && score < maxScore) {
+                scoreElement.parentElement.classList.add('highlight-loser'); // Tied for lowest score gets red
+            }
+
+            scoreElement.textContent = score;
+            const rankElement = document.createElement('small');
+            rankElement.textContent = ordinalSuffixOf(rank);
+            scoreElement.parentElement.appendChild(rankElement);
+        });
+    }
+}
 
         function ordinalSuffixOf(i) {
             var j = i % 10,
