@@ -51,16 +51,6 @@
             font-family: 'Economica', sans-serif;
         }
 
-        [id^="total"] {
-            font-size: 22px;
-            font-family: 'Economica', sans-serif;
-        }
-
-        [id^="total"] + small {
-            font-size: 16px;
-            font-family: 'Economica', sans-serif;
-        }
-
         table th:first-child, table td:first-child {
             background-color: #f0f0f0;
             font-weight: bold;
@@ -112,8 +102,20 @@
         }
 
         #scoreTable thead th {
-            height: 75px;
-        }
+        height: 75px;
+        font-family: 'Economica', sans-serif;
+        font-size: 22px; /* Player name size matches Scorecard */
+    }
+
+    #scoreTable thead th div {
+        font-size: 22px; /* Score size matches Scorecard */
+        font-family: 'Economica', sans-serif;
+    }
+
+    #scoreTable thead th small {
+        font-size: 16px; /* Rank size matches Scorecard */
+        font-family: 'Economica', sans-serif;
+    }
 
         #popupModal {
             display: none;
