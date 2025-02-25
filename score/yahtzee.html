@@ -55,7 +55,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         font-family: 'Economica', sans-serif;
-        border-bottom: 1px solid rgba(200, 200, 200, 0.3);
+        border-bottom: 1px solid rgba(200, 200, 200, 0.3); /* Lighter border for non-dark areas */
     }
 
     /* Add vertical lines only to td elements (body cells) */
@@ -69,18 +69,34 @@
     }
 
     table th:first-child, table td:first-child {
-        background: #ddd; /* Updated to flat light blue */
+        background: #4d4d4d;
         font-weight: bold;
         width: 30px;
         min-width: 30px;
         max-width: 30px;
         overflow: hidden;
-        color: #333;
+        color: white;
+        border-bottom: 1px solid #666; /* Darker border for dark area */
+        border-right: 1px solid #666; /* Vertical border for dark area */
     }
 
     table th {
-        background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%); /* Changed from blue to dark black */
+        background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
         color: white;
+    }
+
+    /* Specific style for top-left cell */
+    #scoreTable thead th:first-child {
+        background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+        border-right: none; /* Remove right border from top-left cell */
+    }
+
+    /* Remove border-bottom from the top row */
+    #scoreTable thead th {
+        height: 75px;
+        font-family: 'Economica', sans-serif;
+        font-size: 22px;
+        border-bottom: none; /* No border under top row */
     }
 
     table input {
@@ -99,8 +115,8 @@
 
     table input:focus {
         outline: none;
-        border-color: #333333; /* Changed from blue to dark black */
-        box-shadow: 0 0 5px rgba(51, 51, 51, 0.5); /* Adjusted glow to match */
+        border-color: #333333;
+        box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
     }
 
     table input::placeholder {
@@ -112,7 +128,15 @@
     }
 
     .bonus-row td, .upper-score-row td, .lower-score-row td {
-        background: #ddd; /* Updated to flat light blue */
+        background: #4d4d4d;
+        color: white;
+        border-bottom: 1px solid #666; /* Darker border for dark area */
+        border-right: 1px solid #666; /* Vertical border for dark area */
+    }
+
+    /* Remove right border from the last cell in bonus/score rows */
+    .bonus-row td:last-child, .upper-score-row td:last-child, .lower-score-row td:last-child {
+        border-right: none;
     }
 
     .bonus-row .points-needed {
@@ -120,7 +144,7 @@
     }
 
     .bonus-row .points-needed.bonus-achieved {
-        color: #333;
+        color: white;
         font-weight: bold;
     }
 
@@ -132,12 +156,6 @@
     .lower-section-cell, .upper-section-cell {
         cursor: pointer;
         width: auto;
-    }
-
-    #scoreTable thead th {
-        height: 75px;
-        font-family: 'Economica', sans-serif;
-        font-size: 22px;
     }
 
     #scoreTable thead th div {
@@ -181,7 +199,7 @@
         margin: 2px;
         cursor: pointer;
         font-family: 'Economica', sans-serif;
-        background: #333333; /* Changed from blue to dark black */
+        background: #333333;
         color: white;
         border: none;
         border-radius: 6px;
@@ -189,7 +207,7 @@
     }
 
     #popupModal button:hover {
-        background: #4d4d4d; /* Slightly lighter dark black for hover */
+        background: #4d4d4d;
     }
 
     #popupOptions {
@@ -216,11 +234,11 @@
         text-align: center;
         overflow: hidden;
         white-space: nowrap;
-        background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%); /* Changed from blue to dark black */
+        background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
         color: white;
         border: none;
         border-radius: 6px;
-        transition: background 0.2s ease; /* Smooth transition */
+        transition: background 0.2s ease;
         -webkit-appearance: none;
         appearance: none;
         line-height: 1;
@@ -228,7 +246,7 @@
     }
 
     #popupOptions button:hover {
-        background: linear-gradient(to bottom, #4d4d4d 0%, #2a2a2a 100%); /* Adjusted hover gradient */
+        background: linear-gradient(to bottom, #4d4d4d 0%, #2a2a2a 100%);
     }
 
     #roundManagementModal {
@@ -264,7 +282,7 @@
         margin: 5px;
         cursor: pointer;
         font-family: 'Economica', sans-serif;
-        background: #333333; /* Changed from blue to dark black */
+        background: #333333;
         color: white;
         border: none;
         border-radius: 6px;
@@ -272,7 +290,7 @@
     }
 
     #roundManagementModal button:hover {
-        background: #4d4d4d; /* Slightly lighter dark black for hover */
+        background: #4d4d4d;
     }
 
     #playerNameModal {
@@ -310,7 +328,7 @@
 
     #playerNameModal input[type="text"]:focus {
         outline: none;
-        border: 1px solid #333333; /* Changed from blue to dark black */
+        border: 1px solid #333333;
     }
 
     #playerNameInput {
@@ -323,7 +341,7 @@
         margin: 5px;
         cursor: pointer;
         font-family: 'Economica', sans-serif;
-        background: #333333; /* Changed from blue to dark black */
+        background: #333333;
         color: white;
         border: none;
         border-radius: 6px;
@@ -331,7 +349,7 @@
     }
 
     #playerNameModal button:hover {
-        background: #4d4d4d; /* Slightly lighter dark black for hover */
+        background: #4d4d4d;
     }
 
     table input[type="number"]::-webkit-outer-spin-button,
@@ -359,6 +377,7 @@
         transform: scale(.6);
         transform-origin: center;
         display: inline-block;
+        color: white; /* Covers small and large straight emojis */
     }
 
     #overlay {
@@ -374,8 +393,8 @@
     }
 
     * {
-  -webkit-tap-highlight-color: transparent;
-}
+        -webkit-tap-highlight-color: transparent;
+    }
 </style>
 </head>
 <body>
