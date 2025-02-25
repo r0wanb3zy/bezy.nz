@@ -14,7 +14,9 @@
     max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
-    background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%);
+    background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
+    min-height: 100vh;
+    background-size: cover;
   }
   h1 {
     text-align: center;
@@ -66,20 +68,28 @@
   table input {
     width: 100%;
     box-sizing: border-box;
-    padding: 4px;
+    padding: 8px; /* Increased padding for a more spacious feel */
     text-align: center;
     font-size: inherit;
     font-family: 'Economica', sans-serif;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    background: #fafafa;
+    border: 1px solid #d0d7de; /* Slightly darker border for definition */
+    border-radius: 6px; /* Slightly more rounded */
+    background: #ffffff; /* Pure white for a crisp look */
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05); /* Subtle inner shadow */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Smooth transitions */
+  }
+  table input:focus {
+    outline: none;
+    border-color: #4a90e2; /* Matches the blue theme */
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.5); /* Glow effect on focus */
   }
   table input::placeholder {
     font-family: 'Economica', sans-serif;
     font-size: 16px;
     text-align: center;
     line-height: normal;
-    color: #888;
+    color: #6b7280; /* Modern gray for placeholder text */
+    opacity: 0.8; /* Slightly less intense */
   }
   .highlight-winner {
     background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
@@ -208,7 +218,7 @@
         { name: "P2", totalScore: 0, roundScores: [] },
         { name: "P3", totalScore: 0, roundScores: [] },
         { name: "P4", totalScore: 0, roundScores: [] }
-      ].map(player => ({ ...player, name: player.name.toUpperCase() })); // Ensure initial names are uppercase
+      ].map(player => ({ ...player, name: player.name.toUpperCase() }));
       rounds = [];
       localStorage.setItem('initialized', 'true');
       localStorage.setItem('players', JSON.stringify(players));
@@ -326,7 +336,7 @@
         rounds[roundIndex][playerIndex] = score;
         if (players[playerIndex] && players[playerIndex].roundScores[roundIndex] !== undefined) {
           players[playerIndex].roundScores[roundIndex] = score;
-          players[index].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+          players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
         }
       }
       saveData();
@@ -394,7 +404,6 @@
           closePopup('playerManagementModal');
         }
       });
-      // Force uppercase as user types
       input.addEventListener('input', function() {
         this.value = this.value.toUpperCase();
       });
@@ -444,7 +453,7 @@
       if (newCount > players.length) {
         for (let i = players.length; i < newCount; i++) {
           players.push({ 
-            name: `P${i+1}`.toUpperCase(), // Ensure new player names are uppercase
+            name: `P${i+1}`.toUpperCase(),
             totalScore: 0, 
             roundScores: Array(rounds.length).fill(0)  
           });
@@ -469,7 +478,7 @@
         players.forEach(player => {
           player.roundScores = [];
           player.totalScore = 0;
-          player.name = player.name.toUpperCase(); // Ensure names stay uppercase on reset
+          player.name = player.name.toUpperCase();
         });
         rounds = [];
         saveData();
