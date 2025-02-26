@@ -681,7 +681,7 @@
                             newCell.className = 'lower-section-cell';
                             newCell.setAttribute('data-player', `P${i}`);
                             newCell.setAttribute('data-category', category === 'FH' ? 'Full House' : category === 'SS' ? 'Small Straight' : category === '▼' ? 'Large Straight' : 'Yahtzee');
-                            newCell.setAttribute('data-score', category === 'FH' ? '25' : category === 'SS' ? '30' : category === '▼' ? '40' : '50');
+                            newCell.setAttribute('data-score', category === 'FH' ? '25' : category === 'SS' ? '30' : category === 'LS' ? '40' : '50');
                             newCell.setAttribute('data-state', '0');
                             newCell.onclick = function(e) {
                                 let currentState = parseInt(this.getAttribute('data-state')) || 0;
