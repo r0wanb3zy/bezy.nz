@@ -17,7 +17,7 @@
       background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
       min-height: 100vh;
       background-size: cover;
-      overflow-x: auto; /* Added for sticky header support */
+      overflow-x: auto;
     }
     h1 {
       text-align: center;
@@ -29,9 +29,9 @@
       font-size: 20px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       overflow: hidden;
-      display: block; /* Changed for sticky header */
-      max-height: 100vh; /* Adjust as needed */
-      overflow-y: auto; /* Enable scrolling */
+      display: block;
+      max-height: 100vh;
+      overflow-y: auto;
     }
     table th, table td {
       border: none;
@@ -39,7 +39,10 @@
       padding: 5px;
       word-wrap: break-word;
       cursor: pointer;
-      border-bottom: 1px solid rgba(200, 200, 200, 0.3);
+      border-bottom: none; /* Remove border from th and td here */
+    }
+    table td {
+      border-bottom: 1px solid rgba(200, 200, 200, 0.3); /* Re-apply only to td */
     }
     table th {
       background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
@@ -66,22 +69,24 @@
       border-bottom: 1px solid #666;
     }
     thead {
-      position: sticky; /* Added for sticky header */
-      top: 0; /* Added for sticky header */
-      z-index: 10; /* Added for sticky header */
-      background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%); /* Moved here */
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      border-bottom: none; /* Ensure no border on thead */
     }
     thead th {
-      position: sticky; /* Added for sticky header */
-      top: 0; /* Added for sticky header */
-      background: none; /* Remove individual th background */
+      position: sticky;
+      top: 0;
+      background: none;
     }
     #scoreTable thead th {
       height: 75px;
       font-family: 'Economica', sans-serif;
       font-size: 22px;
-      position: sticky; /* Added for sticky header */
-      top: 0; /* Added for sticky header */
+      position: sticky;
+      top: 0;
     }
     #scoreTable thead th span.score {
       font-size: 22px;
@@ -109,7 +114,7 @@
       font-family: 'Economica', sans-serif;
       font-size: 16px;
       text-align: center;
-      line-height: 16px; /* Matches font size, fits within height - padding */
+      line-height: 16px;
       color: #6b7280;
       opacity: 0.8;
     }
@@ -138,6 +143,9 @@
       height: 5px;
       line-height: 5px;
       overflow: hidden;
+    }
+    tbody {
+      background: #ffffff; /* Match body background to avoid gaps */
     }
     .popup-modal {
       display: none;
@@ -207,10 +215,10 @@
       transition: background 0.2s;
     }
     #scoreBody tr:last-child td input {
-      font-size: 16px; /* Smaller default text */
+      font-size: 16px;
     }
     #scoreBody tr:last-child td input::placeholder {
-      font-size: 16px; /* Smaller placeholder text */
+      font-size: 16px;
     }
     #overlay {
       display: none;
@@ -252,7 +260,7 @@
       }
       #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
         font-size: 14px;
-        line-height: 10px; /* Matches smaller font size */
+        line-height: 10px;
       }
     }
   </style>
