@@ -368,22 +368,22 @@
         </thead>
         <tbody>
             <tr>
-                <td>1</td>
+                <td>1s</td>
             </tr>
             <tr>
-                <td>2</td>
+                <td>2s</td>
             </tr>
             <tr>
-                <td>3</td>
+                <td>3s</td>
             </tr>
             <tr>
-                <td>4</td>
+                <td>4s</td>
             </tr>
             <tr>
-                <td>5</td>
+                <td>5s</td>
             </tr>
             <tr>
-                <td>6</td>
+                <td>6s</td>
             </tr>
             <tr class="bonus-row">
                 <td>BO</td>
@@ -676,7 +676,7 @@
                         } else if (category === '▼' && row.classList.contains('lower-score-row')) {
                             newCell.id = `lowerScoreP${i}`;
                             newCell.textContent = '0';
-                        } else if (['FH', 'SS', '▼', 'YZ'].includes(category)) {
+                        } else if (['FH', 'SS', 'LS', 'YZ'].includes(category)) {
                             newCell.className = 'lower-section-cell';
                             newCell.setAttribute('data-player', `P${i}`);
                             newCell.setAttribute('data-category', category === 'FH' ? 'Full House' : category === 'SS' ? 'Small Straight' : category === '▼' ? 'Large Straight' : 'Yahtzee');
