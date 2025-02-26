@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Scorecard</title>
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
@@ -30,8 +30,10 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       overflow: hidden;
       display: block;
-      max-height: 100vh; /* Reduced from 100vh to accommodate keyboard */
+      max-height: 100vh; /* Keep at 100vh */
+      height: 100vh; /* Set explicit height */
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     }
     table th, table td {
       border: none;
@@ -76,7 +78,7 @@
       border-bottom: none;
     }
     thead.shadow {
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Dynamic shadow */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
     thead th {
       position: sticky;
@@ -283,6 +285,12 @@
   <div id="overlay"></div>
 
   <script>
+    // Set table height to initial viewport height on load
+    window.addEventListener('load', () => {
+      const table = document.getElementById('scoreTable');
+      table.style.height = `${window.innerHeight}px`; // Lock to initial height
+    });
+
     if (!localStorage.getItem('initialized')) {
       players = [
         { name: "P1", totalScore: 0, roundScores: [] },
@@ -390,23 +398,25 @@
             }
           }
         });
-        // Add focus handler to keep input in view
-        input.addEventListener('focus', function() {
+        // Smooth scroll on focus
+        input.addEventListener('focus', function(event) {
+          event.preventDefault(); // Prevent browser default scroll
           setTimeout(() => {
             const table = document.getElementById('scoreTable');
             const inputRect = this.getBoundingClientRect();
             const tableRect = table.getBoundingClientRect();
-            if (inputRect.bottom > tableRect.bottom) {
+            const keyboardHeightEstimate = window.innerHeight * 0.4; // Rough keyboard height
+            if (inputRect.bottom > (tableRect.bottom - keyboardHeightEstimate)) {
               table.scrollTo({
-                top: table.scrollTop + (inputRect.bottom - tableRect.bottom) + 20, // Buffer
+                top: table.scrollTop + (inputRect.bottom - tableRect.bottom) + 20,
                 behavior: 'smooth'
               });
             }
-          }, 200); // Delay for keyboard to open
+          }, 150); // Delay for keyboard
         });
       });
 
-      toggleShadow(); // Keep shadow functionality
+      toggleShadow();
     }
 
     function getRank(score) {
@@ -625,7 +635,6 @@
       hideOverlay();
     }
 
-    // Dynamic shadow function
     function toggleShadow() {
       const table = document.getElementById('scoreTable');
       const thead = table.querySelector('thead');
