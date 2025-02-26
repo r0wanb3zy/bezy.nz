@@ -22,13 +22,17 @@
             background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
             min-height: 100vh;
             background-size: cover;
+            overflow: hidden; /* Updated: Prevent body scrolling */
         }
     
         #scoreTable {
-            height: 100vh;
-            overflow-y: auto;
+            height: 100vh; /* Fallback */
+            max-height: 100vh; /* Updated: Prevent overflow */
+            overflow: hidden; /* Updated: Reinforce no scrolling */
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
+            margin: 0; /* Updated: Ensure no extra spacing */
+            padding: 0; /* Updated: Ensure no extra spacing */
+            box-sizing: border-box; /* Updated: Include padding in height */
         }
     
         h1, h2 {
@@ -53,20 +57,17 @@
             overflow: hidden;
             text-overflow: ellipsis;
             font-family: 'Economica', sans-serif;
-            border-bottom: 1px solid rgba(200, 200, 200, 0.3); /* Lighter border for non-dark areas */
+            border-bottom: 1px solid rgba(200, 200, 200, 0.3);
         }
     
-        /* Add vertical lines only to td elements (body cells) */
         table td {
             border-right: 1px solid rgba(200, 200, 200, 0.3);
         }
     
-        /* Remove the right border from the last column in the body */
         table td:last-child {
             border-right: none;
         }
     
-        /* Updated first column styles to match Scorecard app and fix border protrusion */
         table th:first-child {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             font-weight: bold;
@@ -75,7 +76,7 @@
             max-width: 30px;
             overflow: hidden;
             color: white;
-            border-bottom: 1px solid #666; /* Reinstated for border between top two cells */
+            border-bottom: 1px solid #666;
         }
     
         table td:first-child {
@@ -87,7 +88,7 @@
             overflow: hidden;
             color: white;
             border-bottom: 1px solid #666;
-            border-right: none; /* Prevents border poking out */
+            border-right: none;
         }
     
         table th {
@@ -95,19 +96,17 @@
             color: white;
         }
     
-        /* Specific style for top-left cell */
         #scoreTable thead th:first-child {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-            border-right: none; /* Remove right border from top-left cell */
-            border-bottom: 1px solid #666; /* Explicitly add border for first header cell */
+            border-right: none;
+            border-bottom: 1px solid #666;
         }
     
-        /* Remove border-bottom from the top row, except where overridden */
         #scoreTable thead th {
             height: 75px;
             font-family: 'Economica', sans-serif;
             font-size: 22px;
-            border-bottom: none; /* No border under top row, overridden for first-child */
+            border-bottom: none;
         }
     
         table input {
@@ -141,19 +140,23 @@
         .bonus-row td, .upper-score-row td, .lower-score-row td {
             background: #4d4d4d;
             color: white;
-            border-bottom: 1px solid #666; /* Darker border for dark area */
-            border-right: 1px solid #666; /* Vertical border for dark area */
+            border-bottom: 1px solid #666;
+            border-right: 1px solid #666;
         }
+        
         .bonus-row td:first-child,
-.upper-score-row td:first-child,
-.lower-score-row td:first-child {
-    border-right: 1px solid #666;
-}
-table tr:last-child td {
-    border-bottom: none;
-}
-        /* Remove right border from the last cell in bonus/score rows */
-        .bonus-row td:last-child, .upper-score-row td:last-child, .lower-score-row td:last-child {
+        .upper-score-row td:first-child,
+        .lower-score-row td:first-child {
+            border-right: 1px solid #666;
+        }
+        
+        table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .bonus-row td:last-child, 
+        .upper-score-row td:last-child, 
+        .lower-score-row td:last-child {
             border-right: none;
         }
     
@@ -494,10 +497,13 @@ table tr:last-child td {
     <div id="overlay" style="display: none;"></div>
 
     <script>
+        // Updated: Use visualViewport for precise height on mobile
         function setFullHeight() {
             const table = document.getElementById("scoreTable");
             if (table) {
-                table.style.height = `${window.innerHeight}px`;
+                const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                table.style.height = `${height}px`;
+                table.style.maxHeight = `${height}px`; // Updated: Cap height
             }
         }
 
@@ -531,7 +537,12 @@ table tr:last-child td {
             });
         });
 
-        window.addEventListener('resize', setFullHeight);
+        // Updated: Add visualViewport and orientationchange listeners
+        window.addEventListener("resize", setFullHeight);
+        window.addEventListener("orientationchange", setFullHeight);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", setFullHeight);
+        }
 
         function calculateTotal(player) {
             let total = 0;
@@ -724,7 +735,6 @@ table tr:last-child td {
                             newCell.className = 'lower-section-cell';
                             newCell.setAttribute('data-player', `P${i}`);
                             newCell.setAttribute('data-category', category === '🏠' ? 'Full House' : category === '<span class="scaled-emoji-2">◽️</span>' ? 'Small Straight' : category === '◽️' ? 'Large Straight' : 'Yahtzee');
-                            // Fixed Small Straight score to 30 by checking innerHTML
                             newCell.setAttribute('data-score', category === '🏠' ? '25' : row.firstElementChild.innerHTML === '<span class="scaled-emoji-2">◽️</span>' ? '30' : category === '◽️' ? '40' : '50');
                             newCell.setAttribute('data-state', '0');
                             newCell.onclick = function(e) {
@@ -771,24 +781,24 @@ table tr:last-child td {
         }
 
         function reattachEventListeners() {
-    document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
-        header.removeEventListener('click', header.clickHandler);
-        header.clickHandler = function(e) {
-            e.stopPropagation();
-            const player = this.getAttribute('data-player');
-            const playerName = this.innerText.split('\n')[0].trim();
-            const playerNameInput = document.getElementById('playerNameInput');
-            playerNameInput.value = playerName;
-            closeAllPopups();
-            document.getElementById('playerNameModal').style.display = 'block';
-            showOverlay();
-            window.currentPlayer = player;
-            playerNameInput.focus();
-            playerNameInput.select(); // This line auto-selects the text
-        };
-        header.addEventListener('click', header.clickHandler);
-    });
-}
+            document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
+                header.removeEventListener('click', header.clickHandler);
+                header.clickHandler = function(e) {
+                    e.stopPropagation();
+                    const player = this.getAttribute('data-player');
+                    const playerName = this.innerText.split('\n')[0].trim();
+                    const playerNameInput = document.getElementById('playerNameInput');
+                    playerNameInput.value = playerName;
+                    closeAllPopups();
+                    document.getElementById('playerNameModal').style.display = 'block';
+                    showOverlay();
+                    window.currentPlayer = player;
+                    playerNameInput.focus();
+                    playerNameInput.select();
+                };
+                header.addEventListener('click', header.clickHandler);
+            });
+        }
 
         function loadScores() {
             const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
@@ -837,14 +847,13 @@ table tr:last-child td {
                     player: scoreElement.id,
                     score: parseInt(scoreElement.textContent) || 0
                 }));
-                scoresArray.sort((a, b) => b.score - a.score); // Highest score is 1st
+                scoresArray.sort((a, b) => b.score - a.score);
 
                 let rank = 1;
                 let lastScore = null;
                 const rankMap = {};
                 let lastPlaceScores = [];
 
-                // Determine ranks and collect all players tied for last
                 scoresArray.forEach((player, index) => {
                     if (lastScore !== null && player.score === lastScore) {
                         rankMap[player.player] = rank;
@@ -854,9 +863,7 @@ table tr:last-child td {
                     }
                     lastScore = player.score;
 
-                    // Collect all players with the lowest score
                     if (index === scoresArray.length - 1) {
-                        // Last player, check for ties with the lowest score
                         lastPlaceScores = scoresArray.filter(p => p.score === player.score).map(p => p.player);
                     }
                 });
@@ -877,9 +884,9 @@ table tr:last-child td {
                     if (allScoresSame) {
                         scoreElement.parentElement.classList.add('highlight-winner');
                     } else if (score === maxScore && score > minScore) {
-                        scoreElement.parentElement.classList.add('highlight-winner'); // Highest score gets green
+                        scoreElement.parentElement.classList.add('highlight-winner');
                     } else if (lastPlaceScores.includes(scoreElement.id) && score < maxScore) {
-                        scoreElement.parentElement.classList.add('highlight-loser'); // Tied for lowest score gets red
+                        scoreElement.parentElement.classList.add('highlight-loser');
                     }
 
                     scoreElement.textContent = score;
