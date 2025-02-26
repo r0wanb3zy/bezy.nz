@@ -17,6 +17,7 @@
       background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
       min-height: 100vh;
       background-size: cover;
+      overflow-x: auto; /* Added for sticky header support */
     }
     h1 {
       text-align: center;
@@ -28,6 +29,9 @@
       font-size: 20px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       overflow: hidden;
+      display: block; /* Changed for sticky header */
+      max-height: 100vh; /* Adjust as needed */
+      overflow-y: auto; /* Enable scrolling */
     }
     table th, table td {
       border: none;
@@ -61,17 +65,23 @@
       color: white;
       border-bottom: 1px solid #666;
     }
-    table thead {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: adds a subtle shadow */
-}
+    thead {
+      position: sticky; /* Added for sticky header */
+      top: 0; /* Added for sticky header */
+      z-index: 10; /* Added for sticky header */
+      background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%); /* Moved here */
+    }
+    thead th {
+      position: sticky; /* Added for sticky header */
+      top: 0; /* Added for sticky header */
+      background: none; /* Remove individual th background */
+    }
     #scoreTable thead th {
       height: 75px;
       font-family: 'Economica', sans-serif;
       font-size: 22px;
+      position: sticky; /* Added for sticky header */
+      top: 0; /* Added for sticky header */
     }
     #scoreTable thead th span.score {
       font-size: 22px;
@@ -96,25 +106,17 @@
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
     table input::placeholder {
-  font-family: 'Economica', sans-serif;
-  font-size: 16px;
-  text-align: center;
-  line-height: 16px; /* Matches font size, fits within height - padding */
-  color: #6b7280;
-  opacity: 0.8;
-}
+      font-family: 'Economica', sans-serif;
+      font-size: 16px;
+      text-align: center;
+      line-height: 16px; /* Matches font size, fits within height - padding */
+      color: #6b7280;
+      opacity: 0.8;
+    }
     table input:focus {
       outline: none;
       border-color: #333333;
       box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
-    }
-    table input::placeholder {
-      font-family: 'Economica', sans-serif;
-      font-size: 16px;
-      text-align: center;
-      line-height: normal;
-      color: #6b7280;
-      opacity: 0.8;
     }
     .highlight-winner {
       background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
@@ -204,24 +206,12 @@
       border-radius: 6px;
       transition: background 0.2s;
     }
-    
-    table input::placeholder {
-  font-family: 'Economica', sans-serif;
-  font-size: 16px;
-  text-align: center;
-  line-height: 16px;
-  color: #6b7280;
-  opacity: 0.8;
-}
-
-/* Add these new rules */
-#scoreBody tr:last-child td input {
-  font-size: 16px; /* Smaller default text */
-}
-
-#scoreBody tr:last-child td input::placeholder {
-  font-size: 16px; /* Smaller placeholder text */
-}
+    #scoreBody tr:last-child td input {
+      font-size: 16px; /* Smaller default text */
+    }
+    #scoreBody tr:last-child td input::placeholder {
+      font-size: 16px; /* Smaller placeholder text */
+    }
     #overlay {
       display: none;
       position: fixed;
@@ -242,29 +232,29 @@
       display: inline-block;
     }
     @media (max-width: 480px) {
-  #scoreTable.small-scores thead th {
-    padding: 3px;
-  }
-  #scoreTable.small-scores thead th span.score {
-    font-size: 18px;
-    line-height: 1.2;
-  }
-  #scoreTable.small-scores thead th small {
-    font-size: 12px;
-  }
-  #scoreTable.small-scores tbody td {
-    font-size: 16px;
-  }
-  #scoreTable.small-scores tbody tr:last-child input[type="number"] {
-    font-size: 14px;
-    padding: 5px;
-    height: 32px;
-  }
-  #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
-    font-size: 14px;
-    line-height: 10px; /* Matches smaller font size */
-  }
-}
+      #scoreTable.small-scores thead th {
+        padding: 3px;
+      }
+      #scoreTable.small-scores thead th span.score {
+        font-size: 18px;
+        line-height: 1.2;
+      }
+      #scoreTable.small-scores thead th small {
+        font-size: 12px;
+      }
+      #scoreTable.small-scores tbody td {
+        font-size: 16px;
+      }
+      #scoreTable.small-scores tbody tr:last-child input[type="number"] {
+        font-size: 14px;
+        padding: 5px;
+        height: 32px;
+      }
+      #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
+        font-size: 14px;
+        line-height: 10px; /* Matches smaller font size */
+      }
+    }
   </style>
 </head>
 <body>
