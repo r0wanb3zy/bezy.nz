@@ -258,6 +258,36 @@
     line-height: 10px; /* Matches smaller font size */
   }
 }
+/* Ensure the table container allows scrolling */
+body {
+  overflow-y: auto; /* Enables vertical scrolling */
+}
+
+/* Make the table header sticky */
+#scoreTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 10; /* Keeps the header above the body content */
+}
+
+/* Ensure the header cells stay on top and maintain their background */
+#scoreTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%); /* Retain gradient */
+}
+
+/* Optional: Add a bottom border to the header for visual separation */
+#scoreTable thead tr {
+  border-bottom: 2px solid #666; /* Slightly darker border for contrast */
+}
+
+/* Ensure the table body doesn’t overlap the sticky header */
+#scoreTable tbody {
+  position: relative;
+  z-index: 1; /* Keeps body below the header */
+}
   </style>
 </head>
 <body>
