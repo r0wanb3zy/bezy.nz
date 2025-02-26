@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scorecard</title>
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
-
   <style>
     body {
       font-family: 'Economica', sans-serif;
@@ -17,10 +16,15 @@
       background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
       min-height: 100vh;
       background-size: cover;
-      overflow-x: auto;
     }
     h1 {
       text-align: center;
+    }
+    .table-container {
+      max-height: 100vh;
+      overflow-y: auto;
+      width: 100%;
+      position: relative;
     }
     table {
       width: 100%;
@@ -28,12 +32,13 @@
       border-collapse: collapse;
       font-size: 20px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      overflow: hidden;
-      display: block;
-      max-height: 100vh; /* Keep at 100vh */
-      height: 100vh; /* Set explicit height */
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    }
+    table thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     table th, table td {
       border: none;
@@ -41,17 +46,12 @@
       padding: 5px;
       word-wrap: break-word;
       cursor: pointer;
-      border-bottom: none;
-    }
-    table td {
       border-bottom: 1px solid rgba(200, 200, 200, 0.3);
     }
     table th {
-      background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
       color: white;
     }
     table th:first-child {
-      background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
       font-weight: bold;
       width: 30px;
       min-width: 30px;
@@ -70,27 +70,10 @@
       color: white;
       border-bottom: 1px solid #666;
     }
-    thead {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-      border-bottom: none;
-    }
-    thead.shadow {
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-    thead th {
-      position: sticky;
-      top: 0;
-      background: none;
-    }
     #scoreTable thead th {
       height: 75px;
       font-family: 'Economica', sans-serif;
       font-size: 22px;
-      position: sticky;
-      top: 0;
     }
     #scoreTable thead th span.score {
       font-size: 22px;
@@ -147,9 +130,6 @@
       height: 5px;
       line-height: 5px;
       overflow: hidden;
-    }
-    tbody {
-      background: #ffffff;
     }
     .popup-modal {
       display: none;
@@ -270,27 +250,23 @@
   </style>
 </head>
 <body>
-  <table id="scoreTable">
-    <thead>
-      <tr id="playerRow">
-        <th>#</th>
-      </tr>
-    </thead>
-    <tbody id="scoreBody">
-    </tbody>
-  </table>
+  <div class="table-container">
+    <table id="scoreTable">
+      <thead>
+        <tr id="playerRow">
+          <th>#</th>
+        </tr>
+      </thead>
+      <tbody id="scoreBody">
+      </tbody>
+    </table>
+  </div>
 
   <div id="playerManagementModal" class="popup-modal"></div>
   <div id="roundManagementModal" class="popup-modal"></div>
   <div id="overlay"></div>
 
   <script>
-    // Set table height to initial viewport height on load
-    window.addEventListener('load', () => {
-      const table = document.getElementById('scoreTable');
-      table.style.height = `${window.innerHeight}px`; // Lock to initial height
-    });
-
     if (!localStorage.getItem('initialized')) {
       players = [
         { name: "P1", totalScore: 0, roundScores: [] },
@@ -334,6 +310,7 @@
       const playerRow = document.getElementById("playerRow");
       const scoreTable = document.getElementById("scoreTable");
       
+      // Toggle small-scores class based on player count
       if (players.length >= 7) {
         scoreTable.classList.add("small-scores");
       } else {
@@ -398,25 +375,7 @@
             }
           }
         });
-        // Smooth scroll on focus
-        input.addEventListener('focus', function(event) {
-          event.preventDefault(); // Prevent browser default scroll
-          setTimeout(() => {
-            const table = document.getElementById('scoreTable');
-            const inputRect = this.getBoundingClientRect();
-            const tableRect = table.getBoundingClientRect();
-            const keyboardHeightEstimate = window.innerHeight * 0.4; // Rough keyboard height
-            if (inputRect.bottom > (tableRect.bottom - keyboardHeightEstimate)) {
-              table.scrollTo({
-                top: table.scrollTop + (inputRect.bottom - tableRect.bottom) + 20,
-                behavior: 'smooth'
-              });
-            }
-          }, 150); // Delay for keyboard
-        });
       });
-
-      toggleShadow();
     }
 
     function getRank(score) {
@@ -635,19 +594,6 @@
       hideOverlay();
     }
 
-    function toggleShadow() {
-      const table = document.getElementById('scoreTable');
-      const thead = table.querySelector('thead');
-      const isScrollable = table.scrollHeight > table.clientHeight;
-      const isScrolled = table.scrollTop > 0;
-      if (isScrollable && isScrolled) {
-        thead.classList.add('shadow');
-      } else {
-        thead.classList.remove('shadow');
-      }
-    }
-
-    document.getElementById('scoreTable').addEventListener('scroll', toggleShadow);
     document.getElementById('overlay').addEventListener('click', closeAllPopups);
 
     updateUI();
