@@ -98,64 +98,17 @@
             border-bottom: 1px solid #666; /* Reinstated for border between top two cells */
         }
     
-/* Lock row height for all body rows */
-table tbody tr {
-    height: 40px;             /* Fixed height to match input + padding */
-}
-
-/* Adjust first column */
-table td:first-child {
-    background: #4d4d4d;
-    font-weight: bold;
-    width: 30px;
-    min-width: 30px;
-    max-width: 30px;
-    overflow: hidden;
-    color: white;
-    border-bottom: 1px solid #666;
-    border-right: none;
-    padding: 5px;
-    text-align: center;
-    vertical-align: middle;
-}
-
-/* Center icons with Flexbox */
-.icon-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;             /* Fills the 40px row height minus padding */
-}
-
-table td:first-child img {
-    filter: brightness(0) invert(1);
-    width: 20px;              /* Default size */
-    height: 20px;
-}
-
-/* Adjust for 15px icons */
-.upper-score-row td:first-child img,
-.lower-score-row td:first-child img {
-    width: 15px;
-    height: 15px;
-}
-
-/* Fit inputs within the fixed row height */
-table input {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 4px;             /* Reduced padding to fit 40px height */
-    text-align: center;
-    font-size: 18px;          /* Slightly smaller to fit */
-    height: 30px;             /* Explicit height to fit within 40px row */
-    font-family: 'Economica', sans-serif;
-    border: 1px solid #d0d7de;
-    border-radius: 6px;
-    background: #ffffff;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
+        table td:first-child {
+            background: #4d4d4d;
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+            color: white;
+            border-bottom: 1px solid #666;
+            border-right: none; /* Prevents border poking out */
+        }
     
         table th {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
@@ -470,6 +423,11 @@ table input {
         * {
             -webkit-tap-highlight-color: transparent;
         }
+        table td:first-child img {
+    filter: brightness(0) invert(1);
+    width: 20px;
+    height: 20px;
+}
     </style>
 </head>
 <body>
@@ -481,52 +439,52 @@ table input {
         </thead>
         <tbody>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-01.png" alt="Ones"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-01.png" alt="Ones" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-02.png" alt="Twos"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-02.png" alt="Twos" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-03.png" alt="Threes"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-03.png" alt="Threes" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-04.png" alt="Fours"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-04.png" alt="Fours" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-05.png" alt="Fives"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-05.png" alt="Fives" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-06.png" alt="Sixes"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-06.png" alt="Sixes" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr class="bonus-row">
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-07.png" alt="Bonus"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-07.png" alt="Bonus" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr class="upper-score-row">
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-08.png" alt="Upper Score"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-08.png" alt="Upper Score" style="width: 15px; height: 15px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-09.png" alt="Three of a Kind"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-09.png" alt="Three of a Kind" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-10.png" alt="Four of a Kind"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-10.png" alt="Four of a Kind" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-11.png" alt="Full House"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-11.png" alt="Full House" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-12.png" alt="Small Straight"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-12.png" alt="Small Straight" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-13.png" alt="Large Straight"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-13.png" alt="Large Straight" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-14.png" alt="Yahtzee"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-14.png" alt="Yahtzee" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-15.png" alt="Chance"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-15.png" alt="Chance" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr class="lower-score-row">
-                <td><div class="icon-wrapper"><img src="/score/assets/images/yahtzee-icon-16.png" alt="Lower Score"></div></td>
+                <td><img src="/score/assets/images/yahtzee-icon-16.png" alt="Lower Score" style="width: 15px; height: 15px;"></td>
             </tr>
         </tbody>
     </table>
