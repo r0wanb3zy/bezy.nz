@@ -108,17 +108,17 @@
     color: white;
     border-bottom: 1px solid #666;
     border-right: none;
-    padding: 0; /* Remove padding to control centering precisely */
-    text-align: center; /* Ensure horizontal centering */
-    vertical-align: middle; /* Ensure vertical centering */
+    text-align: center; /* Center horizontally */
+    vertical-align: middle; /* Center vertically */
+    /* Padding remains 5px from the inherited table td rule */
 }
 
 table td:first-child img {
     filter: brightness(0) invert(1);
     width: 20px;
     height: 20px;
-    margin: 0 auto; /* Center horizontally */
-    display: block; /* Ensures margin auto works for horizontal centering */
+    display: inline-block; /* Keep inline-block to work with text-align */
+    vertical-align: middle; /* Ensure image aligns with td's vertical center */
 }
     
         table th {
