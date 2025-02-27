@@ -74,7 +74,10 @@
             text-overflow: ellipsis;
             font-family: 'Economica', sans-serif;
             border-bottom: 1px solid rgba(200, 200, 200, 0.3); /* Lighter border for non-dark areas */
-            min-height: 30px; /* Minimum height to stabilize rows */
+            height: 34px; /* Fixed height to stabilize rows */
+            min-height: 34px;
+            max-height: 34px;
+            line-height: 20px; /* Consistent line height */
             vertical-align: middle; /* Center content vertically */
         }
     
@@ -142,7 +145,7 @@
         table input {
             width: 100%;
             box-sizing: border-box;
-            padding: 8px;
+            padding: 6px; /* Reduced from 8px to fit within 34px height */
             text-align: center;
             font-size: inherit;
             font-family: 'Economica', sans-serif;
@@ -151,7 +154,9 @@
             background: #ffffff;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            max-height: 34px; /* Cap input height to match min-height of cells */
+            height: 34px; /* Fixed height to match td */
+            max-height: 34px;
+            line-height: 20px; /* Consistent line height */
             vertical-align: middle; /* Ensure inputs align vertically */
         }
     
