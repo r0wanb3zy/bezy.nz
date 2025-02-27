@@ -320,39 +320,39 @@
         }
     
         #playerNameModal {
-    display: none;
-    position: fixed;
-    top: 15%;
-    left: 50%;
-    transform: translate(-50%, -15%);
-    background: #ffffff;
-    border: none;
-    padding: 5px 20px 20px 20px;
-    z-index: 1001;
-    width: 200px;
-    max-width: 90%;
-    text-align: center;
-    font-family: 'Economica', sans-serif;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-}
-
-.close-btn {
-    position: absolute;
-    top: 0px;
-    right: 0px;
-    font-size: 48px; /* Increased from 36px to 48px for an even bigger X */
-    color: #000000; /* Black color */
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 0;
-    line-height: 1;
-    width: 40px; /* Increased from 30px to 40px to fit larger X */
-    height: 40px; /* Increased from 30px to 40px to fit larger X */
-    text-align: center;
-    transition: color 0.2s ease;
-}
+            display: none;
+            position: fixed;
+            top: 15%;
+            left: 50%;
+            transform: translate(-50%, -15%);
+            background: #ffffff;
+            border: none;
+            padding: 5px 20px 20px 20px;
+            z-index: 1001;
+            width: 200px;
+            max-width: 90%;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+    
+        .close-btn {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            font-size: 48px;
+            color: #000000;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            transition: color 0.2s ease;
+        }
     
         #playerNameModal input[type="text"] {
             font-size: 24px;
@@ -441,10 +441,10 @@
             -webkit-tap-highlight-color: transparent;
         }
         table td:first-child img {
-    filter: brightness(0) invert(1);
-    width: 20px;
-    height: 20px;
-}
+            filter: brightness(0) invert(1);
+            width: 20px;
+            height: 20px;
+        }
     </style>
 </head>
 <body>
@@ -508,8 +508,8 @@
 
     <div id="popupModal">
         <h2 id="popupTitle">Select Score:</h2>
+        <span class="close-btn" onclick="closePopup()">×</span>
         <div id="popupOptions"></div>
-        <button onclick="closePopup()">Close</button>
     </div>
 
     <div id="roundManagementModal">
@@ -530,7 +530,7 @@
 
     <div id="playerNameModal">
         <h2>Player</h2>
-        <span class="close-btn" onclick="closePlayerNameModal()">&times;</span>
+        <span class="close-btn" onclick="closePlayerNameModal()">×</span>
         <input type="text" id="playerNameInput" placeholder="" autocapitalize="characters" inputmode="text">
         <button onclick="updatePlayerName()">Update</button>
     </div>
@@ -635,41 +635,41 @@
         function hideOverlay() {
             document.getElementById('overlay').style.display = 'none';
         }
+
         function showPopup(cell, category, player) {
-    closeAllPopups();
-    document.getElementById('popupModal').style.display = 'block';
-    showOverlay();
-    const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
-    document.getElementById('popupTitle').textContent = categoryAlt;
-    
-    let options = '';
-    if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(categoryAlt)) {
-        for (let i = 1; i <= 30; i++) {
-            options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
+            closeAllPopups();
+            document.getElementById('popupModal').style.display = 'block';
+            showOverlay();
+            const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+            document.getElementById('popupTitle').textContent = categoryAlt;
+            
+            let options = '';
+            if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(categoryAlt)) {
+                for (let i = 1; i <= 30; i++) {
+                    options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
+                }
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
+            } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
+                const faceValueMap = {
+                    'Ones': 1,
+                    'Twos': 2,
+                    'Threes': 3,
+                    'Fours': 4,
+                    'Fives': 5,
+                    'Sixes': 6
+                };
+                const faceValue = faceValueMap[categoryAlt] || 1;
+                for (let i = 1; i <= 5; i++) {
+                    let score = i * faceValue;
+                    options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
+                }
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
+            }
+            document.getElementById('popupOptions').innerHTML = options;
+            window.lastClickedCell = cell;
         }
-        options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
-        options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
-    } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
-        // Explicitly map category to its face value
-        const faceValueMap = {
-            'Ones': 1,
-            'Twos': 2,
-            'Threes': 3,
-            'Fours': 4,
-            'Fives': 5,
-            'Sixes': 6
-        };
-        const faceValue = faceValueMap[categoryAlt] || 1; // Fallback to 1 if something goes wrong
-        for (let i = 1; i <= 5; i++) {
-            let score = i * faceValue; // Correctly multiply by face value
-            options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
-        }
-        options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
-        options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
-    }
-    document.getElementById('popupOptions').innerHTML = options;
-    window.lastClickedCell = cell;
-}
 
         function selectScore(score, player, categoryAlt, event) {
             event.stopPropagation();
@@ -892,7 +892,7 @@
                     player: scoreElement.id,
                     score: parseInt(scoreElement.textContent) || 0
                 }));
-                scoresArray.sort((a, b) => b.score - a.score); // Highest score is 1st
+                scoresArray.sort((a, b) => b.score - a.score);
 
                 let rank = 1;
                 let lastScore = null;
