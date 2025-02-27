@@ -396,13 +396,12 @@
         }
     
         .scaled-emoji {
-    transform: scale(0.6);
-    transform-origin: center;
-    display: inline-block;
-    height: 20px; /* Match the icon height */
-    line-height: 20px; /* Prevent extra vertical space */
-
-}
+            transform: scale(0.6);
+            transform-origin: center;
+            display: inline-block;
+            height: 20px;
+            line-height: 20px;
+        }
         .scaled-emoji-2 {
             transform: scale(.6);
             transform-origin: center;
@@ -425,8 +424,8 @@
             -webkit-tap-highlight-color: transparent;
         }
         table td:first-child img {
-    filter: brightness(0) invert(1);
-}
+            filter: brightness(0) invert(1);
+        }
     </style>
 </head>
 <body>
@@ -617,33 +616,41 @@
         function hideOverlay() {
             document.getElementById('overlay').style.display = 'none';
         }
-
         function showPopup(cell, category, player) {
-            closeAllPopups();
-            document.getElementById('popupModal').style.display = 'block';
-            showOverlay();
-            const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
-            document.getElementById('popupTitle').textContent = categoryAlt;
-            
-            let options = '';
-            if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(categoryAlt)) {
-                for (let i = 1; i <= 30; i++) {
-                    options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
-                }
-                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
-            } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
-                let numberValue = parseInt(categoryAlt.replace(/\D/g, '')) || 1; // Extract number from 'Ones', 'Twos', etc.
-                for (let i = 1; i <= 5; i++) {
-                    let score = i * numberValue;
-                    options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
-                }
-                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
-            }
-            document.getElementById('popupOptions').innerHTML = options;
-            window.lastClickedCell = cell;
+    closeAllPopups();
+    document.getElementById('popupModal').style.display = 'block';
+    showOverlay();
+    const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+    document.getElementById('popupTitle').textContent = categoryAlt;
+    
+    let options = '';
+    if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(categoryAlt)) {
+        for (let i = 1; i <= 30; i++) {
+            options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
         }
+        options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
+        options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
+    } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
+        // Explicitly map category to its face value
+        const faceValueMap = {
+            'Ones': 1,
+            'Twos': 2,
+            'Threes': 3,
+            'Fours': 4,
+            'Fives': 5,
+            'Sixes': 6
+        };
+        const faceValue = faceValueMap[categoryAlt] || 1; // Fallback to 1 if something goes wrong
+        for (let i = 1; i <= 5; i++) {
+            let score = i * faceValue; // Correctly multiply by face value
+            options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
+        }
+        options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
+        options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
+    }
+    document.getElementById('popupOptions').innerHTML = options;
+    window.lastClickedCell = cell;
+}
 
         function selectScore(score, player, categoryAlt, event) {
             event.stopPropagation();
