@@ -165,13 +165,13 @@
             border-right: 1px solid #666; /* Vertical border for dark area */
         }
         .bonus-row td:first-child,
-.upper-score-row td:first-child,
-.lower-score-row td:first-child {
-    border-right: 1px solid #666;
-}
-table tr:last-child td {
-    border-bottom: none;
-}
+        .upper-score-row td:first-child,
+        .lower-score-row td:first-child {
+            border-right: 1px solid #666;
+        }
+        table tr:last-child td {
+            border-bottom: none;
+        }
         /* Remove right border from the last cell in bonus/score rows */
         .bonus-row td:last-child, .upper-score-row td:last-child, .lower-score-row td:last-child {
             border-right: none;
@@ -421,6 +421,9 @@ table tr:last-child td {
         * {
             -webkit-tap-highlight-color: transparent;
         }
+        table td:first-child img {
+    filter: brightness(0) invert(1);
+}
     </style>
 </head>
 <body>
@@ -432,52 +435,52 @@ table tr:last-child td {
         </thead>
         <tbody>
             <tr>
-                <td>1️⃣</td>
+                <td><img src="/score/assets/images/yahtzee-icon-01.png" alt="Ones" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td>2️⃣</td>
+                <td><img src="/score/assets/images/yahtzee-icon-02.png" alt="Twos" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td>3️⃣</td>
+                <td><img src="/score/assets/images/yahtzee-icon-03.png" alt="Threes" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td>4️⃣</td>
+                <td><img src="/score/assets/images/yahtzee-icon-04.png" alt="Fours" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td>5️⃣</td>
+                <td><img src="/score/assets/images/yahtzee-icon-05.png" alt="Fives" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td>6️⃣</td>
+                <td><img src="/score/assets/images/yahtzee-icon-06.png" alt="Sixes" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr class="bonus-row">
-                <td>💰</td>
+                <td><img src="/score/assets/images/yahtzee-icon-07.png" alt="Bonus" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr class="upper-score-row">
-                <td>🔺️</td>
+                <td><img src="/score/assets/images/yahtzee-icon-08.png" alt="Upper Score" style="width: 15px; height: 15px;"></td>
             </tr>
             <tr>
-                <td>🤟</td>
+                <td><img src="/score/assets/images/yahtzee-icon-09.png" alt="Three of a Kind" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td>🖖</td>
+                <td><img src="/score/assets/images/yahtzee-icon-10.png" alt="Four of a Kind" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td>🏠</td>
+                <td><img src="/score/assets/images/yahtzee-icon-11.png" alt="Full House" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td><span class="scaled-emoji-2">◽️</span></td>
+                <td><img src="/score/assets/images/yahtzee-icon-12.png" alt="Small Straight" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td>◽️</td>
+                <td><img src="/score/assets/images/yahtzee-icon-13.png" alt="Large Straight" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td>🎯</td>
+                <td><img src="/score/assets/images/yahtzee-icon-14.png" alt="Yahtzee" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr>
-                <td>🎲</td>
+                <td><img src="/score/assets/images/yahtzee-icon-15.png" alt="Chance" style="width: 20px; height: 20px;"></td>
             </tr>
             <tr class="lower-score-row">
-                <td>🔻</td>
+                <td><img src="/score/assets/images/yahtzee-icon-16.png" alt="Lower Score" style="width: 15px; height: 15px;"></td>
             </tr>
         </tbody>
     </table>
@@ -561,7 +564,8 @@ table tr:last-child td {
                 if (score.type === 'number') {
                     let value = parseInt(score.value) || 0;
                     total += value;
-                    if (['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'].includes(score.closest('tr').cells[0].textContent)) {
+                    const category = score.closest('tr').cells[0].querySelector('img').alt;
+                    if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(category)) {
                         upperSectionTotal += value;
                     } else {
                         lowerSectionTotal += value;
@@ -576,7 +580,8 @@ table tr:last-child td {
                 } else if (score.classList.contains('upper-section-cell') && score.textContent !== '❌' && score.textContent !== '') {
                     let value = parseInt(score.textContent) || 0;
                     total += value;
-                    if (['🤟', '🖖', '🎲'].includes(score.closest('tr').cells[0].textContent)) {
+                    const category = score.closest('tr').cells[0].querySelector('img').alt;
+                    if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(category)) {
                         lowerSectionTotal += value;
                     } else {
                         upperSectionTotal += value;
@@ -610,36 +615,37 @@ table tr:last-child td {
             document.getElementById('overlay').style.display = 'none';
         }
 
-        function showPopup(cell, number, player) {
+        function showPopup(cell, category, player) {
             closeAllPopups();
             document.getElementById('popupModal').style.display = 'block';
             showOverlay();
-            document.getElementById('popupTitle').textContent = `${number}`;
+            const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+            document.getElementById('popupTitle').textContent = categoryAlt;
             
             let options = '';
-            if (['🤟', '🖖', '🎲'].includes(number)) {
+            if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(categoryAlt)) {
                 for (let i = 1; i <= 30; i++) {
-                    options += `<button onclick="selectScore(${i}, '${player}', '${number}', event)">${i}</button>`;
+                    options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">❌</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${number}', event)">⭕️</button>`;
-            } else {
-                let numberValue = parseInt(number);
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
+            } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
+                let numberValue = parseInt(categoryAlt.replace(/\D/g, '')) || 1; // Extract number from 'Ones', 'Twos', etc.
                 for (let i = 1; i <= 5; i++) {
                     let score = i * numberValue;
-                    options += `<button onclick="selectScore(${score}, '${player}', '${number}', event)">${score}</button>`;
+                    options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${number}', event)">❌</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${number}', event)">⭕️</button>`;
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
             }
             document.getElementById('popupOptions').innerHTML = options;
             window.lastClickedCell = cell;
         }
 
-        function selectScore(score, player, number, event) {
+        function selectScore(score, player, categoryAlt, event) {
             event.stopPropagation();
             const cell = window.lastClickedCell;
-            let cellId = `${player}-${number}`;
+            let cellId = `${player}-${categoryAlt}`;
 
             if (score === 0) {
                 cell.innerHTML = '<span class="scaled-emoji">❌</span>';
@@ -682,7 +688,8 @@ table tr:last-child td {
                     cell.textContent = '';
                     cell.style.textDecoration = 'none';
                     cell.setAttribute('data-state', '0');
-                    localStorage.removeItem(cell.getAttribute('data-player') + '-' + cell.closest('tr').cells[0].textContent);
+                    const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+                    localStorage.removeItem(cell.getAttribute('data-player') + '-' + categoryAlt);
                 });
 
                 const playerCount = parseInt(document.getElementById('playerCount').value);
@@ -715,8 +722,8 @@ table tr:last-child td {
                     });
                     const player = `P${i}`;
                     for (let j = 0; j < rows.length; j++) {
-                        const category = rows[j].firstElementChild.textContent;
-                        const cellId = `${player}-${category}`;
+                        const categoryAlt = rows[j].firstElementChild.querySelector('img').alt;
+                        const cellId = `${player}-${categoryAlt}`;
                         localStorage.removeItem(cellId);
                     }
                     localStorage.removeItem(`playerName-${player}`);
@@ -730,28 +737,27 @@ table tr:last-child td {
 
                     rows.forEach(row => {
                         const newCell = document.createElement('td');
-                        const category = row.firstElementChild.textContent;
-                        if (category === '💰') {
+                        const categoryAlt = row.firstElementChild.querySelector('img').alt;
+                        if (categoryAlt === 'Bonus') {
                             newCell.id = `bonusP${i}`;
                             newCell.innerHTML = '<span id="pointsNeededP' + i + '" class="points-needed">63</span>';
-                        } else if (category === '🔺️') {
+                        } else if (categoryAlt === 'Upper Score') {
                             newCell.id = `upperScoreP${i}`;
                             newCell.textContent = '0';
-                        } else if (category === '🔻') {
+                        } else if (categoryAlt === 'Lower Score') {
                             newCell.id = `lowerScoreP${i}`;
                             newCell.textContent = '0';
-                        } else if (['🏠', '<span class="scaled-emoji-2">◽️</span>', '◽️', '🎯'].includes(category)) {
+                        } else if (['Full House', 'Small Straight', 'Large Straight', 'Yahtzee'].includes(categoryAlt)) {
                             newCell.className = 'lower-section-cell';
                             newCell.setAttribute('data-player', `P${i}`);
-                            newCell.setAttribute('data-category', category === '🏠' ? 'Full House' : category === '<span class="scaled-emoji-2">◽️</span>' ? 'Small Straight' : category === '◽️' ? 'Large Straight' : 'Yahtzee');
-                            // Fixed Small Straight score to 30 by checking innerHTML
-                            newCell.setAttribute('data-score', category === '🏠' ? '25' : row.firstElementChild.innerHTML === '<span class="scaled-emoji-2">◽️</span>' ? '30' : category === '◽️' ? '40' : '50');
+                            newCell.setAttribute('data-category', categoryAlt);
+                            newCell.setAttribute('data-score', categoryAlt === 'Full House' ? '25' : categoryAlt === 'Small Straight' ? '30' : categoryAlt === 'Large Straight' ? '40' : '50');
                             newCell.setAttribute('data-state', '0');
                             newCell.onclick = function(e) {
                                 let currentState = parseInt(this.getAttribute('data-state')) || 0;
                                 currentState = (currentState + 1) % 3;
                                 this.setAttribute('data-state', currentState);
-                                let cellId = this.getAttribute('data-player') + '-' + this.closest('tr').cells[0].textContent;
+                                let cellId = this.getAttribute('data-player') + '-' + this.closest('tr').cells[0].querySelector('img').alt;
                                 switch(currentState) {
                                     case 0:
                                         this.textContent = '';
@@ -776,7 +782,7 @@ table tr:last-child td {
                             newCell.className = 'upper-section-cell';
                             newCell.setAttribute('data-player', `P${i}`);
                             newCell.onclick = function() {
-                                showPopup(this, category, `P${i}`);
+                                showPopup(this, categoryAlt, `P${i}`);
                             };
                         }
                         row.appendChild(newCell);
@@ -791,31 +797,31 @@ table tr:last-child td {
         }
 
         function reattachEventListeners() {
-    document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
-        header.removeEventListener('click', header.clickHandler);
-        header.clickHandler = function(e) {
-            e.stopPropagation();
-            const player = this.getAttribute('data-player');
-            const playerName = this.innerText.split('\n')[0].trim();
-            const playerNameInput = document.getElementById('playerNameInput');
-            playerNameInput.value = playerName;
-            closeAllPopups();
-            document.getElementById('playerNameModal').style.display = 'block';
-            showOverlay();
-            window.currentPlayer = player;
-            playerNameInput.focus();
-            playerNameInput.select(); // This line auto-selects the text
-        };
-        header.addEventListener('click', header.clickHandler);
-    });
-}
+            document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
+                header.removeEventListener('click', header.clickHandler);
+                header.clickHandler = function(e) {
+                    e.stopPropagation();
+                    const player = this.getAttribute('data-player');
+                    const playerName = this.innerText.split('\n')[0].trim();
+                    const playerNameInput = document.getElementById('playerNameInput');
+                    playerNameInput.value = playerName;
+                    closeAllPopups();
+                    document.getElementById('playerNameModal').style.display = 'block';
+                    showOverlay();
+                    window.currentPlayer = player;
+                    playerNameInput.focus();
+                    playerNameInput.select();
+                };
+                header.addEventListener('click', header.clickHandler);
+            });
+        }
 
         function loadScores() {
             const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
             cells.forEach(cell => {
                 const player = cell.getAttribute('data-player');
-                const number = cell.closest('tr').cells[0].textContent;
-                const cellId = `${player}-${number}`;
+                const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+                const cellId = `${player}-${categoryAlt}`;
                 const savedScore = localStorage.getItem(cellId);
                 
                 if (savedScore) {
@@ -864,7 +870,6 @@ table tr:last-child td {
                 const rankMap = {};
                 let lastPlaceScores = [];
 
-                // Determine ranks and collect all players tied for last
                 scoresArray.forEach((player, index) => {
                     if (lastScore !== null && player.score === lastScore) {
                         rankMap[player.player] = rank;
@@ -874,9 +879,7 @@ table tr:last-child td {
                     }
                     lastScore = player.score;
 
-                    // Collect all players with the lowest score
                     if (index === scoresArray.length - 1) {
-                        // Last player, check for ties with the lowest score
                         lastPlaceScores = scoresArray.filter(p => p.score === player.score).map(p => p.player);
                     }
                 });
@@ -897,9 +900,9 @@ table tr:last-child td {
                     if (allScoresSame) {
                         scoreElement.parentElement.classList.add('highlight-winner');
                     } else if (score === maxScore && score > minScore) {
-                        scoreElement.parentElement.classList.add('highlight-winner'); // Highest score gets green
+                        scoreElement.parentElement.classList.add('highlight-winner');
                     } else if (lastPlaceScores.includes(scoreElement.id) && score < maxScore) {
-                        scoreElement.parentElement.classList.add('highlight-loser'); // Tied for lowest score gets red
+                        scoreElement.parentElement.classList.add('highlight-loser');
                     }
 
                     scoreElement.textContent = score;
