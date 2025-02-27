@@ -89,25 +89,17 @@
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
     table input::placeholder {
-  font-family: 'Economica', sans-serif;
-  font-size: 16px;
-  text-align: center;
-  line-height: 16px; /* Matches font size, fits within height - padding */
-  color: #6b7280;
-  opacity: 0.8;
-}
+      font-family: 'Economica', sans-serif;
+      font-size: 16px;
+      text-align: center;
+      line-height: 16px; /* Matches font size, fits within height - padding */
+      color: #6b7280;
+      opacity: 0.8;
+    }
     table input:focus {
       outline: none;
       border-color: #333333;
       box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
-    }
-    table input::placeholder {
-      font-family: 'Economica', sans-serif;
-      font-size: 16px;
-      text-align: center;
-      line-height: normal;
-      color: #6b7280;
-      opacity: 0.8;
     }
     .highlight-winner {
       background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
@@ -197,24 +189,22 @@
       border-radius: 6px;
       transition: background 0.2s;
     }
-    
-    table input::placeholder {
-  font-family: 'Economica', sans-serif;
-  font-size: 16px;
-  text-align: center;
-  line-height: 16px;
-  color: #6b7280;
-  opacity: 0.8;
-}
-
-/* Add these new rules */
-#scoreBody tr:last-child td input {
-  font-size: 16px; /* Smaller default text */
-}
-
-#scoreBody tr:last-child td input::placeholder {
-  font-size: 16px; /* Smaller placeholder text */
-}
+    .close-btn {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      font-size: 48px;
+      color: #000000;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      line-height: 1;
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      transition: color 0.2s ease;
+    }
     #overlay {
       display: none;
       position: fixed;
@@ -235,29 +225,29 @@
       display: inline-block;
     }
     @media (max-width: 480px) {
-  #scoreTable.small-scores thead th {
-    padding: 3px;
-  }
-  #scoreTable.small-scores thead th span.score {
-    font-size: 18px;
-    line-height: 1.2;
-  }
-  #scoreTable.small-scores thead th small {
-    font-size: 12px;
-  }
-  #scoreTable.small-scores tbody td {
-    font-size: 16px;
-  }
-  #scoreTable.small-scores tbody tr:last-child input[type="number"] {
-    font-size: 14px;
-    padding: 5px;
-    height: 32px;
-  }
-  #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
-    font-size: 14px;
-    line-height: 10px; /* Matches smaller font size */
-  }
-}
+      #scoreTable.small-scores thead th {
+        padding: 3px;
+      }
+      #scoreTable.small-scores thead th span.score {
+        font-size: 18px;
+        line-height: 1.2;
+      }
+      #scoreTable.small-scores thead th small {
+        font-size: 12px;
+      }
+      #scoreTable.small-scores tbody td {
+        font-size: 16px;
+      }
+      #scoreTable.small-scores tbody tr:last-child input[type="number"] {
+        font-size: 14px;
+        padding: 5px;
+        height: 32px;
+      }
+      #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
+        font-size: 14px;
+        line-height: 10px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -319,7 +309,6 @@
       const playerRow = document.getElementById("playerRow");
       const scoreTable = document.getElementById("scoreTable");
       
-      // Toggle small-scores class based on player count
       if (players.length >= 7) {
         scoreTable.classList.add("small-scores");
       } else {
@@ -329,7 +318,7 @@
       playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
       players.forEach((player, index) => {
         playerRow.innerHTML += `
-          <th onclick="handlePlayerNameClick(event, ${index})" title="Manage ${player.name}">
+          <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
             ${player.name}
             <br>
             <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
@@ -460,11 +449,11 @@
     function createPlayerManagementDialog(index) {
       const modal = document.getElementById('playerManagementModal');
       modal.innerHTML = `
-        <h2>Manage ${players[index].name}</h2>
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
         <input type="text" id="playerNameInput" value="${players[index].name}" autocapitalize="characters" inputmode="text" style="text-transform: uppercase;">
         <button onclick="updatePlayerName(${index})">Update</button>
         <button onclick="confirmRemovePlayer(${index})">Remove Player</button>
-        <button onclick="closePopup('playerManagementModal')">Close</button>
       `;
       modal.style.display = 'block';
       showOverlay();
@@ -509,13 +498,13 @@
     function createRoundManagementDialog() {
       const modal = document.getElementById('roundManagementModal');
       modal.innerHTML = `
-        <h2>Round Management</h2>
+        <h2>Round</h2>
+        <span class="close-btn" onclick="closePopup('roundManagementModal')">×</span>
         <select id="playerCount" onchange="updatePlayerCount()">
           ${[1,2,3,4,5,6,7,8].map(i => `<option value="${i}" ${players.length === i ? 'selected' : ''}>${i} Players</option>`).join('')}
         </select>
         <button onclick="toggleScoringMode(); updateUI(); closePopup('roundManagementModal')">Toggle ${scoringMode === 'highest' ? 'High' : 'Low'}</button>
         <button onclick="resetScores()">Reset</button>
-        <button onclick="closePopup('roundManagementModal')">Close</button>
       `;
       modal.style.display = 'block';
       showOverlay();
