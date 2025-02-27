@@ -320,22 +320,39 @@
         }
     
         #playerNameModal {
-            display: none;
-            position: fixed;
-            top: 15%;
-            left: 50%;
-            transform: translate(-50%, -15%);
-            background: #ffffff;
-            border: none;
-            padding: 5px 20px 20px 20px;
-            z-index: 1001;
-            width: 200px;
-            max-width: 90%;
-            text-align: center;
-            font-family: 'Economica', sans-serif;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
+    display: none;
+    position: fixed;
+    top: 15%;
+    left: 50%;
+    transform: translate(-50%, -15%);
+    background: #ffffff;
+    border: none;
+    padding: 5px 20px 20px 20px;
+    z-index: 1001;
+    width: 200px;
+    max-width: 90%;
+    text-align: center;
+    font-family: 'Economica', sans-serif;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    font-size: 48px; /* Increased from 36px to 48px for an even bigger X */
+    color: #000000; /* Black color */
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1;
+    width: 40px; /* Increased from 30px to 40px to fit larger X */
+    height: 40px; /* Increased from 30px to 40px to fit larger X */
+    text-align: center;
+    transition: color 0.2s ease;
+}
     
         #playerNameModal input[type="text"] {
             font-size: 24px;
@@ -497,6 +514,7 @@
 
     <div id="roundManagementModal">
         <h2>Round Management</h2>
+        <span class="close-btn" onclick="closeRoundManagement()">×</span>
         <select id="playerCount" onchange="updatePlayerCount()">
             <option value="1">1 Players</option>
             <option value="2">2 Players</option>
@@ -508,14 +526,13 @@
             <option value="8">8 Players</option>
         </select>
         <button onclick="resetScores()">Reset</button>
-        <button onclick="closeRoundManagement()">Close</button>
     </div>
 
     <div id="playerNameModal">
         <h2>Player Name</h2>
+        <span class="close-btn" onclick="closePlayerNameModal()">&times;</span>
         <input type="text" id="playerNameInput" placeholder="" autocapitalize="characters" inputmode="text">
         <button onclick="updatePlayerName()">Update</button>
-        <button onclick="closePlayerNameModal()">Close</button>
     </div>
 
     <div id="overlay" style="display: none;"></div>
