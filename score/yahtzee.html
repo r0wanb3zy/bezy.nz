@@ -99,26 +99,20 @@
         }
     
         table td:first-child {
-    background: #4d4d4d;
-    font-weight: bold;
-    width: 30px;
-    min-width: 30px;
-    max-width: 30px;
-    overflow: hidden;
-    color: white;
-    border-bottom: 1px solid #666;
-    border-right: none;
-    position: relative;       /* Make the cell a positioning context */
-}
-
-table td:first-child img {
+            background: #4d4d4d;
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+            color: white;
+            border-bottom: 1px solid #666;
+            border-right: none; /* Prevents border poking out */
+        }
+        table td:first-child img {
     filter: brightness(0) invert(1);
     width: 20px;
     height: 20px;
-    position: absolute;       /* Position image absolutely within the cell */
-    top: 50%;                 /* Move to 50% from the top */
-    left: 50%;                /* Move to 50% from the left */
-    transform: translate(-50%, -50%); /* Shift back by half its size */
 }
     
         table th {
