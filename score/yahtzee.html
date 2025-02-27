@@ -108,17 +108,19 @@
     color: white;
     border-bottom: 1px solid #666;
     border-right: none;
-    text-align: center; /* Center horizontally */
-    vertical-align: middle; /* Center vertically */
-    /* Padding remains 5px from the inherited table td rule */
+    padding: 5px; /* Explicitly set to match table td, ensuring uniformity */
+    text-align: center; /* Horizontal centering */
+    vertical-align: middle; /* Vertical centering */
+    line-height: 20px; /* Match image height to control vertical space */
 }
 
 table td:first-child img {
     filter: brightness(0) invert(1);
     width: 20px;
     height: 20px;
-    display: inline-block; /* Keep inline-block to work with text-align */
-    vertical-align: middle; /* Ensure image aligns with td's vertical center */
+    display: inline-block; /* Works with text-align */
+    vertical-align: middle; /* Reinforces vertical centering */
+    margin: 0; /* Remove any stray margins */
 }
     
         table th {
