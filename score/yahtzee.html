@@ -109,7 +109,6 @@
             border-bottom: 1px solid #666;
             border-right: none; /* Prevents border poking out */
         }
-        
     
         table th {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
@@ -424,6 +423,11 @@
         * {
             -webkit-tap-highlight-color: transparent;
         }
+        table td:first-child img {
+    filter: brightness(0) invert(1);
+    width: 20px;
+    height: 20px;
+}
     </style>
 </head>
 <body>
