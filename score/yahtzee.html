@@ -424,8 +424,12 @@
             -webkit-tap-highlight-color: transparent;
         }
         table td:first-child img {
-            filter: brightness(0) invert(1);
-        }
+    filter: brightness(0) invert(1);
+    width: 20px;
+    height: 20px;
+    display: block; /* Remove inline spacing */
+    margin: 0 auto; /* Extra centering fallback */
+}
     </style>
 </head>
 <body>
