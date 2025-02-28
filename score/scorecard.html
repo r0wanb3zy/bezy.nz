@@ -255,69 +255,42 @@
         line-height: 10px;
       }
     }
-    /* Toggle Switch Styles */
-.switch-container {
+
+/* Segmented Control Styles */
+.segmented-control {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 10px 0;
+  justify-content: center; /* Centers the labels within the container */
+  margin: 10px auto; /* Centers the entire segmented control horizontally in the modal */
+  background: #f8f9fa;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  width: 150px; /* Fixed width */
 }
 
-.switch-label {
+.segmented-control label {
+  flex: 1; /* Each label takes half the width */
+  padding: 10px 0px; /* 0px horizontal padding */
+  text-align: center;
   font-size: 24px;
-  margin-right: 10px;
-  color: #333;
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
+  font-family: 'Economica', sans-serif;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #333333;
-  transition: .4s;
-  border-radius: 34px;
+  background: #f8f9fa;
+  transition: background 0.2s, color 0.2s;
 }
 
-.slider:before {
-  position: absolute;
-  content: "▼";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: #333;
+.segmented-control input[type="radio"] {
+  display: none;
 }
 
-input:checked + .slider {
-  background-color: #333333;
+.segmented-control input[type="radio"]:checked + label {
+  background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+  color: white;
 }
 
-input:checked + .slider:before {
-  content: "▲";
-  transform: translateX(26px);
+/* Border for the left label ("Low") */
+.segmented-control label[for="lowest"] {
+  border-right: 1px solid #ddd;
 }
   </style>
 </head>
@@ -574,11 +547,11 @@ input:checked + .slider:before {
     <select id="playerCount" onchange="updatePlayerCount()">
       ${[1,2,3,4,5,6,7,8].map(i => `<option value="${i}" ${players.length === i ? 'selected' : ''}>${i} Players</option>`).join('')}
     </select>
-    <div class="switch-container">
-      <label class="switch">
-        <input type="checkbox" id="scoringToggle" ${scoringMode === 'highest' ? 'checked' : ''} onchange="toggleScoringMode(); updateUI();">
-        <span class="slider"></span>
-      </label>
+    <div class="segmented-control">
+      <input type="radio" id="lowest" name="scoringMode" value="lowest" ${scoringMode === 'lowest' ? 'checked' : ''} onchange="scoringMode = 'lowest'; saveData(); updateUI();">
+      <label for="lowest">Low</label>
+      <input type="radio" id="highest" name="scoringMode" value="highest" ${scoringMode === 'highest' ? 'checked' : ''} onchange="scoringMode = 'highest'; saveData(); updateUI();">
+      <label for="highest">High</label>
     </div>
     <button onclick="resetScores()">Reset</button>
   `;
