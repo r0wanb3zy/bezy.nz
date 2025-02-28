@@ -98,25 +98,22 @@
             border-bottom: 1px solid #666; /* Reinstated for border between top two cells */
         }
     
+        table td:first-child {
+            background: #4d4d4d;
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+            color: white;
+            border-bottom: 1px solid #666;
+            border-right: none; /* Prevents border poking out */
+        }
         table td:first-child img {
-    filter: brightness(0) invert(1);
-    width: 20px;
-    height: 20px;
-    display: block;           /* Make img a block element */
-    margin: 0 auto;           /* Center horizontally */
-}
-table td:first-child {
-    background: #4d4d4d;
-    font-weight: bold;
-    width: 30px;
-    min-width: 30px;
-    max-width: 30px;
-    overflow: hidden;
-    color: white;
-    border-bottom: 1px solid #666;
-    border-right: none;
-    vertical-align: middle;   /* Center vertically */
-}
+            filter: brightness(0) invert(1);
+            width: 20px;
+            height: 20px;
+        }
     
         table th {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
