@@ -17,8 +17,8 @@
       background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
       min-height: 100vh;
       background-size: cover;
-      font-weight: bold;
     }
+    
     h1 {
       text-align: center;
     }
@@ -89,6 +89,9 @@
       box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
+    #scoreBody tr td:not(:first-child) {
+  font-weight: bold; /* Round scores bold */
+}
     table input::placeholder {
       font-family: 'Economica', sans-serif;
       font-size: 16px;
