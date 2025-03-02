@@ -30,13 +30,11 @@
       display: grid;
       grid-template-rows: repeat(auto-fit, 1fr);
       height: 100vh; /* Full viewport height */
-      /* Add this line to remove tap highlight on mobile */
       -webkit-tap-highlight-color: rgba(0,0,0,0);
     }
 
     a {
       text-decoration: none;
-      /* Add this line to ensure links also do not show highlight */
       -webkit-tap-highlight-color: rgba(0,0,0,0);
     }
 
@@ -59,18 +57,24 @@
       font-size: 50px;
       font-family: 'Economica', sans-serif;
     }
+
+    img[src$=".svg"] {
+  height: 60px;
+  width: auto;
+  filter: invert(100%); /* Inverts black to white */
+}
   </style>
 </head>
 <body>
   <a href="/score/scorecard" class="section">
     <h1>
-      <img src="/score/assets/images/cards.png" alt="Playing Cards" style="height: 50px; width: auto; filter: brightness(0) invert(1);"><br>
+      <img src="/score/assets/images/icon-scorecard.svg" alt="Playing Cards"><br>
       Scorecard
     </h1>
   </a>
-  <a href="/score/yahtzee" class="section">
+  <a href="/score/scorecard" class="section">
     <h1>
-      <img src="/score/assets/images/dice.png" alt="Dice" style="height: 60px; width: auto; filter: brightness(0) invert(1);"><br>
+      <img src="/score/assets/images/icon-yahtzee.svg" alt="Dice"><br>
       Yahtzee
     </h1>
   </a>
