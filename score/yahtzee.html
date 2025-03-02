@@ -1,13 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- External Libraries -->
     <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    
+    <!-- Meta Tags -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Title and Fonts -->
     <title>Yahtzee Scorecard</title>
     <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
+
     <style>
+        /* Base Styles */
         html, body {
             height: 100%;
             margin: 0;
@@ -23,17 +30,27 @@
             min-height: 100vh;
             background-size: cover;
         }
-        /* Ensure table text is bold */
-table, table th, table td {
-    font-weight: bold;
-}
 
+        /* Table Base Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 20px;
+            table-layout: fixed;
+            font-family: 'Economica', sans-serif;
+        }
+
+        table, table th, table td {
+            font-weight: bold;
+        }
+
+        /* Score Table Specific Styles */
         #scoreTable {
             height: 100vh;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
-        /* Portrait Orientation: Disable scrolling */
+        /* Orientation-Based Scrolling */
         @media screen and (orientation: portrait) {
             html, body {
                 overflow: hidden;
@@ -44,7 +61,6 @@ table, table th, table td {
             }
         }
 
-        /* Landscape Orientation: Enable scrolling */
         @media screen and (orientation: landscape) {
             html, body {
                 overflow: auto; /* Allow scrolling on body */
@@ -54,20 +70,14 @@ table, table th, table td {
                 overflow-y: auto; /* Enable scrolling inside table */
             }
         }
-    
+
+        /* Headers */
         h1, h2 {
             text-align: center;
             font-family: 'Economica', sans-serif;
         }
-    
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 20px;
-            table-layout: fixed;
-            font-family: 'Economica', sans-serif;
-        }
-    
+
+        /* Table Cells */
         table th, table td {
             border: none;
             text-align: center;
@@ -79,18 +89,16 @@ table, table th, table td {
             font-family: 'Economica', sans-serif;
             border-bottom: 1px solid rgba(200, 200, 200, 0.3); /* Lighter border for non-dark areas */
         }
-    
-        /* Add vertical lines only to td elements (body cells) */
+
         table td {
             border-right: 1px solid rgba(200, 200, 200, 0.3);
         }
-    
-        /* Remove the right border from the last column in the body */
+
         table td:last-child {
             border-right: none;
         }
-    
-        /* Updated first column styles to match Scorecard app and fix border protrusion */
+
+        /* First Column Styles */
         table th:first-child {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             font-weight: bold;
@@ -101,7 +109,7 @@ table, table th, table td {
             color: white;
             border-bottom: 1px solid #666; /* Reinstated for border between top two cells */
         }
-    
+
         table td:first-child {
             background: #4d4d4d;
             font-weight: bold;
@@ -113,32 +121,33 @@ table, table th, table td {
             border-bottom: 1px solid #666;
             border-right: none; /* Prevents border poking out */
         }
+
         table td:first-child img {
             filter: brightness(0) invert(1);
             width: 20px;
             height: 20px;
         }
-    
+
+        /* Table Headers */
         table th {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
         }
-    
-        /* Specific style for top-left cell */
+
         #scoreTable thead th:first-child {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             border-right: none; /* Remove right border from top-left cell */
             border-bottom: 1px solid #666; /* Explicitly add border for first header cell */
         }
-    
-        /* Remove border-bottom from the top row, except where overridden */
+
         #scoreTable thead th {
             height: 80px;
             font-family: 'Economica', sans-serif;
             font-size: 22px;
             border-bottom: none; /* No border under top row, overridden for first-child */
         }
-    
+
+        /* Input Styles */
         table input {
             width: 100%;
             box-sizing: border-box;
@@ -152,13 +161,13 @@ table, table th, table td {
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-    
+
         table input:focus {
             outline: none;
             border-color: #333333;
             box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
         }
-    
+
         table input::placeholder {
             font-family: 'Economica', sans-serif;
             font-size: 12px;
@@ -166,64 +175,90 @@ table, table th, table td {
             color: #6b7280;
             opacity: 0.8;
         }
-    
+
+        table input[type="number"]::-webkit-outer-spin-button,
+        table input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        table input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+            font-family: 'Economica', sans-serif;
+        }
+
+        /* Special Row Styles */
         .bonus-row td, .upper-score-row td, .lower-score-row td {
             background: #4d4d4d;
             color: white;
             border-bottom: 1px solid #666; /* Darker border for dark area */
             border-right: 1px solid #666; /* Vertical border for dark area */
         }
+
         .bonus-row td:first-child,
         .upper-score-row td:first-child,
         .lower-score-row td:first-child {
             border-right: 1px solid #666;
         }
+
         table tr:last-child td {
             border-bottom: none;
         }
-        /* Remove right border from the last cell in bonus/score rows */
-        .bonus-row td:last-child, .upper-score-row td:last-child, .lower-score-row td:last-child {
+
+        .bonus-row td:last-child, 
+        .upper-score-row td:last-child, 
+        .lower-score-row td:last-child {
             border-right: none;
         }
-    
+
         .bonus-row .points-needed {
             color: #888;
         }
-    
+
         .bonus-row .points-needed.bonus-achieved {
             color: white;
             font-weight: bold;
         }
-    
-        th div {
-            font-size: 14px;
-            font-family: 'Economica', sans-serif;
-        }
-    
+
+        /* Cell Categories */
         .lower-section-cell, .upper-section-cell {
             cursor: pointer;
             width: auto;
         }
-    
+
+        .lower-section-cell:active, 
+        .upper-section-cell:active {
+            background-color: transparent !important;
+        }
+
+        /* Header Text */
+        th div {
+            font-size: 14px;
+            font-family: 'Economica', sans-serif;
+        }
+
         #scoreTable thead th div {
             font-size: 22px;
             font-family: 'Economica', sans-serif;
         }
-    
+
         #scoreTable thead th small {
             font-size: 16px;
             font-family: 'Economica', sans-serif;
             color: rgba(255, 255, 255, 0.8);
         }
-    
+
+        /* Highlighting */
         .highlight-winner {
             background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
         }
-    
+
         .highlight-loser {
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
-    
+
+        /* Popup Modal */
         #popupModal {
             display: none;
             position: fixed;
@@ -234,12 +269,24 @@ table, table th, table td {
             border: none;
             padding: 5px 20px 12px 20px;
             z-index: 1000;
-            font-family: 'Economica', sans-serif, Arial;
+            font-family: 'Economica', sans-serif;
             text-align: center;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
-    
+
+        #popupModal, #roundManagementModal {
+            text-align: center;
+        }
+
+        #popupModal h2,
+        #roundManagementModal h2,
+        #playerNameModal h2 {
+            margin-top: 15px;    /* Space above the heading */
+            margin-bottom: 15px; /* Space below the heading */
+            padding: 0;          /* Optional: removes any default padding */
+        }
+
         #popupModal button {
             font-size: 24px;
             padding: 10px 20px;
@@ -252,7 +299,7 @@ table, table th, table td {
             border-radius: 6px;
             transition: background 0.2s;
         }
-    
+
         #popupOptions {
             display: grid;
             grid-template-columns: repeat(5, 40px);
@@ -261,7 +308,7 @@ table, table th, table td {
             padding: 10px 0;
             box-sizing: border-box;
         }
-    
+
         #popupOptions button {
             width: 40px;
             height: 40px;
@@ -287,7 +334,8 @@ table, table th, table td {
             line-height: 1;
             outline: none;
         }
-    
+
+        /* Round Management Modal */
         #roundManagementModal {
             display: none;
             position: fixed;
@@ -304,7 +352,7 @@ table, table th, table td {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
-    
+
         #roundManagementModal select {
             font-size: 24px;
             padding: 10px;
@@ -314,7 +362,7 @@ table, table th, table td {
             border-radius: 6px;
             background: #ffffff;
         }
-    
+
         #roundManagementModal button {
             font-size: 24px;
             padding: 10px 20px;
@@ -327,7 +375,8 @@ table, table th, table td {
             border-radius: 6px;
             transition: background 0.2s;
         }
-    
+
+        /* Player Name Modal */
         #playerNameModal {
             display: none;
             position: fixed;
@@ -345,7 +394,45 @@ table, table th, table td {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
-    
+
+        #playerNameModal input[type="text"] {
+            font-size: 24px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 5px 0;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.2s ease;
+        }
+
+        #playerNameModal input[type="text"]:focus {
+            outline: none;
+            border: 1px solid #333333;
+        }
+
+        #playerNameInput {
+            text-transform: uppercase;
+        }
+
+        #playerNameModal button {
+            font-size: 24px;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: 'Economica', sans-serif;
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        /* Close Button */
         .close-btn {
             position: absolute;
             top: 0px;
@@ -362,73 +449,8 @@ table, table th, table td {
             text-align: center;
             transition: color 0.2s ease;
         }
-    
-        #playerNameModal input[type="text"] {
-            font-size: 24px;
-            padding: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            margin: 5px 0;
-            text-align: center;
-            font-family: 'Economica', sans-serif;
-            border: 1px solid #d0d7de;
-            border-radius: 6px;
-            background: #ffffff;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-            transition: border-color 0.2s ease;
-        }
-    
-        #playerNameModal input[type="text"]:focus {
-            outline: none;
-            border: 1px solid #333333;
-        }
-    
-        #playerNameInput {
-            text-transform: uppercase;
-        }
-    
-        #playerNameModal button {
-            font-size: 24px;
-            padding: 10px 20px;
-            margin: 5px;
-            cursor: pointer;
-            font-family: 'Economica', sans-serif;
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-        /* Adjust spacing for h2 in popups */
-#popupModal h2,
-#roundManagementModal h2,
-#playerNameModal h2 {
-    margin-top: 15px;    /* Space above the heading */
-    margin-bottom: 15px; /* Space below the heading */
-    padding: 0;          /* Optional: removes any default padding */
-}
-    
-        table input[type="number"]::-webkit-outer-spin-button,
-        table input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-    
-        table input[type="number"] {
-            -moz-appearance: textfield;
-            appearance: textfield;
-            font-family: 'Economica', sans-serif;
-        }
-    
-        #popupModal, #roundManagementModal {
-            text-align: center;
-        }
-    
-        .lower-section-cell:active, 
-        .upper-section-cell:active {
-            background-color: transparent !important;
-        }
-    
+
+        /* Emoji Scaling */
         .scaled-emoji {
             transform: scale(0.6);
             transform-origin: center;
@@ -436,12 +458,14 @@ table, table th, table td {
             height: 20px;
             line-height: 20px;
         }
+
         .scaled-emoji-2 {
             transform: scale(.6);
             transform-origin: center;
             display: inline-block;
         }
-    
+
+        /* Overlay */
         #overlay {
             display: none;
             position: fixed;
@@ -453,13 +477,15 @@ table, table th, table td {
             z-index: 999;
             cursor: pointer;
         }
-    
+
+        /* Disable Tap Highlight */
         * {
             -webkit-tap-highlight-color: transparent;
         }
     </style>
 </head>
 <body>
+    <!-- Score Table -->
     <table id="scoreTable">
         <thead>
             <tr>
@@ -467,63 +493,33 @@ table, table th, table td {
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-01.svg" alt="Ones" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-02.svg" alt="Twos" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-03.svg" alt="Threes" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-04.svg" alt="Fours" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-05.svg" alt="Fives" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-06.svg" alt="Sixes" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr class="bonus-row">
-                <td><img src="/score/assets/images/yahtzee-icon-07.svg" alt="Bonus" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr class="upper-score-row">
-                <td><img src="/score/assets/images/yahtzee-icon-08.svg" alt="Upper Score" style="width: 15px; height: 15px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-09.svg" alt="Three of a Kind" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-10.svg" alt="Four of a Kind" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-11.svg" alt="Full House" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-12.svg" alt="Small Straight" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-13.svg" alt="Large Straight" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-14.svg" alt="Yahtzee" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr>
-                <td><img src="/score/assets/images/yahtzee-icon-15.svg" alt="Chance" style="width: 20px; height: 20px;"></td>
-            </tr>
-            <tr class="lower-score-row">
-                <td><img src="/score/assets/images/yahtzee-icon-16.svg" alt="Lower Score" style="width: 15px; height: 15px;"></td>
-            </tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-01.svg" alt="Ones" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-02.svg" alt="Twos" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-03.svg" alt="Threes" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-04.svg" alt="Fours" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-05.svg" alt="Fives" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-06.svg" alt="Sixes" style="width: 20px; height: 20px;"></td></tr>
+            <tr class="bonus-row"><td><img src="/score/assets/images/yahtzee-icon-07.svg" alt="Bonus" style="width: 20px; height: 20px;"></td></tr>
+            <tr class="upper-score-row"><td><img src="/score/assets/images/yahtzee-icon-08.svg" alt="Upper Score" style="width: 15px; height: 15px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-09.svg" alt="Three of a Kind" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-10.svg" alt="Four of a Kind" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-11.svg" alt="Full House" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-12.svg" alt="Small Straight" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-13.svg" alt="Large Straight" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-14.svg" alt="Yahtzee" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-15.svg" alt="Chance" style="width: 20px; height: 20px;"></td></tr>
+            <tr class="lower-score-row"><td><img src="/score/assets/images/yahtzee-icon-16.svg" alt="Lower Score" style="width: 15px; height: 15px;"></td></tr>
         </tbody>
     </table>
 
+    <!-- Score Selection Popup -->
     <div id="popupModal">
         <h2 id="popupTitle">Select Score:</h2>
         <span class="close-btn" onclick="closePopup()">×</span>
         <div id="popupOptions"></div>
     </div>
 
+    <!-- Round Management Modal -->
     <div id="roundManagementModal">
         <h2>Round</h2>
         <span class="close-btn" onclick="closeRoundManagement()">×</span>
@@ -540,6 +536,7 @@ table, table th, table td {
         <button onclick="resetScores()">Reset</button>
     </div>
 
+    <!-- Player Name Modal -->
     <div id="playerNameModal">
         <h2>Player</h2>
         <span class="close-btn" onclick="closePlayerNameModal()">×</span>
@@ -547,9 +544,11 @@ table, table th, table td {
         <button onclick="updatePlayerName()">Update</button>
     </div>
 
+    <!-- Overlay for Modals -->
     <div id="overlay" style="display: none;"></div>
 
     <script>
+        // Set table height to match viewport
         function setFullHeight() {
             const table = document.getElementById("scoreTable");
             if (table) {
@@ -557,6 +556,7 @@ table, table th, table td {
             }
         }
 
+        // Initial page load setup
         document.addEventListener("DOMContentLoaded", function() {
             setFullHeight();
             let savedPlayerCount = localStorage.getItem('playerCount');
@@ -587,8 +587,10 @@ table, table th, table td {
             });
         });
 
+        // Resize handler
         window.addEventListener('resize', setFullHeight);
 
+        // Calculate player's total score
         function calculateTotal(player) {
             let total = 0;
             let upperSectionTotal = 0;
@@ -640,6 +642,7 @@ table, table th, table td {
             document.getElementById(`total${player}`).textContent = total;
         }
 
+        // Overlay controls
         function showOverlay() {
             document.getElementById('overlay').style.display = 'block';
         }
@@ -648,6 +651,7 @@ table, table th, table td {
             document.getElementById('overlay').style.display = 'none';
         }
 
+        // Show score selection popup
         function showPopup(cell, category, player) {
             closeAllPopups();
             document.getElementById('popupModal').style.display = 'block';
@@ -683,6 +687,7 @@ table, table th, table td {
             window.lastClickedCell = cell;
         }
 
+        // Handle score selection
         function selectScore(score, player, categoryAlt, event) {
             event.stopPropagation();
             const cell = window.lastClickedCell;
@@ -707,6 +712,7 @@ table, table th, table td {
             updateRanks();
         }
 
+        // Popup controls
         function closePopup() {
             document.getElementById('popupModal').style.display = 'none';
             hideOverlay();
@@ -723,6 +729,7 @@ table, table th, table td {
             hideOverlay();
         }
 
+        // Reset all scores
         function resetScores() {
             if (confirm("Are you sure you want to reset all scores?")) {
                 document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
@@ -746,6 +753,7 @@ table, table th, table td {
             }
         }
 
+        // Update player count and table structure
         function updatePlayerCount() {
             const playerCount = parseInt(document.getElementById('playerCount').value);
             localStorage.setItem('playerCount', playerCount);
@@ -837,6 +845,7 @@ table, table th, table td {
             updateRanks();
         }
 
+        // Reattach event listeners to headers
         function reattachEventListeners() {
             document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
                 header.removeEventListener('click', header.clickHandler);
@@ -857,6 +866,7 @@ table, table th, table td {
             });
         }
 
+        // Load saved scores from localStorage
         function loadScores() {
             const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
             cells.forEach(cell => {
@@ -882,6 +892,7 @@ table, table th, table td {
             updateRanks();
         }
 
+        // Update player rankings
         function updateRanks() {
             const totalScores = document.querySelectorAll('[id^="total"]');
             let anyScoreEntered = false;
@@ -954,6 +965,7 @@ table, table th, table td {
             }
         }
 
+        // Convert number to ordinal suffix
         function ordinalSuffixOf(i) {
             var j = i % 10,
                 k = i % 100;
@@ -969,10 +981,12 @@ table, table th, table td {
             return i + "th";
         }
 
+        // Event listeners for ranking updates
         document.getElementById('scoreTable').addEventListener('click', updateRanks);
         document.getElementById('playerCount').addEventListener('change', updateRanks);
         document.addEventListener('DOMContentLoaded', updateRanks);
 
+        // Update player name
         function updatePlayerName() {
             const newName = document.getElementById('playerNameInput').value.toUpperCase();
             if (newName) {
@@ -989,11 +1003,13 @@ table, table th, table td {
             }
         }
 
+        // Close player name modal
         function closePlayerNameModal() {
             document.getElementById('playerNameModal').style.display = 'none';
             hideOverlay();
         }
 
+        // Close all popups
         function closeAllPopups() {
             document.getElementById('popupModal').style.display = 'none';
             document.getElementById('roundManagementModal').style.display = 'none';
@@ -1001,6 +1017,7 @@ table, table th, table td {
             hideOverlay();
         }
 
+        // Overlay click handler
         document.getElementById('overlay').addEventListener('click', function() {
             closeAllPopups();
         });
