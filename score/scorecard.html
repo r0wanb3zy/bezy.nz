@@ -1,653 +1,723 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scorecard</title>
-  <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
-
-  <style>
-    body {
-      font-family: 'Economica', sans-serif;
-      font-size: 22px;
-      margin: 0;
-      max-width: 1200px;
-      margin-left: auto;
-      margin-right: auto;
-      background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
-      min-height: 100vh;
-      background-size: cover;
-    }
+    <!-- Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    h1 {
-      text-align: center;
-    }
-    table {
-      width: 100%;
-      table-layout: fixed;
-      border-collapse: collapse;
-      font-size: 20px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      overflow: hidden;
-    }
-    table th, table td {
-      border: none;
-      text-align: center;
-      padding: 5px;
-      word-wrap: break-word;
-      cursor: pointer;
-      border-bottom: 1px solid rgba(200, 200, 200, 0.3);
-    }
-    table th {
-      background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-      color: white;
-    }
-    table th:first-child {
-      background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-      font-weight: bold;
-      width: 30px;
-      min-width: 30px;
-      max-width: 30px;
-      overflow: hidden;
-      color: white;
-      border-bottom: 1px solid #666;
-    }
-    table td:first-child {
-      background: #4d4d4d;
-      font-weight: bold;
-      width: 30px;
-      min-width: 30px;
-      max-width: 30px;
-      overflow: hidden;
-      color: white;
-      border-bottom: 1px solid #666;
-    }
-    #scoreTable thead th {
-      height: 80px;
-      font-family: 'Economica', sans-serif;
-      font-size: 22px;
-    }
-    #scoreTable thead th span.score {
-      font-size: 22px;
-      font-family: 'Economica', sans-serif;
-    }
-    #scoreTable thead th small {
-      font-size: 16px;
-      font-family: 'Economica', sans-serif;
-      color: rgba(255, 255, 255, 0.8);
-    }
-    table input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 8px;
-      text-align: center;
-      font-size: inherit;
-      font-family: 'Economica', sans-serif;
-      border: 1px solid #d0d7de;
-      border-radius: 6px;
-      background: #ffffff;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    #scoreBody tr td:not(:first-child) {
-  font-weight: bold; /* Round scores bold */
-}
-    table input::placeholder {
-      font-family: 'Economica', sans-serif;
-      font-size: 16px;
-      text-align: center;
-      line-height: 16px; /* Matches font size, fits within height - padding */
-      color: #6b7280;
-      opacity: 0.8;
-    }
-    table input:focus {
-      outline: none;
-      border-color: #333333;
-      box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
-    }
-    .highlight-winner {
-      background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
-    }
-    .highlight-loser {
-      background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
-    }
-    table input[type="number"]::-webkit-outer-spin-button,
-    table input[type="number"]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    table input[type="number"] {
-      -moz-appearance: textfield;
-      appearance: textfield;
-    }
-    #scoreBody tr:not(:last-child) td:not(:first-child) {
-      max-height: 5px;
-      height: 5px;
-      line-height: 5px;
-      overflow: hidden;
-    }
-    .popup-modal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #ffffff;
-      border: none;
-      padding: 5px 20px 20px 20px;
-      z-index: 1000;
-      width: 200px;
-      max-width: 90%;
-      text-align: center;
-      font-family: 'Economica', sans-serif;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-    }
-    #playerManagementModal {
-      top: 15%;
-      transform: translate(-50%, -15%);
-    }
-    .popup-modal input[type="text"] {
-      font-size: 24px;
-      padding: 10px;
-      width: 100%;
-      box-sizing: border-box;
-      margin: 5px 0;
-      text-align: center;
-      font-family: 'Economica', sans-serif;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background: #f8f9fa;
-    }
-    .popup-modal input[type="text"]:focus {
-      outline: none;
-      border: 1px solid #333333;
-    }
-    .popup-modal select {
-      font-size: 24px;
-      padding: 10px;
-      margin: 5px 0;
-      font-family: 'Economica', sans-serif;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background: #f8f9fa;
-    }
-    #roundManagementModal select {
-      font-size: 24px;
-      padding: 10px;
-      margin: 5px 0;
-      font-family: 'Economica', sans-serif;
-      border: 1px solid #333;
-      border-radius: 6px;
-      background: #f8f9fa;
-    }
-    .popup-modal button {
-      font-size: 24px;
-      padding: 10px 20px;
-      margin: 5px;
-      cursor: pointer;
-      font-family: 'Economica', sans-serif;
-      background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      transition: background 0.2s;
-    }
-    .close-btn {
-      position: absolute;
-      top: 0px;
-      right: 0px;
-      font-size: 48px;
-      color: #000000;
-      cursor: pointer;
-      background: none;
-      border: none;
-      padding: 0;
-      line-height: 1;
-      width: 40px;
-      height: 40px;
-      text-align: center;
-      transition: color 0.2s ease;
-    }
-    /* Adjust spacing for h2 in popups */
-#playerManagementModal h2,
-#roundManagementModal h2 {
-    margin-top: 15px;    /* Space above the heading */
-    margin-bottom: 15px; /* Space below the heading */
-    padding: 0;          /* Optional: removes any default padding */
-}
-    #overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 999;
-      cursor: pointer;
-    }
-    * {
-      -webkit-tap-highlight-color: transparent;
-    }
-    .scaled-emoji {
-      transform: scale(.75);
-      transform-origin: center;
-      display: inline-block;
-    }
-    @media (max-width: 480px) {
-      #scoreTable.small-scores thead th {
-        padding: 3px;
-      }
-      #scoreTable.small-scores thead th span.score {
-        font-size: 18px;
-        line-height: 1.2;
-      }
-      #scoreTable.small-scores thead th small {
-        font-size: 12px;
-      }
-      #scoreTable.small-scores tbody td {
-        font-size: 16px;
-      }
-      #scoreTable.small-scores tbody tr:last-child input[type="number"] {
-        font-size: 14px;
-        padding: 5px;
-        height: 32px;
-      }
-      #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
-        font-size: 14px;
-        line-height: 10px;
-      }
-    }
+    <!-- Title and Fonts -->
+    <title>Scorecard</title>
+    <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
-/* Segmented Control Styles */
-.segmented-control {
-  display: flex;
-  justify-content: center; /* Centers the labels within the container */
-  margin: 5px auto; /* Centers the entire segmented control horizontally in the modal */
-  background: #f8f9fa;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid #333333;
-  width: 150px; /* Fixed width */
-}
+    <style>
+        /* Base Styles */
+        body {
+            font-family: 'Economica', sans-serif;
+            font-size: 22px;
+            margin: 0;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
+            min-height: 100vh;
+            background-size: cover;
+        }
 
-.segmented-control label {
-  flex: 1; /* Each label takes half the width */
-  padding: 10px 0px; /* 0px horizontal padding */
-  text-align: center;
-  font-size: 24px;
-  font-family: 'Economica', sans-serif;
-  cursor: pointer;
-  background: #f8f9fa;
-  transition: background 0.2s, color 0.2s;
-}
+        h1 {
+            text-align: center;
+        }
 
-.segmented-control input[type="radio"] {
-  display: none;
-}
+        /* Table Styles */
+        table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            font-size: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
 
-.segmented-control input[type="radio"]:checked + label {
-  background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-  color: white;
-}
+        table th, table td {
+            border: none;
+            text-align: center;
+            padding: 5px;
+            word-wrap: break-word;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(200, 200, 200, 0.3);
+        }
 
-/* Border for the left label ("Low") */
-.segmented-control label[for="lowest"] {
-  border-right: 1px solid #ddd;
-}
-  </style>
+        table th {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+        }
+
+        table th:first-child {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+            color: white;
+            border-bottom: 1px solid #666;
+        }
+
+        table td:first-child {
+            background: #4d4d4d;
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+            color: white;
+            border-bottom: 1px solid #666;
+        }
+
+        #scoreTable thead th {
+            height: 80px;
+            font-family: 'Economica', sans-serif;
+            font-size: 22px;
+        }
+
+        #scoreTable thead th span.score {
+            font-size: 22px;
+            font-family: 'Economica', sans-serif;
+        }
+
+        #scoreTable thead th small {
+            font-size: 16px;
+            font-family: 'Economica', sans-serif;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        #scoreBody tr:not(:last-child) td:not(:first-child) {
+            max-height: 5px;
+            height: 5px;
+            line-height: 5px;
+            overflow: hidden;
+        }
+
+        #scoreBody tr td:not(:first-child) {
+            font-weight: bold; /* Round scores bold */
+        }
+
+        /* Input Styles */
+        table input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            text-align: center;
+            font-size: inherit;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        table input::placeholder {
+            font-family: 'Economica', sans-serif;
+            font-size: 16px;
+            text-align: center;
+            line-height: 16px; /* Matches font size, fits within height - padding */
+            color: #6b7280;
+            opacity: 0.8;
+        }
+
+        table input:focus {
+            outline: none;
+            border-color: #333333;
+            box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
+        }
+
+        table input[type="number"]::-webkit-outer-spin-button,
+        table input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        table input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* Highlighting */
+        .highlight-winner {
+            background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
+        }
+
+        .highlight-loser {
+            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
+
+        /* Popup Modal Styles */
+        .popup-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ffffff;
+            border: none;
+            padding: 5px 20px 20px 20px;
+            z-index: 1000;
+            width: 200px;
+            max-width: 90%;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        #playerManagementModal {
+            top: 15%;
+            transform: translate(-50%, -15%);
+        }
+
+        .popup-modal input[type="text"] {
+            font-size: 24px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 5px 0;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+
+        .popup-modal input[type="text"]:focus {
+            outline: none;
+            border: 1px solid #333333;
+        }
+
+        .popup-modal select {
+            font-size: 24px;
+            padding: 10px;
+            margin: 5px 0;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+
+        #roundManagementModal select {
+            font-size: 24px;
+            padding: 10px;
+            margin: 5px 0;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+
+        .popup-modal button {
+            font-size: 24px;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: 'Economica', sans-serif;
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        /* Adjust spacing for h2 in popups */
+        #playerManagementModal h2,
+        #roundManagementModal h2 {
+            margin-top: 15px;    /* Space above the heading */
+            margin-bottom: 15px; /* Space below the heading */
+            padding: 0;          /* Optional: removes any default padding */
+        }
+
+        /* Segmented Control Styles */
+        .segmented-control {
+            display: flex;
+            justify-content: center; /* Centers the labels within the container */
+            margin: 5px auto; /* Centers the entire segmented control horizontally in the modal */
+            background: #f8f9fa;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #333333;
+            width: 150px; /* Fixed width */
+        }
+
+        .segmented-control label {
+            flex: 1; /* Each label takes half the width */
+            padding: 10px 0px; /* 0px horizontal padding */
+            text-align: center;
+            font-size: 24px;
+            font-family: 'Economica', sans-serif;
+            cursor: pointer;
+            background: #f8f9fa;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .segmented-control input[type="radio"] {
+            display: none;
+        }
+
+        .segmented-control input[type="radio"]:checked + label {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+        }
+
+        .segmented-control label[for="lowest"] {
+            border-right: 1px solid #ddd;
+        }
+
+        /* Close Button */
+        .close-btn {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            font-size: 48px;
+            color: #000000;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            transition: color 0.2s ease;
+        }
+
+        /* Overlay */
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            cursor: pointer;
+        }
+
+        /* Emoji Scaling */
+        .scaled-emoji {
+            transform: scale(.75);
+            transform-origin: center;
+            display: inline-block;
+        }
+
+        /* Disable Tap Highlight */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            #scoreTable.small-scores thead th {
+                padding: 3px;
+            }
+            #scoreTable.small-scores thead th span.score {
+                font-size: 18px;
+                line-height: 1.2;
+            }
+            #scoreTable.small-scores thead th small {
+                font-size: 12px;
+            }
+            #scoreTable.small-scores tbody td {
+                font-size: 16px;
+            }
+            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
+                font-size: 14px;
+                padding: 5px;
+                height: 32px;
+            }
+            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
+                font-size: 14px;
+                line-height: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <table id="scoreTable">
-    <thead>
-      <tr id="playerRow">
-        <th>#</th>
-      </tr>
-    </thead>
-    <tbody id="scoreBody">
-    </tbody>
-  </table>
+    <!-- Score Table -->
+    <table id="scoreTable">
+        <thead>
+            <tr id="playerRow">
+                <th>#</th>
+            </tr>
+        </thead>
+        <tbody id="scoreBody">
+        </tbody>
+    </table>
 
-  <div id="playerManagementModal" class="popup-modal"></div>
-  <div id="roundManagementModal" class="popup-modal"></div>
-  <div id="overlay"></div>
+    <!-- Modals -->
+    <div id="playerManagementModal" class="popup-modal"></div>
+    <div id="roundManagementModal" class="popup-modal"></div>
+    
+    <!-- Overlay -->
+    <div id="overlay"></div>
 
-  <script>
-    if (!localStorage.getItem('initialized')) {
-      players = [
-        { name: "P1", totalScore: 0, roundScores: [] },
-        { name: "P2", totalScore: 0, roundScores: [] },
-        { name: "P3", totalScore: 0, roundScores: [] },
-        { name: "P4", totalScore: 0, roundScores: [] }
-      ].map(player => ({ ...player, name: player.name.toUpperCase() }));
-      rounds = [];
-      localStorage.setItem('initialized', 'true');
-      localStorage.setItem('players', JSON.stringify(players));
-      localStorage.setItem('rounds', JSON.stringify(rounds));
-    } else {
-      players = JSON.parse(localStorage.getItem('players')) || [];
-      rounds = JSON.parse(localStorage.getItem('rounds')) || [];
-    }
+    <script>
+        // Initialize data from localStorage or set defaults
+        if (!localStorage.getItem('initialized')) {
+            players = [
+                { name: "P1", totalScore: 0, roundScores: [] },
+                { name: "P2", totalScore: 0, roundScores: [] },
+                { name: "P3", totalScore: 0, roundScores: [] },
+                { name: "P4", totalScore: 0, roundScores: [] }
+            ].map(player => ({ ...player, name: player.name.toUpperCase() }));
+            rounds = [];
+            localStorage.setItem('initialized', 'true');
+            localStorage.setItem('players', JSON.stringify(players));
+            localStorage.setItem('rounds', JSON.stringify(rounds));
+        } else {
+            players = JSON.parse(localStorage.getItem('players')) || [];
+            rounds = JSON.parse(localStorage.getItem('rounds')) || [];
+        }
 
-    let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
+        let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
 
-    function addRoundScores() {
-      const scores = [];
-      const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-      inputs.forEach((input, index) => {
-        const score = parseInt(input.value) || 0;
-        scores[index] = score;
-        players[index].roundScores.push(score);
-        players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
-      });
-      rounds.push(scores);
-      saveData();
-      updateUI();
-      inputs.forEach(input => input.value = '');
-    }
+        // Add new round scores
+        function addRoundScores() {
+            const scores = [];
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            inputs.forEach((input, index) => {
+                const score = parseInt(input.value) || 0;
+                scores[index] = score;
+                players[index].roundScores.push(score);
+                players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
+            });
+            rounds.push(scores);
+            saveData();
+            updateUI();
+            inputs.forEach(input => input.value = '');
+        }
 
-    function saveData() {
-      localStorage.setItem('players', JSON.stringify(players));
-      localStorage.setItem('rounds', JSON.stringify(rounds));
-      localStorage.setItem('scoringMode', scoringMode);
-    }
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('players', JSON.stringify(players));
+            localStorage.setItem('rounds', JSON.stringify(rounds));
+            localStorage.setItem('scoringMode', scoringMode);
+        }
 
-    function updateUI() {
-      const playerRow = document.getElementById("playerRow");
-      const scoreTable = document.getElementById("scoreTable");
-      
-      if (players.length >= 7) {
-        scoreTable.classList.add("small-scores");
-      } else {
-        scoreTable.classList.remove("small-scores");
-      }
-
-      playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
-      players.forEach((player, index) => {
-        playerRow.innerHTML += `
-          <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
-            ${player.name}
-            <br>
-            <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
-            ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
-          </th>
-        `;
-      });
-
-      const scoreBody = document.getElementById("scoreBody");
-      scoreBody.innerHTML = "";
-      rounds.forEach((round, roundIndex) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
-        players.forEach((_, playerIndex) => {
-          const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] == 0 ? '<span class="scaled-emoji">🔥</span>' : round[playerIndex]) : '<span class="scaled-emoji">🔥</span>';
-          row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
-        });
-        scoreBody.appendChild(row);
-      });
-
-      const inputRow = document.createElement('tr');
-      inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
-      players.forEach((player, index) => {
-        inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" /></td>`;
-      });
-      scoreBody.appendChild(inputRow);
-
-      if (rounds.length > 0) {
-        updateRankings();
-      }
-
-      const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-      inputs.forEach((input, index) => {
-        input.addEventListener('keydown', function(event) {
-          if (event.key === 'Enter' || event.keyCode === 13) {
-            event.preventDefault();
-            const allFilled = allInputsFilled(inputs);
-            if (allFilled) {
-              addRoundScores();
-              inputs[0].focus();
+        // Update the UI with current data
+        function updateUI() {
+            const playerRow = document.getElementById("playerRow");
+            const scoreTable = document.getElementById("scoreTable");
+            
+            if (players.length >= 7) {
+                scoreTable.classList.add("small-scores");
             } else {
-              if (index < inputs.length - 1) {
-                inputs[index + 1].focus();
-              } else {
-                const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
-                if (firstEmpty !== -1) {
-                  inputs[firstEmpty].focus();
-                } else {
-                  inputs[0].focus();
-                }
-              }
+                scoreTable.classList.remove("small-scores");
             }
-          }
-        });
-      });
-    }
 
-    function getRank(score) {
-      if (players.length === 1) return "1st";
-      const sortedPlayers = [...players];
-      if (scoringMode === "highest") {
-        sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
-      } else {
-        sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
-      }
-      const rank = sortedPlayers.findIndex(player => player.totalScore === score) + 1;
-      let suffix = 'th';
-      if (rank % 10 === 1 && rank % 100 !== 11) suffix = 'st';
-      if (rank % 10 === 2 && rank % 100 !== 12) suffix = 'nd';
-      if (rank % 10 === 3 && rank % 100 !== 13) suffix = 'rd';
-      return rank + suffix;
-    }
+            playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
+            players.forEach((player, index) => {
+                playerRow.innerHTML += `
+                    <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
+                        ${player.name}
+                        <br>
+                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+                    </th>
+                `;
+            });
 
-    function updateScore(roundIndex, playerIndex, newScore) {
-      const score = parseInt(newScore) || 0;
-      if (rounds[roundIndex] && rounds[roundIndex][playerIndex] !== undefined) {
-        rounds[roundIndex][playerIndex] = score;
-        if (players[playerIndex] && players[playerIndex].roundScores[roundIndex] !== undefined) {
-          players[playerIndex].roundScores[roundIndex] = score;
-          players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+            const scoreBody = document.getElementById("scoreBody");
+            scoreBody.innerHTML = "";
+            rounds.forEach((round, roundIndex) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
+                players.forEach((_, playerIndex) => {
+                    const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] == 0 ? '<span class="scaled-emoji">🔥</span>' : round[playerIndex]) : '<span class="scaled-emoji">🔥</span>';
+                    row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
+                });
+                scoreBody.appendChild(row);
+            });
+
+            const inputRow = document.createElement('tr');
+            inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
+            players.forEach((player, index) => {
+                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" /></td>`;
+            });
+            scoreBody.appendChild(inputRow);
+
+            if (rounds.length > 0) {
+                updateRankings();
+            }
+
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' || event.keyCode === 13) {
+                        event.preventDefault();
+                        const allFilled = allInputsFilled(inputs);
+                        if (allFilled) {
+                            addRoundScores();
+                            inputs[0].focus();
+                        } else {
+                            if (index < inputs.length - 1) {
+                                inputs[index + 1].focus();
+                            } else {
+                                const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
+                                if (firstEmpty !== -1) {
+                                    inputs[firstEmpty].focus();
+                                } else {
+                                    inputs[0].focus();
+                                }
+                            }
+                        }
+                    }
+                });
+            });
         }
-      }
-      saveData();
-      updateUI();
-    }
 
-    function updateRankings() {
-      if (rounds.length === 0 || players.length === 1) return;
-      const sortedPlayers = [...players];
-      if (scoringMode === "highest") {
-        sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
-      } else {
-        sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
-      }
-      const playerRow = document.getElementById("playerRow");
-      const columns = Array.from(playerRow.children).slice(1);
-      if (columns.length !== players.length) {
-        console.error("Mismatch between players and columns!", players.length, columns.length);
-        return;
-      }
-      columns.forEach((th) => th.classList.remove("highlight-winner", "highlight-loser"));
-      const winningScore = sortedPlayers[0].totalScore;
-      const losingScore = sortedPlayers[sortedPlayers.length - 1].totalScore;
-      const allSameScore = players.every(player => player.totalScore === winningScore);
-      if (allSameScore) {
-        columns.forEach((th) => th.classList.add("highlight-winner"));
-      } else {
-        players.forEach((player, index) => {
-          if (player.totalScore === winningScore) {
-            columns[index].classList.add("highlight-winner");
-          }
-        });
-        players.forEach((player, index) => {
-          if (player.totalScore === losingScore) {
-            columns[index].classList.add("highlight-loser");
-          }
-        });
-      }
-    }
-
-    function removePlayer(index) {
-      players.splice(index, 1);
-      rounds.forEach(round => round.splice(index, 1));
-      saveData();
-      updateUI();
-    }
-
-    function createPlayerManagementDialog(index) {
-      const modal = document.getElementById('playerManagementModal');
-      modal.innerHTML = `
-        <h2>Player</h2>
-        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-        <input type="text" id="playerNameInput" value="${players[index].name}" autocapitalize="characters" inputmode="text" style="text-transform: uppercase;">
-        <button onclick="updatePlayerName(${index})">Update</button>
-        <button onclick="confirmRemovePlayer(${index})">Remove Player</button>
-      `;
-      modal.style.display = 'block';
-      showOverlay();
-      const input = modal.querySelector('#playerNameInput');
-      input.focus();
-      input.select();
-      input.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          updatePlayerName(index);
-          closePopup('playerManagementModal');
+        // Calculate player rank
+        function getRank(score) {
+            if (players.length === 1) return "1st";
+            const sortedPlayers = [...players];
+            if (scoringMode === "highest") {
+                sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
+            } else {
+                sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
+            }
+            const rank = sortedPlayers.findIndex(player => player.totalScore === score) + 1;
+            let suffix = 'th';
+            if (rank % 10 === 1 && rank % 100 !== 11) suffix = 'st';
+            if (rank % 10 === 2 && rank % 100 !== 12) suffix = 'nd';
+            if (rank % 10 === 3 && rank % 100 !== 13) suffix = 'rd';
+            return rank + suffix;
         }
-      });
-      input.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-      });
-    }
 
-    function updatePlayerName(index) {
-      const input = document.getElementById('playerNameInput');
-      const newName = input.value.trim().toUpperCase();
-      if (newName && newName !== players[index].name) {
-        players[index].name = newName;
-        saveData();
-        updateUI();
-        closePopup('playerManagementModal');
-      }
-    }
-
-    function confirmRemovePlayer(index) {
-      if (confirm(`Are you sure you want to remove ${players[index].name}?`)) {
-        removePlayer(index);
-        closePopup('playerManagementModal');
-      }
-    }
-
-    function handlePlayerNameClick(event, index) {
-      event.stopPropagation();
-      closeAllPopups();
-      createPlayerManagementDialog(index);
-    }
-
-    function createRoundManagementDialog() {
-  const modal = document.getElementById('roundManagementModal');
-  modal.innerHTML = `
-    <h2>Round</h2>
-    <span class="close-btn" onclick="closePopup('roundManagementModal')">×</span>
-    <select id="playerCount" onchange="updatePlayerCount()">
-      ${[1,2,3,4,5,6,7,8].map(i => `<option value="${i}" ${players.length === i ? 'selected' : ''}>${i} Players</option>`).join('')}
-    </select>
-    <div class="segmented-control">
-      <input type="radio" id="lowest" name="scoringMode" value="lowest" ${scoringMode === 'lowest' ? 'checked' : ''} onchange="scoringMode = 'lowest'; saveData(); updateUI();">
-      <label for="lowest">Low</label>
-      <input type="radio" id="highest" name="scoringMode" value="highest" ${scoringMode === 'highest' ? 'checked' : ''} onchange="scoringMode = 'highest'; saveData(); updateUI();">
-      <label for="highest">High</label>
-    </div>
-    <button onclick="resetScores()">Reset</button>
-  `;
-  modal.style.display = 'block';
-  showOverlay();
-}
-
-    function updatePlayerCount() {
-      const newCount = parseInt(document.getElementById('playerCount').value);
-      if (newCount > players.length) {
-        for (let i = players.length; i < newCount; i++) {
-          players.push({ 
-            name: `P${i+1}`.toUpperCase(),
-            totalScore: 0, 
-            roundScores: Array(rounds.length).fill(0)  
-          });
-          rounds.forEach(round => round.push(0));
+        // Update score for a specific round and player
+        function updateScore(roundIndex, playerIndex, newScore) {
+            const score = parseInt(newScore) || 0;
+            if (rounds[roundIndex] && rounds[roundIndex][playerIndex] !== undefined) {
+                rounds[roundIndex][playerIndex] = score;
+                if (players[playerIndex] && players[playerIndex].roundScores[roundIndex] !== undefined) {
+                    players[playerIndex].roundScores[roundIndex] = score;
+                    players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+                }
+            }
+            saveData();
+            updateUI();
         }
-      } else if (newCount < players.length) {
-        players = players.slice(0, newCount);
-        rounds.forEach(round => round.length = newCount);
-      }
-      saveData();
-      updateUI();
-      closePopup('roundManagementModal');
-    }
 
-    function toggleScoringMode() {
-      scoringMode = scoringMode === "highest" ? "lowest" : "highest";
-      saveData();
-    }
+        // Update player rankings with highlights
+        function updateRankings() {
+            if (rounds.length === 0 || players.length === 1) return;
+            const sortedPlayers = [...players];
+            if (scoringMode === "highest") {
+                sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
+            } else {
+                sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
+            }
+            const playerRow = document.getElementById("playerRow");
+            const columns = Array.from(playerRow.children).slice(1);
+            if (columns.length !== players.length) {
+                console.error("Mismatch between players and columns!", players.length, columns.length);
+                return;
+            }
+            columns.forEach((th) => th.classList.remove("highlight-winner", "highlight-loser"));
+            const winningScore = sortedPlayers[0].totalScore;
+            const losingScore = sortedPlayers[sortedPlayers.length - 1].totalScore;
+            const allSameScore = players.every(player => player.totalScore === winningScore);
+            if (allSameScore) {
+                columns.forEach((th) => th.classList.add("highlight-winner"));
+            } else {
+                players.forEach((player, index) => {
+                    if (player.totalScore === winningScore) {
+                        columns[index].classList.add("highlight-winner");
+                    }
+                });
+                players.forEach((player, index) => {
+                    if (player.totalScore === losingScore) {
+                        columns[index].classList.add("highlight-loser");
+                    }
+                });
+            }
+        }
 
-    function resetScores() {
-      if (confirm("Are you sure you want to reset all scores?")) {
-        players.forEach(player => {
-          player.roundScores = [];
-          player.totalScore = 0;
-          player.name = player.name.toUpperCase();
-        });
-        rounds = [];
-        saveData();
+        // Remove a player
+        function removePlayer(index) {
+            players.splice(index, 1);
+            rounds.forEach(round => round.splice(index, 1));
+            saveData();
+            updateUI();
+        }
+
+        // Create player management dialog
+        function createPlayerManagementDialog(index) {
+            const modal = document.getElementById('playerManagementModal');
+            modal.innerHTML = `
+                <h2>Player</h2>
+                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+                <input type="text" id="playerNameInput" value="${players[index].name}" autocapitalize="characters" inputmode="text" style="text-transform: uppercase;">
+                <button onclick="updatePlayerName(${index})">Update</button>
+                <button onclick="confirmRemovePlayer(${index})">Remove Player</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
+            const input = modal.querySelector('#playerNameInput');
+            input.focus();
+            input.select();
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    updatePlayerName(index);
+                    closePopup('playerManagementModal');
+                }
+            });
+            input.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        }
+
+        // Update player name
+        function updatePlayerName(index) {
+            const input = document.getElementById('playerNameInput');
+            const newName = input.value.trim().toUpperCase();
+            if (newName && newName !== players[index].name) {
+                players[index].name = newName;
+                saveData();
+                updateUI();
+                closePopup('playerManagementModal');
+            }
+        }
+
+        // Confirm player removal
+        function confirmRemovePlayer(index) {
+            if (confirm(`Are you sure you want to remove ${players[index].name}?`)) {
+                removePlayer(index);
+                closePopup('playerManagementModal');
+            }
+        }
+
+        // Handle player name click
+        function handlePlayerNameClick(event, index) {
+            event.stopPropagation();
+            closeAllPopups();
+            createPlayerManagementDialog(index);
+        }
+
+        // Create round management dialog
+        function createRoundManagementDialog() {
+            const modal = document.getElementById('roundManagementModal');
+            modal.innerHTML = `
+                <h2>Round</h2>
+                <span class="close-btn" onclick="closePopup('roundManagementModal')">×</span>
+                <select id="playerCount" onchange="updatePlayerCount()">
+                    ${[1,2,3,4,5,6,7,8].map(i => `<option value="${i}" ${players.length === i ? 'selected' : ''}>${i} Players</option>`).join('')}
+                </select>
+                <div class="segmented-control">
+                    <input type="radio" id="lowest" name="scoringMode" value="lowest" ${scoringMode === 'lowest' ? 'checked' : ''} onchange="scoringMode = 'lowest'; saveData(); updateUI();">
+                    <label for="lowest">Low</label>
+                    <input type="radio" id="highest" name="scoringMode" value="highest" ${scoringMode === 'highest' ? 'checked' : ''} onchange="scoringMode = 'highest'; saveData(); updateUI();">
+                    <label for="highest">High</label>
+                </div>
+                <button onclick="resetScores()">Reset</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
+        }
+
+        // Update player count
+        function updatePlayerCount() {
+            const newCount = parseInt(document.getElementById('playerCount').value);
+            if (newCount > players.length) {
+                for (let i = players.length; i < newCount; i++) {
+                    players.push({ 
+                        name: `P${i+1}`.toUpperCase(),
+                        totalScore: 0, 
+                        roundScores: Array(rounds.length).fill(0)  
+                    });
+                    rounds.forEach(round => round.push(0));
+                }
+            } else if (newCount < players.length) {
+                players = players.slice(0, newCount);
+                rounds.forEach(round => round.length = newCount);
+            }
+            saveData();
+            updateUI();
+            closePopup('roundManagementModal');
+        }
+
+        // Toggle scoring mode (unused but preserved)
+        function toggleScoringMode() {
+            scoringMode = scoringMode === "highest" ? "lowest" : "highest";
+            saveData();
+        }
+
+        // Reset all scores
+        function resetScores() {
+            if (confirm("Are you sure you want to reset all scores?")) {
+                players.forEach(player => {
+                    player.roundScores = [];
+                    player.totalScore = 0;
+                    player.name = player.name.toUpperCase();
+                });
+                rounds = [];
+                saveData();
+                updateUI();
+                closePopup('roundManagementModal');
+            }
+        }
+
+        // Confirm round deletion
+        function confirmDeleteRound(roundIndex) {
+            if (confirm("Are you sure you want to delete this round?")) {
+                rounds.splice(roundIndex, 1);
+                players.forEach(player => {
+                    player.roundScores.splice(roundIndex, 1);
+                    player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
+                });
+                saveData();
+                updateUI();
+            }
+        }
+
+        // Check if all inputs are filled
+        function allInputsFilled(inputs) {
+            return Array.from(inputs).every(input => input.value.trim() !== '');
+        }
+
+        // Select text in contenteditable element
+        function selectText(element) {
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+
+        // Overlay controls
+        function showOverlay() {
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function hideOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        // Close popup by ID
+        function closePopup(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            hideOverlay();
+        }
+
+        // Close all popups
+        function closeAllPopups() {
+            document.getElementById('playerManagementModal').style.display = 'none';
+            document.getElementById('roundManagementModal').style.display = 'none';
+            hideOverlay();
+        }
+
+        // Overlay click handler
+        document.getElementById('overlay').addEventListener('click', closeAllPopups);
+
+        // Initial UI update
         updateUI();
-        closePopup('roundManagementModal');
-      }
-    }
-
-    function confirmDeleteRound(roundIndex) {
-      if (confirm("Are you sure you want to delete this round?")) {
-        rounds.splice(roundIndex, 1);
-        players.forEach(player => {
-          player.roundScores.splice(roundIndex, 1);
-          player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
-        });
-        saveData();
-        updateUI();
-      }
-    }
-
-    function allInputsFilled(inputs) {
-      return Array.from(inputs).every(input => input.value.trim() !== '');
-    }
-
-    function selectText(element) {
-      const range = document.createRange();
-      range.selectNodeContents(element);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-
-    function showOverlay() {
-      document.getElementById('overlay').style.display = 'block';
-    }
-
-    function hideOverlay() {
-      document.getElementById('overlay').style.display = 'none';
-    }
-
-    function closePopup(modalId) {
-      document.getElementById(modalId).style.display = 'none';
-      hideOverlay();
-    }
-
-    function closeAllPopups() {
-      document.getElementById('playerManagementModal').style.display = 'none';
-      document.getElementById('roundManagementModal').style.display = 'none';
-      hideOverlay();
-    }
-
-    document.getElementById('overlay').addEventListener('click', closeAllPopups);
-
-    updateUI();
-  </script>
+    </script>
 </body>
 </html>
