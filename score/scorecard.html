@@ -288,6 +288,18 @@
             transition: color 0.2s ease;
         }
 
+        /* Emoji Scaling */
+        .scaled-emoji {
+            transform: scale(.75);
+            transform-origin: center;
+            display: inline-block;
+        }
+
+        /* Disable Tap Highlight */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         /* Overlay */
         #overlay {
             display: none;
@@ -299,18 +311,6 @@
             background: rgba(0, 0, 0, 0.5);
             z-index: 999;
             cursor: pointer;
-        }
-
-        /* Emoji Scaling */
-        .scaled-emoji {
-            transform: scale(.75);
-            transform-origin: center;
-            display: inline-block;
-        }
-
-        /* Disable Tap Highlight */
-        * {
-            -webkit-tap-highlight-color: transparent;
         }
 
         /* Responsive Adjustments */
@@ -431,7 +431,9 @@
                 const row = document.createElement("tr");
                 row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
                 players.forEach((_, playerIndex) => {
-                    const displayScore = round[playerIndex] !== undefined ? (round[playerIndex] == 0 ? '<span class="scaled-emoji">🔥</span>' : round[playerIndex]) : '<span class="scaled-emoji">🔥</span>';
+                    const displayScore = round[playerIndex] !== undefined ? 
+                        (round[playerIndex] == 0 ? '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 20px; height: 20px;" alt="Zero Score">' : round[playerIndex]) : 
+                        '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 20px; height: 20px;" alt="Zero Score">';
                     row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
                 });
                 scoreBody.appendChild(row);
