@@ -432,8 +432,8 @@
                 row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
                 players.forEach((_, playerIndex) => {
                     const displayScore = round[playerIndex] !== undefined ? 
-                        (round[playerIndex] == 0 ? '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 20px; height: 20px;" alt="Zero Score">' : round[playerIndex]) : 
-                        '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 20px; height: 20px;" alt="Zero Score">';
+                        (round[playerIndex] == 0 ? '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">' : round[playerIndex]) : 
+                        '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">';
                     row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
                 });
                 scoreBody.appendChild(row);
