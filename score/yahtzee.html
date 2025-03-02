@@ -88,7 +88,7 @@
     
         /* Updated first column styles to match Scorecard app and fix border protrusion */
         table th:first-child {
-            background: linear-gradient(to bottom, #333333 0%, #333333 100%);
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             font-weight: bold;
             width: 30px;
             min-width: 30px;
@@ -99,7 +99,7 @@
         }
     
         table td:first-child {
-            background: #333333;
+            background: #4d4d4d;
             font-weight: bold;
             width: 30px;
             min-width: 30px;
@@ -116,13 +116,13 @@
         }
     
         table th {
-            background: linear-gradient(to bottom, #333333 0%, #333333 100%);
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
         }
     
         /* Specific style for top-left cell */
         #scoreTable thead th:first-child {
-            background: linear-gradient(to bottom, #333333 0%, #333333 100%);
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             border-right: none; /* Remove right border from top-left cell */
             border-bottom: 1px solid #666; /* Explicitly add border for first header cell */
         }
@@ -164,7 +164,7 @@
         }
     
         .bonus-row td, .upper-score-row td, .lower-score-row td {
-            background: #333333;
+            background: #4d4d4d;
             color: white;
             border-bottom: 1px solid #666; /* Darker border for dark area */
             border-right: 1px solid #666; /* Vertical border for dark area */
@@ -222,35 +222,9 @@
 
         table td {
     border-right: 1px solid rgba(200, 200, 200, 0.3); /* Keep vertical border as is */
-    border-bottom: 1px solid #666; /* Thicker and darker horizontal border */
-}
-/* Dark sections (bonus and score rows) override with their own border */
-.bonus-row td, 
-.upper-score-row td, 
-.lower-score-row td {
-    background: #333333;
-    color: white;
-    border-bottom: 1px solid #666; /* Keep dark border as is */
-    border-right: 1px solid #666; /* Vertical border for dark area */
+    border-bottom: 1px solid #999; /* Thicker and darker horizontal border */
 }
 
-/* Ensure the first column (dark) keeps its specific border */
-table td:first-child {
-    background: #333333;
-    font-weight: bold;
-    width: 30px;
-    min-width: 30px;
-    max-width: 30px;
-    overflow: hidden;
-    color: white;
-    border-bottom: 1px solid #666; /* Matches dark section border */
-    border-right: none; /* Prevents border poking out */
-}
-
-/* Remove bottom border from the last row to avoid extra thickness at the end */
-table tr:last-child td {
-    border-bottom: none;
-}
     
         #popupModal {
             display: none;
@@ -274,7 +248,7 @@ table tr:last-child td {
             margin: 2px;
             cursor: pointer;
             font-family: 'Economica', sans-serif;
-            background: linear-gradient(to bottom, #333333 0%, #333333 100%);
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
             border: none;
             border-radius: 6px;
@@ -305,7 +279,7 @@ table tr:last-child td {
             text-align: center;
             overflow: hidden;
             white-space: nowrap;
-            background: linear-gradient(to bottom, #333333 0%, #333333 100%);
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
             border: none;
             border-radius: 6px;
@@ -349,7 +323,7 @@ table tr:last-child td {
             margin: 5px;
             cursor: pointer;
             font-family: 'Economica', sans-serif;
-            background: linear-gradient(to bottom, #333333 0%, #333333 100%);
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
             border: none;
             border-radius: 6px;
@@ -421,7 +395,7 @@ table tr:last-child td {
             margin: 5px;
             cursor: pointer;
             font-family: 'Economica', sans-serif;
-            background: linear-gradient(to bottom, #333333 0%, #333333 100%);
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
             border: none;
             border-radius: 6px;
