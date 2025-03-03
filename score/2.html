@@ -154,7 +154,7 @@
             border: none;
             padding: 5px 20px 20px 20px;
             z-index: 1000;
-            width: 240px; /* Matching numberKeyboard width */
+            width: 240px;
             max-width: 90%;
             text-align: center;
             font-family: 'Economica', sans-serif;
@@ -391,7 +391,7 @@
     <div id="playerManagementModal" class="popup-modal"></div>
     <div id="roundManagementModal" class="popup-modal"></div>
     <div id="numberKeyboard" class="popup-modal">
-        <h2>Enter Score</h2>
+        <h2 id="keyboardPlayerName"></h2>
         <span class="close-btn" onclick="hideKeyboard()">×</span>
         <input type="text" id="keyboardInput" readonly>
         <div class="keyboard-row">
@@ -571,10 +571,13 @@
             if (activeInput && activeInput !== input) hideKeyboard();
             activeInput = input;
             const keyboardInput = document.getElementById('keyboardInput');
+            const keyboardPlayerName = document.getElementById('keyboardPlayerName');
             keyboardInput.value = activeInput.value || '';
+            const playerIndex = Array.from(document.querySelectorAll("#inputRow input[type='text']")).indexOf(input);
+            keyboardPlayerName.textContent = players[playerIndex].name;
             document.getElementById('numberKeyboard').style.display = 'block';
             showOverlay();
-            activeInput.focus(); // Keep focus on the score input to show cursor
+            activeInput.focus();
         }
 
         function hideKeyboard() {
@@ -768,7 +771,15 @@
             hideOverlay();
         }
 
-        document.getElementById('overlay').addEventListener('click', closeAllPopups);
+        document.getElementById('overlay').addEventListener('click', function(event) {
+            const numberKeyboard = document.getElementById('numberKeyboard');
+            const isClickInsideKeyboard = numberKeyboard.contains(event.target);
+            const isClickOnInput = event.target.tagName === 'INPUT' && event.target.closest('#inputRow');
+            
+            if (!isClickInsideKeyboard && !isClickOnInput) {
+                hideKeyboard();
+            }
+        });
 
         updateUI();
     </script>
