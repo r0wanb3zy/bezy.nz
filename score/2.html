@@ -17,17 +17,30 @@
             background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
             min-height: 100vh;
             background-size: cover;
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            overflow-x: hidden;
         }
 
         h1 { text-align: center; }
 
-        /* Container for the table to control scrolling */
-        #tableContainer {
-            position: relative;
-            height: 100vh; /* Full viewport height */
-            overflow-y: auto; /* Allow vertical scrolling */
-        }
+        /* New fixed header container */
+        #headerContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    z-index: 10;
+    background: #fff; /* Ensures background behind header */
+    margin-bottom: 0; /* Explicitly remove bottom margin */
+    padding-bottom: 0; /* Remove any padding */
+}
+
+#tableContainer {
+    margin-top: 140px; /* Reduced from 160px to close the gap - adjust as needed */
+    height: calc(100vh - 140px); /* Match the margin-top */
+    overflow-y: auto;
+}
 
         table {
             width: 100%;
@@ -73,33 +86,19 @@
             border-bottom: 1px solid #666;
         }
 
-        #scoreTable thead {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+        #headerTable {
+            margin-bottom: 0;
         }
 
-        #scoreTable thead th {
+        #headerTable th {
             height: 80px;
             font-size: 22px;
         }
 
-        #scoreTable thead th span.score { font-size: 22px; }
-        #scoreTable thead th small {
+        #headerTable th span.score { font-size: 22px; }
+        #headerTable th small {
             font-size: 16px;
             color: rgba(255, 255, 255, 0.8);
-        }
-
-        #inputRowContainer {
-            position: sticky;
-            top: 80px; /* Matches header height */
-            z-index: 9;
-            background: #fff;
-        }
-
-        #scoreBody {
-            /* No position sticky here, let it scroll naturally */
         }
 
         #scoreBody tr:not(:last-child) td:not(:first-child) {
@@ -331,9 +330,9 @@
         }
 
         @media (max-width: 480px) {
-            #scoreTable.small-scores thead th { padding: 3px; }
-            #scoreTable.small-scores thead th span.score { font-size: 18px; line-height: 1.2; }
-            #scoreTable.small-scores thead th small { font-size: 12px; }
+            #scoreTable.small-scores th { padding: 3px; }
+            #scoreTable.small-scores th span.score { font-size: 18px; line-height: 1.2; }
+            #scoreTable.small-scores th small { font-size: 12px; }
             #scoreTable.small-scores tbody td { font-size: 16px; }
             #scoreTable.small-scores tbody tr:last-child input[type="text"] {
                 font-size: 14px;
@@ -348,8 +347,8 @@
     </style>
 </head>
 <body>
-    <div id="tableContainer">
-        <table id="scoreTable">
+    <div id="headerContainer">
+        <table id="headerTable">
             <thead>
                 <tr id="playerRow">
                     <th>#</th>
@@ -360,6 +359,11 @@
                     <td onclick="addRoundScores()">＋</td>
                 </tr>
             </tbody>
+        </table>
+    </div>
+
+    <div id="tableContainer">
+        <table id="scoreTable">
             <tbody id="scoreBody"></tbody>
         </table>
     </div>
