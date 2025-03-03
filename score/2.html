@@ -614,8 +614,7 @@
             const playerIndex = Array.from(document.querySelectorAll("#inputRow input[type='text']")).indexOf(input);
             keyboardPlayerName.textContent = players[playerIndex].name;
             document.getElementById('numberKeyboard').style.display = 'block';
-            showOverlay(); // Existing overlay for modals
-            showRowOverlays(); // Show overlays for Row 1 and score rows
+            showRowOverlays(); // Show overlays for Row 1 and score rows only
             activeInput.focus();
         }
 
@@ -625,8 +624,7 @@
             }
             activeInput = null;
             document.getElementById('numberKeyboard').style.display = 'none';
-            hideOverlay(); // Existing overlay
-            hideRowOverlays(); // Hide overlays for Row 1 and score rows
+            hideRowOverlays(); // Hide overlays for Row 1 and score rows only
         }
 
         function keyboardInput(action) {
@@ -681,7 +679,7 @@
                 <button onclick="confirmRemovePlayer(${index})">Remove Player</button>
             `;
             modal.style.display = 'block';
-            showOverlay();
+            showOverlay(); // Show standard overlay for this modal
             const input = modal.querySelector('#playerNameInput');
             input.focus();
             input.select();
@@ -735,7 +733,7 @@
                 <button onclick="resetScores()">Reset</button>
             `;
             modal.style.display = 'block';
-            showOverlay();
+            showOverlay(); // Show standard overlay for this modal
         }
 
         function updatePlayerCount() {
@@ -799,11 +797,7 @@
         function showOverlay() { 
             const overlay = document.getElementById('overlay');
             overlay.style.display = 'block';
-            if (document.getElementById('numberKeyboard').style.display === 'block') {
-                overlay.style.pointerEvents = 'none'; // Disable clicks on overlay when keyboard is active
-            } else {
-                overlay.style.pointerEvents = 'auto';
-            }
+            overlay.style.pointerEvents = 'auto'; // Always clickable for modals
         }
 
         function hideOverlay() { 
@@ -824,13 +818,13 @@
 
         function closePopup(modalId) {
             document.getElementById(modalId).style.display = 'none';
-            hideOverlay();
+            hideOverlay(); // Hide standard overlay for modals
         }
 
         function closeAllPopups() {
             document.getElementById('playerManagementModal').style.display = 'none';
             document.getElementById('roundManagementModal').style.display = 'none';
-            hideKeyboard();
+            hideKeyboard(); // This won’t affect #overlay
         }
 
         // Handle clicks on row overlays to close keyboard
