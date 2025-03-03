@@ -17,9 +17,17 @@
             background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
             min-height: 100vh;
             background-size: cover;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
         h1 { text-align: center; }
+
+        /* Container for the table to control scrolling */
+        #tableContainer {
+            position: relative;
+            height: 100vh; /* Full viewport height */
+            overflow-y: auto; /* Allow vertical scrolling */
+        }
 
         table {
             width: 100%;
@@ -27,7 +35,6 @@
             border-collapse: collapse;
             font-size: 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
         }
 
         table th, table td {
@@ -70,6 +77,7 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
         }
 
         #scoreTable thead th {
@@ -85,9 +93,13 @@
 
         #inputRowContainer {
             position: sticky;
-            top: 80px;
+            top: 80px; /* Matches header height */
             z-index: 9;
             background: #fff;
+        }
+
+        #scoreBody {
+            /* No position sticky here, let it scroll naturally */
         }
 
         #scoreBody tr:not(:last-child) td:not(:first-child) {
@@ -336,19 +348,21 @@
     </style>
 </head>
 <body>
-    <table id="scoreTable">
-        <thead>
-            <tr id="playerRow">
-                <th>#</th>
-            </tr>
-        </thead>
-        <tbody id="inputRowContainer">
-            <tr id="inputRow">
-                <td onclick="addRoundScores()">＋</td>
-            </tr>
-        </tbody>
-        <tbody id="scoreBody"></tbody>
-    </table>
+    <div id="tableContainer">
+        <table id="scoreTable">
+            <thead>
+                <tr id="playerRow">
+                    <th>#</th>
+                </tr>
+            </thead>
+            <tbody id="inputRowContainer">
+                <tr id="inputRow">
+                    <td onclick="addRoundScores()">＋</td>
+                </tr>
+            </tbody>
+            <tbody id="scoreBody"></tbody>
+        </table>
+    </div>
 
     <div id="playerManagementModal" class="popup-modal"></div>
     <div id="roundManagementModal" class="popup-modal"></div>
