@@ -153,7 +153,6 @@
             transform: translate(-50%, -15%);
         }
 
-        /* Keyboard Styling to Match Original Popups */
         #numberKeyboard {
             display: none;
             position: fixed;
@@ -448,8 +447,9 @@
             inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
             players.forEach((player, index) => {
                 inputRow.innerHTML += `
-                    <td><input type="number" placeholder="${player.name}" inputmode="none" 
-                        onfocus="showKeyboard(this)" onblur="hideKeyboardDelay()"/></td>
+                    <td><input type="number" placeholder="${player.name}" inputmode="none" readonly
+                        onfocus="showKeyboard(this)" onblur="hideKeyboardDelay()" 
+                        onkeydown="preventDefaultKeyboard(event)"/></td>
                 `;
             });
 
@@ -470,6 +470,11 @@
             if (rounds.length > 0) {
                 updateRankings();
             }
+        }
+
+        function preventDefaultKeyboard(event) {
+            // Prevent any default keyboard input
+            event.preventDefault();
         }
 
         function getRank(score) {
@@ -528,6 +533,7 @@
 
         function showKeyboard(input) {
             activeInput = input;
+            input.removeAttribute('readonly'); // Allow programmatic input
             document.getElementById('numberKeyboard').style.display = 'block';
             showOverlay();
             input.focus();
@@ -542,7 +548,10 @@
         }
 
         function hideKeyboard() {
-            if (activeInput) activeInput.blur();
+            if (activeInput) {
+                activeInput.setAttribute('readonly', 'readonly'); // Reapply readonly
+                activeInput.blur();
+            }
             activeInput = null;
             document.getElementById('numberKeyboard').style.display = 'none';
             hideOverlay();
