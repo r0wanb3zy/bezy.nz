@@ -15,32 +15,33 @@
             margin-left: auto;
             margin-right: auto;
             background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
-            min-height: 100vh;
             background-size: cover;
             overflow-x: hidden;
+            /* Remove min-height to allow natural scrolling */
         }
 
         h1 { text-align: center; }
 
-        /* New fixed header container */
+        /* Fixed header container */
         #headerContainer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    max-width: 1200px;
-    margin: 0 auto;
-    z-index: 10;
-    background: #fff; /* Ensures background behind header */
-    margin-bottom: 0; /* Explicitly remove bottom margin */
-    padding-bottom: 0; /* Remove any padding */
-}
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            max-width: 1200px;
+            margin: 0 auto;
+            z-index: 10;
+            background: #fff;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
 
-#tableContainer {
-    margin-top: 140px; /* Reduced from 160px to close the gap - adjust as needed */
-    height: calc(100vh - 140px); /* Match the margin-top */
-    overflow-y: auto;
-}
+        /* Adjusted table container */
+        #tableContainer {
+            margin-top: 140px; /* Matches the height of the header */
+            /* Remove fixed height and overflow-y to allow natural growth */
+            padding-bottom: 20px; /* Optional: adds some space at the bottom */
+        }
 
         table {
             width: 100%;
@@ -91,7 +92,7 @@
         }
 
         #headerTable th {
-            height: 80px;
+            height: 70px; /* Reduced slightly to match margin-top calculation */
             font-size: 22px;
         }
 
