@@ -568,7 +568,9 @@
         }
 
         function showKeyboard(input) {
-            if (activeInput && activeInput !== input) hideKeyboard();
+            if (activeInput && activeInput !== input) {
+                activeInput.blur();
+            }
             activeInput = input;
             const keyboardInput = document.getElementById('keyboardInput');
             const keyboardPlayerName = document.getElementById('keyboardPlayerName');
@@ -772,11 +774,19 @@
         }
 
         document.getElementById('overlay').addEventListener('click', function(event) {
+            const playerManagementModal = document.getElementById('playerManagementModal');
+            const roundManagementModal = document.getElementById('roundManagementModal');
             const numberKeyboard = document.getElementById('numberKeyboard');
+            const isClickInsidePlayerModal = playerManagementModal.contains(event.target);
+            const isClickInsideRoundModal = roundManagementModal.contains(event.target);
             const isClickInsideKeyboard = numberKeyboard.contains(event.target);
             const isClickOnInput = event.target.tagName === 'INPUT' && event.target.closest('#inputRow');
-            
-            if (!isClickInsideKeyboard && !isClickOnInput) {
+
+            if (playerManagementModal.style.display === 'block' && !isClickInsidePlayerModal) {
+                closePopup('playerManagementModal');
+            } else if (roundManagementModal.style.display === 'block' && !isClickInsideRoundModal) {
+                closePopup('roundManagementModal');
+            } else if (numberKeyboard.style.display === 'block' && !isClickInsideKeyboard && !isClickOnInput) {
                 hideKeyboard();
             }
         });
