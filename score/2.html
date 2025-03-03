@@ -153,7 +153,7 @@
             background: #ffffff;
             border: none;
             padding: 5px 20px 20px 20px;
-            z-index: 1000; /* Above overlay */
+            z-index: 1000;
             width: 240px;
             max-width: 90%;
             text-align: center;
@@ -170,14 +170,13 @@
         #numberKeyboard {
             display: none;
             position: fixed;
-            top: 170px; /* Below the input row */
+            top: 170px;
             left: 50%;
-            transform: translateX(-50%); /* Only horizontal centering */
+            transform: translateX(-50%);
             background: #ffffff;
             border: none;
-            padding: 5px 10px 10px 10px; /* Reduced padding */
-            z-index: 1000; /* Above overlay */
-            width: 196px; /* Matches 3 buttons + reduced margins */
+            z-index: 1000;
+            width: 196px;
             max-width: 90%;
             text-align: center;
             font-family: 'Economica', sans-serif;
@@ -188,26 +187,29 @@
         .keyboard-row {
             display: flex;
             justify-content: center;
-            margin: 4px 0; /* Reduced spacing between rows */
+            margin: 0px 0;
         }
     
         .keyboard-btn {
             font-size: 24px;
-            width: 60px; /* Explicitly square */
-            height: 60px; /* Explicitly square */
-            margin: 2px; /* Reduced spacing between buttons */
-            padding: 0; /* Remove any padding that might affect size */
+            width: 60px;
+            height: 60px;
+            min-width: 60px; /* Prevent shrinking */
+            min-height: 60px; /* Prevent shrinking */
+            margin: 2px;
+            padding: 0;
             cursor: pointer;
             font-family: 'Economica', sans-serif;
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 0; /* Remove rounding for true square shape */
             transition: background 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-sizing: border-box; /* Ensure dimensions include border */
+            box-sizing: border-box;
+            line-height: 60px; /* Match height for perfect centering */
         }
     
         .keyboard-btn:hover {
@@ -217,7 +219,7 @@
         #keyboardInput {
             font-size: 24px;
             padding: 8px;
-            width: 188px; /* Matches 3 buttons */
+            width: 188px;
             box-sizing: border-box;
             margin: 4px auto;
             text-align: center;
@@ -229,7 +231,6 @@
     
         #keyboardInput:focus {
             outline: none;
-            border: 1px solid #333333;
         }
     
         .popup-modal input[type="text"]:not(#keyboardInput) {
@@ -352,7 +353,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 999; /* Below modals and keyboard */
+            z-index: 999;
             cursor: pointer;
         }
     
@@ -799,7 +800,6 @@
             } else if (roundManagementModal.style.display === 'block' && !isClickInsideRoundModal) {
                 closePopup('roundManagementModal');
             }
-            // Do not close numberKeyboard here
         });
 
         updateUI();
