@@ -14,15 +14,13 @@
             max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
-
+            background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
             background-size: cover;
             overflow-x: hidden;
-            /* Remove min-height to allow natural scrolling */
         }
-
+    
         h1 { text-align: center; }
-
-        /* Fixed header container */
+    
         #headerContainer {
             position: fixed;
             top: 0;
@@ -32,24 +30,22 @@
             margin: 0 auto;
             z-index: 10;
             background: #fff;
-            margin-bottom: 0;
             padding-bottom: 0;
         }
-
-        /* Adjusted table container */
+    
         #tableContainer {
-            margin-top: 138px; /* Matches the height of the header */
-            /* Remove fixed height and overflow-y to allow natural growth */
+            margin-top: 138px;
         }
-
+    
         table {
             width: 100%;
             table-layout: fixed;
             border-collapse: collapse;
             font-size: 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
         }
-
+    
         table th, table td {
             border: none;
             text-align: center;
@@ -58,12 +54,12 @@
             cursor: pointer;
             border-bottom: 1px solid rgba(200, 200, 200, 0.3);
         }
-
+    
         table th {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
         }
-
+    
         table th:first-child {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             font-weight: bold;
@@ -74,7 +70,7 @@
             color: white;
             border-bottom: 1px solid #666;
         }
-
+    
         table td:first-child {
             background: #4d4d4d;
             font-weight: bold;
@@ -85,31 +81,37 @@
             color: white;
             border-bottom: 1px solid #666;
         }
-
+    
         #headerTable {
             margin-bottom: 0;
         }
-
+    
         #headerTable th {
-            height: 70px; /* Reduced slightly to match margin-top calculation */
+            height: 80px;
+            font-family: 'Economica', sans-serif;
             font-size: 22px;
         }
-
-        #headerTable th span.score { font-size: 22px; }
+    
+        #headerTable th span.score {
+            font-size: 22px;
+            font-family: 'Economica', sans-serif;
+        }
+    
         #headerTable th small {
             font-size: 16px;
+            font-family: 'Economica', sans-serif;
             color: rgba(255, 255, 255, 0.8);
         }
-
+    
         #scoreBody tr:not(:last-child) td:not(:first-child) {
             max-height: 5px;
             height: 5px;
             line-height: 5px;
             overflow: hidden;
         }
-
+    
         #scoreBody tr td:not(:first-child) { font-weight: bold; }
-
+    
         table input {
             width: 100%;
             box-sizing: border-box;
@@ -123,24 +125,26 @@
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-
+    
         table input::placeholder {
+            font-family: 'Economica', sans-serif;
             font-size: 16px;
             text-align: center;
             line-height: 16px;
             color: #6b7280;
             opacity: 0.8;
         }
-
+    
         table input:focus {
             outline: none;
             border-color: #333333;
             box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
         }
-
+    
         .highlight-winner { background: linear-gradient(to bottom, #34c759 0%, #28a745 100%); }
         .highlight-loser { background: linear-gradient(to bottom, #e63946 0%, #c62835 100%); }
-
+    
+        /* Popup and other styles unchanged */
         .popup-modal {
             display: none;
             position: fixed;
@@ -158,12 +162,12 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
-
+    
         #playerManagementModal {
             top: 15%;
             transform: translate(-50%, -15%);
         }
-
+    
         #numberKeyboard {
             display: none;
             position: fixed;
@@ -181,13 +185,13 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
-
+    
         .keyboard-row {
             display: flex;
             justify-content: center;
             margin: 5px 0;
         }
-
+    
         .keyboard-btn {
             font-size: 24px;
             padding: 10px 20px;
@@ -200,11 +204,11 @@
             border-radius: 6px;
             transition: background 0.2s;
         }
-
+    
         .keyboard-btn:hover {
             background: linear-gradient(to bottom, #4d4d4d 0%, #666666 100%);
         }
-
+    
         .popup-modal input[type="text"] {
             font-size: 24px;
             padding: 10px;
@@ -217,12 +221,12 @@
             border-radius: 6px;
             background: #f8f9fa;
         }
-
+    
         .popup-modal input[type="text"]:focus {
             outline: none;
             border: 1px solid #333333;
         }
-
+    
         .popup-modal select {
             font-size: 24px;
             padding: 10px;
@@ -232,7 +236,7 @@
             border-radius: 6px;
             background: #f8f9fa;
         }
-
+    
         #roundManagementModal select {
             font-size: 24px;
             padding: 10px;
@@ -242,7 +246,7 @@
             border-radius: 6px;
             background: #f8f9fa;
         }
-
+    
         .popup-modal button {
             font-size: 24px;
             padding: 10px 20px;
@@ -255,13 +259,13 @@
             border-radius: 6px;
             transition: background 0.2s;
         }
-
+    
         #playerManagementModal h2, #roundManagementModal h2, #numberKeyboard h2 {
             margin-top: 15px;
             margin-bottom: 15px;
             padding: 0;
         }
-
+    
         .segmented-control {
             display: flex;
             justify-content: center;
@@ -272,7 +276,7 @@
             border: 1px solid #333333;
             width: 150px;
         }
-
+    
         .segmented-control label {
             flex: 1;
             padding: 10px 0;
@@ -282,16 +286,16 @@
             background: #f8f9fa;
             transition: background 0.2s, color 0.2s;
         }
-
+    
         .segmented-control input[type="radio"] { display: none; }
-
+    
         .segmented-control input[type="radio"]:checked + label {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
         }
-
+    
         .segmented-control label[for="lowest"] { border-right: 1px solid #ddd; }
-
+    
         .close-btn {
             position: absolute;
             top: 0px;
@@ -308,15 +312,15 @@
             text-align: center;
             transition: color 0.2s ease;
         }
-
+    
         .scaled-emoji {
             transform: scale(.75);
             transform-origin: center;
             display: inline-block;
         }
-
+    
         * { -webkit-tap-highlight-color: transparent; }
-
+    
         #overlay {
             display: none;
             position: fixed;
@@ -328,30 +332,19 @@
             z-index: 999;
             cursor: pointer;
         }
+    
+        /* Target only the scores for 7+ players */
         @media (max-width: 480px) {
-    #scoreTable.small-scores th {
-        padding: 3px;
-    }
-    #scoreTable.small-scores th span.score {
-        font-size: 18px;
-        line-height: 1.2;
-    }
-    #scoreTable.small-scores th small {
-        font-size: 12px;
-    }
-    #scoreTable.small-scores tbody td {
-        font-size: 16px;
-    }
-    #scoreTable.small-scores tbody tr:last-child input[type="text"] {
-        font-size: 14px;
-        padding: 5px;
-        height: 32px;
-    }
-    #scoreTable.small-scores tbody tr:last-child input[type="text"]::placeholder {
-        font-size: 14px;
-        line-height: 10px;
-    }
-}
+            #headerTable.small-scores th span.score {
+                font-size: 18px;
+                line-height: 1.2;
+            }
+        }
+    
+        /* Base adjustment for 7+ players (not tied to screen size) */
+        #headerTable.small-scores th span.score {
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
@@ -448,57 +441,58 @@
         }
 
         function updateUI() {
-            const playerRow = document.getElementById("playerRow");
-            const inputRow = document.getElementById("inputRow");
-            const scoreTable = document.getElementById("scoreTable");
+    const playerRow = document.getElementById("playerRow");
+    const inputRow = document.getElementById("inputRow");
+    const scoreTable = document.getElementById("scoreTable");
+    const headerTable = document.getElementById("headerTable");
 
-            if (players.length >= 7) {
-                scoreTable.classList.add("small-scores");
-            } else {
-                scoreTable.classList.remove("small-scores");
-            }
+    if (players.length >= 7) {
+        headerTable.classList.add("small-scores");
+    } else {
+        headerTable.classList.remove("small-scores");
+    }
 
-            playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
-            players.forEach((player, index) => {
-                playerRow.innerHTML += `
-                    <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
-                        ${player.name}
-                        <br>
-                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
-                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
-                    </th>
-                `;
-            });
+    playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
+    players.forEach((player, index) => {
+        playerRow.innerHTML += `
+            <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
+                ${player.name}
+                <br>
+                <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+                ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+            </th>
+        `;
+    });
 
-            inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
-            players.forEach((player, index) => {
-                inputRow.innerHTML += `
-                    <td><input type="text" placeholder="${player.name}" inputmode="none" readonly
-                        ontouchstart="showKeyboard(this); event.preventDefault();" 
-                        onclick="showKeyboard(this); event.preventDefault();" 
-                        onfocus="this.blur(); showKeyboard(this);" 
-                        onkeydown="event.preventDefault();"/></td>
-                `;
-            });
+    inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
+    players.forEach((player, index) => {
+        inputRow.innerHTML += `
+            <td><input type="text" placeholder="${player.name}" inputmode="none" readonly
+                ontouchstart="showKeyboard(this); event.preventDefault();" 
+                onclick="showKeyboard(this); event.preventDefault();" 
+                onfocus="this.blur(); showKeyboard(this);" 
+                onkeydown="event.preventDefault();"/></td>
+        `;
+    });
 
-            const scoreBody = document.getElementById("scoreBody");
-            scoreBody.innerHTML = "";
-            rounds.forEach((round, roundIndex) => {
-                const row = document.createElement("tr");
-                row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
-                players.forEach((_, playerIndex) => {
-                    const displayScore = round[playerIndex] !== undefined ? 
-                        (round[playerIndex] == 0 ? '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">' : round[playerIndex]) : 
-                        '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">';
-                    row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
-                });
-                scoreBody.appendChild(row);
-            });
+    const scoreBody = document.getElementById("scoreBody");
+    scoreBody.innerHTML = "";
+    rounds.forEach((round, roundIndex) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
+        players.forEach((_, playerIndex) => {
+            const displayScore = round[playerIndex] !== undefined ? 
+                (round[playerIndex] == 0 ? '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">' : round[playerIndex]) : 
+                '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">';
+            row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
+        });
+        scoreBody.appendChild(row);
+    });
 
-            if (rounds.length > 0) {
-                updateRankings();
-            }
-        }
+    if (rounds.length > 0) {
+        updateRankings();
+    }
+}
 
         function getRank(score) {
             if (players.length === 1) return "1st";
