@@ -153,7 +153,7 @@
             background: #ffffff;
             border: none;
             padding: 5px 20px 20px 20px;
-            z-index: 1000;
+            z-index: 1000; /* Above overlay */
             width: 240px;
             max-width: 90%;
             text-align: center;
@@ -176,7 +176,7 @@
             background: #ffffff;
             border: none;
             padding: 5px 20px 20px 20px;
-            z-index: 1000;
+            z-index: 1000; /* Above overlay */
             width: 240px;
             max-width: 90%;
             text-align: center;
@@ -350,7 +350,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            z-index: 999; /* Below modals and keyboard */
             cursor: pointer;
         }
     
@@ -578,8 +578,8 @@
             const playerIndex = Array.from(document.querySelectorAll("#inputRow input[type='text']")).indexOf(input);
             keyboardPlayerName.textContent = players[playerIndex].name;
             document.getElementById('numberKeyboard').style.display = 'block';
-            showOverlay();
-            activeInput.focus();
+            showOverlay(); // Show overlay only for the keyboard
+            activeInput.focus(); // Keep focus on the input
         }
 
         function hideKeyboard() {
@@ -588,7 +588,7 @@
             }
             activeInput = null;
             document.getElementById('numberKeyboard').style.display = 'none';
-            hideOverlay();
+            hideOverlay(); // Hide overlay when keyboard is closed
         }
 
         function keyboardInput(action) {
@@ -643,7 +643,7 @@
                 <button onclick="confirmRemovePlayer(${index})">Remove Player</button>
             `;
             modal.style.display = 'block';
-            showOverlay();
+            showOverlay(); // Restore original behavior: show overlay
             const input = modal.querySelector('#playerNameInput');
             input.focus();
             input.select();
@@ -697,7 +697,7 @@
                 <button onclick="resetScores()">Reset</button>
             `;
             modal.style.display = 'block';
-            showOverlay();
+            showOverlay(); // Restore original behavior: show overlay
         }
 
         function updatePlayerCount() {
@@ -758,8 +758,22 @@
             sel.addRange(range);
         }
 
-        function showOverlay() { document.getElementById('overlay').style.display = 'block'; }
-        function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
+        function showOverlay() { 
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = 'block';
+            // Only allow clicks through when keyboard is open
+            if (document.getElementById('numberKeyboard').style.display === 'block') {
+                overlay.style.pointerEvents = 'none';
+            } else {
+                overlay.style.pointerEvents = 'auto';
+            }
+        }
+
+        function hideOverlay() { 
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = 'none';
+            overlay.style.pointerEvents = 'auto'; // Reset pointer events
+        }
 
         function closePopup(modalId) {
             document.getElementById(modalId).style.display = 'none';
@@ -769,8 +783,7 @@
         function closeAllPopups() {
             document.getElementById('playerManagementModal').style.display = 'none';
             document.getElementById('roundManagementModal').style.display = 'none';
-            hideKeyboard();
-            hideOverlay();
+            hideKeyboard(); // This will also hide the overlay
         }
 
         document.getElementById('overlay').addEventListener('click', function(event) {
@@ -779,16 +792,14 @@
             const numberKeyboard = document.getElementById('numberKeyboard');
             const isClickInsidePlayerModal = playerManagementModal.contains(event.target);
             const isClickInsideRoundModal = roundManagementModal.contains(event.target);
-            const isClickInsideKeyboard = numberKeyboard.contains(event.target);
-            const isClickOnInput = event.target.tagName === 'INPUT' && event.target.closest('#inputRow');
 
+            // Restore original behavior: close player and round modals on overlay click
             if (playerManagementModal.style.display === 'block' && !isClickInsidePlayerModal) {
                 closePopup('playerManagementModal');
             } else if (roundManagementModal.style.display === 'block' && !isClickInsideRoundModal) {
                 closePopup('roundManagementModal');
-            } else if (numberKeyboard.style.display === 'block' && !isClickInsideKeyboard && !isClickOnInput) {
-                hideKeyboard();
             }
+            // Do not close numberKeyboard here; let the close button or actions handle it
         });
 
         updateUI();
