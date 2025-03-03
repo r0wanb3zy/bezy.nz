@@ -144,7 +144,6 @@
         .highlight-winner { background: linear-gradient(to bottom, #34c759 0%, #28a745 100%); }
         .highlight-loser { background: linear-gradient(to bottom, #e63946 0%, #c62835 100%); }
     
-        /* Popup and other styles unchanged */
         .popup-modal {
             display: none;
             position: fixed;
@@ -155,7 +154,7 @@
             border: none;
             padding: 5px 20px 20px 20px;
             z-index: 1000;
-            width: 200px;
+            width: 240px; /* Matching numberKeyboard width */
             max-width: 90%;
             text-align: center;
             font-family: 'Economica', sans-serif;
@@ -178,7 +177,7 @@
             border: none;
             padding: 5px 20px 20px 20px;
             z-index: 1000;
-            width: 200px;
+            width: 240px;
             max-width: 90%;
             text-align: center;
             font-family: 'Economica', sans-serif;
@@ -189,13 +188,14 @@
         .keyboard-row {
             display: flex;
             justify-content: center;
-            margin: 5px 0;
+            margin: 8px 0;
         }
     
         .keyboard-btn {
             font-size: 24px;
-            padding: 10px 20px;
-            margin: 5px;
+            width: 60px;
+            height: 60px;
+            margin: 4px;
             cursor: pointer;
             font-family: 'Economica', sans-serif;
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
@@ -203,13 +203,16 @@
             border: none;
             border-radius: 6px;
             transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     
         .keyboard-btn:hover {
             background: linear-gradient(to bottom, #4d4d4d 0%, #666666 100%);
         }
     
-        .popup-modal input[type="text"] {
+        #keyboardInput {
             font-size: 24px;
             padding: 10px;
             width: 100%;
@@ -222,7 +225,25 @@
             background: #f8f9fa;
         }
     
-        .popup-modal input[type="text"]:focus {
+        #keyboardInput:focus {
+            outline: none;
+            border: 1px solid #333333;
+        }
+    
+        .popup-modal input[type="text"]:not(#keyboardInput) {
+            font-size: 24px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 5px 0;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+    
+        .popup-modal input[type="text"]:focus:not(#keyboardInput) {
             outline: none;
             border: 1px solid #333333;
         }
@@ -333,7 +354,6 @@
             cursor: pointer;
         }
     
-        /* Target only the scores for 7+ players */
         @media (max-width: 480px) {
             #headerTable.small-scores th span.score {
                 font-size: 18px;
@@ -341,7 +361,6 @@
             }
         }
     
-        /* Base adjustment for 7+ players (not tied to screen size) */
         #headerTable.small-scores th span.score {
             font-size: 18px;
         }
@@ -374,10 +393,11 @@
     <div id="numberKeyboard" class="popup-modal">
         <h2>Enter Score</h2>
         <span class="close-btn" onclick="hideKeyboard()">×</span>
+        <input type="text" id="keyboardInput" readonly>
         <div class="keyboard-row">
-            <button class="keyboard-btn" onclick="keyboardInput('7')">7</button>
-            <button class="keyboard-btn" onclick="keyboardInput('8')">8</button>
-            <button class="keyboard-btn" onclick="keyboardInput('9')">9</button>
+            <button class="keyboard-btn" onclick="keyboardInput('1')">1</button>
+            <button class="keyboard-btn" onclick="keyboardInput('2')">2</button>
+            <button class="keyboard-btn" onclick="keyboardInput('3')">3</button>
         </div>
         <div class="keyboard-row">
             <button class="keyboard-btn" onclick="keyboardInput('4')">4</button>
@@ -385,13 +405,13 @@
             <button class="keyboard-btn" onclick="keyboardInput('6')">6</button>
         </div>
         <div class="keyboard-row">
-            <button class="keyboard-btn" onclick="keyboardInput('1')">1</button>
-            <button class="keyboard-btn" onclick="keyboardInput('2')">2</button>
-            <button class="keyboard-btn" onclick="keyboardInput('3')">3</button>
+            <button class="keyboard-btn" onclick="keyboardInput('7')">7</button>
+            <button class="keyboard-btn" onclick="keyboardInput('8')">8</button>
+            <button class="keyboard-btn" onclick="keyboardInput('9')">9</button>
         </div>
         <div class="keyboard-row">
-            <button class="keyboard-btn" onclick="keyboardInput('0')">0</button>
             <button class="keyboard-btn" onclick="keyboardInput('delete')">⌫</button>
+            <button class="keyboard-btn" onclick="keyboardInput('0')">0</button>
             <button class="keyboard-btn" onclick="keyboardInput('enter')">↵</button>
         </div>
     </div>
@@ -441,58 +461,57 @@
         }
 
         function updateUI() {
-    const playerRow = document.getElementById("playerRow");
-    const inputRow = document.getElementById("inputRow");
-    const scoreTable = document.getElementById("scoreTable");
-    const headerTable = document.getElementById("headerTable");
+            const playerRow = document.getElementById("playerRow");
+            const inputRow = document.getElementById("inputRow");
+            const scoreTable = document.getElementById("scoreTable");
+            const headerTable = document.getElementById("headerTable");
 
-    if (players.length >= 7) {
-        headerTable.classList.add("small-scores");
-    } else {
-        headerTable.classList.remove("small-scores");
-    }
+            if (players.length >= 7) {
+                headerTable.classList.add("small-scores");
+            } else {
+                headerTable.classList.remove("small-scores");
+            }
 
-    playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
-    players.forEach((player, index) => {
-        playerRow.innerHTML += `
-            <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
-                ${player.name}
-                <br>
-                <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
-                ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
-            </th>
-        `;
-    });
+            playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
+            players.forEach((player, index) => {
+                playerRow.innerHTML += `
+                    <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
+                        ${player.name}
+                        <br>
+                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+                    </th>
+                `;
+            });
 
-    inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
-    players.forEach((player, index) => {
-        inputRow.innerHTML += `
-            <td><input type="text" placeholder="${player.name}" inputmode="none" readonly
-                ontouchstart="showKeyboard(this); event.preventDefault();" 
-                onclick="showKeyboard(this); event.preventDefault();" 
-                onfocus="this.blur(); showKeyboard(this);" 
-                onkeydown="event.preventDefault();"/></td>
-        `;
-    });
+            inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
+            players.forEach((player, index) => {
+                inputRow.innerHTML += `
+                    <td><input type="text" placeholder="${player.name}" inputmode="none"
+                        ontouchstart="showKeyboard(this); event.preventDefault();" 
+                        onclick="showKeyboard(this); event.preventDefault();" 
+                        onfocus="showKeyboard(this);"/></td>
+                `;
+            });
 
-    const scoreBody = document.getElementById("scoreBody");
-    scoreBody.innerHTML = "";
-    rounds.forEach((round, roundIndex) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
-        players.forEach((_, playerIndex) => {
-            const displayScore = round[playerIndex] !== undefined ? 
-                (round[playerIndex] == 0 ? '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">' : round[playerIndex]) : 
-                '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">';
-            row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
-        });
-        scoreBody.appendChild(row);
-    });
+            const scoreBody = document.getElementById("scoreBody");
+            scoreBody.innerHTML = "";
+            rounds.forEach((round, roundIndex) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
+                players.forEach((_, playerIndex) => {
+                    const displayScore = round[playerIndex] !== undefined ? 
+                        (round[playerIndex] == 0 ? '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">' : round[playerIndex]) : 
+                        '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">';
+                    row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
+                });
+                scoreBody.appendChild(row);
+            });
 
-    if (rounds.length > 0) {
-        updateRankings();
-    }
-}
+            if (rounds.length > 0) {
+                updateRankings();
+            }
+        }
 
         function getRank(score) {
             if (players.length === 1) return "1st";
@@ -551,14 +570,15 @@
         function showKeyboard(input) {
             if (activeInput && activeInput !== input) hideKeyboard();
             activeInput = input;
-            input.removeAttribute('readonly');
+            const keyboardInput = document.getElementById('keyboardInput');
+            keyboardInput.value = activeInput.value || '';
             document.getElementById('numberKeyboard').style.display = 'block';
             showOverlay();
+            activeInput.focus(); // Keep focus on the score input to show cursor
         }
 
         function hideKeyboard() {
             if (activeInput) {
-                activeInput.setAttribute('readonly', 'readonly');
                 activeInput.blur();
             }
             activeInput = null;
@@ -570,9 +590,12 @@
             if (!activeInput) return;
 
             let currentValue = activeInput.value || '';
+            const keyboardInput = document.getElementById('keyboardInput');
             
             if (action === 'delete') {
-                activeInput.value = currentValue.slice(0, -1);
+                currentValue = currentValue.slice(0, -1);
+                activeInput.value = currentValue;
+                keyboardInput.value = currentValue;
             } else if (action === 'enter') {
                 const inputs = document.querySelectorAll("#inputRow input[type='text']");
                 const index = Array.from(inputs).indexOf(activeInput);
@@ -580,14 +603,18 @@
                 if (allFilled) {
                     addRoundScores();
                     inputs[0].focus();
+                    showKeyboard(inputs[0]);
                 } else if (index < inputs.length - 1) {
                     inputs[index + 1].focus();
+                    showKeyboard(inputs[index + 1]);
                 } else {
                     hideKeyboard();
                 }
             } else {
                 if (/^\d$/.test(action)) {
-                    activeInput.value = currentValue + action;
+                    currentValue += action;
+                    activeInput.value = currentValue;
+                    keyboardInput.value = currentValue;
                 }
             }
             
