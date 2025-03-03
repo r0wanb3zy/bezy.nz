@@ -44,7 +44,18 @@
             color: white;
         }
 
-        table th:first-child, table td:first-child {
+        table th:first-child {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+            color: white;
+            border-bottom: 1px solid #666;
+        }
+
+        table td:first-child {
             background: #4d4d4d;
             font-weight: bold;
             width: 30px;
@@ -520,14 +531,14 @@
         function showKeyboard(input) {
             if (activeInput && activeInput !== input) hideKeyboard();
             activeInput = input;
-            input.removeAttribute('readonly'); // Allow programmatic input
+            input.removeAttribute('readonly');
             document.getElementById('numberKeyboard').style.display = 'block';
             showOverlay();
         }
 
         function hideKeyboard() {
             if (activeInput) {
-                activeInput.setAttribute('readonly', 'readonly'); // Reapply readonly
+                activeInput.setAttribute('readonly', 'readonly');
                 activeInput.blur();
             }
             activeInput = null;
@@ -555,7 +566,6 @@
                     hideKeyboard();
                 }
             } else {
-                // Only allow numeric input
                 if (/^\d$/.test(action)) {
                     activeInput.value = currentValue + action;
                 }
