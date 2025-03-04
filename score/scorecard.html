@@ -405,9 +405,9 @@
             players = JSON.parse(localStorage.getItem('players')) || [];
             rounds = JSON.parse(localStorage.getItem('rounds')) || [];
         }
-
+    
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
-
+    
         // Add new round scores and scroll to the last row
         function addRoundScores() {
             const scores = [];
@@ -430,14 +430,14 @@
                 lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
             }
         }
-
+    
         // Save data to localStorage
         function saveData() {
             localStorage.setItem('players', JSON.stringify(players));
             localStorage.setItem('rounds', JSON.stringify(rounds));
             localStorage.setItem('scoringMode', scoringMode);
         }
-
+    
         // Update the UI with current data
         function updateUI() {
             const playerRow = document.getElementById("playerRow");
@@ -448,7 +448,7 @@
             } else {
                 scoreTable.classList.remove("small-scores");
             }
-
+    
             playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
             players.forEach((player, index) => {
                 playerRow.innerHTML += `
@@ -460,7 +460,7 @@
                     </th>
                 `;
             });
-
+    
             const scoreBody = document.getElementById("scoreBody");
             scoreBody.innerHTML = "";
             rounds.forEach((round, roundIndex) => {
@@ -474,18 +474,18 @@
                 });
                 scoreBody.appendChild(row);
             });
-
+    
             const inputRow = document.createElement('tr');
             inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
             players.forEach((player, index) => {
                 inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" /></td>`;
             });
             scoreBody.appendChild(inputRow);
-
+    
             if (rounds.length > 0) {
                 updateRankings();
             }
-
+    
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
                 input.addEventListener('keydown', function(event) {
@@ -511,7 +511,7 @@
                 });
             });
         }
-
+    
         // Calculate player rank
         function getRank(score) {
             if (players.length === 1) return "1st";
@@ -528,7 +528,7 @@
             if (rank % 10 === 3 && rank % 100 !== 13) suffix = 'rd';
             return rank + suffix;
         }
-
+    
         // Update score for a specific round and player
         function updateScore(roundIndex, playerIndex, newScore) {
             const score = parseInt(newScore) || 0;
@@ -542,7 +542,7 @@
             saveData();
             updateUI();
         }
-
+    
         // Update player rankings with highlights
         function updateRankings() {
             if (rounds.length === 0 || players.length === 1) return;
@@ -577,7 +577,7 @@
                 });
             }
         }
-
+    
         // Remove a player
         function removePlayer(index) {
             players.splice(index, 1);
@@ -585,7 +585,7 @@
             saveData();
             updateUI();
         }
-
+    
         // Create player management dialog
         function createPlayerManagementDialog(index) {
             const modal = document.getElementById('playerManagementModal');
@@ -611,7 +611,7 @@
                 this.value = this.value.toUpperCase();
             });
         }
-
+    
         // Handle player removal with button state
         function handleRemovePlayer(button, index) {
             if (button.dataset.state === 'initial') {
@@ -622,7 +622,7 @@
                 closePopup('playerManagementModal');
             }
         }
-
+    
         // Update player name
         function updatePlayerName(index) {
             const input = document.getElementById('playerNameInput');
@@ -634,14 +634,14 @@
                 closePopup('playerManagementModal');
             }
         }
-
+    
         // Handle player name click
         function handlePlayerNameClick(event, index) {
             event.stopPropagation();
             closeAllPopups();
             createPlayerManagementDialog(index);
         }
-
+    
         // Create round management dialog
         function createRoundManagementDialog() {
             const modal = document.getElementById('roundManagementModal');
@@ -662,7 +662,7 @@
             modal.style.display = 'block';
             showOverlay();
         }
-
+    
         // Handle reset scores with button state
         function handleResetScores(button) {
             if (button.dataset.state === 'initial') {
@@ -680,7 +680,7 @@
                 closePopup('roundManagementModal');
             }
         }
-
+    
         // Update player count
         function updatePlayerCount() {
             const newCount = parseInt(document.getElementById('playerCount').value);
@@ -701,47 +701,42 @@
             updateUI();
             closePopup('roundManagementModal');
         }
-
+    
         // Toggle scoring mode (unused but preserved)
         function toggleScoringMode() {
             scoringMode = scoringMode === "highest" ? "lowest" : "highest";
             saveData();
         }
-
-        // Create delete round dialog
+    
+        // Create delete round dialog with immediate deletion button
         function createDeleteRoundDialog(roundIndex) {
             const modal = document.getElementById('deleteRoundModal');
             modal.innerHTML = `
                 <h2>Round ${roundIndex + 1}</h2>
                 <span class="close-btn" onclick="closePopup('deleteRoundModal')">×</span>
-                <button onclick="handleDeleteRound(this, ${roundIndex})" data-state="initial">Delete Round</button>
+                <button onclick="deleteRound(${roundIndex})">Delete Round</button>
             `;
             modal.style.display = 'block';
             showOverlay();
         }
-
-        // Handle round deletion with button state
-        function handleDeleteRound(button, roundIndex) {
-            if (button.dataset.state === 'initial') {
-                button.textContent = 'Confirm';
-                button.dataset.state = 'confirm';
-            } else {
-                rounds.splice(roundIndex, 1);
-                players.forEach(player => {
-                    player.roundScores.splice(roundIndex, 1);
-                    player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
-                });
-                saveData();
-                updateUI();
-                closePopup('deleteRoundModal');
-            }
+    
+        // Execute round deletion immediately
+        function deleteRound(roundIndex) {
+            rounds.splice(roundIndex, 1);
+            players.forEach(player => {
+                player.roundScores.splice(roundIndex, 1);
+                player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
+            });
+            saveData();
+            updateUI();
+            closePopup('deleteRoundModal');
         }
-
+    
         // Check if all inputs are filled
         function allInputsFilled(inputs) {
             return Array.from(inputs).every(input => input.value.trim() !== '');
         }
-
+    
         // Select text in contenteditable element
         function selectText(element) {
             const range = document.createRange();
@@ -750,22 +745,22 @@
             sel.removeAllRanges();
             sel.addRange(range);
         }
-
+    
         // Overlay controls
         function showOverlay() {
             document.getElementById('overlay').style.display = 'block';
         }
-
+    
         function hideOverlay() {
             document.getElementById('overlay').style.display = 'none';
         }
-
+    
         // Close popup by ID
         function closePopup(modalId) {
             document.getElementById(modalId).style.display = 'none';
             hideOverlay();
         }
-
+    
         // Close all popups
         function closeAllPopups() {
             document.getElementById('playerManagementModal').style.display = 'none';
@@ -773,10 +768,10 @@
             document.getElementById('deleteRoundModal').style.display = 'none';
             hideOverlay();
         }
-
+    
         // Overlay click handler
         document.getElementById('overlay').addEventListener('click', closeAllPopups);
-
+    
         // Initial UI update
         updateUI();
     </script>
