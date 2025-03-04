@@ -298,6 +298,9 @@
             border-radius: 6px;
             transition: background 0.2s;
         }
+        #roundManagementModal button#resetButton[data-confirm="true"] {
+    background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+}
 
         #popupOptions {
             display: grid;
@@ -727,21 +730,23 @@
             hideOverlay();
         }
 
-// Add this variable at the top of the script section
+// Add this variable at the top of the script section if not already present
 let resetConfirm = false;
 
-// Replace the existing resetScores function and add handleResetClick
+// Updated reset handling functions
 function handleResetClick() {
     const resetButton = document.getElementById('resetButton');
     
     if (!resetConfirm) {
         // First click: change to Confirm
         resetButton.textContent = 'Confirm';
+        resetButton.setAttribute('data-confirm', 'true'); // Add attribute for CSS targeting
         resetConfirm = true;
     } else {
         // Second click: execute reset
         resetScores();
         resetButton.textContent = 'Reset';
+        resetButton.removeAttribute('data-confirm'); // Remove attribute
         resetConfirm = false;
     }
 }
