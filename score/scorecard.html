@@ -558,7 +558,7 @@
                 <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
                 <input type="text" id="playerNameInput" value="${players[index].name}" autocapitalize="characters" inputmode="text" style="text-transform: uppercase;">
                 <button onclick="updatePlayerName(${index})">Update</button>
-                <button onclick="confirmRemovePlayer(${index})">Remove Player</button>
+                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove Player</button>
             `;
             modal.style.display = 'block';
             showOverlay();
@@ -576,6 +576,17 @@
             });
         }
 
+        // Handle player removal with button state
+        function handleRemovePlayer(button, index) {
+            if (button.dataset.state === 'initial') {
+                button.textContent = 'Confirm';
+                button.dataset.state = 'confirm';
+            } else {
+                removePlayer(index);
+                closePopup('playerManagementModal');
+            }
+        }
+
         // Update player name
         function updatePlayerName(index) {
             const input = document.getElementById('playerNameInput');
@@ -584,14 +595,6 @@
                 players[index].name = newName;
                 saveData();
                 updateUI();
-                closePopup('playerManagementModal');
-            }
-        }
-
-        // Confirm player removal
-        function confirmRemovePlayer(index) {
-            if (confirm(`Are you sure you want to remove ${players[index].name}?`)) {
-                removePlayer(index);
                 closePopup('playerManagementModal');
             }
         }
@@ -618,10 +621,28 @@
                     <input type="radio" id="highest" name="scoringMode" value="highest" ${scoringMode === 'highest' ? 'checked' : ''} onchange="scoringMode = 'highest'; saveData(); updateUI();">
                     <label for="highest">High</label>
                 </div>
-                <button onclick="resetScores()">Reset</button>
+                <button onclick="handleResetScores(this)" data-state="initial">Reset</button>
             `;
             modal.style.display = 'block';
             showOverlay();
+        }
+
+        // Handle reset scores with button state
+        function handleResetScores(button) {
+            if (button.dataset.state === 'initial') {
+                button.textContent = 'Confirm';
+                button.dataset.state = 'confirm';
+            } else {
+                players.forEach(player => {
+                    player.roundScores = [];
+                    player.totalScore = 0;
+                    player.name = player.name.toUpperCase();
+                });
+                rounds = [];
+                saveData();
+                updateUI();
+                closePopup('roundManagementModal');
+            }
         }
 
         // Update player count
@@ -649,21 +670,6 @@
         function toggleScoringMode() {
             scoringMode = scoringMode === "highest" ? "lowest" : "highest";
             saveData();
-        }
-
-        // Reset all scores
-        function resetScores() {
-            if (confirm("Are you sure you want to reset all scores?")) {
-                players.forEach(player => {
-                    player.roundScores = [];
-                    player.totalScore = 0;
-                    player.name = player.name.toUpperCase();
-                });
-                rounds = [];
-                saveData();
-                updateUI();
-                closePopup('roundManagementModal');
-            }
         }
 
         // Confirm round deletion
