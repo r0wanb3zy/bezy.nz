@@ -10,22 +10,35 @@
     <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
     <style>
-        /* Base Styles */
+        /* Modified Base Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
         body {
             font-family: 'Economica', sans-serif;
             font-size: 22px;
-            margin: 0;
-            padding: 0;
             max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
             background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
-            min-height: 100vh;
             background-size: cover;
+            display: flex;
+            flex-direction: column;
         }
 
         h1 {
             text-align: center;
+        }
+
+        /* New scrollable container */
+        .score-container {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Table Styles */
@@ -35,7 +48,6 @@
             border-collapse: collapse;
             font-size: 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
         }
 
         table th, table td {
@@ -100,7 +112,7 @@
         }
 
         #scoreBody tr td:not(:first-child) {
-            font-weight: bold; /* Round scores bold */
+            font-weight: bold;
         }
 
         /* Input Styles */
@@ -323,7 +335,6 @@
             z-index: 10;
             background: #fff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin-top: 0;
         }
 
         .sticky-header table {
@@ -337,35 +348,35 @@
 
         @media (max-width: 480px) {
             .sticky-header.small-scores th span.score {
-        font-size: 18px; /* Smaller total score font size */
-        line-height: 1.2;
-    }
-    #scoreTable.small-scores thead th {
-        padding: 3px;
-    }
-    #scoreTable.small-scores thead th span.score {
-        font-size: 16px; /* Reduced from 18px for even smaller text */
-        line-height: 1.2;
-    }
-    #scoreTable.small-scores thead th small {
-        font-size: 12px;
-    }
-    #scoreTable.small-scores tbody td {
-        font-size: 16px;
-    }
-    #scoreTable.small-scores tbody tr:last-child input[type="number"] {
-        font-size: 14px;
-        padding: 5px;
-        height: 32px;
-    }
-    #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
-        font-size: 14px;
-        line-height: 10px;
-    }
-        .sticky-header.small-scores th small {
-        font-size: 12px; /* Keep rank smaller too */
-    }
-}
+                font-size: 18px;
+                line-height: 1.2;
+            }
+            #scoreTable.small-scores thead th {
+                padding: 3px;
+            }
+            #scoreTable.small-scores thead th span.score {
+                font-size: 16px;
+                line-height: 1.2;
+            }
+            #scoreTable.small-scores thead th small {
+                font-size: 12px;
+            }
+            #scoreTable.small-scores tbody td {
+                font-size: 16px;
+            }
+            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
+                font-size: 14px;
+                padding: 5px;
+                height: 32px;
+            }
+            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
+                font-size: 14px;
+                line-height: 10px;
+            }
+            .sticky-header.small-scores th small {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -380,11 +391,13 @@
         </table>
     </div>
 
-    <!-- Score Table -->
-    <table id="scoreTable">
-        <tbody id="scoreBody">
-        </tbody>
-    </table>
+    <!-- Score Container -->
+    <div class="score-container">
+        <table id="scoreTable">
+            <tbody id="scoreBody">
+            </tbody>
+        </table>
+    </div>
 
     <!-- Modals -->
     <div id="playerManagementModal" class="popup-modal"></div>
@@ -446,31 +459,30 @@
     
         // Update the UI with current data
         function updateUI() {
-    const playerRow = document.getElementById("playerRow");
-    const scoreTable = document.getElementById("scoreTable");
-    const stickyHeader = document.querySelector(".sticky-header"); // Add this
+            const playerRow = document.getElementById("playerRow");
+            const scoreTable = document.getElementById("scoreTable");
+            const stickyHeader = document.querySelector(".sticky-header");
 
-    // Apply small-scores class to both scoreTable and sticky-header
-    if (players.length >= 7) {
-        scoreTable.classList.add("small-scores");
-        stickyHeader.classList.add("small-scores"); // Add this
-    } else {
-        scoreTable.classList.remove("small-scores");
-        stickyHeader.classList.remove("small-scores"); // Add this
-    }
+            // Apply small-scores class to both scoreTable and sticky-header
+            if (players.length >= 7) {
+                scoreTable.classList.add("small-scores");
+                stickyHeader.classList.add("small-scores");
+            } else {
+                scoreTable.classList.remove("small-scores");
+                stickyHeader.classList.remove("small-scores");
+            }
 
-    // Rest of your existing updateUI() code remains unchanged...
-    playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
-    players.forEach((player, index) => {
-        playerRow.innerHTML += `
-            <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
-                ${player.name}
-                <br>
-                <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
-                ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
-            </th>
-        `;
-    });
+            playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
+            players.forEach((player, index) => {
+                playerRow.innerHTML += `
+                    <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
+                        ${player.name}
+                        <br>
+                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+                    </th>
+                `;
+            });
     
             const scoreBody = document.getElementById("scoreBody");
             scoreBody.innerHTML = "";
