@@ -20,8 +20,10 @@
             margin-left: auto;
             margin-right: auto;
             background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
-            min-height: 100dvh;
+            min-height: 100vh;
             background-size: cover;
+            display: flex;
+            flex-direction: column;
         }
 
         h1 {
@@ -326,46 +328,59 @@
             margin-top: 0;
         }
 
+        .sticky-header.non-sticky {
+            position: static;
+            box-shadow: none;
+        }
+
         .sticky-header table {
             margin-bottom: 0;
+        }
+
+        /* Score Table Wrapper */
+        #scoreTableWrapper {
+            flex: 1;
+            overflow-y: auto;
+            max-height: calc(100vh - 80px); /* Adjust based on header height */
         }
 
         /* Adjust main table */
         #scoreTable {
             margin-top: 0;
+            width: 100%;
         }
 
         @media (max-width: 480px) {
             .sticky-header.small-scores th span.score {
-        font-size: 18px; /* Smaller total score font size */
-        line-height: 1.2;
-    }
-    #scoreTable.small-scores thead th {
-        padding: 3px;
-    }
-    #scoreTable.small-scores thead th span.score {
-        font-size: 16px; /* Reduced from 18px for even smaller text */
-        line-height: 1.2;
-    }
-    #scoreTable.small-scores thead th small {
-        font-size: 12px;
-    }
-    #scoreTable.small-scores tbody td {
-        font-size: 16px;
-    }
-    #scoreTable.small-scores tbody tr:last-child input[type="number"] {
-        font-size: 14px;
-        padding: 5px;
-        height: 32px;
-    }
-    #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
-        font-size: 14px;
-        line-height: 10px;
-    }
-        .sticky-header.small-scores th small {
-        font-size: 12px; /* Keep rank smaller too */
-    }
-}
+                font-size: 18px;
+                line-height: 1.2;
+            }
+            #scoreTable.small-scores thead th {
+                padding: 3px;
+            }
+            #scoreTable.small-scores thead th span.score {
+                font-size: 16px;
+                line-height: 1.2;
+            }
+            #scoreTable.small-scores thead th small {
+                font-size: 12px;
+            }
+            #scoreTable.small-scores tbody td {
+                font-size: 16px;
+            }
+            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
+                font-size: 14px;
+                padding: 5px;
+                height: 32px;
+            }
+            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
+                font-size: 14px;
+                line-height: 10px;
+            }
+            .sticky-header.small-scores th small {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -380,11 +395,13 @@
         </table>
     </div>
 
-    <!-- Score Table -->
-    <table id="scoreTable">
-        <tbody id="scoreBody">
-        </tbody>
-    </table>
+    <!-- Score Table Wrapper -->
+    <div id="scoreTableWrapper">
+        <table id="scoreTable">
+            <tbody id="scoreBody">
+            </tbody>
+        </table>
+    </div>
 
     <!-- Modals -->
     <div id="playerManagementModal" class="popup-modal"></div>
@@ -444,33 +461,49 @@
             localStorage.setItem('scoringMode', scoringMode);
         }
     
+        // Adjust sticky header based on content height
+        function adjustStickyHeader() {
+            const stickyHeader = document.querySelector('.sticky-header');
+            const scoreTableWrapper = document.getElementById('scoreTableWrapper');
+            const headerHeight = stickyHeader.offsetHeight;
+            const scoreTableHeight = document.getElementById('scoreTable').offsetHeight;
+            const viewportHeight = window.innerHeight;
+
+            if (scoreTableHeight + headerHeight < viewportHeight) {
+                stickyHeader.classList.add('non-sticky');
+                scoreTableWrapper.style.overflowY = 'hidden';
+            } else {
+                stickyHeader.classList.remove('non-sticky');
+                scoreTableWrapper.style.overflowY = 'auto';
+            }
+        }
+    
         // Update the UI with current data
         function updateUI() {
-    const playerRow = document.getElementById("playerRow");
-    const scoreTable = document.getElementById("scoreTable");
-    const stickyHeader = document.querySelector(".sticky-header"); // Add this
+            const playerRow = document.getElementById("playerRow");
+            const scoreTable = document.getElementById("scoreTable");
+            const stickyHeader = document.querySelector(".sticky-header");
 
-    // Apply small-scores class to both scoreTable and sticky-header
-    if (players.length >= 7) {
-        scoreTable.classList.add("small-scores");
-        stickyHeader.classList.add("small-scores"); // Add this
-    } else {
-        scoreTable.classList.remove("small-scores");
-        stickyHeader.classList.remove("small-scores"); // Add this
-    }
+            // Apply small-scores class to both scoreTable and sticky-header
+            if (players.length >= 7) {
+                scoreTable.classList.add("small-scores");
+                stickyHeader.classList.add("small-scores");
+            } else {
+                scoreTable.classList.remove("small-scores");
+                stickyHeader.classList.remove("small-scores");
+            }
 
-    // Rest of your existing updateUI() code remains unchanged...
-    playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
-    players.forEach((player, index) => {
-        playerRow.innerHTML += `
-            <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
-                ${player.name}
-                <br>
-                <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
-                ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
-            </th>
-        `;
-    });
+            playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
+            players.forEach((player, index) => {
+                playerRow.innerHTML += `
+                    <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
+                        ${player.name}
+                        <br>
+                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+                    </th>
+                `;
+            });
     
             const scoreBody = document.getElementById("scoreBody");
             scoreBody.innerHTML = "";
@@ -521,6 +554,9 @@
                     }
                 });
             });
+
+            // Adjust sticky header after UI update
+            adjustStickyHeader();
         }
     
         // Calculate player rank
@@ -782,6 +818,9 @@
     
         // Overlay click handler
         document.getElementById('overlay').addEventListener('click', closeAllPopups);
+    
+        // Call adjustStickyHeader on window resize
+        window.addEventListener('resize', adjustStickyHeader);
     
         // Initial UI update
         updateUI();
