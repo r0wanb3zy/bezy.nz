@@ -3,7 +3,7 @@
 <head>
     <!-- Meta Tags -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     
     <!-- Title and Fonts -->
     <title>Scorecard</title>
@@ -11,18 +11,25 @@
 
     <style>
         /* Base Styles */
+        html, body {
+            height: 100%;
+            overflow-y: auto; /* Ensure scrolling is always enabled */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+
         body {
             font-family: 'Economica', sans-serif;
             font-size: 22px;
             margin: 0;
             padding: 0;
-            padding-top: 80px; /* Added to prevent overlap with fixed header */
             max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
             background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
             min-height: 100vh;
             background-size: cover;
+            position: relative;
+            overscroll-behavior-y: none; /* Prevent overscroll bounce */
         }
 
         h1 {
@@ -37,6 +44,12 @@
             font-size: 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             overflow: hidden;
+        }
+
+        #scoreTable {
+            width: 100%;
+            table-layout: fixed;
+            position: relative; /* Helps with rendering stability */
         }
 
         table th, table td {
@@ -102,6 +115,10 @@
 
         #scoreBody tr td:not(:first-child) {
             font-weight: bold; /* Round scores bold */
+        }
+
+        #scoreBody tr:last-child {
+            height: 50px; /* Ensure input row has enough height */
         }
 
         /* Input Styles */
@@ -319,15 +336,12 @@
 
         /* Sticky Header */
         .sticky-header {
-            position: fixed; /* Changed from sticky to fixed */
+            position: sticky;
             top: 0;
-            left: 0;
-            width: 100%;
-            max-width: 1200px; /* Matches body max-width */
             z-index: 10;
             background: #fff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin: 0 auto; /* Center it like the body */
+            margin-top: 0;
         }
 
         .sticky-header table {
@@ -358,6 +372,7 @@
                 font-size: 14px;
                 padding: 5px;
                 height: 32px;
+                padding-bottom: 20px; /* Extra space to avoid overlap on iOS */
             }
             #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
                 font-size: 14px;
@@ -431,7 +446,7 @@
             const scoreBody = document.getElementById("scoreBody");
             const lastRow = scoreBody.lastElementChild;
             if (lastRow) {
-                lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                lastRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
 
@@ -499,19 +514,33 @@
                         if (allFilled) {
                             addRoundScores();
                             inputs[0].focus();
+                            const scoreBody = document.getElementById("scoreBody");
+                            const lastRow = scoreBody.lastElementChild;
+                            lastRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         } else {
-                            if (index < inputs.length - 1) {
-                                inputs[index + 1].focus();
+                            let nextIndex = index + 1;
+                            if (nextIndex < inputs.length) {
+                                inputs[nextIndex].focus();
+                                inputs[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
                             } else {
                                 const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
                                 if (firstEmpty !== -1) {
                                     inputs[firstEmpty].focus();
+                                    inputs[firstEmpty].scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 } else {
                                     inputs[0].focus();
+                                    inputs[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 }
                             }
                         }
                     }
+                });
+
+                // Add focus event to control scrolling
+                input.addEventListener('focus', function() {
+                    setTimeout(() => {
+                        this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100); // Delay to account for keyboard animation
                 });
             });
         }
@@ -780,17 +809,6 @@
 
         // Overlay click handler
         document.getElementById('overlay').addEventListener('click', closeAllPopups);
-
-        // Optional: Dynamically adjust body padding based on header height
-        /*
-        function adjustBodyPadding() {
-            const header = document.querySelector('.sticky-header');
-            const headerHeight = header.offsetHeight;
-            document.body.style.paddingTop = `${headerHeight}px`;
-        }
-        window.addEventListener('load', adjustBodyPadding);
-        window.addEventListener('resize', adjustBodyPadding);
-        */
 
         // Initial UI update
         updateUI();
