@@ -16,6 +16,7 @@
             font-size: 22px;
             margin: 0;
             padding: 0;
+            padding-top: 80px; /* Added to prevent overlap with fixed header */
             max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
@@ -26,15 +27,6 @@
 
         h1 {
             text-align: center;
-        }
-
-        /* Table Container */
-        .table-container {
-            position: relative;
-            max-height: calc(100vh - 140px); /* Adjust for header and input row */
-            overflow-y: auto;
-            margin-top: 0;
-            margin-bottom: 40px; /* Space for fixed input row */
         }
 
         /* Table Styles */
@@ -101,29 +93,15 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        #scoreBody tr td:not(:first-child) {
+        #scoreBody tr:not(:last-child) td:not(:first-child) {
             max-height: 5px;
             height: 5px;
             line-height: 5px;
             overflow: hidden;
+        }
+
+        #scoreBody tr td:not(:first-child) {
             font-weight: bold; /* Round scores bold */
-        }
-
-        /* Input Row Table Styles */
-        #inputTable {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            max-width: 1200px;
-            width: 100%;
-            background: #fff;
-            z-index: 10;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        #inputTable td {
-            border-bottom: none; /* Remove bottom border for input row */
         }
 
         /* Input Styles */
@@ -341,12 +319,15 @@
 
         /* Sticky Header */
         .sticky-header {
-            position: sticky;
+            position: fixed; /* Changed from sticky to fixed */
             top: 0;
+            left: 0;
+            width: 100%;
+            max-width: 1200px; /* Matches body max-width */
             z-index: 10;
             background: #fff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin-top: 0;
+            margin: 0 auto; /* Center it like the body */
         }
 
         .sticky-header table {
@@ -373,12 +354,12 @@
             #scoreTable.small-scores tbody td {
                 font-size: 16px;
             }
-            #inputTable tbody td input[type="number"] {
+            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
                 font-size: 14px;
                 padding: 5px;
                 height: 32px;
             }
-            #inputTable tbody td input[type="number"]::placeholder {
+            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
                 font-size: 14px;
                 line-height: 10px;
             }
@@ -397,17 +378,9 @@
         </table>
     </div>
 
-    <!-- Score Table Container -->
-    <div class="table-container">
-        <table id="scoreTable">
-            <tbody id="scoreBody">
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Input Row Table -->
-    <table id="inputTable">
-        <tbody id="inputBody">
+    <!-- Score Table -->
+    <table id="scoreTable">
+        <tbody id="scoreBody">
         </tbody>
     </table>
 
@@ -439,10 +412,10 @@
 
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
 
-        // Add new round scores
+        // Add new round scores and scroll to the last row
         function addRoundScores() {
             const scores = [];
-            const inputs = document.querySelectorAll("#inputTable input[type='number']");
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
                 const score = parseInt(input.value) || 0;
                 scores[index] = score;
@@ -454,9 +427,12 @@
             updateUI();
             inputs.forEach(input => input.value = '');
             
-            // Scroll to the bottom of the score table
-            const tableContainer = document.querySelector(".table-container");
-            tableContainer.scrollTop = tableContainer.scrollHeight;
+            // Scroll to the last row (input row) after adding scores
+            const scoreBody = document.getElementById("scoreBody");
+            const lastRow = scoreBody.lastElementChild;
+            if (lastRow) {
+                lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
         }
 
         // Save data to localStorage
@@ -503,20 +479,18 @@
                 scoreBody.appendChild(row);
             });
 
-            const inputBody = document.getElementById("inputBody");
-            inputBody.innerHTML = "";
             const inputRow = document.createElement('tr');
             inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
             players.forEach((player, index) => {
                 inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" /></td>`;
             });
-            inputBody.appendChild(inputRow);
+            scoreBody.appendChild(inputRow);
 
             if (rounds.length > 0) {
                 updateRankings();
             }
 
-            const inputs = document.querySelectorAll("#inputTable input[type='number']");
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
                 input.addEventListener('keydown', function(event) {
                     if (event.key === 'Enter' || event.keyCode === 13) {
@@ -806,6 +780,17 @@
 
         // Overlay click handler
         document.getElementById('overlay').addEventListener('click', closeAllPopups);
+
+        // Optional: Dynamically adjust body padding based on header height
+        /*
+        function adjustBodyPadding() {
+            const header = document.querySelector('.sticky-header');
+            const headerHeight = header.offsetHeight;
+            document.body.style.paddingTop = `${headerHeight}px`;
+        }
+        window.addEventListener('load', adjustBodyPadding);
+        window.addEventListener('resize', adjustBodyPadding);
+        */
 
         // Initial UI update
         updateUI();
