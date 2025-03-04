@@ -74,9 +74,9 @@
             border-bottom: 1px solid #666;
         }
 
-        /* Restore original height for sticky header */
+        /* Sticky Header Styles */
         .sticky-header th {
-            height: 80px; /* Restored from original #scoreTable thead th */
+            height: 80px;
             font-family: 'Economica', sans-serif;
             font-size: 22px;
         }
@@ -100,7 +100,7 @@
         }
 
         #scoreBody tr td:not(:first-child) {
-            font-weight: bold;
+            font-weight: bold; /* Round scores bold */
         }
 
         /* Input Styles */
@@ -408,7 +408,7 @@
 
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
 
-        // Add new round scores
+        // Add new round scores and scroll to the last row
         function addRoundScores() {
             const scores = [];
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
@@ -422,6 +422,13 @@
             saveData();
             updateUI();
             inputs.forEach(input => input.value = '');
+            
+            // Scroll to the last row (input row) after adding scores
+            const scoreBody = document.getElementById("scoreBody");
+            const lastRow = scoreBody.lastElementChild;
+            if (lastRow) {
+                lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
         }
 
         // Save data to localStorage
@@ -442,7 +449,6 @@
                 scoreTable.classList.remove("small-scores");
             }
 
-            // Update the sticky header
             playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
             players.forEach((player, index) => {
                 playerRow.innerHTML += `
@@ -455,7 +461,6 @@
                 `;
             });
 
-            // Update the scrolling body
             const scoreBody = document.getElementById("scoreBody");
             scoreBody.innerHTML = "";
             rounds.forEach((round, roundIndex) => {
