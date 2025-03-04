@@ -228,7 +228,8 @@
 
         /* Adjust spacing for h2 in popups */
         #playerManagementModal h2,
-        #roundManagementModal h2 {
+        #roundManagementModal h2,
+        #deleteRoundModal h2 {
             margin-top: 15px;    /* Space above the heading */
             margin-bottom: 15px; /* Space below the heading */
             padding: 0;          /* Optional: removes any default padding */
@@ -355,6 +356,7 @@
     <!-- Modals -->
     <div id="playerManagementModal" class="popup-modal"></div>
     <div id="roundManagementModal" class="popup-modal"></div>
+    <div id="deleteRoundModal" class="popup-modal"></div>
     
     <!-- Overlay -->
     <div id="overlay"></div>
@@ -429,7 +431,7 @@
             scoreBody.innerHTML = "";
             rounds.forEach((round, roundIndex) => {
                 const row = document.createElement("tr");
-                row.innerHTML = `<td onclick="confirmDeleteRound(${roundIndex})">${roundIndex + 1}</td>`;
+                row.innerHTML = `<td onclick="createDeleteRoundDialog(${roundIndex})">${roundIndex + 1}</td>`;
                 players.forEach((_, playerIndex) => {
                     const displayScore = round[playerIndex] !== undefined ? 
                         (round[playerIndex] == 0 ? '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">' : round[playerIndex]) : 
@@ -672,9 +674,24 @@
             saveData();
         }
 
-        // Confirm round deletion
-        function confirmDeleteRound(roundIndex) {
-            if (confirm("Are you sure you want to delete this round?")) {
+        // Create delete round dialog
+        function createDeleteRoundDialog(roundIndex) {
+            const modal = document.getElementById('deleteRoundModal');
+            modal.innerHTML = `
+                <h2>Round ${roundIndex + 1}</h2>
+                <span class="close-btn" onclick="closePopup('deleteRoundModal')">×</span>
+                <button onclick="handleDeleteRound(this, ${roundIndex})" data-state="initial">Delete Round</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
+        }
+
+        // Handle round deletion with button state
+        function handleDeleteRound(button, roundIndex) {
+            if (button.dataset.state === 'initial') {
+                button.textContent = 'Confirm';
+                button.dataset.state = 'confirm';
+            } else {
                 rounds.splice(roundIndex, 1);
                 players.forEach(player => {
                     player.roundScores.splice(roundIndex, 1);
@@ -682,6 +699,7 @@
                 });
                 saveData();
                 updateUI();
+                closePopup('deleteRoundModal');
             }
         }
 
@@ -718,6 +736,7 @@
         function closeAllPopups() {
             document.getElementById('playerManagementModal').style.display = 'none';
             document.getElementById('roundManagementModal').style.display = 'none';
+            document.getElementById('deleteRoundModal').style.display = 'none';
             hideOverlay();
         }
 
