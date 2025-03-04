@@ -518,7 +518,6 @@
         <div id="popupOptions"></div>
     </div>
 
-    <!-- Round Management Modal -->
     <div id="roundManagementModal">
         <h2>Round</h2>
         <span class="close-btn" onclick="closeRoundManagement()">×</span>
@@ -532,7 +531,7 @@
             <option value="7">7 Players</option>
             <option value="8">8 Players</option>
         </select>
-        <button onclick="resetScores()">Reset</button>
+        <button id="resetButton" onclick="handleResetClick()">Reset</button>
     </div>
 
     <!-- Player Name Modal -->
@@ -728,29 +727,45 @@
             hideOverlay();
         }
 
-        // Reset all scores
-        function resetScores() {
-            if (confirm("Are you sure you want to reset all scores?")) {
-                document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
-                    cell.textContent = '';
-                    cell.style.textDecoration = 'none';
-                    cell.setAttribute('data-state', '0');
-                    const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
-                    localStorage.removeItem(cell.getAttribute('data-player') + '-' + categoryAlt);
-                });
+// Add this variable at the top of the script section
+let resetConfirm = false;
 
-                const playerCount = parseInt(document.getElementById('playerCount').value);
-                for (let i = 1; i <= playerCount; i++) {
-                    let player = `P${i}`;
-                    document.getElementById(`total${player}`).textContent = '0';
-                    document.getElementById(`upperScore${player}`).textContent = '0';
-                    document.getElementById(`lowerScore${player}`).textContent = '0';
-                    document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
-                }
-                closeRoundManagement();
-                updateRanks();
-            }
-        }
+// Replace the existing resetScores function and add handleResetClick
+function handleResetClick() {
+    const resetButton = document.getElementById('resetButton');
+    
+    if (!resetConfirm) {
+        // First click: change to Confirm
+        resetButton.textContent = 'Confirm';
+        resetConfirm = true;
+    } else {
+        // Second click: execute reset
+        resetScores();
+        resetButton.textContent = 'Reset';
+        resetConfirm = false;
+    }
+}
+
+function resetScores() {
+    document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
+        cell.textContent = '';
+        cell.style.textDecoration = 'none';
+        cell.setAttribute('data-state', '0');
+        const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+        localStorage.removeItem(cell.getAttribute('data-player') + '-' + categoryAlt);
+    });
+
+    const playerCount = parseInt(document.getElementById('playerCount').value);
+    for (let i = 1; i <= playerCount; i++) {
+        let player = `P${i}`;
+        document.getElementById(`total${player}`).textContent = '0';
+        document.getElementById(`upperScore${player}`).textContent = '0';
+        document.getElementById(`lowerScore${player}`).textContent = '0';
+        document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
+    }
+    closeRoundManagement();
+    updateRanks();
+}
 
         // Update player count and table structure
         function updatePlayerCount() {
