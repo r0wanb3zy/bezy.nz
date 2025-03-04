@@ -617,7 +617,7 @@
                 <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
                 <input type="text" id="playerNameInput" value="${players[index].name}" autocapitalize="characters" inputmode="text" style="text-transform: uppercase;">
                 <button onclick="updatePlayerName(${index})">Update</button>
-                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove Player</button>
+                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
             `;
             modal.style.display = 'block';
             showOverlay();
@@ -737,7 +737,7 @@
             modal.innerHTML = `
                 <h2>Round ${roundIndex + 1}</h2>
                 <span class="close-btn" onclick="closePopup('deleteRoundModal')">×</span>
-                <button onclick="deleteRound(${roundIndex})">Delete Round</button>
+                <button onclick="deleteRound(${roundIndex})">Delete</button>
             `;
             modal.style.display = 'block';
             showOverlay();
