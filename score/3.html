@@ -13,23 +13,22 @@
         /* Base Styles */
         html, body {
             height: 100%;
-            overflow-y: auto; /* Ensure scrolling is always enabled */
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            margin: 0;
+            padding: 0;
+            overflow-y: scroll; /* Always allow scrolling */
+            -webkit-overflow-scrolling: touch;
         }
 
         body {
             font-family: 'Economica', sans-serif;
             font-size: 22px;
-            margin: 0;
-            padding: 0;
             max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
             background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
-            min-height: 100vh;
             background-size: cover;
             position: relative;
-            overscroll-behavior-y: none; /* Prevent overscroll bounce */
+            overscroll-behavior-y: none; /* Prevent bounce */
         }
 
         h1 {
@@ -47,9 +46,8 @@
         }
 
         #scoreTable {
-            width: 100%;
-            table-layout: fixed;
-            position: relative; /* Helps with rendering stability */
+            margin-top: 0;
+            position: relative;
         }
 
         table th, table td {
@@ -89,6 +87,14 @@
         }
 
         /* Sticky Header Styles */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
         .sticky-header th {
             height: 80px;
             font-family: 'Economica', sans-serif;
@@ -97,15 +103,14 @@
 
         .sticky-header th span.score {
             font-size: 22px;
-            font-family: 'Economica', sans-serif;
         }
 
         .sticky-header th small {
             font-size: 16px;
-            font-family: 'Economica', sans-serif;
             color: rgba(255, 255, 255, 0.8);
         }
 
+        /* Score Body Styles */
         #scoreBody tr:not(:last-child) td:not(:first-child) {
             max-height: 5px;
             height: 5px;
@@ -114,11 +119,16 @@
         }
 
         #scoreBody tr td:not(:first-child) {
-            font-weight: bold; /* Round scores bold */
+            font-weight: bold;
         }
 
-        #scoreBody tr:last-child {
-            height: 50px; /* Ensure input row has enough height */
+        /* Input Row Styles */
+        #scoreBody tr.input-row {
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            z-index: 5;
+            height: 50px; /* Fixed height for consistency */
         }
 
         /* Input Styles */
@@ -171,7 +181,7 @@
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
 
-        /* Popup Modal Styles */
+        /* Popup Modal Styles (unchanged) */
         .popup-modal {
             display: none;
             position: fixed;
@@ -246,7 +256,6 @@
             transition: background 0.2s;
         }
 
-        /* Adjust spacing for h2 in popups */
         #playerManagementModal h2,
         #roundManagementModal h2,
         #deleteRoundModal h2 {
@@ -255,7 +264,7 @@
             padding: 0;
         }
 
-        /* Segmented Control Styles */
+        /* Segmented Control Styles (unchanged) */
         .segmented-control {
             display: flex;
             justify-content: center;
@@ -291,7 +300,7 @@
             border-right: 1px solid #ddd;
         }
 
-        /* Close Button */
+        /* Close Button (unchanged) */
         .close-btn {
             position: absolute;
             top: 0px;
@@ -309,7 +318,7 @@
             transition: color 0.2s ease;
         }
 
-        /* Emoji Scaling */
+        /* Emoji Scaling (unchanged) */
         .scaled-emoji {
             transform: scale(.75);
             transform-origin: center;
@@ -321,7 +330,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Overlay */
+        /* Overlay (unchanged) */
         #overlay {
             display: none;
             position: fixed;
@@ -332,25 +341,6 @@
             background: rgba(0, 0, 0, 0.5);
             z-index: 999;
             cursor: pointer;
-        }
-
-        /* Sticky Header */
-        .sticky-header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin-top: 0;
-        }
-
-        .sticky-header table {
-            margin-bottom: 0;
-        }
-
-        /* Adjust main table */
-        #scoreTable {
-            margin-top: 0;
         }
 
         /* Responsive Adjustments */
@@ -368,13 +358,13 @@
             #scoreTable.small-scores tbody td {
                 font-size: 16px;
             }
-            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
+            #scoreTable.small-scores tbody tr.input-row input[type="number"] {
                 font-size: 14px;
                 padding: 5px;
                 height: 32px;
-                padding-bottom: 20px; /* Extra space to avoid overlap on iOS */
+                padding-bottom: 10px; /* Space for keyboard */
             }
-            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
+            #scoreTable.small-scores tbody tr.input-row input[type="number"]::placeholder {
                 font-size: 14px;
                 line-height: 10px;
             }
@@ -427,7 +417,7 @@
 
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
 
-        // Add new round scores and scroll to the last row
+        // Add new round scores
         function addRoundScores() {
             const scores = [];
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
@@ -441,13 +431,6 @@
             saveData();
             updateUI();
             inputs.forEach(input => input.value = '');
-            
-            // Scroll to the last row (input row) after adding scores
-            const scoreBody = document.getElementById("scoreBody");
-            const lastRow = scoreBody.lastElementChild;
-            if (lastRow) {
-                lastRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
         }
 
         // Save data to localStorage
@@ -495,6 +478,7 @@
             });
 
             const inputRow = document.createElement('tr');
+            inputRow.classList.add('input-row');
             inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
             players.forEach((player, index) => {
                 inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" /></td>`;
@@ -514,35 +498,34 @@
                         if (allFilled) {
                             addRoundScores();
                             inputs[0].focus();
-                            const scoreBody = document.getElementById("scoreBody");
-                            const lastRow = scoreBody.lastElementChild;
-                            lastRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         } else {
                             let nextIndex = index + 1;
                             if (nextIndex < inputs.length) {
                                 inputs[nextIndex].focus();
-                                inputs[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
                             } else {
                                 const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
                                 if (firstEmpty !== -1) {
                                     inputs[firstEmpty].focus();
-                                    inputs[firstEmpty].scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 } else {
                                     inputs[0].focus();
-                                    inputs[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 }
                             }
                         }
                     }
                 });
 
-                // Add focus event to control scrolling
-                input.addEventListener('focus', function() {
-                    setTimeout(() => {
-                        this.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 100); // Delay to account for keyboard animation
+                // Prevent default scroll on focus
+                input.addEventListener('focus', function(event) {
+                    event.preventDefault();
+                    // No scrollIntoView here to keep input row stationary
                 });
             });
+
+            // Ensure input row is visible initially if rounds exist
+            if (rounds.length > 0) {
+                const inputRow = document.querySelector('.input-row');
+                inputRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
         }
 
         // Calculate player rank
@@ -733,12 +716,6 @@
             saveData();
             updateUI();
             closePopup('roundManagementModal');
-        }
-
-        // Toggle scoring mode (unused but preserved)
-        function toggleScoringMode() {
-            scoringMode = scoringMode === "highest" ? "lowest" : "highest";
-            saveData();
         }
 
         // Create delete round dialog
