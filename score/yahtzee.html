@@ -298,9 +298,10 @@
             border-radius: 6px;
             transition: background 0.2s;
         }
+
         #roundManagementModal button#resetButton[data-confirm="true"] {
-    background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
-}
+            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
 
         #popupOptions {
             display: grid;
@@ -434,6 +435,10 @@
             transition: background 0.2s;
         }
 
+        #playerNameModal button[data-state="confirm"] {
+            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
+
         /* Close Button */
         .close-btn {
             position: absolute;
@@ -543,6 +548,7 @@
         <span class="close-btn" onclick="closePlayerNameModal()">×</span>
         <input type="text" id="playerNameInput" placeholder="" autocapitalize="characters" inputmode="text">
         <button onclick="updatePlayerName()">Update</button>
+        <button onclick="handleRemovePlayer(this)" data-state="initial">Remove</button>
     </div>
 
     <!-- Overlay for Modals -->
@@ -629,18 +635,20 @@
             let bonusElement = document.getElementById(`bonus${player}`);
             let pointsNeededElement = document.getElementById(`pointsNeeded${player}`);
             
-            if (bonus > 0) {
-                pointsNeededElement.textContent = '35';
-                pointsNeededElement.classList.add('bonus-achieved');
-            } else {
-                pointsNeededElement.textContent = (63 - upperSectionTotal).toString();
-                pointsNeededElement.classList.remove('bonus-achieved');
-            }
+            if (bonusElement && pointsNeededElement) {
+                if (bonus > 0) {
+                    pointsNeededElement.textContent = '35';
+                    pointsNeededElement.classList.add('bonus-achieved');
+                } else {
+                    pointsNeededElement.textContent = (63 - upperSectionTotal).toString();
+                    pointsNeededElement.classList.remove('bonus-achieved');
+                }
             
-            document.getElementById(`upperScore${player}`).textContent = upperSectionTotal;
-            document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
-            total += bonus;
-            document.getElementById(`total${player}`).textContent = total;
+                document.getElementById(`upperScore${player}`).textContent = upperSectionTotal;
+                document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
+                total += bonus;
+                document.getElementById(`total${player}`).textContent = total;
+            }
         }
     
         // Overlay controls
@@ -1015,14 +1023,14 @@
         // Update player name
         function updatePlayerName() {
             const newName = document.getElementById('playerNameInput').value.toUpperCase();
-            if (newName) {
+            if (newName && window.currentPlayer) {
                 const playerHeader = document.querySelector(`#scoreTable thead th[data-player="${window.currentPlayer}"]`);
                 if (playerHeader) {
                     const totalDiv = playerHeader.querySelector('div');
-                    const score = totalDiv.textContent;
+                    const score = totalDiv ? totalDiv.textContent : '0';
                     const rankElement = playerHeader.querySelector('small');
                     let rankHTML = rankElement ? rankElement.outerHTML : '';
-                    playerHeader.innerHTML = `${newName}<div id="${totalDiv.id}">${score}</div>${rankHTML}`;
+                    playerHeader.innerHTML = `${newName}<div id="total${window.currentPlayer}">${score}</div>${rankHTML}`;
                     localStorage.setItem(`playerName-${window.currentPlayer}`, newName);
                     closePlayerNameModal();
                 }
@@ -1032,17 +1040,148 @@
         // Close player name modal
         function closePlayerNameModal() {
             document.getElementById('playerNameModal').style.display = 'none';
+            const removeButton = document.querySelector('#playerNameModal button[onclick^="handleRemovePlayer"]');
+            if (removeButton) {
+                removeButton.textContent = 'Remove';
+                removeButton.dataset.state = 'initial';
+            }
             hideOverlay();
+        }
+    
+        // Remove a player
+        function removePlayer(player) {
+            if (!player) return;
+            
+            const playerIndex = parseInt(player.replace('P', '')) - 1;
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            
+            if (playerCount <= 1) {
+                alert("At least one player must remain.");
+                return;
+            }
+            
+            // Remove the player from the table headers and rows
+            const table = document.getElementById('scoreTable');
+            const headers = table.querySelector('thead tr');
+            const rows = table.querySelectorAll('tbody tr');
+            
+            // Remove the player's column
+            if (headers.children[playerIndex + 1]) {
+                headers.removeChild(headers.children[playerIndex + 1]); // +1 to skip the first column
+            }
+            rows.forEach(row => {
+                if (row.children[playerIndex + 1]) {
+                    row.removeChild(row.children[playerIndex + 1]);
+                }
+            });
+            
+            // Clear local storage for the removed player
+            const categories = [
+                'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                'Three of a Kind', 'Four of a Kind', 'Full House',
+                'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+            ];
+            categories.forEach(category => {
+                localStorage.removeItem(`${player}-${category}`);
+            });
+            localStorage.removeItem(`playerName-${player}`);
+            
+            // Decrease player count
+            const newPlayerCount = playerCount - 1;
+            document.getElementById('playerCount').value = newPlayerCount;
+            localStorage.setItem('playerCount', newPlayerCount);
+            
+            // Adjust remaining players' names and IDs
+            for (let i = playerIndex + 1; i < playerCount; i++) {
+                const oldPlayer = `P${i + 1}`;
+                const newPlayer = `P${i}`;
+                const headerIndex = i; // Since we already removed one column
+                const header = headers.children[headerIndex];
+                if (header) {
+                    const totalDiv = header.querySelector('div');
+                    const rankElement = header.querySelector('small');
+                    let rankHTML = rankElement ? rankElement.outerHTML : '';
+                    const playerName = header.innerText.split('\n')[0].trim();
+                    
+                    header.setAttribute('data-player', newPlayer);
+                    if (totalDiv) {
+                        totalDiv.id = `total${newPlayer}`;
+                        header.innerHTML = `${playerName}<div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
+                    }
+                }
+                
+                rows.forEach(row => {
+                    const cell = row.children[headerIndex];
+                    if (cell && (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell'))) {
+                        cell.setAttribute('data-player', newPlayer);
+                    }
+                    // Update IDs for special rows
+                    if (row.classList.contains('bonus-row') && cell) {
+                        cell.id = `bonus${newPlayer}`;
+                        cell.innerHTML = `<span id="pointsNeeded${newPlayer}" class="points-needed">63</span>`;
+                    } else if (row.classList.contains('upper-score-row') && cell) {
+                        cell.id = `upperScore${newPlayer}`;
+                        cell.textContent = '0';
+                    } else if (row.classList.contains('lower-score-row') && cell) {
+                        cell.id = `lowerScore${newPlayer}`;
+                        cell.textContent = '0';
+                    }
+                });
+                
+                // Update local storage for renamed players
+                const savedName = localStorage.getItem(`playerName-${oldPlayer}`);
+                if (savedName) {
+                    localStorage.setItem(`playerName-${newPlayer}`, savedName);
+                    localStorage.removeItem(`playerName-${oldPlayer}`);
+                }
+                categories.forEach(category => {
+                    const savedScore = localStorage.getItem(`${oldPlayer}-${category}`);
+                    if (savedScore) {
+                        localStorage.setItem(`${newPlayer}-${category}`, savedScore);
+                        localStorage.removeItem(`${oldPlayer}-${category}`);
+                    }
+                });
+            }
+            
+            // Reattach event listeners and update UI
+            reattachEventListeners();
+            for (let i = 1; i <= newPlayerCount; i++) {
+                calculateTotal(`P${i}`);
+            }
+            updateRanks();
+            closePlayerNameModal();
+        }
+    
+        // Handle player removal with confirmation state
+        function handleRemovePlayer(button) {
+            if (button.dataset.state === 'initial') {
+                button.textContent = 'Confirm';
+                button.dataset.state = 'confirm';
+            } else {
+                if (window.currentPlayer) {
+                    removePlayer(window.currentPlayer);
+                }
+            }
         }
     
         // Close all popups
         function closeAllPopups() {
+            // Reset the reset button state if the round management modal was open
             if (document.getElementById('roundManagementModal').style.display === 'block') {
-                resetButtonState(); // Reset button state if round management modal was open
+                resetButtonState();
+                document.getElementById('roundManagementModal').style.display = 'none';
             }
-            document.getElementById('popupModal').style.display = 'none';
-            document.getElementById('roundManagementModal').style.display = 'none';
-            document.getElementById('playerNameModal').style.display = 'none';
+    
+            // Close the popup modal
+            if (document.getElementById('popupModal').style.display === 'block') {
+                document.getElementById('popupModal').style.display = 'none';
+            }
+    
+            // Close the player name modal and reset the remove button state
+            if (document.getElementById('playerNameModal').style.display === 'block') {
+                closePlayerNameModal();
+            }
+    
             hideOverlay();
         }
     

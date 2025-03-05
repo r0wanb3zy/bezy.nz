@@ -1166,12 +1166,22 @@
     
         // Close all popups
         function closeAllPopups() {
+            // Reset the reset button state if the round management modal was open
             if (document.getElementById('roundManagementModal').style.display === 'block') {
-                resetButtonState(); // Reset button state if round management modal was open
+                resetButtonState();
+                document.getElementById('roundManagementModal').style.display = 'none';
             }
-            document.getElementById('popupModal').style.display = 'none';
-            document.getElementById('roundManagementModal').style.display = 'none';
-            document.getElementById('playerNameModal').style.display = 'none';
+    
+            // Close the popup modal
+            if (document.getElementById('popupModal').style.display === 'block') {
+                document.getElementById('popupModal').style.display = 'none';
+            }
+    
+            // Close the player name modal and reset the remove button state
+            if (document.getElementById('playerNameModal').style.display === 'block') {
+                closePlayerNameModal();
+            }
+    
             hideOverlay();
         }
     
