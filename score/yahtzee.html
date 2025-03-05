@@ -556,7 +556,7 @@
                 table.style.height = `${window.innerHeight}px`;
             }
         }
-
+    
         // Initial page load setup
         document.addEventListener("DOMContentLoaded", function() {
             setFullHeight();
@@ -587,10 +587,10 @@
                 }
             });
         });
-
+    
         // Resize handler
         window.addEventListener('resize', setFullHeight);
-
+    
         // Calculate player's total score
         function calculateTotal(player) {
             let total = 0;
@@ -642,16 +642,16 @@
             total += bonus;
             document.getElementById(`total${player}`).textContent = total;
         }
-
+    
         // Overlay controls
         function showOverlay() {
             document.getElementById('overlay').style.display = 'block';
         }
-
+    
         function hideOverlay() {
             document.getElementById('overlay').style.display = 'none';
         }
-
+    
         // Show score selection popup
         function showPopup(cell, category, player) {
             closeAllPopups();
@@ -687,13 +687,13 @@
             document.getElementById('popupOptions').innerHTML = options;
             window.lastClickedCell = cell;
         }
-
+    
         // Handle score selection
         function selectScore(score, player, categoryAlt, event) {
             event.stopPropagation();
             const cell = window.lastClickedCell;
             let cellId = `${player}-${categoryAlt}`;
-
+    
             if (score === 0) {
                 cell.innerHTML = '<span class="scaled-emoji">❌</span>';
                 localStorage.setItem(cellId, '❌');
@@ -712,66 +712,73 @@
             closePopup();
             updateRanks();
         }
-
+    
         // Popup controls
         function closePopup() {
             document.getElementById('popupModal').style.display = 'none';
             hideOverlay();
         }
-
+    
         function showRoundManagement() {
             closeAllPopups();
             document.getElementById('roundManagementModal').style.display = 'block';
             showOverlay();
         }
-
+    
         function closeRoundManagement() {
+            resetButtonState(); // Reset button state when closing the modal
             document.getElementById('roundManagementModal').style.display = 'none';
             hideOverlay();
         }
-
-// Add this variable at the top of the script section if not already present
-let resetConfirm = false;
-
-// Updated reset handling functions
-function handleResetClick() {
-    const resetButton = document.getElementById('resetButton');
     
-    if (!resetConfirm) {
-        // First click: change to Confirm
-        resetButton.textContent = 'Confirm';
-        resetButton.setAttribute('data-confirm', 'true'); // Add attribute for CSS targeting
-        resetConfirm = true;
-    } else {
-        // Second click: execute reset
-        resetScores();
-        resetButton.textContent = 'Reset';
-        resetButton.removeAttribute('data-confirm'); // Remove attribute
-        resetConfirm = false;
-    }
-}
-
-function resetScores() {
-    document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
-        cell.textContent = '';
-        cell.style.textDecoration = 'none';
-        cell.setAttribute('data-state', '0');
-        const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
-        localStorage.removeItem(cell.getAttribute('data-player') + '-' + categoryAlt);
-    });
-
-    const playerCount = parseInt(document.getElementById('playerCount').value);
-    for (let i = 1; i <= playerCount; i++) {
-        let player = `P${i}`;
-        document.getElementById(`total${player}`).textContent = '0';
-        document.getElementById(`upperScore${player}`).textContent = '0';
-        document.getElementById(`lowerScore${player}`).textContent = '0';
-        document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
-    }
-    closeRoundManagement();
-    updateRanks();
-}
-
+        // Add this variable at the top of the reset section
+        let resetConfirm = false;
+    
+        // Function to reset the button to its original state
+        function resetButtonState() {
+            const resetButton = document.getElementById('resetButton');
+            resetButton.textContent = 'Reset';
+            resetButton.removeAttribute('data-confirm'); // Remove attribute to revert to gray gradient
+            resetConfirm = false;
+        }
+    
+        // Updated reset handling functions
+        function handleResetClick() {
+            const resetButton = document.getElementById('resetButton');
+            
+            if (!resetConfirm) {
+                // First click: change to Confirm
+                resetButton.textContent = 'Confirm';
+                resetButton.setAttribute('data-confirm', 'true'); // Add attribute for CSS targeting
+                resetConfirm = true;
+            } else {
+                // Second click: execute reset
+                resetScores();
+                resetButtonState(); // Reset button state after confirming
+            }
+        }
+    
+        function resetScores() {
+            document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
+                cell.textContent = '';
+                cell.style.textDecoration = 'none';
+                cell.setAttribute('data-state', '0');
+                const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+                localStorage.removeItem(cell.getAttribute('data-player') + '-' + categoryAlt);
+            });
+    
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            for (let i = 1; i <= playerCount; i++) {
+                let player = `P${i}`;
+                document.getElementById(`total${player}`).textContent = '0';
+                document.getElementById(`upperScore${player}`).textContent = '0';
+                document.getElementById(`lowerScore${player}`).textContent = '0';
+                document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
+            }
+            closeRoundManagement();
+            updateRanks();
+        }
+    
         // Update player count and table structure
         function updatePlayerCount() {
             const playerCount = parseInt(document.getElementById('playerCount').value);
@@ -780,7 +787,7 @@ function resetScores() {
             const headers = table.querySelector('thead tr');
             const rows = table.querySelectorAll('tbody tr');
             closeRoundManagement();
-
+    
             const existingPlayers = headers.children.length - 1;
             if (playerCount < existingPlayers) {
                 for (let i = existingPlayers; i > playerCount; i--) {
@@ -802,7 +809,7 @@ function resetScores() {
                     newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
                     newHeader.setAttribute('data-player', `P${i}`);
                     headers.appendChild(newHeader);
-
+    
                     rows.forEach(row => {
                         const newCell = document.createElement('td');
                         const categoryAlt = row.firstElementChild.querySelector('img').alt;
@@ -863,7 +870,7 @@ function resetScores() {
             reattachEventListeners();
             updateRanks();
         }
-
+    
         // Reattach event listeners to headers
         function reattachEventListeners() {
             document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
@@ -884,7 +891,7 @@ function resetScores() {
                 header.addEventListener('click', header.clickHandler);
             });
         }
-
+    
         // Load saved scores from localStorage
         function loadScores() {
             const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
@@ -910,7 +917,7 @@ function resetScores() {
             }
             updateRanks();
         }
-
+    
         // Update player rankings
         function updateRanks() {
             const totalScores = document.querySelectorAll('[id^="total"]');
@@ -920,7 +927,7 @@ function resetScores() {
                     anyScoreEntered = true;
                 }
             });
-
+    
             if (!anyScoreEntered) {
                 totalScores.forEach(scoreElement => {
                     scoreElement.textContent = "";
@@ -935,12 +942,12 @@ function resetScores() {
                     score: parseInt(scoreElement.textContent) || 0
                 }));
                 scoresArray.sort((a, b) => b.score - a.score);
-
+    
                 let rank = 1;
                 let lastScore = null;
                 const rankMap = {};
                 let lastPlaceScores = [];
-
+    
                 scoresArray.forEach((player, index) => {
                     if (lastScore !== null && player.score === lastScore) {
                         rankMap[player.player] = rank;
@@ -949,25 +956,25 @@ function resetScores() {
                         rankMap[player.player] = rank;
                     }
                     lastScore = player.score;
-
+    
                     if (index === scoresArray.length - 1) {
                         lastPlaceScores = scoresArray.filter(p => p.score === player.score).map(p => p.player);
                     }
                 });
-
+    
                 const allScoresSame = scoresArray.every(player => player.score === scoresArray[0].score);
                 const maxScore = scoresArray[0].score;
                 const minScore = scoresArray[scoresArray.length - 1].score;
-
+    
                 totalScores.forEach(scoreElement => {
                     const rank = rankMap[scoreElement.id];
                     const score = parseInt(scoreElement.textContent) || 0;
-
+    
                     scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
                     while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
                         scoreElement.parentElement.removeChild(scoreElement.nextSibling);
                     }
-
+    
                     if (allScoresSame) {
                         scoreElement.parentElement.classList.add('highlight-winner');
                     } else if (score === maxScore && score > minScore) {
@@ -975,7 +982,7 @@ function resetScores() {
                     } else if (lastPlaceScores.includes(scoreElement.id) && score < maxScore) {
                         scoreElement.parentElement.classList.add('highlight-loser');
                     }
-
+    
                     scoreElement.textContent = score;
                     const rankElement = document.createElement('small');
                     rankElement.textContent = ordinalSuffixOf(rank);
@@ -983,7 +990,7 @@ function resetScores() {
                 });
             }
         }
-
+    
         // Convert number to ordinal suffix
         function ordinalSuffixOf(i) {
             var j = i % 10,
@@ -999,12 +1006,12 @@ function resetScores() {
             }
             return i + "th";
         }
-
+    
         // Event listeners for ranking updates
         document.getElementById('scoreTable').addEventListener('click', updateRanks);
         document.getElementById('playerCount').addEventListener('change', updateRanks);
         document.addEventListener('DOMContentLoaded', updateRanks);
-
+    
         // Update player name
         function updatePlayerName() {
             const newName = document.getElementById('playerNameInput').value.toUpperCase();
@@ -1021,21 +1028,24 @@ function resetScores() {
                 }
             }
         }
-
+    
         // Close player name modal
         function closePlayerNameModal() {
             document.getElementById('playerNameModal').style.display = 'none';
             hideOverlay();
         }
-
+    
         // Close all popups
         function closeAllPopups() {
+            if (document.getElementById('roundManagementModal').style.display === 'block') {
+                resetButtonState(); // Reset button state if round management modal was open
+            }
             document.getElementById('popupModal').style.display = 'none';
             document.getElementById('roundManagementModal').style.display = 'none';
             document.getElementById('playerNameModal').style.display = 'none';
             hideOverlay();
         }
-
+    
         // Overlay click handler
         document.getElementById('overlay').addEventListener('click', function() {
             closeAllPopups();
