@@ -17,7 +17,7 @@
             padding: 0;
             overflow: hidden;
         }
-    
+
         body {
             font-family: 'Economica', sans-serif;
             font-size: 22px;
@@ -29,18 +29,18 @@
             display: flex;
             flex-direction: column;
         }
-    
+
         h1 {
             text-align: center;
         }
-    
+
         /* New scrollable container */
         .score-container {
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
-    
+
         /* Table Styles */
         table {
             width: 100%;
@@ -49,7 +49,7 @@
             font-size: 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-    
+
         table th, table td {
             border: none;
             text-align: center;
@@ -57,14 +57,13 @@
             word-wrap: break-word;
             cursor: pointer;
             border-bottom: 1px solid rgba(200, 200, 200, 0.3);
-            transition: transform 0.3s ease; /* Added for smooth drag animations */
         }
-    
+
         table th {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
         }
-    
+
         table th:first-child {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             font-weight: bold;
@@ -75,7 +74,7 @@
             color: white;
             border-bottom: 1px solid #666;
         }
-    
+
         table td:first-child {
             background: #4d4d4d;
             font-weight: bold;
@@ -86,36 +85,36 @@
             color: white;
             border-bottom: 1px solid #666;
         }
-    
+
         /* Sticky Header Styles */
         .sticky-header th {
             height: 80px;
             font-family: 'Economica', sans-serif;
             font-size: 22px;
         }
-    
+
         .sticky-header th span.score {
             font-size: 22px;
             font-family: 'Economica', sans-serif;
         }
-    
+
         .sticky-header th small {
             font-size: 16px;
             font-family: 'Economica', sans-serif;
             color: rgba(255, 255, 255, 0.8);
         }
-    
+
         #scoreBody tr:not(:last-child) td:not(:first-child) {
             max-height: 5px;
             height: 5px;
             line-height: 5px;
             overflow: hidden;
         }
-    
+
         #scoreBody tr td:not(:first-child) {
             font-weight: bold;
         }
-    
+
         /* Input Styles */
         table input {
             width: 100%;
@@ -130,7 +129,7 @@
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-    
+
         table input::placeholder {
             font-family: 'Economica', sans-serif;
             font-size: 16px;
@@ -139,33 +138,33 @@
             color: #6b7280;
             opacity: 0.8;
         }
-    
+
         table input:focus {
             outline: none;
             border-color: #333333;
             box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
         }
-    
+
         table input[type="number"]::-webkit-outer-spin-button,
         table input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-    
+
         table input[type="number"] {
             -moz-appearance: textfield;
             appearance: textfield;
         }
-    
+
         /* Highlighting */
         .highlight-winner {
             background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
         }
-    
+
         .highlight-loser {
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
-    
+
         /* Popup Modal Styles */
         .popup-modal {
             display: none;
@@ -184,12 +183,12 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
-    
+
         #playerManagementModal {
             top: 15%;
             transform: translate(-50%, -15%);
         }
-    
+
         .popup-modal input[type="text"] {
             font-size: 24px;
             padding: 10px;
@@ -202,12 +201,12 @@
             border-radius: 6px;
             background: #f8f9fa;
         }
-    
+
         .popup-modal input[type="text"]:focus {
             outline: none;
             border: 1px solid #333333;
         }
-    
+
         .popup-modal select {
             font-size: 24px;
             padding: 10px;
@@ -217,7 +216,7 @@
             border-radius: 6px;
             background: #f8f9fa;
         }
-    
+
         #roundManagementModal select {
             font-size: 24px;
             padding: 10px;
@@ -227,7 +226,7 @@
             border-radius: 6px;
             background: #f8f9fa;
         }
-    
+
         .popup-modal button {
             font-size: 24px;
             padding: 10px 20px;
@@ -240,11 +239,10 @@
             border-radius: 6px;
             transition: background 0.2s;
         }
-    
         .popup-modal button[data-state="confirm"] {
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
-    
+
         /* Adjust spacing for h2 in popups */
         #playerManagementModal h2,
         #roundManagementModal h2,
@@ -253,7 +251,7 @@
             margin-bottom: 15px;
             padding: 0;
         }
-    
+
         /* Segmented Control Styles */
         .segmented-control {
             display: flex;
@@ -265,7 +263,7 @@
             border: 1px solid #333333;
             width: 150px;
         }
-    
+
         .segmented-control label {
             flex: 1;
             padding: 10px 0px;
@@ -276,20 +274,20 @@
             background: #f8f9fa;
             transition: background 0.2s, color 0.2s;
         }
-    
+
         .segmented-control input[type="radio"] {
             display: none;
         }
-    
+
         .segmented-control input[type="radio"]:checked + label {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
         }
-    
+
         .segmented-control label[for="lowest"] {
             border-right: 1px solid #ddd;
         }
-    
+
         /* Close Button */
         .close-btn {
             position: absolute;
@@ -307,19 +305,19 @@
             text-align: center;
             transition: color 0.2s ease;
         }
-    
+
         /* Emoji Scaling */
         .scaled-emoji {
             transform: scale(.75);
             transform-origin: center;
             display: inline-block;
         }
-    
+
         /* Disable Tap Highlight */
         * {
             -webkit-tap-highlight-color: transparent;
         }
-    
+
         /* Overlay */
         #overlay {
             display: none;
@@ -332,7 +330,7 @@
             z-index: 999;
             cursor: pointer;
         }
-    
+
         /* Sticky Header */
         .sticky-header {
             position: sticky;
@@ -341,41 +339,26 @@
             background: #fff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-    
+
         .sticky-header table {
             margin-bottom: 0;
         }
-    
+
         /* Adjust main table */
         #scoreTable {
             margin-top: 0;
         }
-    
-        /* Drag and Drop Styles */
+
+        /* Drag feedback styles */
         th.dragging {
-            opacity: 0.7;
-            transform: scale(1.03);
-            z-index: 100;
-            background: linear-gradient(to bottom, #4d4d4d 0%, #666666 100%);
+            opacity: 0.5;
+            background: rgba(0, 0, 0, 0.2);
         }
-    
+
         th.drag-over {
-            border-left: 2px solid #ffffff;
+            border-left: 2px solid #333;
         }
-    
-        th[draggable="true"] {
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-            transition: transform 0.3s ease; /* Smooth transitions for dragging */
-        }
-    
-        /* Smooth transitions for cells */
-        #playerRow th {
-            position: relative;
-            transition: transform 0.3s ease;
-        }
-    
+
         @media (max-width: 480px) {
             .sticky-header.small-scores th span.score {
                 font-size: 18px;
@@ -454,16 +437,9 @@
             players = JSON.parse(localStorage.getItem('players')) || [];
             rounds = JSON.parse(localStorage.getItem('rounds')) || [];
         }
-        
+    
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
-        let draggedIndex = -1;
-        let dragStartX = 0;
-        let currentX = 0;
-        let isDragging = false;
-        let dragStartTime = 0;
-        const DRAG_THRESHOLD = 10; // Pixels to move before considering it a drag
-        const HOLD_THRESHOLD = 200; // Milliseconds to distinguish click vs drag
-        
+    
         // Add new round scores and scroll to the last row
         function addRoundScores() {
             const scores = [];
@@ -479,26 +455,28 @@
             updateUI();
             inputs.forEach(input => input.value = '');
             
+            // Scroll to the last row (input row) after adding scores
             const scoreBody = document.getElementById("scoreBody");
             const lastRow = scoreBody.lastElementChild;
             if (lastRow) {
                 lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
             }
         }
-        
+    
         // Save data to localStorage
         function saveData() {
             localStorage.setItem('players', JSON.stringify(players));
             localStorage.setItem('rounds', JSON.stringify(rounds));
             localStorage.setItem('scoringMode', scoringMode);
         }
-        
+    
         // Update the UI with current data
         function updateUI() {
             const playerRow = document.getElementById("playerRow");
             const scoreTable = document.getElementById("scoreTable");
             const stickyHeader = document.querySelector(".sticky-header");
-        
+
+            // Apply small-scores class to both scoreTable and sticky-header
             if (players.length >= 7) {
                 scoreTable.classList.add("small-scores");
                 stickyHeader.classList.add("small-scores");
@@ -506,11 +484,17 @@
                 scoreTable.classList.remove("small-scores");
                 stickyHeader.classList.remove("small-scores");
             }
-        
+
             playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
             players.forEach((player, index) => {
                 playerRow.innerHTML += `
-                    <th draggable="true" data-index="${index}" title="Player">
+                    <th draggable="true" 
+                        ondragstart="handleDragStart(event, ${index})"
+                        ondragover="handleDragOver(event)"
+                        ondrop="handleDrop(event, ${index})"
+                        ondragend="handleDragEnd(event)"
+                        onclick="handlePlayerNameClick(event, ${index})" 
+                        title="Player">
                         ${player.name}
                         <br>
                         <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
@@ -518,7 +502,7 @@
                     </th>
                 `;
             });
-        
+    
             const scoreBody = document.getElementById("scoreBody");
             scoreBody.innerHTML = "";
             rounds.forEach((round, roundIndex) => {
@@ -532,21 +516,18 @@
                 });
                 scoreBody.appendChild(row);
             });
-        
+    
             const inputRow = document.createElement('tr');
             inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
             players.forEach((player, index) => {
                 inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" /></td>`;
             });
             scoreBody.appendChild(inputRow);
-        
+    
             if (rounds.length > 0) {
                 updateRankings();
             }
-        
-            // Add event listeners for click and drag
-            setupInteractionListeners();
-        
+    
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
                 input.addEventListener('keydown', function(event) {
@@ -572,160 +553,7 @@
                 });
             });
         }
-        
-        // Setup interaction listeners for both click and drag
-        function setupInteractionListeners() {
-            const headers = document.querySelectorAll('#playerRow th[draggable="true"]');
-            headers.forEach(header => {
-                // Mouse events
-                header.addEventListener('mousedown', handleMouseDown);
-                header.addEventListener('dragstart', handleDragStart);
-                header.addEventListener('dragover', handleDragOver);
-                header.addEventListener('dragenter', handleDragEnter);
-                header.addEventListener('dragleave', handleDragLeave);
-                header.addEventListener('drop', handleDrop);
-                header.addEventListener('dragend', handleDragEnd);
-        
-                // Touch events
-                header.addEventListener('touchstart', handleTouchStart, { passive: false });
-                header.addEventListener('touchmove', handleTouchMove, { passive: false });
-                header.addEventListener('touchend', handleTouchEnd);
-            });
-        }
-        
-        // Mouse down handler to detect click vs drag
-        function handleMouseDown(e) {
-            const index = parseInt(e.target.dataset.index);
-            dragStartTime = new Date().getTime();
-            dragStartX = e.clientX;
-            isDragging = false;
-        
-            const mouseMoveHandler = (moveEvent) => {
-                const deltaX = Math.abs(moveEvent.clientX - dragStartX);
-                if (deltaX > DRAG_THRESHOLD) {
-                    isDragging = true;
-                }
-            };
-        
-            const mouseUpHandler = () => {
-                const elapsedTime = new Date().getTime() - dragStartTime;
-                if (!isDragging && elapsedTime < HOLD_THRESHOLD) {
-                    handlePlayerNameClick(e, index);
-                }
-                document.removeEventListener('mousemove', mouseMoveHandler);
-                document.removeEventListener('mouseup', mouseUpHandler);
-            };
-        
-            document.addEventListener('mousemove', mouseMoveHandler);
-            document.addEventListener('mouseup', mouseUpHandler);
-        }
-        
-        // Mouse drag handlers
-        function handleDragStart(e) {
-            draggedIndex = parseInt(e.target.dataset.index);
-            e.target.classList.add('dragging');
-            e.dataTransfer.setData('text/plain', draggedIndex);
-        }
-        
-        function handleDragOver(e) {
-            e.preventDefault();
-        }
-        
-        function handleDragEnter(e) {
-            e.preventDefault();
-            if (e.target.tagName === 'TH' && parseInt(e.target.dataset.index) !== draggedIndex) {
-                e.target.classList.add('drag-over');
-            }
-        }
-        
-        function handleDragLeave(e) {
-            e.target.classList.remove('drag-over');
-        }
-        
-        function handleDrop(e) {
-            e.preventDefault();
-            const targetIndex = parseInt(e.target.dataset.index);
-            if (draggedIndex !== -1 && targetIndex !== draggedIndex) {
-                reorderPlayers(draggedIndex, targetIndex);
-            }
-            document.querySelectorAll('th').forEach(th => th.classList.remove('drag-over'));
-        }
-        
-        function handleDragEnd(e) {
-            draggedIndex = -1;
-            e.target.classList.remove('dragging');
-            document.querySelectorAll('th').forEach(th => th.classList.remove('drag-over'));
-        }
-        
-        // Touch handlers
-        function handleTouchStart(e) {
-            e.preventDefault();
-            const index = parseInt(e.target.dataset.index);
-            draggedIndex = index;
-            dragStartX = e.touches[0].clientX;
-            currentX = dragStartX;
-            dragStartTime = new Date().getTime();
-            isDragging = false;
-        
-            e.target.classList.add('dragging');
-        }
-        
-        function handleTouchMove(e) {
-            e.preventDefault();
-            currentX = e.touches[0].clientX;
-            const deltaX = Math.abs(currentX - dragStartX);
-            if (deltaX > DRAG_THRESHOLD) {
-                isDragging = true;
-            }
-        
-            const headers = Array.from(document.querySelectorAll('#playerRow th[draggable="true"]'));
-            const targetElement = document.elementFromPoint(currentX, e.touches[0].clientY);
-            
-            headers.forEach(header => header.classList.remove('drag-over'));
-            if (targetElement && targetElement.tagName === 'TH' && targetElement.dataset.index) {
-                const targetIndex = parseInt(targetElement.dataset.index);
-                if (targetIndex !== draggedIndex) {
-                    targetElement.classList.add('drag-over');
-                }
-            }
-        }
-        
-        function handleTouchEnd(e) {
-            const headers = Array.from(document.querySelectorAll('#playerRow th[draggable="true"]'));
-            const targetElement = document.elementFromPoint(currentX, e.changedTouches[0].clientY);
-            const elapsedTime = new Date().getTime() - dragStartTime;
-            const index = draggedIndex;
-        
-            headers.forEach(header => {
-                header.classList.remove('dragging');
-                header.classList.remove('drag-over');
-            });
-        
-            if (!isDragging && elapsedTime < HOLD_THRESHOLD) {
-                handlePlayerNameClick(e, index);
-            } else if (targetElement && targetElement.tagName === 'TH' && targetElement.dataset.index) {
-                const targetIndex = parseInt(targetElement.dataset.index);
-                if (draggedIndex !== -1 && targetIndex !== draggedIndex) {
-                    reorderPlayers(draggedIndex, targetIndex);
-                }
-            }
-            draggedIndex = -1;
-        }
-        
-        // Reorder players and their data
-        function reorderPlayers(fromIndex, toIndex) {
-            const [movedPlayer] = players.splice(fromIndex, 1);
-            players.splice(toIndex, 0, movedPlayer);
-        
-            rounds.forEach(round => {
-                const [movedScore] = round.splice(fromIndex, 1);
-                round.splice(toIndex, 0, movedScore);
-            });
-        
-            saveData();
-            updateUI();
-        }
-        
+    
         // Calculate player rank
         function getRank(score) {
             if (players.length === 1) return "1st";
@@ -742,7 +570,7 @@
             if (rank % 10 === 3 && rank % 100 !== 13) suffix = 'rd';
             return rank + suffix;
         }
-        
+    
         // Update score for a specific round and player
         function updateScore(roundIndex, playerIndex, newScore) {
             const score = parseInt(newScore) || 0;
@@ -756,7 +584,7 @@
             saveData();
             updateUI();
         }
-        
+    
         // Update player rankings with highlights
         function updateRankings() {
             if (rounds.length === 0 || players.length === 1) return;
@@ -791,7 +619,7 @@
                 });
             }
         }
-        
+    
         // Remove a player
         function removePlayer(index) {
             players.splice(index, 1);
@@ -799,7 +627,7 @@
             saveData();
             updateUI();
         }
-        
+    
         // Create player management dialog
         function createPlayerManagementDialog(index) {
             const modal = document.getElementById('playerManagementModal');
@@ -825,7 +653,7 @@
                 this.value = this.value.toUpperCase();
             });
         }
-        
+    
         // Handle player removal with button state
         function handleRemovePlayer(button, index) {
             if (button.dataset.state === 'initial') {
@@ -836,7 +664,7 @@
                 closePopup('playerManagementModal');
             }
         }
-        
+    
         // Update player name
         function updatePlayerName(index) {
             const input = document.getElementById('playerNameInput');
@@ -848,14 +676,14 @@
                 closePopup('playerManagementModal');
             }
         }
-        
+    
         // Handle player name click
         function handlePlayerNameClick(event, index) {
             event.stopPropagation();
             closeAllPopups();
             createPlayerManagementDialog(index);
         }
-        
+    
         // Create round management dialog
         function createRoundManagementDialog() {
             const modal = document.getElementById('roundManagementModal');
@@ -876,7 +704,7 @@
             modal.style.display = 'block';
             showOverlay();
         }
-        
+    
         // Handle reset scores with button state
         function handleResetScores(button) {
             if (button.dataset.state === 'initial') {
@@ -894,7 +722,7 @@
                 closePopup('roundManagementModal');
             }
         }
-        
+    
         // Update player count
         function updatePlayerCount() {
             const newCount = parseInt(document.getElementById('playerCount').value);
@@ -915,7 +743,13 @@
             updateUI();
             closePopup('roundManagementModal');
         }
-        
+    
+        // Toggle scoring mode (unused but preserved)
+        function toggleScoringMode() {
+            scoringMode = scoringMode === "highest" ? "lowest" : "highest";
+            saveData();
+        }
+    
         // Create delete round dialog with immediate deletion button
         function createDeleteRoundDialog(roundIndex) {
             const modal = document.getElementById('deleteRoundModal');
@@ -927,7 +761,7 @@
             modal.style.display = 'block';
             showOverlay();
         }
-        
+    
         // Execute round deletion immediately
         function deleteRound(roundIndex) {
             rounds.splice(roundIndex, 1);
@@ -939,12 +773,12 @@
             updateUI();
             closePopup('deleteRoundModal');
         }
-        
+    
         // Check if all inputs are filled
         function allInputsFilled(inputs) {
             return Array.from(inputs).every(input => input.value.trim() !== '');
         }
-        
+    
         // Select text in contenteditable element
         function selectText(element) {
             const range = document.createRange();
@@ -953,22 +787,22 @@
             sel.removeAllRanges();
             sel.addRange(range);
         }
-        
+    
         // Overlay controls
         function showOverlay() {
             document.getElementById('overlay').style.display = 'block';
         }
-        
+    
         function hideOverlay() {
             document.getElementById('overlay').style.display = 'none';
         }
-        
+    
         // Close popup by ID
         function closePopup(modalId) {
             document.getElementById(modalId).style.display = 'none';
             hideOverlay();
         }
-        
+    
         // Close all popups
         function closeAllPopups() {
             document.getElementById('playerManagementModal').style.display = 'none';
@@ -976,12 +810,58 @@
             document.getElementById('deleteRoundModal').style.display = 'none';
             hideOverlay();
         }
-        
+    
         // Overlay click handler
         document.getElementById('overlay').addEventListener('click', closeAllPopups);
-        
+
+        // Drag and drop handlers
+        let draggedIndex = -1;
+
+        function handleDragStart(event, index) {
+            draggedIndex = index;
+            event.target.classList.add('dragging');
+            event.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            const target = event.target.closest('th');
+            if (target && target !== event.currentTarget && !target.textContent.includes('☰')) {
+                target.classList.add('drag-over');
+            }
+        }
+
+        function handleDrop(event, dropIndex) {
+            event.preventDefault();
+            if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
+                // Reorder players array
+                const [draggedPlayer] = players.splice(draggedIndex, 1);
+                players.splice(dropIndex, 0, draggedPlayer);
+
+                // Reorder scores in each round
+                rounds.forEach(round => {
+                    const [draggedScore] = round.splice(draggedIndex, 1);
+                    round.splice(dropIndex, 0, draggedScore);
+                });
+
+                saveData();
+                updateUI();
+            }
+            const ths = document.querySelectorAll('#playerRow th');
+            ths.forEach(th => th.classList.remove('drag-over'));
+            draggedIndex = -1;
+        }
+
+        function handleDragEnd(event) {
+            event.target.classList.remove('dragging');
+            const ths = document.querySelectorAll('#playerRow th');
+            ths.forEach(th => th.classList.remove('drag-over'));
+            draggedIndex = -1;
+        }
+    
         // Initial UI update
         updateUI();
-        </script>
+    </script>
 </body>
 </html>
