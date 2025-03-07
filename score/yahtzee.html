@@ -1,1354 +1,1341 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <!-- External Libraries -->
- <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
- <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
- 
- <!-- Meta Tags -->
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
- 
- <!-- Title and Fonts -->
- <title>Yahtzee Scorecard</title>
- <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
+    <!-- External Libraries -->
+    <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    
+    <!-- Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Title and Fonts -->
+    <title>Yahtzee Scorecard</title>
+    <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
- <style>
- /* Base Styles */
- html, body {
- height: 100%;
- margin: 0;
- }
+    <style>
+        /* Base Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
 
- body {
- font-family: 'Economica', sans-serif;
- font-size: 22px;
- max-width: 1200px;
- margin-left: auto;
- margin-right: auto;
- min-height: 100vh;
- background-size: cover;
- }
+        body {
+            font-family: 'Economica', sans-serif;
+            font-size: 22px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            min-height: 100vh;
+            background-size: cover;
+        }
 
- /* Table Base Styles */
- table {
- width: 100%;
- border-collapse: collapse;
- font-size: 20px;
- table-layout: fixed;
- font-family: 'Economica', sans-serif;
- }
+        /* Table Base Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 20px;
+            table-layout: fixed;
+            font-family: 'Economica', sans-serif;
+        }
 
- table, table th, table td {
- font-weight: bold;
- }
+        table, table th, table td {
+            font-weight: bold;
+        }
 
- /* Score Table Specific Styles */
- #scoreTable {
- height: 100vh;
- box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
- }
+        /* Score Table Specific Styles */
+        #scoreTable {
+            height: 100vh;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
 
- /* Orientation-Based Scrolling */
- @media screen and (orientation: portrait) {
- html, body {
- overflow: hidden;
- touch-action: none; /* Prevent touch scrolling */
- }
- #scoreTable {
- overflow-y: hidden; /* No scrolling inside table */
- }
- }
+        /* Orientation-Based Scrolling */
+        @media screen and (orientation: portrait) {
+            html, body {
+                overflow: hidden;
+                touch-action: none; /* Prevent touch scrolling */
+            }
+            #scoreTable {
+                overflow-y: hidden; /* No scrolling inside table */
+            }
+        }
 
- @media screen and (orientation: landscape) {
- html, body {
- overflow: auto; /* Allow scrolling on body */
- touch-action: auto; /* Enable touch scrolling */
- }
- #scoreTable {
- overflow-y: auto; /* Enable scrolling inside table */
- }
- }
+        @media screen and (orientation: landscape) {
+            html, body {
+                overflow: auto; /* Allow scrolling on body */
+                touch-action: auto; /* Enable touch scrolling */
+            }
+            #scoreTable {
+                overflow-y: auto; /* Enable scrolling inside table */
+            }
+        }
 
- /* Headers */
- h1, h2 {
- text-align: center;
- font-family: 'Economica', sans-serif;
- }
+        /* Headers */
+        h1, h2 {
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+        }
 
- /* Table Cells */
- table th, table td {
- border: none;
- text-align: center;
- padding: 5px;
- word-wrap: break-word;
- cursor: pointer;
- overflow: hidden;
- text-overflow: ellipsis;
- font-family: 'Economica', sans-serif;
- border-bottom: 1px solid rgba(200, 200, 200, 0.3); /* Lighter border for non-dark areas */
- }
+        /* Table Cells */
+        table th, table td {
+            border: none;
+            text-align: center;
+            padding: 5px;
+            word-wrap: break-word;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: 'Economica', sans-serif;
+            border-bottom: 1px solid rgba(200, 200, 200, 0.3); /* Lighter border for non-dark areas */
+        }
 
- table td {
- border-right: 1px solid rgba(200, 200, 200, 0.3);
- }
+        table td {
+            border-right: 1px solid rgba(200, 200, 200, 0.3);
+        }
 
- table td:last-child {
- border-right: none;
- }
+        table td:last-child {
+            border-right: none;
+        }
 
- /* First Column Styles */
- table th:first-child {
- background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
- font-weight: bold;
- width: 30px;
- min-width: 30px;
- max-width: 30px;
- overflow: hidden;
- color: white;
- border-bottom: 1px solid #666; /* Reinstated for border between top two cells */
- }
+        /* First Column Styles */
+        table th:first-child {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+            color: white;
+            border-bottom: 1px solid #666; /* Reinstated for border between top two cells */
+        }
 
- table td:first-child {
- background: #4d4d4d;
- font-weight: bold;
- width: 30px;
- min-width: 30px;
- max-width: 30px;
- overflow: hidden;
- color: white;
- border-bottom: 1px solid #666;
- border-right: none; /* Prevents border poking out */
- }
+        table td:first-child {
+            background: #4d4d4d;
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+            color: white;
+            border-bottom: 1px solid #666;
+            border-right: none; /* Prevents border poking out */
+        }
 
- table td:first-child img {
- filter: brightness(0) invert(1);
- width: 20px;
- height: 20px;
- }
+        table td:first-child img {
+            filter: brightness(0) invert(1);
+            width: 20px;
+            height: 20px;
+        }
 
- /* Table Headers */
- table th {
- background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
- color: white;
- }
+        /* Table Headers */
+        table th {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+        }
 
- #scoreTable thead th:first-child {
- background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
- border-right: none; /* Remove right border from top-left cell */
- border-bottom: 1px solid #666; /* Explicitly add border for first header cell */
- }
+        #scoreTable thead th:first-child {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            border-right: none; /* Remove right border from top-left cell */
+            border-bottom: 1px solid #666; /* Explicitly add border for first header cell */
+        }
 
- #scoreTable thead th {
- height: 80px;
- font-family: 'Economica', sans-serif;
- font-size: 22px;
- border-bottom: none; /* No border under top row, overridden for first-child */
- }
+        #scoreTable thead th {
+            height: 80px;
+            font-family: 'Economica', sans-serif;
+            font-size: 22px;
+            border-bottom: none; /* No border under top row, overridden for first-child */
+        }
 
- /* Input Styles */
- table input {
- width: 100%;
- box-sizing: border-box;
- padding: 8px;
- text-align: center;
- font-size: inherit;
- font-family: 'Economica', sans-serif;
- border: 1px solid #d0d7de;
- border-radius: 6px;
- background: #ffffff;
- box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
- transition: border-color 0.2s ease, box-shadow 0.2s ease;
- }
+        /* Input Styles */
+        table input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            text-align: center;
+            font-size: inherit;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
 
- table input:focus {
- outline: none;
- border-color: #333333;
- box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
- }
+        table input:focus {
+            outline: none;
+            border-color: #333333;
+            box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
+        }
 
- table input::placeholder {
- font-family: 'Economica', sans-serif;
- font-size: 12px;
- text-align: center;
- color: #6b7280;
- opacity: 0.8;
- }
+        table input::placeholder {
+            font-family: 'Economica', sans-serif;
+            font-size: 12px;
+            text-align: center;
+            color: #6b7280;
+            opacity: 0.8;
+        }
 
- table input[type="number"]::-webkit-outer-spin-button,
- table input[type="number"]::-webkit-inner-spin-button {
- -webkit-appearance: none;
- margin: 0;
- }
+        table input[type="number"]::-webkit-outer-spin-button,
+        table input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
- table input[type="number"] {
- -moz-appearance: textfield;
- appearance: textfield;
- font-family: 'Economica', sans-serif;
- }
+        table input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+            font-family: 'Economica', sans-serif;
+        }
 
- /* Special Row Styles */
- .bonus-row td, .upper-score-row td, .lower-score-row td {
- background: #4d4d4d;
- color: white;
- border-bottom: 1px solid #666; /* Darker border for dark area */
- border-right: 1px solid #666; /* Vertical border for dark area */
- }
+        /* Special Row Styles */
+        .bonus-row td, .upper-score-row td, .lower-score-row td {
+            background: #4d4d4d;
+            color: white;
+            border-bottom: 1px solid #666; /* Darker border for dark area */
+            border-right: 1px solid #666; /* Vertical border for dark area */
+        }
 
- .bonus-row td:first-child,
- .upper-score-row td:first-child,
- .lower-score-row td:first-child {
- border-right: 1px solid #666;
- }
+        .bonus-row td:first-child,
+        .upper-score-row td:first-child,
+        .lower-score-row td:first-child {
+            border-right: 1px solid #666;
+        }
 
- table tr:last-child td {
- border-bottom: none;
- }
+        table tr:last-child td {
+            border-bottom: none;
+        }
 
- .bonus-row td:last-child, 
- .upper-score-row td:last-child, 
- .lower-score-row td:last-child {
- border-right: none;
- }
+        .bonus-row td:last-child, 
+        .upper-score-row td:last-child, 
+        .lower-score-row td:last-child {
+            border-right: none;
+        }
 
- .bonus-row .points-needed {
- color: #888;
- }
+        .bonus-row .points-needed {
+            color: #888;
+        }
 
- .bonus-row .points-needed.bonus-achieved {
- color: white;
- font-weight: bold;
- }
+        .bonus-row .points-needed.bonus-achieved {
+            color: white;
+            font-weight: bold;
+        }
 
- /* Cell Categories */
- .lower-section-cell, .upper-section-cell {
- cursor: pointer;
- width: auto;
- }
+        /* Cell Categories */
+        .lower-section-cell, .upper-section-cell {
+            cursor: pointer;
+            width: auto;
+        }
 
- .lower-section-cell:active, 
- .upper-section-cell:active {
- background-color: transparent !important;
- }
+        .lower-section-cell:active, 
+        .upper-section-cell:active {
+            background-color: transparent !important;
+        }
 
- /* Header Text */
- th div {
- font-size: 14px;
- font-family: 'Economica', sans-serif;
- }
+        /* Header Text */
+        th div {
+            font-size: 14px;
+            font-family: 'Economica', sans-serif;
+        }
 
- #scoreTable thead th div {
- font-size: 22px;
- font-family: 'Economica', sans-serif;
- }
+        #scoreTable thead th div {
+            font-size: 22px;
+            font-family: 'Economica', sans-serif;
+        }
 
- #scoreTable thead th small {
- font-size: 16px;
- font-family: 'Economica', sans-serif;
- color: rgba(255, 255, 255, 0.8);
- }
+        #scoreTable thead th small {
+            font-size: 16px;
+            font-family: 'Economica', sans-serif;
+            color: rgba(255, 255, 255, 0.8);
+        }
 
- /* Highlighting */
- .highlight-winner {
- background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
- }
+        /* Highlighting */
+        .highlight-winner {
+            background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
+        }
 
- .highlight-loser {
- background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
- }
+        .highlight-loser {
+            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
 
- /* Popup Modal */
- #popupModal {
- display: none;
- position: fixed;
- top: 50%;
- left: 50%;
- transform: translate(-50%, -50%);
- background: #ffffff;
- border: none;
- padding: 5px 20px 12px 20px;
- z-index: 1000;
- font-family: 'Economica', sans-serif;
- text-align: center;
- box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
- border-radius: 10px;
- }
+        /* Popup Modal */
+        #popupModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ffffff;
+            border: none;
+            padding: 5px 20px 12px 20px;
+            z-index: 1000;
+            font-family: 'Economica', sans-serif;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
 
- #popupModal, #roundManagementModal {
- text-align: center;
- }
+        #popupModal, #roundManagementModal {
+            text-align: center;
+        }
 
- #popupModal h2,
- #roundManagementModal h2,
- #playerNameModal h2 {
- margin-top: 15px; /* Space above the heading */
- margin-bottom: 15px; /* Space below the heading */
- padding: 0; /* Optional: removes any default padding */
- }
+        #popupModal h2,
+        #roundManagementModal h2,
+        #playerNameModal h2 {
+            margin-top: 15px;    /* Space above the heading */
+            margin-bottom: 15px; /* Space below the heading */
+            padding: 0;          /* Optional: removes any default padding */
+        }
 
- #popupModal button {
- font-size: 24px;
- padding: 10px 20px;
- margin: 2px;
- cursor: pointer;
- font-family: 'Economica', sans-serif;
- background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
- color: white;
- border: none;
- border-radius: 6px;
- transition: background 0.2s;
- }
+        #popupModal button {
+            font-size: 24px;
+            padding: 10px 20px;
+            margin: 2px;
+            cursor: pointer;
+            font-family: 'Economica', sans-serif;
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
 
- #roundManagementModal button#resetButton[data-confirm="true"] {
- background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
- }
+        #roundManagementModal button#resetButton[data-confirm="true"] {
+            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
 
- #popupOptions {
- display: grid;
- grid-template-columns: repeat(5, 40px);
- gap: 5px;
- justify-content: center;
- padding: 10px 0;
- box-sizing: border-box;
- }
+        #popupOptions {
+            display: grid;
+            grid-template-columns: repeat(5, 40px);
+            gap: 5px;
+            justify-content: center;
+            padding: 10px 0;
+            box-sizing: border-box;
+        }
 
- #popupOptions button {
- width: 40px;
- height: 40px;
- font-size: 24px;
- padding: 0;
- margin: 0;
- box-sizing: border-box;
- cursor: pointer;
- font-family: 'Economica', sans-serif, Arial;
- display: flex;
- justify-content: center;
- align-items: center;
- text-align: center;
- overflow: hidden;
- white-space: nowrap;
- background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
- color: white;
- border: none;
- border-radius: 6px;
- transition: background 0.2s ease;
- -webkit-appearance: none;
- appearance: none;
- line-height: 1;
- outline: none;
- }
+        #popupOptions button {
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            cursor: pointer;
+            font-family: 'Economica', sans-serif, Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+            -webkit-appearance: none;
+            appearance: none;
+            line-height: 1;
+            outline: none;
+        }
 
- /* Round Management Modal */
- #roundManagementModal {
- display: none;
- position: fixed;
- top: 50%;
- left: 50%;
- transform: translate(-50%, -50%);
- background: #ffffff;
- border: none;
- padding: 5px 20px 20px 20px;
- z-index: 1001;
- width: 200px;
- max-width: 90%;
- font-family: 'Economica', sans-serif;
- box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
- border-radius: 10px;
- }
+        /* Round Management Modal */
+        #roundManagementModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ffffff;
+            border: none;
+            padding: 5px 20px 20px 20px;
+            z-index: 1001;
+            width: 200px;
+            max-width: 90%;
+            font-family: 'Economica', sans-serif;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
 
- #roundManagementModal select {
- font-size: 24px;
- padding: 10px;
- margin: 5px 0;
- font-family: 'Economica', sans-serif;
- border: 1px solid #333;
- border-radius: 6px;
- background: #ffffff;
- }
+        #roundManagementModal select {
+            font-size: 24px;
+            padding: 10px;
+            margin: 5px 0;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #ffffff;
+        }
 
- #roundManagementModal button {
- font-size: 24px;
- padding: 10px 20px;
- margin: 5px;
- cursor: pointer;
- font-family: 'Economica', sans-serif;
- background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
- color: white;
- border: none;
- border-radius: 6px;
- transition: background 0.2s;
- }
+        #roundManagementModal button {
+            font-size: 24px;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: 'Economica', sans-serif;
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
 
- /* Player Name Modal */
- #playerNameModal {
- display: none;
- position: fixed;
- top: 15%;
- left: 50%;
- transform: translate(-50%, -15%);
- background: #ffffff;
- border: none;
- padding: 5px 20px 20px 20px;
- z-index: 1001;
- width: 200px;
- max-width: 90%;
- text-align: center;
- font-family: 'Economica', sans-serif;
- box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
- border-radius: 10px;
- }
+        /* Player Name Modal */
+        #playerNameModal {
+            display: none;
+            position: fixed;
+            top: 15%;
+            left: 50%;
+            transform: translate(-50%, -15%);
+            background: #ffffff;
+            border: none;
+            padding: 5px 20px 20px 20px;
+            z-index: 1001;
+            width: 200px;
+            max-width: 90%;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
 
- #playerNameModal input[type="text"] {
- font-size: 24px;
- padding: 10px;
- width: 100%;
- box-sizing: border-box;
- margin: 5px 0;
- text-align: center;
- font-family: 'Economica', sans-serif;
- border: 1px solid #d0d7de;
- border-radius: 6px;
- background: #ffffff;
- box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
- transition: border-color 0.2s ease;
- }
+        #playerNameModal input[type="text"] {
+            font-size: 24px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 5px 0;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.2s ease;
+        }
 
- #playerNameModal input[type="text"]:focus {
- outline: none;
- border: 1px solid #333333;
- }
+        #playerNameModal input[type="text"]:focus {
+            outline: none;
+            border: 1px solid #333333;
+        }
 
- #playerNameInput {
- text-transform: uppercase;
- }
+        #playerNameInput {
+            text-transform: uppercase;
+        }
 
- #playerNameModal button {
- font-size: 24px;
- padding: 10px 20px;
- margin: 5px;
- cursor: pointer;
- font-family: 'Economica', sans-serif;
- background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
- color: white;
- border: none;
- border-radius: 6px;
- transition: background 0.2s;
- }
+        #playerNameModal button {
+            font-size: 24px;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: 'Economica', sans-serif;
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
 
- #playerNameModal button[data-state="confirm"] {
- background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
- }
+        #playerNameModal button[data-state="confirm"] {
+            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
 
- /* Close Button */
- .close-btn {
- position: absolute;
- top: 0px;
- right: 0px;
- font-size: 48px;
- color: #000000;
- cursor: pointer;
- background: none;
- border: none;
- padding: 0;
- line-height: 1;
- width: 40px;
- height: 40px;
- text-align: center;
- transition: color 0.2s ease;
- }
+        /* Close Button */
+        .close-btn {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            font-size: 48px;
+            color: #000000;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            transition: color 0.2s ease;
+        }
 
- /* Emoji Scaling */
- .scaled-emoji {
- transform: scale(0.6);
- transform-origin: center;
- display: inline-block;
- height: 20px;
- line-height: 20px;
- }
+        /* Emoji Scaling */
+        .scaled-emoji {
+            transform: scale(0.6);
+            transform-origin: center;
+            display: inline-block;
+            height: 20px;
+            line-height: 20px;
+        }
 
- .scaled-emoji-2 {
- transform: scale(.6);
- transform-origin: center;
- display: inline-block;
- }
+        .scaled-emoji-2 {
+            transform: scale(.6);
+            transform-origin: center;
+            display: inline-block;
+        }
 
- /* Overlay */
- #overlay {
- display: none;
- position: fixed;
- top: 0;
- left: 0;
- width: 100%;
- height: 100%;
- background: rgba(0, 0, 0, 0.5);
- z-index: 999;
- cursor: pointer;
- }
+        /* Overlay */
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            cursor: pointer;
+        }
 
- /* Disable Tap Highlight */
- * {
- -webkit-tap-highlight-color: transparent;
- }
+        /* Disable Tap Highlight */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
 
- /* Drag feedback styles */
- th.dragging {
- opacity: 0.5;
- background: rgba(0, 0, 0, 0.2);
- }
+        /* Drag feedback styles (Added for drag-and-drop) */
+        th.dragging {
+            opacity: 0.5;
+            background: rgba(0, 0, 0, 0.2);
+        }
 
- th.drag-over {
- border-left: 2px solid #333;
- }
- </style>
+        th.drag-over {
+            border-left: 2px solid #333;
+        }
+    </style>
 </head>
 <body>
- <!-- Score Table -->
- <table id="scoreTable">
- <thead>
- <tr>
- <th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>
- </tr>
- </thead>
- <tbody>
- <tr><td><img src="/score/assets/images/yahtzee-icon-01.svg" alt="Ones" style="width: 20px; height: 20px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-02.svg" alt="Twos" style="width: 20px; height: 20px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-03.svg" alt="Threes" style="width: 20px; height: 20px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-04.svg" alt="Fours" style="width: 20px; height: 20px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-05.svg" alt="Fives" style="width: 20px; height: 20px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-06.svg" alt="Sixes" style="width: 20px; height: 20px;"></td></tr>
- <tr class="bonus-row"><td><img src="/score/assets/images/yahtzee-icon-07.svg" alt="Bonus" style="width: 20px; height: 20px;"></td></tr>
- <tr class="upper-score-row"><td><img src="/score/assets/images/yahtzee-icon-08.svg" alt="Upper Score" style="width: 15px; height: 15px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-09.svg" alt="Three of a Kind" style="width: 20px; height: 20px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-10.svg" alt="Four of a Kind" style="width: 20px; height: 20px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-11.svg" alt="Full House" style="width: 20px; height: 20px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-12.svg" alt="Small Straight" style="width: 20px; height: 20px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-13.svg" alt="Large Straight" style="width: 20px; height: 20px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-14.svg" alt="Yahtzee" style="width: 20px; height: 20px;"></td></tr>
- <tr><td><img src="/score/assets/images/yahtzee-icon-15.svg" alt="Chance" style="width: 20px; height: 20px;"></td></tr>
- <tr class="lower-score-row"><td><img src="/score/assets/images/yahtzee-icon-16.svg" alt="Lower Score" style="width: 15px; height: 15px;"></td></tr>
- </tbody>
- </table>
+    <!-- Score Table -->
+    <table id="scoreTable">
+        <thead>
+            <tr>
+                <th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-01.svg" alt="Ones" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-02.svg" alt="Twos" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-03.svg" alt="Threes" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-04.svg" alt="Fours" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-05.svg" alt="Fives" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-06.svg" alt="Sixes" style="width: 20px; height: 20px;"></td></tr>
+            <tr class="bonus-row"><td><img src="/score/assets/images/yahtzee-icon-07.svg" alt="Bonus" style="width: 20px; height: 20px;"></td></tr>
+            <tr class="upper-score-row"><td><img src="/score/assets/images/yahtzee-icon-08.svg" alt="Upper Score" style="width: 15px; height: 15px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-09.svg" alt="Three of a Kind" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-10.svg" alt="Four of a Kind" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-11.svg" alt="Full House" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-12.svg" alt="Small Straight" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-13.svg" alt="Large Straight" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-14.svg" alt="Yahtzee" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="/score/assets/images/yahtzee-icon-15.svg" alt="Chance" style="width: 20px; height: 20px;"></td></tr>
+            <tr class="lower-score-row"><td><img src="/score/assets/images/yahtzee-icon-16.svg" alt="Lower Score" style="width: 15px; height: 15px;"></td></tr>
+        </tbody>
+    </table>
 
- <!-- Score Selection Popup -->
- <div id="popupModal">
- <h2 id="popupTitle">Select Score:</h2>
- <span class="close-btn" onclick="closePopup()">×</span>
- <div id="popupOptions"></div>
- </div>
+    <!-- Score Selection Popup -->
+    <div id="popupModal">
+        <h2 id="popupTitle">Select Score:</h2>
+        <span class="close-btn" onclick="closePopup()">×</span>
+        <div id="popupOptions"></div>
+    </div>
 
- <div id="roundManagementModal">
- <h2>Round</h2>
- <span class="close-btn" onclick="closeRoundManagement()">×</span>
- <select id="playerCount" onchange="updatePlayerCount()">
- <option value="1">1 Players</option>
- <option value="2">2 Players</option>
- <option value="3">3 Players</option>
- <option value="4">4 Players</option>
- <option value="5">5 Players</option>
- <option value="6">6 Players</option>
- <option value="7">7 Players</option>
- <option value="8">8 Players</option>
- </select>
- <button id="resetButton" onclick="handleResetClick()">Reset</button>
- </div>
+    <div id="roundManagementModal">
+        <h2>Round</h2>
+        <span class="close-btn" onclick="closeRoundManagement()">×</span>
+        <select id="playerCount" onchange="updatePlayerCount()">
+            <option value="1">1 Players</option>
+            <option value="2">2 Players</option>
+            <option value="3">3 Players</option>
+            <option value="4">4 Players</option>
+            <option value="5">5 Players</option>
+            <option value="6">6 Players</option>
+            <option value="7">7 Players</option>
+            <option value="8">8 Players</option>
+        </select>
+        <button id="resetButton" onclick="handleResetClick()">Reset</button>
+    </div>
 
- <!-- Player Name Modal -->
- <div id="playerNameModal">
- <h2>Player</h2>
- <span class="close-btn" onclick="closePlayerNameModal()">×</span>
- <input type="text" id="playerNameInput" placeholder="" autocapitalize="characters" inputmode="text">
- <button onclick="updatePlayerName()">Update</button>
- <button onclick="handleRemovePlayer(this)" data-state="initial">Remove</button>
- </div>
+    <!-- Player Name Modal -->
+    <div id="playerNameModal">
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePlayerNameModal()">×</span>
+        <input type="text" id="playerNameInput" placeholder="" autocapitalize="characters" inputmode="text">
+        <button onclick="updatePlayerName()">Update</button>
+        <button onclick="handleRemovePlayer(this)" data-state="initial">Remove</button>
+    </div>
 
- <!-- Overlay for Modals -->
- <div id="overlay" style="display: none;"></div>
+    <!-- Overlay for Modals -->
+    <div id="overlay" style="display: none;"></div>
 
- <script>
- // Set table height to match viewport
- function setFullHeight() {
- const table = document.getElementById("scoreTable");
- if (table) {
- table.style.height = `${window.innerHeight}px`;
- }
- }
- 
- // Initial page load setup
- document.addEventListener("DOMContentLoaded", function() {
- setFullHeight();
- let savedPlayerCount = localStorage.getItem('playerCount');
- if (savedPlayerCount) {
- document.getElementById('playerCount').value = savedPlayerCount;
- updatePlayerCount();
- } else {
- document.getElementById('playerCount').value = '4';
- updatePlayerCount();
- }
- loadScores();
- reattachEventListeners();
- const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
- headers.forEach(header => {
- const player = header.getAttribute('data-player');
- const savedName = localStorage.getItem(`playerName-${player}`);
- if (savedName) {
- const totalDiv = header.querySelector('div');
- header.innerHTML = `${savedName}<div id="${totalDiv.id}">${totalDiv.textContent}</div>`;
- }
- });
- const playerNameInput = document.getElementById('playerNameInput');
- playerNameInput.addEventListener('keypress', function(e) {
- if (e.key === 'Enter') {
- updatePlayerName();
- closePlayerNameModal();
- }
- });
- });
- 
- // Resize handler
- window.addEventListener('resize', setFullHeight);
- 
- // Calculate player's total score
- function calculateTotal(player) {
- let total = 0;
- let upperSectionTotal = 0;
- let lowerSectionTotal = 0;
- document.querySelectorAll(`[data-player="${player}"]`).forEach(score => {
- if (score.type === 'number') {
- let value = parseInt(score.value) || 0;
- total += value;
- const category = score.closest('tr').cells[0].querySelector('img').alt;
- if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(category)) {
- upperSectionTotal += value;
- } else {
- lowerSectionTotal += value;
- }
- } else if (score.classList.contains('lower-section-cell')) {
- let state = parseInt(score.getAttribute('data-state'));
- if (state === 1) {
- let scoreValue = parseInt(score.getAttribute('data-score'));
- total += scoreValue;
- lowerSectionTotal += scoreValue;
- }
- } else if (score.classList.contains('upper-section-cell') && score.textContent !== '❌' && score.textContent !== '') {
- let value = parseInt(score.textContent) || 0;
- total += value;
- const category = score.closest('tr').cells[0].querySelector('img').alt;
- if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(category)) {
- lowerSectionTotal += value;
- } else {
- upperSectionTotal += value;
- }
- }
- });
- 
- let bonus = upperSectionTotal >= 63 ? 35 : 0;
- let bonusElement = document.getElementById(`bonus${player}`);
- let pointsNeededElement = document.getElementById(`pointsNeeded${player}`);
- 
- if (bonusElement && pointsNeededElement) {
- if (bonus > 0) {
- pointsNeededElement.textContent = '35';
- pointsNeededElement.classList.add('bonus-achieved');
- } else {
- pointsNeededElement.textContent = (63 - upperSectionTotal).toString();
- pointsNeededElement.classList.remove('bonus-achieved');
- }
- 
- document.getElementById(`upperScore${player}`).textContent = upperSectionTotal;
- document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
- total += bonus;
- document.getElementById(`total${player}`).textContent = total;
- }
- }
- 
- // Overlay controls
- function showOverlay() {
- document.getElementById('overlay').style.display = 'block';
- }
- 
- function hideOverlay() {
- document.getElementById('overlay').style.display = 'none';
- }
- 
- // Show score selection popup
- function showPopup(cell, category, player) {
- closeAllPopups();
- document.getElementById('popupModal').style.display = 'block';
- showOverlay();
- const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
- document.getElementById('popupTitle').textContent = categoryAlt;
- 
- let options = '';
- if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(categoryAlt)) {
- for (let i = 1; i <= 30; i++) {
- options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
- }
- options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
- options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
- } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
- const faceValueMap = {
- 'Ones': 1,
- 'Twos': 2,
- 'Threes': 3,
- 'Fours': 4,
- 'Fives': 5,
- 'Sixes': 6
- };
- const faceValue = faceValueMap[categoryAlt] || 1;
- for (let i = 1; i <= 5; i++) {
- let score = i * faceValue;
- options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
- }
- options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
- options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
- }
- document.getElementById('popupOptions').innerHTML = options;
- window.lastClickedCell = cell;
- }
- 
- // Handle score selection
- function selectScore(score, player, categoryAlt, event) {
- event.stopPropagation();
- const cell = window.lastClickedCell;
- let cellId = `${player}-${categoryAlt}`;
- 
- if (score === 0) {
- cell.innerHTML = '<span class="scaled-emoji">❌</span>';
- localStorage.setItem(cellId, '❌');
- cell.style.textDecoration = 'none';
- } else if (score === '') {
- cell.textContent = '';
- localStorage.removeItem(cellId);
- cell.style.textDecoration = 'none';
- } else {
- cell.textContent = score;
- localStorage.setItem(cellId, score);
- cell.style.textDecoration = 'none';
- }
- 
- calculateTotal(player);
- closePopup();
- updateRanks();
- }
- 
- // Popup controls
- function closePopup() {
- document.getElementById('popupModal').style.display = 'none';
- hideOverlay();
- }
- 
- function showRoundManagement() {
- closeAllPopups();
- document.getElementById('roundManagementModal').style.display = 'block';
- showOverlay();
- }
- 
- function closeRoundManagement() {
- resetButtonState(); // Reset button state when closing the modal
- document.getElementById('roundManagementModal').style.display = 'none';
- hideOverlay();
- }
- 
- // Add this variable at the top of the reset section
- let resetConfirm = false;
- 
- // Function to reset the button to its original state
- function resetButtonState() {
- const resetButton = document.getElementById('resetButton');
- resetButton.textContent = 'Reset';
- resetButton.removeAttribute('data-confirm'); // Remove attribute to revert to gray gradient
- resetConfirm = false;
- }
- 
- // Updated reset handling functions
- function handleResetClick() {
- const resetButton = document.getElementById('resetButton');
- 
- if (!resetConfirm) {
- // First click: change to Confirm
- resetButton.textContent = 'Confirm';
- resetButton.setAttribute('data-confirm', 'true'); // Add attribute for CSS targeting
- resetConfirm = true;
- } else {
- // Second click: execute reset
- resetScores();
- resetButtonState(); // Reset button state after confirming
- }
- }
- 
- function resetScores() {
- document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
- cell.textContent = '';
- cell.style.textDecoration = 'none';
- cell.setAttribute('data-state', '0');
- const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
- localStorage.removeItem(cell.getAttribute('data-player') + '-' + categoryAlt);
- });
- 
- const playerCount = parseInt(document.getElementById('playerCount').value);
- for (let i = 1; i <= playerCount; i++) {
- let player = `P${i}`;
- document.getElementById(`total${player}`).textContent = '0';
- document.getElementById(`upperScore${player}`).textContent = '0';
- document.getElementById(`lowerScore${player}`).textContent = '0';
- document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
- }
- closeRoundManagement();
- updateRanks();
- }
- 
- // Update player count and table structure
- function updatePlayerCount() {
- const playerCount = parseInt(document.getElementById('playerCount').value);
- localStorage.setItem('playerCount', playerCount);
- const table = document.getElementById('scoreTable');
- const headers = table.querySelector('thead tr');
- const rows = table.querySelectorAll('tbody tr');
- closeRoundManagement();
- 
- const existingPlayers = headers.children.length - 1;
- if (playerCount < existingPlayers) {
- for (let i = existingPlayers; i > playerCount; i--) {
- headers.removeChild(headers.lastChild);
- rows.forEach(row => {
- row.removeChild(row.lastChild);
- });
- const player = `P${i}`;
- for (let j = 0; j < rows.length; j++) {
- const categoryAlt = rows[j].firstElementChild.querySelector('img').alt;
- const cellId = `${player}-${categoryAlt}`;
- localStorage.removeItem(cellId);
- }
- localStorage.removeItem(`playerName-${player}`);
- }
- } else {
- for (let i = existingPlayers + 1; i <= playerCount; i++) {
- const newHeader = document.createElement('th');
- newHeader.draggable = true;
- newHeader.setAttribute('data-player', `P${i}`);
- newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
- newHeader.addEventListener('dragstart', handleDragStart);
- newHeader.addEventListener('dragover', handleDragOver);
- newHeader.addEventListener('drop', handleDrop);
- newHeader.addEventListener('dragend', handleDragEnd);
- headers.appendChild(newHeader);
- 
- rows.forEach(row => {
- const newCell = document.createElement('td');
- const categoryAlt = row.firstElementChild.querySelector('img').alt;
- if (categoryAlt === 'Bonus') {
- newCell.id = `bonusP${i}`;
- newCell.innerHTML = '<span id="pointsNeededP' + i + '" class="points-needed">63</span>';
- } else if (categoryAlt === 'Upper Score') {
- newCell.id = `upperScoreP${i}`;
- newCell.textContent = '0';
- } else if (categoryAlt === 'Lower Score') {
- newCell.id = `lowerScoreP${i}`;
- newCell.textContent = '0';
- } else if (['Full House', 'Small Straight', 'Large Straight', 'Yahtzee'].includes(categoryAlt)) {
- newCell.className = 'lower-section-cell';
- newCell.setAttribute('data-player', `P${i}`);
- newCell.setAttribute('data-category', categoryAlt);
- newCell.setAttribute('data-score', categoryAlt === 'Full House' ? '25' : categoryAlt === 'Small Straight' ? '30' : categoryAlt === 'Large Straight' ? '40' : '50');
- newCell.setAttribute('data-state', '0');
- newCell.onclick = function(e) {
- let currentState = parseInt(this.getAttribute('data-state')) || 0;
- currentState = (currentState + 1) % 3;
- this.setAttribute('data-state', currentState);
- let cellId = this.getAttribute('data-player') + '-' + this.closest('tr').cells[0].querySelector('img').alt;
- switch(currentState) {
- case 0:
- this.textContent = '';
- localStorage.removeItem(cellId);
- this.style.textDecoration = 'none';
- break;
- case 1:
- this.textContent = this.getAttribute('data-score');
- localStorage.setItem(cellId, this.getAttribute('data-score'));
- this.style.textDecoration = 'none';
- break;
- case 2:
- this.innerHTML = '<span class="scaled-emoji">❌</span>';
- localStorage.setItem(cellId, '❌');
- this.style.textDecoration = 'none';
- break;
- }
- calculateTotal(this.getAttribute('data-player'));
- updateRanks();
- };
- } else {
- newCell.className = 'upper-section-cell';
- newCell.setAttribute('data-player', `P${i}`);
- newCell.onclick = function() {
- showPopup(this, categoryAlt, `P${i}`);
- };
- }
- row.appendChild(newCell);
- });
- }
- }
- for (let i = 1; i <= playerCount; i++) {
- calculateTotal(`P${i}`);
- }
- reattachEventListeners();
- updateRanks();
- }
- 
- // Reattach event listeners to headers
- function reattachEventListeners() {
- document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
- header.removeEventListener('click', header.clickHandler);
- header.clickHandler = function(e) {
- e.stopPropagation();
- const player = this.getAttribute('data-player');
- const playerName = this.innerText.split('\n')[0].trim();
- const playerNameInput = document.getElementById('playerNameInput');
- playerNameInput.value = playerName;
- closeAllPopups();
- document.getElementById('playerNameModal').style.display = 'block';
- showOverlay();
- window.currentPlayer = player;
- playerNameInput.focus();
- playerNameInput.select();
- };
- header.addEventListener('click', header.clickHandler);
- // Add drag event listeners
- header.draggable = true;
- header.removeEventListener('dragstart', handleDragStart);
- header.removeEventListener('dragover', handleDragOver);
- header.removeEventListener('drop', handleDrop);
- header.removeEventListener('dragend', handleDragEnd);
- header.addEventListener('dragstart', handleDragStart);
- header.addEventListener('dragover', handleDragOver);
- header.addEventListener('drop', handleDrop);
- header.addEventListener('dragend', handleDragEnd);
- });
- }
- 
- // Load saved scores from localStorage
- function loadScores() {
- const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
- cells.forEach(cell => {
- const player = cell.getAttribute('data-player');
- const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
- const cellId = `${player}-${categoryAlt}`;
- const savedScore = localStorage.getItem(cellId);
- 
- if (savedScore) {
- if (savedScore === '❌') {
- cell.innerHTML = '<span class="scaled-emoji">❌</span>';
- cell.setAttribute('data-state', '2');
- } else {
- cell.textContent = savedScore;
- cell.setAttribute('data-state', '1');
- }
- }
- });
- const playerCount = parseInt(document.getElementById('playerCount').value);
- for (let i = 1; i <= playerCount; i++) {
- calculateTotal(`P${i}`);
- }
- updateRanks();
- }
- 
- // Update player rankings
- function updateRanks() {
- const totalScores = document.querySelectorAll('[id^="total"]');
- let anyScoreEntered = false;
- totalScores.forEach(scoreElement => {
- if (parseInt(scoreElement.textContent) > 0) {
- anyScoreEntered = true;
- }
- });
- 
- if (!anyScoreEntered) {
- totalScores.forEach(scoreElement => {
- scoreElement.textContent = "";
- while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
- scoreElement.parentElement.removeChild(scoreElement.nextSibling);
- }
- scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
- });
- } else {
- const scoresArray = Array.from(totalScores).map(scoreElement => ({
- player: scoreElement.id,
- score: parseInt(scoreElement.textContent) || 0
- }));
- scoresArray.sort((a, b) => b.score - a.score);
- 
- let rank = 1;
- let lastScore = null;
- const rankMap = {};
- let lastPlaceScores = [];
- 
- scoresArray.forEach((player, index) => {
- if (lastScore !== null && player.score === lastScore) {
- rankMap[player.player] = rank;
- } else {
- rank = index + 1;
- rankMap[player.player] = rank;
- }
- lastScore = player.score;
- 
- if (index === scoresArray.length - 1) {
- lastPlaceScores = scoresArray.filter(p => p.score === player.score).map(p => p.player);
- }
- });
- 
- const allScoresSame = scoresArray.every(player => player.score === scoresArray[0].score);
- const maxScore = scoresArray[0].score;
- const minScore = scoresArray[scoresArray.length - 1].score;
- 
- totalScores.forEach(scoreElement => {
- const rank = rankMap[scoreElement.id];
- const score = parseInt(scoreElement.textContent) || 0;
- 
- scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
- while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
- scoreElement.parentElement.removeChild(scoreElement.nextSibling);
- }
- 
- if (allScoresSame) {
- scoreElement.parentElement.classList.add('highlight-winner');
- } else if (score === maxScore && score > minScore) {
- scoreElement.parentElement.classList.add('highlight-winner');
- } else if (lastPlaceScores.includes(scoreElement.id) && score < maxScore) {
- scoreElement.parentElement.classList.add('highlight-loser');
- }
- 
- scoreElement.textContent = score;
- const rankElement = document.createElement('small');
- rankElement.textContent = ordinalSuffixOf(rank);
- scoreElement.parentElement.appendChild(rankElement);
- });
- }
- }
- 
- // Convert number to ordinal suffix
- function ordinalSuffixOf(i) {
- var j = i % 10,
- k = i % 100;
- if (j === 1 && k !== 11) {
- return i + "st";
- }
- if (j === 2 && k !== 12) {
- return i + "nd";
- }
- if (j === 3 && k !== 13) {
- return i + "rd";
- }
- return i + "th";
- }
- 
- // Event listeners for ranking updates
- document.getElementById('scoreTable').addEventListener('click', updateRanks);
- document.getElementById('playerCount').addEventListener('change', updateRanks);
- document.addEventListener('DOMContentLoaded', updateRanks);
- 
- // Update player name
- function updatePlayerName() {
- const newName = document.getElementById('playerNameInput').value.toUpperCase();
- if (newName && window.currentPlayer) {
- const playerHeader = document.querySelector(`#scoreTable thead th[data-player="${window.currentPlayer}"]`);
- if (playerHeader) {
- const totalDiv = playerHeader.querySelector('div');
- const score = totalDiv ? totalDiv.textContent : '0';
- const rankElement = playerHeader.querySelector('small');
- let rankHTML = rankElement ? rankElement.outerHTML : '';
- playerHeader.innerHTML = `${newName}<div id="total${window.currentPlayer}">${score}</div>${rankHTML}`;
- localStorage.setItem(`playerName-${window.currentPlayer}`, newName);
- closePlayerNameModal();
- }
- }
- }
- 
- // Close player name modal
- function closePlayerNameModal() {
- document.getElementById('playerNameModal').style.display = 'none';
- const removeButton = document.querySelector('#playerNameModal button[onclick^="handleRemovePlayer"]');
- if (removeButton) {
- removeButton.textContent = 'Remove';
- removeButton.dataset.state = 'initial';
- }
- hideOverlay();
- }
- 
- // Remove a player
- function removePlayer(player) {
- if (!player) return;
- 
- const playerIndex = parseInt(player.replace('P', '')) - 1;
- const playerCount = parseInt(document.getElementById('playerCount').value);
- 
- if (playerCount <= 1) {
- alert("At least one player must remain.");
- return;
- }
- 
- // Remove the player from the table headers and rows
- const table = document.getElementById('scoreTable');
- const headers = table.querySelector('thead tr');
- const rows = table.querySelectorAll('tbody tr');
- 
- // Remove the player's column
- if (headers.children[playerIndex + 1]) {
- headers.removeChild(headers.children[playerIndex + 1]); // +1 to skip the first column
- }
- rows.forEach(row => {
- if (row.children[playerIndex + 1]) {
- row.removeChild(row.children[playerIndex + 1]);
- }
- });
- 
- // Clear local storage for the removed player
- const categories = [
- 'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
- 'Three of a Kind', 'Four of a Kind', 'Full House',
- 'Small Straight', 'Large Straight ', 'Yahtzee', 'Chance'
- ];
- categories.forEach(category => {
- localStorage.removeItem(`${player}-${category}`);
- });
- localStorage.removeItem(`playerName-${player}`);
- 
- // Decrease player count
- const newPlayerCount = playerCount - 1;
- document.getElementById('playerCount').value = newPlayerCount;
- localStorage.setItem('playerCount', newPlayerCount);
- 
- // Adjust remaining players' names and IDs
- for (let i = playerIndex + 1; i < playerCount; i++) {
- const oldPlayer = `P${i + 1}`;
- const newPlayer = `P${i}`;
- const headerIndex = i; // Since we already removed one column
- const header = headers.children[headerIndex];
- if (header) {
- const totalDiv = header.querySelector('div');
- const rankElement = header.querySelector('small');
- let rankHTML = rankElement ? rankElement.outerHTML : '';
- const playerName = header.innerText.split('\n')[0].trim();
- 
- header.setAttribute('data-player', newPlayer);
- if (totalDiv) {
- totalDiv.id = `total${newPlayer}`;
- header.innerHTML = `${playerName}<div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
- }
- }
- 
- rows.forEach(row => {
- const cell = row.children[headerIndex];
- if (cell && (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell'))) {
- cell.setAttribute('data-player', newPlayer);
- }
- // Update IDs for special rows
- if (row.classList.contains('bonus-row') && cell) {
- cell.id = `bonus${newPlayer}`;
- cell.innerHTML = `<span id="pointsNeeded${newPlayer}" class="points-needed">63</span>`;
- } else if (row.classList.contains('upper-score-row') && cell) {
- cell.id = `upperScore${newPlayer}`;
- cell.textContent = '0';
- } else if (row.classList.contains('lower-score-row') && cell) {
- cell.id = `lowerScore${newPlayer}`;
- cell.textContent = '0';
- }
- });
- 
- // Update local storage for renamed players
- const savedName = localStorage.getItem(`playerName-${oldPlayer}`);
- if (savedName) {
- localStorage.setItem(`playerName-${newPlayer}`, savedName);
- localStorage.removeItem(`playerName-${oldPlayer}`);
- }
- categories.forEach(category => {
- const savedScore = localStorage.getItem(`${oldPlayer}-${category}`);
- if (savedScore) {
- localStorage.setItem(`${newPlayer}-${category}`, savedScore);
- localStorage.removeItem(`${oldPlayer}-${category}`);
- }
- });
- }
- 
- // Reattach event listeners and update UI
- reattachEventListeners();
- for (let i = 1; i <= newPlayerCount; i++) {
- calculateTotal(`P${i}`);
- }
- updateRanks();
- closePlayerNameModal();
- }
- 
- // Handle player removal with confirmation state
- function handleRemovePlayer(button) {
- if (button.dataset.state === 'initial') {
- button.textContent = 'Confirm';
- button.dataset.state = 'confirm';
- } else {
- if (window.currentPlayer) {
- removePlayer(window.currentPlayer);
- }
- }
- }
- 
- // Close all popups
- function closeAllPopups() {
- // Reset the reset button state if the round management modal was open
- if (document.getElementById('roundManagementModal').style.display === 'block') {
- resetButtonState();
- document.getElementById('roundManagementModal').style.display = 'none';
- }
- 
- // Close the popup modal
- if (document.getElementById('popupModal').style.display === 'block') {
- document.getElementById('popupModal').style.display = 'none';
- }
- 
- // Close the player name modal and reset the remove button state
- if (document.getElementById('playerNameModal').style.display === 'block') {
- closePlayerNameModal();
- }
- 
- hideOverlay();
- }
- 
- // Overlay click handler
- document.getElementById('overlay').addEventListener('click', function() {
- closeAllPopups();
- });
+    <script>
+        // Set table height to match viewport
+        function setFullHeight() {
+            const table = document.getElementById("scoreTable");
+            if (table) {
+                table.style.height = `${window.innerHeight}px`;
+            }
+        }
+    
+        // Initial page load setup
+        document.addEventListener("DOMContentLoaded", function() {
+            setFullHeight();
+            let savedPlayerCount = localStorage.getItem('playerCount');
+            if (savedPlayerCount) {
+                document.getElementById('playerCount').value = savedPlayerCount;
+                updatePlayerCount();
+            } else {
+                document.getElementById('playerCount').value = '4';
+                updatePlayerCount();
+            }
+            loadScores();
+            reattachEventListeners();
+            const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
+            headers.forEach(header => {
+                const player = header.getAttribute('data-player');
+                const savedName = localStorage.getItem(`playerName-${player}`);
+                if (savedName) {
+                    const totalDiv = header.querySelector('div');
+                    header.innerHTML = `${savedName}<div id="${totalDiv.id}">${totalDiv.textContent}</div>`;
+                }
+            });
+            const playerNameInput = document.getElementById('playerNameInput');
+            playerNameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    updatePlayerName();
+                    closePlayerNameModal();
+                }
+            });
+        });
+    
+        // Resize handler
+        window.addEventListener('resize', setFullHeight);
+    
+        // Calculate player's total score
+        function calculateTotal(player) {
+            let total = 0;
+            let upperSectionTotal = 0;
+            let lowerSectionTotal = 0;
+            document.querySelectorAll(`[data-player="${player}"]`).forEach(score => {
+                if (score.type === 'number') {
+                    let value = parseInt(score.value) || 0;
+                    total += value;
+                    const category = score.closest('tr').cells[0].querySelector('img').alt;
+                    if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(category)) {
+                        upperSectionTotal += value;
+                    } else {
+                        lowerSectionTotal += value;
+                    }
+                } else if (score.classList.contains('lower-section-cell')) {
+                    let state = parseInt(score.getAttribute('data-state'));
+                    if (state === 1) {
+                        let scoreValue = parseInt(score.getAttribute('data-score'));
+                        total += scoreValue;
+                        lowerSectionTotal += scoreValue;
+                    }
+                } else if (score.classList.contains('upper-section-cell') && score.textContent !== '❌' && score.textContent !== '') {
+                    let value = parseInt(score.textContent) || 0;
+                    total += value;
+                    const category = score.closest('tr').cells[0].querySelector('img').alt;
+                    if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(category)) {
+                        lowerSectionTotal += value;
+                    } else {
+                        upperSectionTotal += value;
+                    }
+                }
+            });
+            
+            let bonus = upperSectionTotal >= 63 ? 35 : 0;
+            let bonusElement = document.getElementById(`bonus${player}`);
+            let pointsNeededElement = document.getElementById(`pointsNeeded${player}`);
+            
+            if (bonusElement && pointsNeededElement) {
+                if (bonus > 0) {
+                    pointsNeededElement.textContent = '35';
+                    pointsNeededElement.classList.add('bonus-achieved');
+                } else {
+                    pointsNeededElement.textContent = (63 - upperSectionTotal).toString();
+                    pointsNeededElement.classList.remove('bonus-achieved');
+                }
+            
+                document.getElementById(`upperScore${player}`).textContent = upperSectionTotal;
+                document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
+                total += bonus;
+                document.getElementById(`total${player}`).textContent = total;
+            }
+        }
+    
+        // Overlay controls
+        function showOverlay() {
+            document.getElementById('overlay').style.display = 'block';
+        }
+    
+        function hideOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+        }
+    
+        // Show score selection popup
+        function showPopup(cell, category, player) {
+            closeAllPopups();
+            document.getElementById('popupModal').style.display = 'block';
+            showOverlay();
+            const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+            document.getElementById('popupTitle').textContent = categoryAlt;
+            
+            let options = '';
+            if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(categoryAlt)) {
+                for (let i = 1; i <= 30; i++) {
+                    options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
+                }
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
+            } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
+                const faceValueMap = {
+                    'Ones': 1,
+                    'Twos': 2,
+                    'Threes': 3,
+                    'Fours': 4,
+                    'Fives': 5,
+                    'Sixes': 6
+                };
+                const faceValue = faceValueMap[categoryAlt] || 1;
+                for (let i = 1; i <= 5; i++) {
+                    let score = i * faceValue;
+                    options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
+                }
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
+            }
+            document.getElementById('popupOptions').innerHTML = options;
+            window.lastClickedCell = cell;
+        }
+    
+        // Handle score selection
+        function selectScore(score, player, categoryAlt, event) {
+            event.stopPropagation();
+            const cell = window.lastClickedCell;
+            let cellId = `${player}-${categoryAlt}`;
+    
+            if (score === 0) {
+                cell.innerHTML = '<span class="scaled-emoji">❌</span>';
+                localStorage.setItem(cellId, '❌');
+                cell.style.textDecoration = 'none';
+            } else if (score === '') {
+                cell.textContent = '';
+                localStorage.removeItem(cellId);
+                cell.style.textDecoration = 'none';
+            } else {
+                cell.textContent = score;
+                localStorage.setItem(cellId, score);
+                cell.style.textDecoration = 'none';
+            }
+            
+            calculateTotal(player);
+            closePopup();
+            updateRanks();
+        }
+    
+        // Popup controls
+        function closePopup() {
+            document.getElementById('popupModal').style.display = 'none';
+            hideOverlay();
+        }
+    
+        function showRoundManagement() {
+            closeAllPopups();
+            document.getElementById('roundManagementModal').style.display = 'block';
+            showOverlay();
+        }
+    
+        function closeRoundManagement() {
+            resetButtonState(); // Reset button state when closing the modal
+            document.getElementById('roundManagementModal').style.display = 'none';
+            hideOverlay();
+        }
+    
+        // Add this variable at the top of the reset section
+        let resetConfirm = false;
+    
+        // Function to reset the button to its original state
+        function resetButtonState() {
+            const resetButton = document.getElementById('resetButton');
+            resetButton.textContent = 'Reset';
+            resetButton.removeAttribute('data-confirm'); // Remove attribute to revert to gray gradient
+            resetConfirm = false;
+        }
+    
+        // Updated reset handling functions
+        function handleResetClick() {
+            const resetButton = document.getElementById('resetButton');
+            
+            if (!resetConfirm) {
+                // First click: change to Confirm
+                resetButton.textContent = 'Confirm';
+                resetButton.setAttribute('data-confirm', 'true'); // Add attribute for CSS targeting
+                resetConfirm = true;
+            } else {
+                // Second click: execute reset
+                resetScores();
+                resetButtonState(); // Reset button state after confirming
+            }
+        }
+    
+        function resetScores() {
+            document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
+                cell.textContent = '';
+                cell.style.textDecoration = 'none';
+                cell.setAttribute('data-state', '0');
+                const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+                localStorage.removeItem(cell.getAttribute('data-player') + '-' + categoryAlt);
+            });
+    
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            for (let i = 1; i <= playerCount; i++) {
+                let player = `P${i}`;
+                document.getElementById(`total${player}`).textContent = '0';
+                document.getElementById(`upperScore${player}`).textContent = '0';
+                document.getElementById(`lowerScore${player}`).textContent = '0';
+                document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
+            }
+            closeRoundManagement();
+            updateRanks();
+        }
+    
+        // Update player count and table structure
+        function updatePlayerCount() {
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            localStorage.setItem('playerCount', playerCount);
+            const table = document.getElementById('scoreTable');
+            const headers = table.querySelector('thead tr');
+            const rows = table.querySelectorAll('tbody tr');
+            closeRoundManagement();
+    
+            const existingPlayers = headers.children.length - 1;
+            if (playerCount < existingPlayers) {
+                for (let i = existingPlayers; i > playerCount; i--) {
+                    headers.removeChild(headers.lastChild);
+                    rows.forEach(row => {
+                        row.removeChild(row.lastChild);
+                    });
+                    const player = `P${i}`;
+                    for (let j = 0; j < rows.length; j++) {
+                        const categoryAlt = rows[j].firstElementChild.querySelector('img').alt;
+                        const cellId = `${player}-${categoryAlt}`;
+                        localStorage.removeItem(cellId);
+                    }
+                    localStorage.removeItem(`playerName-${player}`);
+                }
+            } else {
+                for (let i = existingPlayers + 1; i <= playerCount; i++) {
+                    const newHeader = document.createElement('th');
+                    newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
+                    newHeader.setAttribute('data-player', `P${i}`);
+                    newHeader.draggable = true; // Make header draggable
+                    headers.appendChild(newHeader);
+    
+                    rows.forEach(row => {
+                        const newCell = document.createElement('td');
+                        const categoryAlt = row.firstElementChild.querySelector('img').alt;
+                        if (categoryAlt === 'Bonus') {
+                            newCell.id = `bonusP${i}`;
+                            newCell.innerHTML = '<span id="pointsNeededP' + i + '" class="points-needed">63</span>';
+                        } else if (categoryAlt === 'Upper Score') {
+                            newCell.id = `upperScoreP${i}`;
+                            newCell.textContent = '0';
+                        } else if (categoryAlt === 'Lower Score') {
+                            newCell.id = `lowerScoreP${i}`;
+                            newCell.textContent = '0';
+                        } else if (['Full House', 'Small Straight', 'Large Straight', 'Yahtzee'].includes(categoryAlt)) {
+                            newCell.className = 'lower-section-cell';
+                            newCell.setAttribute('data-player', `P${i}`);
+                            newCell.setAttribute('data-category', categoryAlt);
+                            newCell.setAttribute('data-score', categoryAlt === 'Full House' ? '25' : categoryAlt === 'Small Straight' ? '30' : categoryAlt === 'Large Straight' ? '40' : '50');
+                            newCell.setAttribute('data-state', '0');
+                            newCell.onclick = function(e) {
+                                let currentState = parseInt(this.getAttribute('data-state')) || 0;
+                                currentState = (currentState + 1) % 3;
+                                this.setAttribute('data-state', currentState);
+                                let cellId = this.getAttribute('data-player') + '-' + this.closest('tr').cells[0].querySelector('img').alt;
+                                switch(currentState) {
+                                    case 0:
+                                        this.textContent = '';
+                                        localStorage.removeItem(cellId);
+                                        this.style.textDecoration = 'none';
+                                        break;
+                                    case 1:
+                                        this.textContent = this.getAttribute('data-score');
+                                        localStorage.setItem(cellId, this.getAttribute('data-score'));
+                                        this.style.textDecoration = 'none';
+                                        break;
+                                    case 2:
+                                        this.innerHTML = '<span class="scaled-emoji">❌</span>';
+                                        localStorage.setItem(cellId, '❌');
+                                        this.style.textDecoration = 'none';
+                                        break;
+                                }
+                                calculateTotal(this.getAttribute('data-player'));
+                                updateRanks();
+                            };
+                        } else {
+                            newCell.className = 'upper-section-cell';
+                            newCell.setAttribute('data-player', `P${i}`);
+                            newCell.onclick = function() {
+                                showPopup(this, categoryAlt, `P${i}`);
+                            };
+                        }
+                        row.appendChild(newCell);
+                    });
+                }
+            }
+            for (let i = 1; i <= playerCount; i++) {
+                calculateTotal(`P${i}`);
+            }
+            reattachEventListeners();
+            updateRanks();
+        }
+    
+        // Reattach event listeners to headers
+        function reattachEventListeners() {
+            document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
+                header.removeEventListener('click', header.clickHandler);
+                header.clickHandler = function(e) {
+                    e.stopPropagation();
+                    const player = this.getAttribute('data-player');
+                    const playerName = this.innerText.split('\n')[0].trim();
+                    const playerNameInput = document.getElementById('playerNameInput');
+                    playerNameInput.value = playerName;
+                    closeAllPopups();
+                    document.getElementById('playerNameModal').style.display = 'block';
+                    showOverlay();
+                    window.currentPlayer = player;
+                    playerNameInput.focus();
+                    playerNameInput.select();
+                };
+                header.addEventListener('click', header.clickHandler);
+                // Add drag event listeners
+                header.draggable = true;
+                header.removeEventListener('dragstart', handleDragStart);
+                header.removeEventListener('dragover', handleDragOver);
+                header.removeEventListener('drop', handleDrop);
+                header.removeEventListener('dragend', handleDragEnd);
+                header.addEventListener('dragstart', handleDragStart);
+                header.addEventListener('dragover', handleDragOver);
+                header.addEventListener('drop', handleDrop);
+                header.addEventListener('dragend', handleDragEnd);
+            });
+        }
+    
+        // Load saved scores from localStorage
+        function loadScores() {
+            const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
+            cells.forEach(cell => {
+                const player = cell.getAttribute('data-player');
+                const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+                const cellId = `${player}-${categoryAlt}`;
+                const savedScore = localStorage.getItem(cellId);
+                
+                if (savedScore) {
+                    if (savedScore === '❌') {
+                        cell.innerHTML = '<span class="scaled-emoji">❌</span>';
+                        cell.setAttribute('data-state', '2');
+                    } else {
+                        cell.textContent = savedScore;
+                        cell.setAttribute('data-state', '1');
+                    }
+                }
+            });
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            for (let i = 1; i <= playerCount; i++) {
+                calculateTotal(`P${i}`);
+            }
+            updateRanks();
+        }
+    
+        // Update player rankings
+        function updateRanks() {
+            const totalScores = document.querySelectorAll('[id^="total"]');
+            let anyScoreEntered = false;
+            totalScores.forEach(scoreElement => {
+                if (parseInt(scoreElement.textContent) > 0) {
+                    anyScoreEntered = true;
+                }
+            });
+    
+            if (!anyScoreEntered) {
+                totalScores.forEach(scoreElement => {
+                    scoreElement.textContent = "";
+                    while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
+                        scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+                    }
+                    scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
+                });
+            } else {
+                const scoresArray = Array.from(totalScores).map(scoreElement => ({
+                    player: scoreElement.id,
+                    score: parseInt(scoreElement.textContent) || 0
+                }));
+                scoresArray.sort((a, b) => b.score - a.score);
+    
+                let rank = 1;
+                let lastScore = null;
+                const rankMap = {};
+                let lastPlaceScores = [];
+    
+                scoresArray.forEach((player, index) => {
+                    if (lastScore !== null && player.score === lastScore) {
+                        rankMap[player.player] = rank;
+                    } else {
+                        rank = index + 1;
+                        rankMap[player.player] = rank;
+                    }
+                    lastScore = player.score;
+    
+                    if (index === scoresArray.length - 1) {
+                        lastPlaceScores = scoresArray.filter(p => p.score === player.score).map(p => p.player);
+                    }
+                });
+    
+                const allScoresSame = scoresArray.every(player => player.score === scoresArray[0].score);
+                const maxScore = scoresArray[0].score;
+                const minScore = scoresArray[scoresArray.length - 1].score;
+    
+                totalScores.forEach(scoreElement => {
+                    const rank = rankMap[scoreElement.id];
+                    const score = parseInt(scoreElement.textContent) || 0;
+    
+                    scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
+                    while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
+                        scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+                    }
+    
+                    if (allScoresSame) {
+                        scoreElement.parentElement.classList.add('highlight-winner');
+                    } else if (score === maxScore && score > minScore) {
+                        scoreElement.parentElement.classList.add('highlight-winner');
+                    } else if (lastPlaceScores.includes(scoreElement.id) && score < maxScore) {
+                        scoreElement.parentElement.classList.add('highlight-loser');
+                    }
+    
+                    scoreElement.textContent = score;
+                    const rankElement = document.createElement('small');
+                    rankElement.textContent = ordinalSuffixOf(rank);
+                    scoreElement.parentElement.appendChild(rankElement);
+                });
+            }
+        }
+    
+        // Convert number to ordinal suffix
+        function ordinalSuffixOf(i) {
+            var j = i % 10,
+                k = i % 100;
+            if (j === 1 && k !== 11) {
+                return i + "st";
+            }
+            if (j === 2 && k !== 12) {
+                return i + "nd";
+            }
+            if (j === 3 && k !== 13) {
+                return i + "rd";
+            }
+            return i + "th";
+        }
+    
+        // Event listeners for ranking updates
+        document.getElementById('scoreTable').addEventListener('click', updateRanks);
+        document.getElementById('playerCount').addEventListener('change', updateRanks);
+        document.addEventListener('DOMContentLoaded', updateRanks);
+    
+        // Update player name
+        function updatePlayerName() {
+            const newName = document.getElementById('playerNameInput').value.toUpperCase();
+            if (newName && window.currentPlayer) {
+                const playerHeader = document.querySelector(`#scoreTable thead th[data-player="${window.currentPlayer}"]`);
+                if (playerHeader) {
+                    const totalDiv = playerHeader.querySelector('div');
+                    const score = totalDiv ? totalDiv.textContent : '0';
+                    const rankElement = playerHeader.querySelector('small');
+                    let rankHTML = rankElement ? rankElement.outerHTML : '';
+                    playerHeader.innerHTML = `${newName}<div id="total${window.currentPlayer}">${score}</div>${rankHTML}`;
+                    localStorage.setItem(`playerName-${window.currentPlayer}`, newName);
+                    closePlayerNameModal();
+                }
+            }
+        }
+    
+        // Close player name modal
+        function closePlayerNameModal() {
+            document.getElementById('playerNameModal').style.display = 'none';
+            const removeButton = document.querySelector('#playerNameModal button[onclick^="handleRemovePlayer"]');
+            if (removeButton) {
+                removeButton.textContent = 'Remove';
+                removeButton.dataset.state = 'initial';
+            }
+            hideOverlay();
+        }
+    
+        // Remove a player
+        function removePlayer(player) {
+            if (!player) return;
+            
+            const playerIndex = parseInt(player.replace('P', '')) - 1;
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            
+            if (playerCount <= 1) {
+                alert("At least one player must remain.");
+                return;
+            }
+            
+            // Remove the player from the table headers and rows
+            const table = document.getElementById('scoreTable');
+            const headers = table.querySelector('thead tr');
+            const rows = table.querySelectorAll('tbody tr');
+            
+            // Remove the player's column
+            if (headers.children[playerIndex + 1]) {
+                headers.removeChild(headers.children[playerIndex + 1]); // +1 to skip the first column
+            }
+            rows.forEach(row => {
+                if (row.children[playerIndex + 1]) {
+                    row.removeChild(row.children[playerIndex + 1]);
+                }
+            });
+            
+            // Clear local storage for the removed player
+            const categories = [
+                'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                'Three of a Kind', 'Four of a Kind', 'Full House',
+                'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+            ];
+            categories.forEach(category => {
+                localStorage.removeItem(`${player}-${category}`);
+            });
+            localStorage.removeItem(`playerName-${player}`);
+            
+            // Decrease player count
+            const newPlayerCount = playerCount - 1;
+            document.getElementById('playerCount').value = newPlayerCount;
+            localStorage.setItem('playerCount', newPlayerCount);
+            
+            // Adjust remaining players' names and IDs
+            for (let i = playerIndex + 1; i < playerCount; i++) {
+                const oldPlayer = `P${i + 1}`;
+                const newPlayer = `P${i}`;
+                const headerIndex = i; // Since we already removed one column
+                const header = headers.children[headerIndex];
+                if (header) {
+                    const totalDiv = header.querySelector('div');
+                    const rankElement = header.querySelector('small');
+                    let rankHTML = rankElement ? rankElement.outerHTML : '';
+                    const playerName = header.innerText.split('\n')[0].trim();
+                    
+                    header.setAttribute('data-player', newPlayer);
+                    if (totalDiv) {
+                        totalDiv.id = `total${newPlayer}`;
+                        header.innerHTML = `${playerName}<div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
+                    }
+                }
+                
+                rows.forEach(row => {
+                    const cell = row.children[headerIndex];
+                    if (cell && (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell'))) {
+                        cell.setAttribute('data-player', newPlayer);
+                    }
+                    // Update IDs for special rows
+                    if (row.classList.contains('bonus-row') && cell) {
+                        cell.id = `bonus${newPlayer}`;
+                        cell.innerHTML = `<span id="pointsNeeded${newPlayer}" class="points-needed">63</span>`;
+                    } else if (row.classList.contains('upper-score-row') && cell) {
+                        cell.id = `upperScore${newPlayer}`;
+                        cell.textContent = '0';
+                    } else if (row.classList.contains('lower-score-row') && cell) {
+                        cell.id = `lowerScore${newPlayer}`;
+                        cell.textContent = '0';
+                    }
+                });
+                
+                // Update local storage for renamed players
+                const savedName = localStorage.getItem(`playerName-${oldPlayer}`);
+                if (savedName) {
+                    localStorage.setItem(`playerName-${newPlayer}`, savedName);
+                    localStorage.removeItem(`playerName-${oldPlayer}`);
+                }
+                categories.forEach(category => {
+                    const savedScore = localStorage.getItem(`${oldPlayer}-${category}`);
+                    if (savedScore) {
+                        localStorage.setItem(`${newPlayer}-${category}`, savedScore);
+                        localStorage.removeItem(`${oldPlayer}-${category}`);
+                    }
+                });
+            }
+            
+            // Reattach event listeners and update UI
+            reattachEventListeners();
+            for (let i = 1; i <= newPlayerCount; i++) {
+                calculateTotal(`P${i}`);
+            }
+            updateRanks();
+            closePlayerNameModal();
+        }
+    
+        // Handle player removal with confirmation state
+        function handleRemovePlayer(button) {
+            if (button.dataset.state === 'initial') {
+                button.textContent = 'Confirm';
+                button.dataset.state = 'confirm';
+            } else {
+                if (window.currentPlayer) {
+                    removePlayer(window.currentPlayer);
+                }
+            }
+        }
+    
+        // Close all popups
+        function closeAllPopups() {
+            // Reset the reset button state if the round management modal was open
+            if (document.getElementById('roundManagementModal').style.display === 'block') {
+                resetButtonState();
+                document.getElementById('roundManagementModal').style.display = 'none';
+            }
+    
+            // Close the popup modal
+            if (document.getElementById('popupModal').style.display === 'block') {
+                document.getElementById('popupModal').style.display = 'none';
+            }
+    
+            // Close the player name modal and reset the remove button state
+            if (document.getElementById('playerNameModal').style.display === 'block') {
+                closePlayerNameModal();
+            }
+    
+            hideOverlay();
+        }
+    
+        // Overlay click handler
+        document.getElementById('overlay').addEventListener('click', function() {
+            closeAllPopups();
+        });
 
- // Drag and drop handlers
- let draggedIndex = -1;
+        // Drag and drop handlers (Added for moving players)
+        let draggedIndex = -1;
 
- function handleDragStart(event) {
- const header = event.target.closest('th');
- if (header && header.getAttribute('data-player')) {
- draggedIndex = Array.from(header.parentElement.children).indexOf(header) - 1; // -1 to skip first column
- event.target.classList.add('dragging');
- event.dataTransfer.effectAllowed = 'move';
- }
- }
+        function handleDragStart(event) {
+            const header = event.target.closest('th');
+            if (header && header.getAttribute('data-player')) {
+                draggedIndex = Array.from(header.parentElement.children).indexOf(header) - 1; // -1 to skip first column
+                header.classList.add('dragging');
+                event.dataTransfer.effectAllowed = 'move';
+            }
+        }
 
- function handleDragOver(event) {
- event.preventDefault();
- event.dataTransfer.dropEffect = 'move';
- const target = event.target.closest('th');
- if (target && target.getAttribute('data-player') && target !== event.currentTarget) {
- target.classList.add('drag-over');
- }
- }
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            const target = event.target.closest('th');
+            if (target && target.getAttribute('data-player')) {
+                target.classList.add('drag-over');
+            }
+        }
 
- function handleDrop(event) {
- event.preventDefault();
- const dropTarget = event.target.closest('th');
- if (dropTarget && dropTarget.getAttribute('data-player') && draggedIndex !== -1) {
- const dropIndex = Array.from(dropTarget.parentElement.children).indexOf(dropTarget) - 1; // -1 to skip first column
- if (draggedIndex !== dropIndex) {
- const table = document.getElementById('scoreTable');
- const headers = table.querySelector('thead tr');
- const rows = table.querySelectorAll('tbody tr');
- const categories = [
- 'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
- 'Three of a Kind', 'Four of a Kind', 'Full House',
- 'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
- ];
+        function handleDrop(event) {
+            event.preventDefault();
+            const dropTarget = event.target.closest('th');
+            if (dropTarget && dropTarget.getAttribute('data-player') && draggedIndex !== -1) {
+                const dropIndex = Array.from(dropTarget.parentElement.children).indexOf(dropTarget) - 1; // -1 to skip first column
+                if (draggedIndex !== dropIndex) {
+                    const table = document.getElementById('scoreTable');
+                    const headers = table.querySelector('thead tr');
+                    const rows = table.querySelectorAll('tbody tr');
 
- // Swap header elements
- const draggedHeader = headers.children[draggedIndex + 1];
- const dropHeader = headers.children[dropIndex + 1];
- const draggedPlayer = draggedHeader.getAttribute('data-player');
- const dropPlayer = dropHeader.getAttribute('data-player');
+                    // Swap columns in the DOM
+                    const draggedHeader = headers.children[draggedIndex + 1];
+                    const dropHeader = headers.children[dropIndex + 1];
+                    const draggedPlayer = draggedHeader.getAttribute('data-player');
+                    const dropPlayer = dropHeader.getAttribute('data-player');
 
- // Swap in DOM
- if (draggedIndex < dropIndex) {
- headers.insertBefore(draggedHeader, dropHeader.nextSibling);
- } else {
- headers.insertBefore(draggedHeader, dropHeader);
- }
+                    // Swap header content
+                    const tempHeaderContent = draggedHeader.innerHTML;
+                    draggedHeader.innerHTML = dropHeader.innerHTML;
+                    dropHeader.innerHTML = tempHeaderContent;
+                    draggedHeader.setAttribute('data-player', dropPlayer);
+                    dropHeader.setAttribute('data-player', draggedPlayer);
 
- // Swap scores and attributes in each row
- rows.forEach((row, rowIndex) => {
- const draggedCell = row.children[draggedIndex + 1];
- const dropCell = row.children[dropIndex + 1];
- const categoryAlt = row.cells[0].querySelector('img').alt;
+                    // Swap cell content for each row
+                    rows.forEach(row => {
+                        const draggedCell = row.children[draggedIndex + 1];
+                        const dropCell = row.children[dropIndex + 1];
+                        const tempCellContent = draggedCell.innerHTML;
+                        const tempCellClass = draggedCell.className;
+                        const tempCellAttributes = {};
+                        for (let attr of draggedCell.attributes) {
+                            tempCellAttributes[attr.name] = attr.value;
+                        }
 
- // Swap cell content and attributes
- const tempContent = draggedCell.innerHTML;
- const tempClass = draggedCell.className;
- const tempAttrs = {};
- for (let attr of draggedCell.attributes) {
- tempAttrs[attr.name] = attr.value;
- }
+                        draggedCell.innerHTML = dropCell.innerHTML;
+                        draggedCell.className = dropCell.className;
+                        for (let attr of dropCell.attributes) {
+                            draggedCell.setAttribute(attr.name, attr.value);
+                        }
 
- draggedCell.innerHTML = dropCell.innerHTML;
- draggedCell.className = dropCell.className;
- for (let attr of dropCell.attributes) {
- draggedCell.setAttribute(attr.name, attr.value);
- }
+                        dropCell.innerHTML = tempCellContent;
+                        dropCell.className = tempCellClass;
+                        for (let attr in tempCellAttributes) {
+                            dropCell.setAttribute(attr, tempCellAttributes[attr]);
+                        }
+                    });
 
- dropCell.innerHTML = tempContent;
- dropCell.className = tempClass;
- for (let attr in tempAttrs) {
- dropCell.setAttribute(attr, tempAttrs[attr]);
- }
+                    // Update localStorage to reflect the swap
+                    const categories = [
+                        'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                        'Three of a Kind', 'Four of a Kind', 'Full House',
+                        'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+                    ];
+                    categories.forEach(category => {
+                        const draggedKey = `${draggedPlayer}-${category}`;
+                        const dropKey = `${dropPlayer}-${category}`;
+                        const draggedScore = localStorage.getItem(draggedKey);
+                        const dropScore = localStorage.getItem(dropKey);
 
- // Update data-player attributes
- draggedCell.setAttribute('data-player', dropPlayer);
- dropCell.setAttribute('data-player', draggedPlayer);
+                        if (draggedScore !== null) {
+                            localStorage.setItem(dropKey, draggedScore);
+                        } else {
+                            localStorage.removeItem(dropKey);
+                        }
+                        if (dropScore !== null) {
+                            localStorage.setItem(draggedKey, dropScore);
+                        } else {
+                            localStorage.removeItem(draggedKey);
+                        }
+                    });
 
- // Update special row IDs
- if (row.classList.contains('bonus-row')) {
- draggedCell.id = `bonus${dropPlayer}`;
- dropCell.id = `bonus${draggedPlayer}`;
- draggedCell.querySelector('span').id = `pointsNeeded${dropPlayer}`;
- dropCell.querySelector('span').id = `pointsNeeded${draggedPlayer}`;
- } else if (row.classList.contains('upper-score-row')) {
- draggedCell.id = `upperScore${dropPlayer}`;
- dropCell.id = `upperScore${draggedPlayer}`;
- } else if (row.classList.contains('lower-score-row')) {
- draggedCell.id = `lowerScore${dropPlayer}`;
- dropCell.id = `lowerScore${draggedPlayer}`;
- }
- });
+                    const draggedName = localStorage.getItem(`playerName-${draggedPlayer}`);
+                    const dropName = localStorage.getItem(`playerName-${dropPlayer}`);
+                    if (draggedName !== null) {
+                        localStorage.setItem(`playerName-${dropPlayer}`, draggedName);
+                    } else {
+                        localStorage.removeItem(`playerName-${dropPlayer}`);
+                    }
+                    if (dropName !== null) {
+                        localStorage.setItem(`playerName-${draggedPlayer}`, dropName);
+                    } else {
+                        localStorage.removeItem(`playerName-${draggedPlayer}`);
+                    }
 
- // Swap local storage data
- const draggedName = localStorage.getItem(`playerName-${draggedPlayer}`);
- const dropName = localStorage.getItem(`playerName-${dropPlayer}`);
- if (draggedName) localStorage.setItem(`playerName-${dropPlayer}`, draggedName);
- else localStorage.removeItem(`playerName-${dropPlayer}`);
- if (dropName) localStorage.setItem(`playerName-${draggedPlayer}`, dropName);
- else localStorage.removeItem(`playerName-${draggedPlayer}`);
+                    // Recalculate totals and update ranks
+                    const playerCount = parseInt(document.getElementById('playerCount').value);
+                    for (let i = 1; i <= playerCount; i++) {
+                        calculateTotal(`P${i}`);
+                    }
+                    reattachEventListeners();
+                    updateRanks();
+                }
+            }
+            dropTarget.classList.remove('drag-over');
+            draggedIndex = -1;
+        }
 
- categories.forEach(category => {
- const draggedScore = localStorage.getItem(`${draggedPlayer}-${category}`);
- const dropScore = localStorage.getItem(`${dropPlayer}-${category}`);
- if (draggedScore) localStorage.setItem(`${dropPlayer}-${category}`, draggedScore);
- else localStorage.removeItem(`${dropPlayer}-${category}`);
- if (dropScore) localStorage.setItem(`${draggedPlayer}-${category}`, dropScore);
- else localStorage.removeItem(`${draggedPlayer}-${category}`);
- });
-
- // Update headers
- draggedHeader.setAttribute('data-player', dropPlayer);
- dropHeader.setAttribute('data-player', draggedPlayer);
- draggedHeader.querySelector('div').id = `total${dropPlayer}`;
- dropHeader.querySelector('div').id = `total${draggedPlayer}`;
-
- reattachEventListeners();
- calculateTotal(draggedPlayer);
- calculateTotal(dropPlayer);
- updateRanks();
- }
- }
- const ths = document.querySelectorAll('#scoreTable thead th');
- ths.forEach(th => th.classList.remove('drag-over'));
- draggedIndex = -1;
- }
-
- function handleDragEnd(event) {
- event.target.classList.remove('dragging');
- const ths = document.querySelectorAll('#scoreTable thead th');
- ths.forEach(th => th.classList.remove('drag-over'));
- draggedIndex = -1;
- }
- </script>
+        function handleDragEnd(event) {
+            const header = event.target.closest('th');
+            if (header) {
+                header.classList.remove('dragging');
+                document.querySelectorAll('th').forEach(th => th.classList.remove('drag-over'));
+            }
+        }
+    </script>
 </body>
 </html>
