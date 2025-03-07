@@ -240,8 +240,8 @@
             transition: background 0.2s;
         }
         .popup-modal button[data-state="confirm"] {
-    background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
-}
+            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
 
         /* Adjust spacing for h2 in popups */
         #playerManagementModal h2,
@@ -347,6 +347,16 @@
         /* Adjust main table */
         #scoreTable {
             margin-top: 0;
+        }
+
+        /* Drag feedback styles */
+        th.dragging {
+            opacity: 0.5;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        th.drag-over {
+            border-left: 2px solid #333;
         }
 
         @media (max-width: 480px) {
@@ -478,7 +488,13 @@
             playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
             players.forEach((player, index) => {
                 playerRow.innerHTML += `
-                    <th onclick="handlePlayerNameClick(event, ${index})" title="Player">
+                    <th draggable="true" 
+                        ondragstart="handleDragStart(event, ${index})"
+                        ondragover="handleDragOver(event)"
+                        ondrop="handleDrop(event, ${index})"
+                        ondragend="handleDragEnd(event)"
+                        onclick="handlePlayerNameClick(event, ${index})" 
+                        title="Player">
                         ${player.name}
                         <br>
                         <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
@@ -797,6 +813,52 @@
     
         // Overlay click handler
         document.getElementById('overlay').addEventListener('click', closeAllPopups);
+
+        // Drag and drop handlers
+        let draggedIndex = -1;
+
+        function handleDragStart(event, index) {
+            draggedIndex = index;
+            event.target.classList.add('dragging');
+            event.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            const target = event.target.closest('th');
+            if (target && target !== event.currentTarget && !target.textContent.includes('☰')) {
+                target.classList.add('drag-over');
+            }
+        }
+
+        function handleDrop(event, dropIndex) {
+            event.preventDefault();
+            if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
+                // Reorder players array
+                const [draggedPlayer] = players.splice(draggedIndex, 1);
+                players.splice(dropIndex, 0, draggedPlayer);
+
+                // Reorder scores in each round
+                rounds.forEach(round => {
+                    const [draggedScore] = round.splice(draggedIndex, 1);
+                    round.splice(dropIndex, 0, draggedScore);
+                });
+
+                saveData();
+                updateUI();
+            }
+            const ths = document.querySelectorAll('#playerRow th');
+            ths.forEach(th => th.classList.remove('drag-over'));
+            draggedIndex = -1;
+        }
+
+        function handleDragEnd(event) {
+            event.target.classList.remove('dragging');
+            const ths = document.querySelectorAll('#playerRow th');
+            ths.forEach(th => th.classList.remove('drag-over'));
+            draggedIndex = -1;
+        }
     
         // Initial UI update
         updateUI();
