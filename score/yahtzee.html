@@ -489,16 +489,6 @@
         * {
             -webkit-tap-highlight-color: transparent;
         }
-
-        /* Drag feedback styles (Added for drag-and-drop) */
-        th.dragging {
-            opacity: 0.5;
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        th.drag-over {
-            border-left: 2px solid #333;
-        }
     </style>
 </head>
 <body>
@@ -826,7 +816,6 @@
                     const newHeader = document.createElement('th');
                     newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
                     newHeader.setAttribute('data-player', `P${i}`);
-                    newHeader.draggable = true; // Make header draggable
                     headers.appendChild(newHeader);
     
                     rows.forEach(row => {
@@ -908,16 +897,6 @@
                     playerNameInput.select();
                 };
                 header.addEventListener('click', header.clickHandler);
-                // Add drag event listeners
-                header.draggable = true;
-                header.removeEventListener('dragstart', handleDragStart);
-                header.removeEventListener('dragover', handleDragOver);
-                header.removeEventListener('drop', handleDrop);
-                header.removeEventListener('dragend', handleDragEnd);
-                header.addEventListener('dragstart', handleDragStart);
-                header.addEventListener('dragover', handleDragOver);
-                header.addEventListener('drop', handleDrop);
-                header.addEventListener('dragend', handleDragEnd);
             });
         }
     
@@ -1210,132 +1189,6 @@
         document.getElementById('overlay').addEventListener('click', function() {
             closeAllPopups();
         });
-
-        // Drag and drop handlers (Added for moving players)
-        let draggedIndex = -1;
-
-        function handleDragStart(event) {
-            const header = event.target.closest('th');
-            if (header && header.getAttribute('data-player')) {
-                draggedIndex = Array.from(header.parentElement.children).indexOf(header) - 1; // -1 to skip first column
-                header.classList.add('dragging');
-                event.dataTransfer.effectAllowed = 'move';
-            }
-        }
-
-        function handleDragOver(event) {
-            event.preventDefault();
-            event.dataTransfer.dropEffect = 'move';
-            const target = event.target.closest('th');
-            if (target && target.getAttribute('data-player')) {
-                target.classList.add('drag-over');
-            }
-        }
-
-        function handleDrop(event) {
-            event.preventDefault();
-            const dropTarget = event.target.closest('th');
-            if (dropTarget && dropTarget.getAttribute('data-player') && draggedIndex !== -1) {
-                const dropIndex = Array.from(dropTarget.parentElement.children).indexOf(dropTarget) - 1; // -1 to skip first column
-                if (draggedIndex !== dropIndex) {
-                    const table = document.getElementById('scoreTable');
-                    const headers = table.querySelector('thead tr');
-                    const rows = table.querySelectorAll('tbody tr');
-
-                    // Swap columns in the DOM
-                    const draggedHeader = headers.children[draggedIndex + 1];
-                    const dropHeader = headers.children[dropIndex + 1];
-                    const draggedPlayer = draggedHeader.getAttribute('data-player');
-                    const dropPlayer = dropHeader.getAttribute('data-player');
-
-                    // Swap header content
-                    const tempHeaderContent = draggedHeader.innerHTML;
-                    draggedHeader.innerHTML = dropHeader.innerHTML;
-                    dropHeader.innerHTML = tempHeaderContent;
-                    draggedHeader.setAttribute('data-player', dropPlayer);
-                    dropHeader.setAttribute('data-player', draggedPlayer);
-
-                    // Swap cell content for each row
-                    rows.forEach(row => {
-                        const draggedCell = row.children[draggedIndex + 1];
-                        const dropCell = row.children[dropIndex + 1];
-                        const tempCellContent = draggedCell.innerHTML;
-                        const tempCellClass = draggedCell.className;
-                        const tempCellAttributes = {};
-                        for (let attr of draggedCell.attributes) {
-                            tempCellAttributes[attr.name] = attr.value;
-                        }
-
-                        draggedCell.innerHTML = dropCell.innerHTML;
-                        draggedCell.className = dropCell.className;
-                        for (let attr of dropCell.attributes) {
-                            draggedCell.setAttribute(attr.name, attr.value);
-                        }
-
-                        dropCell.innerHTML = tempCellContent;
-                        dropCell.className = tempCellClass;
-                        for (let attr in tempCellAttributes) {
-                            dropCell.setAttribute(attr, tempCellAttributes[attr]);
-                        }
-                    });
-
-                    // Update localStorage to reflect the swap
-                    const categories = [
-                        'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
-                        'Three of a Kind', 'Four of a Kind', 'Full House',
-                        'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
-                    ];
-                    categories.forEach(category => {
-                        const draggedKey = `${draggedPlayer}-${category}`;
-                        const dropKey = `${dropPlayer}-${category}`;
-                        const draggedScore = localStorage.getItem(draggedKey);
-                        const dropScore = localStorage.getItem(dropKey);
-
-                        if (draggedScore !== null) {
-                            localStorage.setItem(dropKey, draggedScore);
-                        } else {
-                            localStorage.removeItem(dropKey);
-                        }
-                        if (dropScore !== null) {
-                            localStorage.setItem(draggedKey, dropScore);
-                        } else {
-                            localStorage.removeItem(draggedKey);
-                        }
-                    });
-
-                    const draggedName = localStorage.getItem(`playerName-${draggedPlayer}`);
-                    const dropName = localStorage.getItem(`playerName-${dropPlayer}`);
-                    if (draggedName !== null) {
-                        localStorage.setItem(`playerName-${dropPlayer}`, draggedName);
-                    } else {
-                        localStorage.removeItem(`playerName-${dropPlayer}`);
-                    }
-                    if (dropName !== null) {
-                        localStorage.setItem(`playerName-${draggedPlayer}`, dropName);
-                    } else {
-                        localStorage.removeItem(`playerName-${draggedPlayer}`);
-                    }
-
-                    // Recalculate totals and update ranks
-                    const playerCount = parseInt(document.getElementById('playerCount').value);
-                    for (let i = 1; i <= playerCount; i++) {
-                        calculateTotal(`P${i}`);
-                    }
-                    reattachEventListeners();
-                    updateRanks();
-                }
-            }
-            dropTarget.classList.remove('drag-over');
-            draggedIndex = -1;
-        }
-
-        function handleDragEnd(event) {
-            const header = event.target.closest('th');
-            if (header) {
-                header.classList.remove('dragging');
-                document.querySelectorAll('th').forEach(th => th.classList.remove('drag-over'));
-            }
-        }
     </script>
 </body>
 </html>
