@@ -490,7 +490,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* NEW: Drag feedback styles for player moving */
+        /* Drag feedback styles */
         th.dragging {
             opacity: 0.5;
             background: rgba(0, 0, 0, 0.2);
@@ -505,8 +505,7 @@
     <!-- Score Table -->
     <table id="scoreTable">
         <thead>
-            <!-- NEW: Added id="playerRow" for easier reference in drag logic -->
-            <tr id="playerRow">
+            <tr>
                 <th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>
             </tr>
         </thead>
@@ -603,6 +602,7 @@
                     closePlayerNameModal();
                 }
             });
+            attachDragListeners(); // Attach drag listeners after initial setup
         });
     
         // Resize handler
@@ -827,7 +827,7 @@
                     const newHeader = document.createElement('th');
                     newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
                     newHeader.setAttribute('data-player', `P${i}`);
-                    newHeader.setAttribute('draggable', 'true'); // NEW: Make draggable for player moving
+                    newHeader.draggable = true; // Make new headers draggable
                     headers.appendChild(newHeader);
     
                     rows.forEach(row => {
@@ -888,12 +888,13 @@
                 calculateTotal(`P${i}`);
             }
             reattachEventListeners();
+            attachDragListeners(); // Reattach drag listeners after updating player count
             updateRanks();
         }
     
-        // Reattach event listeners to headers with NEW drag functionality
+        // Reattach event listeners to headers
         function reattachEventListeners() {
-            document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach((header, index) => {
+            document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
                 header.removeEventListener('click', header.clickHandler);
                 header.clickHandler = function(e) {
                     e.stopPropagation();
@@ -909,23 +910,6 @@
                     playerNameInput.select();
                 };
                 header.addEventListener('click', header.clickHandler);
-
-                // NEW: Add drag event listeners for player moving
-                header.setAttribute('draggable', 'true');
-                header.removeEventListener('dragstart', header.dragStartHandler);
-                header.removeEventListener('dragover', header.dragOverHandler);
-                header.removeEventListener('drop', header.dropHandler);
-                header.removeEventListener('dragend', header.dragEndHandler);
-
-                header.dragStartHandler = function(event) { handleDragStart(event, index); };
-                header.dragOverHandler = function(event) { handleDragOver(event); };
-                header.dropHandler = function(event) { handleDrop(event, index); };
-                header.dragEndHandler = function(event) { handleDragEnd(event); };
-
-                header.addEventListener('dragstart', header.dragStartHandler);
-                header.addEventListener('dragover', header.dragOverHandler);
-                header.addEventListener('drop', header.dropHandler);
-                header.addEventListener('dragend', header.dragEndHandler);
             });
         }
     
@@ -1174,6 +1158,7 @@
             
             // Reattach event listeners and update UI
             reattachEventListeners();
+            attachDragListeners(); // Reattach drag listeners after removing a player
             for (let i = 1; i <= newPlayerCount; i++) {
                 calculateTotal(`P${i}`);
             }
@@ -1219,8 +1204,37 @@
             closeAllPopups();
         });
 
-        // NEW: Drag and drop functionality for moving players
+        // Drag and drop functionality
         let draggedIndex = -1;
+
+        function attachDragListeners() {
+            const headers = document.querySelectorAll('#scoreTable thead th:not(:first-child)');
+            headers.forEach((header, index) => {
+                header.draggable = true;
+                header.removeEventListener('dragstart', header.dragStartHandler);
+                header.removeEventListener('dragover', header.dragOverHandler);
+                header.removeEventListener('drop', header.dropHandler);
+                header.removeEventListener('dragend', header.dragEndHandler);
+
+                header.dragStartHandler = function(event) {
+                    handleDragStart(event, index);
+                };
+                header.dragOverHandler = function(event) {
+                    handleDragOver(event);
+                };
+                header.dropHandler = function(event) {
+                    handleDrop(event, index);
+                };
+                header.dragEndHandler = function(event) {
+                    handleDragEnd(event);
+                };
+
+                header.addEventListener('dragstart', header.dragStartHandler);
+                header.addEventListener('dragover', header.dragOverHandler);
+                header.addEventListener('drop', header.dropHandler);
+                header.addEventListener('dragend', header.dragEndHandler);
+            });
+        }
 
         function handleDragStart(event, index) {
             draggedIndex = index;
@@ -1238,128 +1252,139 @@
         }
 
         function handleDrop(event, dropIndex) {
-    event.preventDefault();
-    if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
-        const table = document.getElementById('scoreTable');
-        const headerRow = table.querySelector('thead tr');
-        const bodyRows = table.querySelectorAll('tbody tr');
-        const categories = [
-            'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
-            'Three of a Kind', 'Four of a Kind', 'Full House',
-            'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
-        ];
+            event.preventDefault();
+            if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
+                const table = document.getElementById('scoreTable');
+                const headers = table.querySelector('thead tr');
+                const rows = table.querySelectorAll('tbody tr');
+                const playerCount = parseInt(document.getElementById('playerCount').value);
+                const categories = [
+                    'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                    'Three of a Kind', 'Four of a Kind', 'Full House',
+                    'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+                ];
 
-        // Step 1: Store all column data (header + body cells)
-        const columns = Array.from(headerRow.children).slice(1).map((th, i) => {
-            const playerId = `P${i + 1}`;
-            return {
-                headerHTML: th.innerHTML, // Player name, total, and rank
-                playerId: playerId,
-                scores: Array.from(bodyRows).map(row => {
-                    const cell = row.children[i + 1]; // +1 to skip first column
-                    return {
-                        html: cell.innerHTML,
-                        className: cell.className,
-                        attributes: Array.from(cell.attributes).reduce((acc, attr) => {
-                            acc[attr.name] = attr.value;
-                            return acc;
-                        }, {})
-                    };
-                }),
-                localStorage: {
-                    name: localStorage.getItem(`playerName-${playerId}`) || `P${i + 1}`,
-                    scores: categories.map(cat => localStorage.getItem(`${playerId}-${cat}`) || '')
-                }
-            };
-        });
-
-        // Step 2: Reorder the columns based on drag and drop
-        const [draggedColumn] = columns.splice(draggedIndex, 1);
-        columns.splice(dropIndex, 0, draggedColumn);
-
-        // Step 3: Update headers
-        headerRow.innerHTML = '<th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>';
-        columns.forEach((col, i) => {
-            const th = document.createElement('th');
-            th.setAttribute('data-player', `P${i + 1}`);
-            th.setAttribute('draggable', 'true');
-            th.innerHTML = col.headerHTML;
-            th.querySelector('div').id = `totalP${i + 1}`; // Ensure total ID is correct
-            headerRow.appendChild(th);
-        });
-
-        // Step 4: Update body rows
-        bodyRows.forEach((row, rowIndex) => {
-            for (let i = 0; i < columns.length; i++) {
-                const oldCell = row.children[i + 1];
-                const col = columns[i];
-                const cellData = col.scores[rowIndex];
-                const newCell = document.createElement('td');
-
-                // Copy attributes
-                Object.keys(cellData.attributes).forEach(key => {
-                    if (key !== 'id') newCell.setAttribute(key, cellData.attributes[key]);
+                // Get player data before reordering
+                const draggedPlayer = `P${draggedIndex + 1}`;
+                const dropPlayer = `P${dropIndex + 1}`;
+                const draggedName = localStorage.getItem(`playerName-${draggedPlayer}`);
+                const dropName = localStorage.getItem(`playerName-${dropPlayer}`);
+                const draggedScores = {};
+                const dropScores = {};
+                categories.forEach(category => {
+                    draggedScores[category] = localStorage.getItem(`${draggedPlayer}-${category}`);
+                    dropScores[category] = localStorage.getItem(`${dropPlayer}-${category}`);
                 });
 
-                // Update player-specific attributes
-                newCell.setAttribute('data-player', `P${i + 1}`);
-                newCell.className = cellData.className;
-                newCell.innerHTML = cellData.html;
+                // Reorder headers
+                const headerRow = Array.from(headers.children);
+                const [draggedHeader] = headerRow.splice(draggedIndex + 1, 1); // +1 to skip first column
+                headerRow.splice(dropIndex + 1, 0, draggedHeader);
+                headers.innerHTML = '';
+                headerRow.forEach(th => headers.appendChild(th));
 
-                // Update IDs for special rows
-                const categoryAlt = row.firstElementChild.querySelector('img').alt;
-                if (categoryAlt === 'Bonus') {
-                    newCell.id = `bonusP${i + 1}`;
-                    const span = newCell.querySelector('span');
-                    if (span) span.id = `pointsNeededP${i + 1}`;
-                } else if (categoryAlt === 'Upper Score') {
-                    newCell.id = `upperScoreP${i + 1}`;
-                } else if (categoryAlt === 'Lower Score') {
-                    newCell.id = `lowerScoreP${i + 1}`;
+                // Reorder scores in each row
+                rows.forEach(row => {
+                    const cells = Array.from(row.children);
+                    const [draggedCell] = cells.splice(draggedIndex + 1, 1);
+                    cells.splice(dropIndex + 1, 0, draggedCell);
+                    row.innerHTML = '';
+                    cells.forEach(cell => row.appendChild(cell));
+                });
+
+                // Update data-player attributes and IDs
+                for (let i = 0; i < playerCount; i++) {
+                    const playerNum = i + 1;
+                    const header = headers.children[i + 1];
+                    const newPlayer = `P${playerNum}`;
+                    header.setAttribute('data-player', newPlayer);
+                    const totalDiv = header.querySelector('div');
+                    if (totalDiv) totalDiv.id = `total${newPlayer}`;
+
+                    rows.forEach((row, rowIndex) => {
+                        const cell = row.children[i + 1];
+                        const categoryAlt = row.cells[0].querySelector('img').alt;
+                        if (cell && (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell'))) {
+                            cell.setAttribute('data-player', newPlayer);
+                        }
+                        if (row.classList.contains('bonus-row') && cell) {
+                            cell.id = `bonus${newPlayer}`;
+                            cell.querySelector('span').id = `pointsNeeded${newPlayer}`;
+                        } else if (row.classList.contains('upper-score-row') && cell) {
+                            cell.id = `upperScore${newPlayer}`;
+                        } else if (row.classList.contains('lower-score-row') && cell) {
+                            cell.id = `lowerScore${newPlayer}`;
+                        }
+                    });
                 }
 
-                // Replace the old cell
-                row.replaceChild(newCell, oldCell);
+                // Update local storage
+                const tempStorage = {};
+                for (let i = 0; i < playerCount; i++) {
+                    const player = `P${i + 1}`;
+                    categories.forEach(category => {
+                        tempStorage[`${player}-${category}`] = localStorage.getItem(`${player}-${category}`);
+                    });
+                    tempStorage[`playerName-${player}`] = localStorage.getItem(`playerName-${player}`);
+                }
+
+                // Clear original storage
+                for (let i = 0; i < playerCount; i++) {
+                    const player = `P${i + 1}`;
+                    categories.forEach(category => {
+                        localStorage.removeItem(`${player}-${category}`);
+                    });
+                    localStorage.removeItem(`playerName-${player}`);
+                }
+
+                // Reassign data
+                const newOrder = Array(playerCount);
+                for (let i = 0; i < playerCount; i++) {
+                    if (i === draggedIndex) {
+                        newOrder[dropIndex] = { name: draggedName, scores: draggedScores };
+                    } else if (i === dropIndex) {
+                        newOrder[draggedIndex] = { name: dropName, scores: dropScores };
+                    } else {
+                        const player = `P${i + 1}`;
+                        newOrder[i] = {
+                            name: tempStorage[`playerName-${player}`],
+                            scores: categories.reduce((acc, cat) => {
+                                acc[cat] = tempStorage[`${player}-${cat}`];
+                                return acc;
+                            }, {})
+                        };
+                    }
+                }
+
+                newOrder.forEach((data, i) => {
+                    const player = `P${i + 1}`;
+                    if (data.name) localStorage.setItem(`playerName-${player}`, data.name);
+                    categories.forEach(category => {
+                        if (data.scores[category]) {
+                            localStorage.setItem(`${player}-${category}`, data.scores[category]);
+                        }
+                    });
+                });
+
+                // Reattach listeners and update UI
+                reattachEventListeners();
+                attachDragListeners();
+                for (let i = 1; i <= playerCount; i++) {
+                    calculateTotal(`P${i}`);
+                }
+                updateRanks();
             }
-        });
-
-        // Step 5: Update localStorage
-        const tempStorage = {};
-        columns.forEach((col, i) => {
-            const newPlayerId = `P${i + 1}`;
-            tempStorage[newPlayerId] = {
-                name: col.localStorage.name,
-                scores: col.localStorage.scores
-            };
-        });
-
-        // Clear old localStorage
-        for (let i = 1; i <= columns.length + 1; i++) {
-            localStorage.removeItem(`playerName-P${i}`);
-            categories.forEach(cat => localStorage.removeItem(`P${i}-${cat}`));
+            const ths = document.querySelectorAll('#scoreTable thead th');
+            ths.forEach(th => th.classList.remove('drag-over'));
+            draggedIndex = -1;
         }
 
-        // Save reordered data
-        Object.keys(tempStorage).forEach(playerId => {
-            localStorage.setItem(`playerName-${playerId}`, tempStorage[playerId].name);
-            tempStorage[playerId].scores.forEach((score, idx) => {
-                if (score) localStorage.setItem(`${playerId}-${categories[idx]}`, score);
-            });
-        });
-
-        // Step 6: Reattach listeners and recalculate
-        reattachEventListeners();
-        for (let i = 1; i <= columns.length; i++) {
-            calculateTotal(`P${i}`);
+        function handleDragEnd(event) {
+            event.target.classList.remove('dragging');
+            const ths = document.querySelectorAll('#scoreTable thead th');
+            ths.forEach(th => th.classList.remove('drag-over'));
+            draggedIndex = -1;
         }
-        updateRanks();
-    }
-
-    // Clean up drag state
-    const ths = document.querySelectorAll('#playerRow th');
-    ths.forEach(th => th.classList.remove('drag-over'));
-    draggedIndex = -1;
-}
     </script>
 </body>
 </html>
