@@ -579,22 +579,14 @@
             let savedPlayerCount = localStorage.getItem('playerCount');
             if (savedPlayerCount) {
                 document.getElementById('playerCount').value = savedPlayerCount;
-                updatePlayerCount();
             } else {
                 document.getElementById('playerCount').value = '4';
-                updatePlayerCount();
+                localStorage.setItem('playerCount', '4');
             }
+            updatePlayerCount(); // Setup table based on player count
             loadScores();
             reattachEventListeners();
-            const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
-            headers.forEach(header => {
-                const player = header.getAttribute('data-player');
-                const savedName = localStorage.getItem(`playerName-${player}`);
-                if (savedName) {
-                    const totalDiv = header.querySelector('div');
-                    header.innerHTML = `${savedName}<div id="${totalDiv.id}">${totalDiv.textContent}</div>`;
-                }
-            });
+            attachDragListeners();
             const playerNameInput = document.getElementById('playerNameInput');
             playerNameInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -602,7 +594,6 @@
                     closePlayerNameModal();
                 }
             });
-            attachDragListeners(); // Attach drag listeners after initial setup
         });
     
         // Resize handler
@@ -825,9 +816,10 @@
             } else {
                 for (let i = existingPlayers + 1; i <= playerCount; i++) {
                     const newHeader = document.createElement('th');
-                    newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
+                    const savedName = localStorage.getItem(`playerName-P${i}`) || `P${i}`;
+                    newHeader.innerHTML = `${savedName}<div id="totalP${i}">0</div>`;
                     newHeader.setAttribute('data-player', `P${i}`);
-                    newHeader.draggable = true; // Make new headers draggable
+                    newHeader.draggable = true;
                     headers.appendChild(newHeader);
     
                     rows.forEach(row => {
@@ -888,7 +880,7 @@
                 calculateTotal(`P${i}`);
             }
             reattachEventListeners();
-            attachDragListeners(); // Reattach drag listeners after updating player count
+            attachDragListeners();
             updateRanks();
         }
     
@@ -1158,7 +1150,7 @@
             
             // Reattach event listeners and update UI
             reattachEventListeners();
-            attachDragListeners(); // Reattach drag listeners after removing a player
+            attachDragListeners();
             for (let i = 1; i <= newPlayerCount; i++) {
                 calculateTotal(`P${i}`);
             }
@@ -1180,18 +1172,15 @@
     
         // Close all popups
         function closeAllPopups() {
-            // Reset the reset button state if the round management modal was open
             if (document.getElementById('roundManagementModal').style.display === 'block') {
                 resetButtonState();
                 document.getElementById('roundManagementModal').style.display = 'none';
             }
     
-            // Close the popup modal
             if (document.getElementById('popupModal').style.display === 'block') {
                 document.getElementById('popupModal').style.display = 'none';
             }
     
-            // Close the player name modal and reset the remove button state
             if (document.getElementById('playerNameModal').style.display === 'block') {
                 closePlayerNameModal();
             }
@@ -1264,17 +1253,17 @@
                     'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
                 ];
 
-                // Get player data before reordering
-                const draggedPlayer = `P${draggedIndex + 1}`;
-                const dropPlayer = `P${dropIndex + 1}`;
-                const draggedName = localStorage.getItem(`playerName-${draggedPlayer}`);
-                const dropName = localStorage.getItem(`playerName-${dropPlayer}`);
-                const draggedScores = {};
-                const dropScores = {};
-                categories.forEach(category => {
-                    draggedScores[category] = localStorage.getItem(`${draggedPlayer}-${category}`);
-                    dropScores[category] = localStorage.getItem(`${dropPlayer}-${category}`);
-                });
+                // Get current player data before reordering
+                const playerData = [];
+                for (let i = 0; i < playerCount; i++) {
+                    const player = `P${i + 1}`;
+                    const name = localStorage.getItem(`playerName-${player}`) || player;
+                    const scores = {};
+                    categories.forEach(category => {
+                        scores[category] = localStorage.getItem(`${player}-${category}`);
+                    });
+                    playerData.push({ name, scores });
+                }
 
                 // Reorder headers
                 const headerRow = Array.from(headers.children);
@@ -1292,79 +1281,48 @@
                     cells.forEach(cell => row.appendChild(cell));
                 });
 
-                // Update data-player attributes and IDs
-                for (let i = 0; i < playerCount; i++) {
-                    const playerNum = i + 1;
-                    const header = headers.children[i + 1];
-                    const newPlayer = `P${playerNum}`;
-                    header.setAttribute('data-player', newPlayer);
-                    const totalDiv = header.querySelector('div');
-                    if (totalDiv) totalDiv.id = `total${newPlayer}`;
+                // Reorder player data
+                const [draggedData] = playerData.splice(draggedIndex, 1);
+                playerData.splice(dropIndex, 0, draggedData);
 
-                    rows.forEach((row, rowIndex) => {
+                // Update localStorage and DOM with new order
+                for (let i = 0; i < playerCount; i++) {
+                    const player = `P${i + 1}`;
+                    const header = headers.children[i + 1];
+                    header.setAttribute('data-player', player);
+                    const totalDiv = header.querySelector('div');
+                    if (totalDiv) {
+                        totalDiv.id = `total${player}`;
+                        header.innerHTML = `${playerData[i].name}<div id="total${player}">${totalDiv.textContent}</div>`;
+                    }
+
+                    // Update localStorage
+                    localStorage.setItem(`playerName-${player}`, playerData[i].name);
+                    categories.forEach(category => {
+                        if (playerData[i].scores[category]) {
+                            localStorage.setItem(`${player}-${category}`, playerData[i].scores[category]);
+                        } else {
+                            localStorage.removeItem(`${player}-${category}`);
+                        }
+                    });
+
+                    // Update cell attributes
+                    rows.forEach(row => {
                         const cell = row.children[i + 1];
                         const categoryAlt = row.cells[0].querySelector('img').alt;
                         if (cell && (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell'))) {
-                            cell.setAttribute('data-player', newPlayer);
+                            cell.setAttribute('data-player', player);
                         }
                         if (row.classList.contains('bonus-row') && cell) {
-                            cell.id = `bonus${newPlayer}`;
-                            cell.querySelector('span').id = `pointsNeeded${newPlayer}`;
+                            cell.id = `bonus${player}`;
+                            cell.querySelector('span').id = `pointsNeeded${player}`;
                         } else if (row.classList.contains('upper-score-row') && cell) {
-                            cell.id = `upperScore${newPlayer}`;
+                            cell.id = `upperScore${player}`;
                         } else if (row.classList.contains('lower-score-row') && cell) {
-                            cell.id = `lowerScore${newPlayer}`;
+                            cell.id = `lowerScore${player}`;
                         }
                     });
                 }
-
-                // Update local storage
-                const tempStorage = {};
-                for (let i = 0; i < playerCount; i++) {
-                    const player = `P${i + 1}`;
-                    categories.forEach(category => {
-                        tempStorage[`${player}-${category}`] = localStorage.getItem(`${player}-${category}`);
-                    });
-                    tempStorage[`playerName-${player}`] = localStorage.getItem(`playerName-${player}`);
-                }
-
-                // Clear original storage
-                for (let i = 0; i < playerCount; i++) {
-                    const player = `P${i + 1}`;
-                    categories.forEach(category => {
-                        localStorage.removeItem(`${player}-${category}`);
-                    });
-                    localStorage.removeItem(`playerName-${player}`);
-                }
-
-                // Reassign data
-                const newOrder = Array(playerCount);
-                for (let i = 0; i < playerCount; i++) {
-                    if (i === draggedIndex) {
-                        newOrder[dropIndex] = { name: draggedName, scores: draggedScores };
-                    } else if (i === dropIndex) {
-                        newOrder[draggedIndex] = { name: dropName, scores: dropScores };
-                    } else {
-                        const player = `P${i + 1}`;
-                        newOrder[i] = {
-                            name: tempStorage[`playerName-${player}`],
-                            scores: categories.reduce((acc, cat) => {
-                                acc[cat] = tempStorage[`${player}-${cat}`];
-                                return acc;
-                            }, {})
-                        };
-                    }
-                }
-
-                newOrder.forEach((data, i) => {
-                    const player = `P${i + 1}`;
-                    if (data.name) localStorage.setItem(`playerName-${player}`, data.name);
-                    categories.forEach(category => {
-                        if (data.scores[category]) {
-                            localStorage.setItem(`${player}-${category}`, data.scores[category]);
-                        }
-                    });
-                });
 
                 // Reattach listeners and update UI
                 reattachEventListeners();
