@@ -489,6 +489,16 @@
         * {
             -webkit-tap-highlight-color: transparent;
         }
+
+        /* Drag feedback styles */
+        th.dragging {
+            opacity: 0.5;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        th.drag-over {
+            border-left: 2px solid #333;
+        }
     </style>
 </head>
 <body>
@@ -569,22 +579,14 @@
             let savedPlayerCount = localStorage.getItem('playerCount');
             if (savedPlayerCount) {
                 document.getElementById('playerCount').value = savedPlayerCount;
-                updatePlayerCount();
             } else {
                 document.getElementById('playerCount').value = '4';
-                updatePlayerCount();
+                localStorage.setItem('playerCount', '4');
             }
+            updatePlayerCount(); // Setup table based on player count
             loadScores();
             reattachEventListeners();
-            const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
-            headers.forEach(header => {
-                const player = header.getAttribute('data-player');
-                const savedName = localStorage.getItem(`playerName-${player}`);
-                if (savedName) {
-                    const totalDiv = header.querySelector('div');
-                    header.innerHTML = `${savedName}<div id="${totalDiv.id}">${totalDiv.textContent}</div>`;
-                }
-            });
+            attachDragListeners();
             const playerNameInput = document.getElementById('playerNameInput');
             playerNameInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -814,8 +816,10 @@
             } else {
                 for (let i = existingPlayers + 1; i <= playerCount; i++) {
                     const newHeader = document.createElement('th');
-                    newHeader.innerHTML = `P${i}<div id="totalP${i}">0</div>`;
+                    const savedName = localStorage.getItem(`playerName-P${i}`) || `P${i}`;
+                    newHeader.innerHTML = `${savedName}<div id="totalP${i}">0</div>`;
                     newHeader.setAttribute('data-player', `P${i}`);
+                    newHeader.draggable = true;
                     headers.appendChild(newHeader);
     
                     rows.forEach(row => {
@@ -876,6 +880,7 @@
                 calculateTotal(`P${i}`);
             }
             reattachEventListeners();
+            attachDragListeners();
             updateRanks();
         }
     
@@ -1145,6 +1150,7 @@
             
             // Reattach event listeners and update UI
             reattachEventListeners();
+            attachDragListeners();
             for (let i = 1; i <= newPlayerCount; i++) {
                 calculateTotal(`P${i}`);
             }
@@ -1166,18 +1172,15 @@
     
         // Close all popups
         function closeAllPopups() {
-            // Reset the reset button state if the round management modal was open
             if (document.getElementById('roundManagementModal').style.display === 'block') {
                 resetButtonState();
                 document.getElementById('roundManagementModal').style.display = 'none';
             }
     
-            // Close the popup modal
             if (document.getElementById('popupModal').style.display === 'block') {
                 document.getElementById('popupModal').style.display = 'none';
             }
     
-            // Close the player name modal and reset the remove button state
             if (document.getElementById('playerNameModal').style.display === 'block') {
                 closePlayerNameModal();
             }
@@ -1189,6 +1192,157 @@
         document.getElementById('overlay').addEventListener('click', function() {
             closeAllPopups();
         });
+
+        // Drag and drop functionality
+        let draggedIndex = -1;
+
+        function attachDragListeners() {
+            const headers = document.querySelectorAll('#scoreTable thead th:not(:first-child)');
+            headers.forEach((header, index) => {
+                header.draggable = true;
+                header.removeEventListener('dragstart', header.dragStartHandler);
+                header.removeEventListener('dragover', header.dragOverHandler);
+                header.removeEventListener('drop', header.dropHandler);
+                header.removeEventListener('dragend', header.dragEndHandler);
+
+                header.dragStartHandler = function(event) {
+                    handleDragStart(event, index);
+                };
+                header.dragOverHandler = function(event) {
+                    handleDragOver(event);
+                };
+                header.dropHandler = function(event) {
+                    handleDrop(event, index);
+                };
+                header.dragEndHandler = function(event) {
+                    handleDragEnd(event);
+                };
+
+                header.addEventListener('dragstart', header.dragStartHandler);
+                header.addEventListener('dragover', header.dragOverHandler);
+                header.addEventListener('drop', header.dropHandler);
+                header.addEventListener('dragend', header.dragEndHandler);
+            });
+        }
+
+        function handleDragStart(event, index) {
+            draggedIndex = index;
+            event.target.classList.add('dragging');
+            event.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            const target = event.target.closest('th');
+            if (target && target !== event.currentTarget && !target.textContent.includes('☰')) {
+                target.classList.add('drag-over');
+            }
+        }
+
+        function handleDrop(event, dropIndex) {
+            event.preventDefault();
+            if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
+                const table = document.getElementById('scoreTable');
+                const headers = table.querySelector('thead tr');
+                const rows = table.querySelectorAll('tbody tr');
+                const playerCount = parseInt(document.getElementById('playerCount').value);
+                const categories = [
+                    'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                    'Three of a Kind', 'Four of a Kind', 'Full House',
+                    'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+                ];
+
+                // Get current player data before reordering
+                const playerData = [];
+                for (let i = 0; i < playerCount; i++) {
+                    const player = `P${i + 1}`;
+                    const name = localStorage.getItem(`playerName-${player}`) || player;
+                    const scores = {};
+                    categories.forEach(category => {
+                        scores[category] = localStorage.getItem(`${player}-${category}`);
+                    });
+                    playerData.push({ name, scores });
+                }
+
+                // Reorder headers
+                const headerRow = Array.from(headers.children);
+                const [draggedHeader] = headerRow.splice(draggedIndex + 1, 1); // +1 to skip first column
+                headerRow.splice(dropIndex + 1, 0, draggedHeader);
+                headers.innerHTML = '';
+                headerRow.forEach(th => headers.appendChild(th));
+
+                // Reorder scores in each row
+                rows.forEach(row => {
+                    const cells = Array.from(row.children);
+                    const [draggedCell] = cells.splice(draggedIndex + 1, 1);
+                    cells.splice(dropIndex + 1, 0, draggedCell);
+                    row.innerHTML = '';
+                    cells.forEach(cell => row.appendChild(cell));
+                });
+
+                // Reorder player data
+                const [draggedData] = playerData.splice(draggedIndex, 1);
+                playerData.splice(dropIndex, 0, draggedData);
+
+                // Update localStorage and DOM with new order
+                for (let i = 0; i < playerCount; i++) {
+                    const player = `P${i + 1}`;
+                    const header = headers.children[i + 1];
+                    header.setAttribute('data-player', player);
+                    const totalDiv = header.querySelector('div');
+                    if (totalDiv) {
+                        totalDiv.id = `total${player}`;
+                        header.innerHTML = `${playerData[i].name}<div id="total${player}">${totalDiv.textContent}</div>`;
+                    }
+
+                    // Update localStorage
+                    localStorage.setItem(`playerName-${player}`, playerData[i].name);
+                    categories.forEach(category => {
+                        if (playerData[i].scores[category]) {
+                            localStorage.setItem(`${player}-${category}`, playerData[i].scores[category]);
+                        } else {
+                            localStorage.removeItem(`${player}-${category}`);
+                        }
+                    });
+
+                    // Update cell attributes
+                    rows.forEach(row => {
+                        const cell = row.children[i + 1];
+                        const categoryAlt = row.cells[0].querySelector('img').alt;
+                        if (cell && (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell'))) {
+                            cell.setAttribute('data-player', player);
+                        }
+                        if (row.classList.contains('bonus-row') && cell) {
+                            cell.id = `bonus${player}`;
+                            cell.querySelector('span').id = `pointsNeeded${player}`;
+                        } else if (row.classList.contains('upper-score-row') && cell) {
+                            cell.id = `upperScore${player}`;
+                        } else if (row.classList.contains('lower-score-row') && cell) {
+                            cell.id = `lowerScore${player}`;
+                        }
+                    });
+                }
+
+                // Reattach listeners and update UI
+                reattachEventListeners();
+                attachDragListeners();
+                for (let i = 1; i <= playerCount; i++) {
+                    calculateTotal(`P${i}`);
+                }
+                updateRanks();
+            }
+            const ths = document.querySelectorAll('#scoreTable thead th');
+            ths.forEach(th => th.classList.remove('drag-over'));
+            draggedIndex = -1;
+        }
+
+        function handleDragEnd(event) {
+            event.target.classList.remove('dragging');
+            const ths = document.querySelectorAll('#scoreTable thead th');
+            ths.forEach(th => th.classList.remove('drag-over'));
+            draggedIndex = -1;
+        }
     </script>
 </body>
 </html>
