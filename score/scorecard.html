@@ -439,6 +439,7 @@
         }
     
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
+        let unsubmittedScores = JSON.parse(localStorage.getItem('unsubmittedScores')) || {};
     
         // Add new round scores and scroll to the last row
         function addRoundScores() {
@@ -452,6 +453,8 @@
             });
             rounds.push(scores);
             saveData();
+            unsubmittedScores = {}; // Clear unsubmitted scores after submission
+            localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
             updateUI();
             inputs.forEach(input => input.value = '');
             
@@ -470,12 +473,22 @@
             localStorage.setItem('scoringMode', scoringMode);
         }
     
+        // Save unsubmitted scores to localStorage
+        function saveUnsubmittedScores() {
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            unsubmittedScores = {};
+            inputs.forEach((input, index) => {
+                unsubmittedScores[players[index].name] = input.value;
+            });
+            localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+        }
+    
         // Update the UI with current data
         function updateUI() {
             const playerRow = document.getElementById("playerRow");
             const scoreTable = document.getElementById("scoreTable");
             const stickyHeader = document.querySelector(".sticky-header");
-
+    
             // Apply small-scores class to both scoreTable and sticky-header
             if (players.length >= 7) {
                 scoreTable.classList.add("small-scores");
@@ -484,7 +497,7 @@
                 scoreTable.classList.remove("small-scores");
                 stickyHeader.classList.remove("small-scores");
             }
-
+    
             playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
             players.forEach((player, index) => {
                 playerRow.innerHTML += `
@@ -520,7 +533,8 @@
             const inputRow = document.createElement('tr');
             inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
             players.forEach((player, index) => {
-                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" /></td>`;
+                const savedValue = unsubmittedScores[player.name] || '';
+                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" /></td>`;
             });
             scoreBody.appendChild(inputRow);
     
@@ -530,6 +544,7 @@
     
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
+                input.addEventListener('input', saveUnsubmittedScores); // Save on input change
                 input.addEventListener('keydown', function(event) {
                     if (event.key === 'Enter' || event.keyCode === 13) {
                         event.preventDefault();
@@ -622,8 +637,10 @@
     
         // Remove a player
         function removePlayer(index) {
+            const removedPlayerName = players[index].name;
             players.splice(index, 1);
             rounds.forEach(round => round.splice(index, 1));
+            // No need to delete from unsubmittedScores; it will simply not be used if the player is gone
             saveData();
             updateUI();
         }
@@ -670,7 +687,14 @@
             const input = document.getElementById('playerNameInput');
             const newName = input.value.trim().toUpperCase();
             if (newName && newName !== players[index].name) {
+                const oldName = players[index].name;
                 players[index].name = newName;
+                // Transfer unsubmitted score to new name
+                if (unsubmittedScores[oldName] !== undefined) {
+                    unsubmittedScores[newName] = unsubmittedScores[oldName];
+                    delete unsubmittedScores[oldName];
+                    localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+                }
                 saveData();
                 updateUI();
                 closePopup('playerManagementModal');
@@ -717,6 +741,8 @@
                     player.name = player.name.toUpperCase();
                 });
                 rounds = [];
+                unsubmittedScores = {}; // Clear unsubmitted scores on reset
+                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
                 saveData();
                 updateUI();
                 closePopup('roundManagementModal');
@@ -728,26 +754,23 @@
             const newCount = parseInt(document.getElementById('playerCount').value);
             if (newCount > players.length) {
                 for (let i = players.length; i < newCount; i++) {
+                    const newPlayerName = `P${i+1}`.toUpperCase();
                     players.push({ 
-                        name: `P${i+1}`.toUpperCase(),
+                        name: newPlayerName,
                         totalScore: 0, 
                         roundScores: Array(rounds.length).fill(0)  
                     });
                     rounds.forEach(round => round.push(0));
+                    // New players start with no unsubmitted score unless already in unsubmittedScores
                 }
             } else if (newCount < players.length) {
                 players = players.slice(0, newCount);
                 rounds.forEach(round => round.length = newCount);
+                // Unsubmitted scores for removed players remain in the object but won't be used
             }
             saveData();
             updateUI();
             closePopup('roundManagementModal');
-        }
-    
-        // Toggle scoring mode (unused but preserved)
-        function toggleScoringMode() {
-            scoringMode = scoringMode === "highest" ? "lowest" : "highest";
-            saveData();
         }
     
         // Create delete round dialog with immediate deletion button
@@ -813,16 +836,16 @@
     
         // Overlay click handler
         document.getElementById('overlay').addEventListener('click', closeAllPopups);
-
+    
         // Drag and drop handlers
         let draggedIndex = -1;
-
+    
         function handleDragStart(event, index) {
             draggedIndex = index;
             event.target.classList.add('dragging');
             event.dataTransfer.effectAllowed = 'move';
         }
-
+    
         function handleDragOver(event) {
             event.preventDefault();
             event.dataTransfer.dropEffect = 'move';
@@ -831,20 +854,21 @@
                 target.classList.add('drag-over');
             }
         }
-
+    
         function handleDrop(event, dropIndex) {
             event.preventDefault();
             if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
                 // Reorder players array
                 const [draggedPlayer] = players.splice(draggedIndex, 1);
                 players.splice(dropIndex, 0, draggedPlayer);
-
+    
                 // Reorder scores in each round
                 rounds.forEach(round => {
                     const [draggedScore] = round.splice(draggedIndex, 1);
                     round.splice(dropIndex, 0, draggedScore);
                 });
-
+    
+                // Unsubmitted scores stay tied to player names, so no need to reorder them here
                 saveData();
                 updateUI();
             }
@@ -852,7 +876,7 @@
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
         }
-
+    
         function handleDragEnd(event) {
             event.target.classList.remove('dragging');
             const ths = document.querySelectorAll('#playerRow th');
