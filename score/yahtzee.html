@@ -676,7 +676,8 @@
                     options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
                 }
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
+                const isMobile = window.innerWidth <= 768;
+options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
             } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
                 const faceValueMap = {
                     'Ones': 1,
@@ -692,7 +693,8 @@
                     options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
                 }
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⭕️</button>`;
+                const isMobile = window.innerWidth <= 768;
+options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
             }
             document.getElementById('popupOptions').innerHTML = options;
             window.lastClickedCell = cell;
