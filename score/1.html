@@ -621,7 +621,7 @@
                         total += scoreValue;
                         lowerSectionTotal += scoreValue;
                     }
-                } else if (score.classList.contains('upper-section-cell') && score.textContent !== 'X' && score.textContent !== '') {
+                } else if (score.classList.contains('upper-section-cell') && score.textContent !== '❌' && score.textContent !== '') {
                     let value = parseInt(score.textContent) || 0;
                     total += value;
                     const category = score.closest('tr').cells[0].querySelector('img').alt;
@@ -675,8 +675,8 @@
                 for (let i = 1; i <= 30; i++) {
                     options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">X</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">↶</button>`;
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">↺</button>`;
             } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
                 const faceValueMap = {
                     'Ones': 1,
@@ -691,8 +691,8 @@
                     let score = i * faceValue;
                     options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">X</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">↶</button>`;
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">↺</button>`;
             }
             document.getElementById('popupOptions').innerHTML = options;
             window.lastClickedCell = cell;
@@ -705,8 +705,8 @@
             let cellId = `${player}-${categoryAlt}`;
     
             if (score === 0) {
-                cell.innerHTML = 'X';
-                localStorage.setItem(cellId, 'X');
+                cell.innerHTML = '<span class="scaled-emoji">❌</span>';
+                localStorage.setItem(cellId, '❌');
                 cell.style.textDecoration = 'none';
             } else if (score === '') {
                 cell.textContent = '';
@@ -857,8 +857,8 @@
                                         this.style.textDecoration = 'none';
                                         break;
                                     case 2:
-                                        this.innerHTML = 'X';
-                                        localStorage.setItem(cellId, 'X');
+                                        this.innerHTML = '<span class="scaled-emoji">❌</span>';
+                                        localStorage.setItem(cellId, '❌');
                                         this.style.textDecoration = 'none';
                                         break;
                                 }
@@ -915,8 +915,8 @@
                 const savedScore = localStorage.getItem(cellId);
                 
                 if (savedScore) {
-                    if (savedScore === 'X') {
-                        cell.innerHTML = 'X';
+                    if (savedScore === '❌') {
+                        cell.innerHTML = '<span class="scaled-emoji">❌</span>';
                         cell.setAttribute('data-state', '2');
                     } else {
                         cell.textContent = savedScore;
@@ -1192,10 +1192,10 @@
         document.getElementById('overlay').addEventListener('click', function() {
             closeAllPopups();
         });
-    
+
         // Drag and drop functionality
         let draggedIndex = -1;
-    
+
         function attachDragListeners() {
             const headers = document.querySelectorAll('#scoreTable thead th:not(:first-child)');
             headers.forEach((header, index) => {
@@ -1204,7 +1204,7 @@
                 header.removeEventListener('dragover', header.dragOverHandler);
                 header.removeEventListener('drop', header.dropHandler);
                 header.removeEventListener('dragend', header.dragEndHandler);
-    
+
                 header.dragStartHandler = function(event) {
                     handleDragStart(event, index);
                 };
@@ -1217,20 +1217,20 @@
                 header.dragEndHandler = function(event) {
                     handleDragEnd(event);
                 };
-    
+
                 header.addEventListener('dragstart', header.dragStartHandler);
                 header.addEventListener('dragover', header.dragOverHandler);
                 header.addEventListener('drop', header.dropHandler);
                 header.addEventListener('dragend', header.dragEndHandler);
             });
         }
-    
+
         function handleDragStart(event, index) {
             draggedIndex = index;
             event.target.classList.add('dragging');
             event.dataTransfer.effectAllowed = 'move';
         }
-    
+
         function handleDragOver(event) {
             event.preventDefault();
             event.dataTransfer.dropEffect = 'move';
@@ -1239,7 +1239,7 @@
                 target.classList.add('drag-over');
             }
         }
-    
+
         function handleDrop(event, dropIndex) {
             event.preventDefault();
             if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
@@ -1252,7 +1252,7 @@
                     'Three of a Kind', 'Four of a Kind', 'Full House',
                     'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
                 ];
-    
+
                 // Get current player data before reordering
                 const playerData = [];
                 for (let i = 0; i < playerCount; i++) {
@@ -1264,14 +1264,14 @@
                     });
                     playerData.push({ name, scores });
                 }
-    
+
                 // Reorder headers
                 const headerRow = Array.from(headers.children);
                 const [draggedHeader] = headerRow.splice(draggedIndex + 1, 1); // +1 to skip first column
                 headerRow.splice(dropIndex + 1, 0, draggedHeader);
                 headers.innerHTML = '';
                 headerRow.forEach(th => headers.appendChild(th));
-    
+
                 // Reorder scores in each row
                 rows.forEach(row => {
                     const cells = Array.from(row.children);
@@ -1280,11 +1280,11 @@
                     row.innerHTML = '';
                     cells.forEach(cell => row.appendChild(cell));
                 });
-    
+
                 // Reorder player data
                 const [draggedData] = playerData.splice(draggedIndex, 1);
                 playerData.splice(dropIndex, 0, draggedData);
-    
+
                 // Update localStorage and DOM with new order
                 for (let i = 0; i < playerCount; i++) {
                     const player = `P${i + 1}`;
@@ -1295,7 +1295,7 @@
                         totalDiv.id = `total${player}`;
                         header.innerHTML = `${playerData[i].name}<div id="total${player}">${totalDiv.textContent}</div>`;
                     }
-    
+
                     // Update localStorage
                     localStorage.setItem(`playerName-${player}`, playerData[i].name);
                     categories.forEach(category => {
@@ -1305,7 +1305,7 @@
                             localStorage.removeItem(`${player}-${category}`);
                         }
                     });
-    
+
                     // Update cell attributes
                     rows.forEach(row => {
                         const cell = row.children[i + 1];
@@ -1323,7 +1323,7 @@
                         }
                     });
                 }
-    
+
                 // Reattach listeners and update UI
                 reattachEventListeners();
                 attachDragListeners();
@@ -1336,7 +1336,7 @@
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
         }
-    
+
         function handleDragEnd(event) {
             event.target.classList.remove('dragging');
             const ths = document.querySelectorAll('#scoreTable thead th');
