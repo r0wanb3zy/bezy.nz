@@ -313,31 +313,30 @@
         }
 
         #popupOptions button {
-    width: 40px;
-    height: 40px;
-    font-size: 24px;
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-    cursor: pointer;
-    font-family: 'Economica', Arial, sans-serif; /* Reordered for better symbol support */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    overflow: hidden;
-    white-space: nowrap;
-    background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    transition: background 0.2s ease;
-    -webkit-appearance: none;
-    appearance: none;
-    line-height: 40px; /* Match height for consistent centering */
-    vertical-align: middle; /* Fallback for older browsers */
-    outline: none;
-}
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            cursor: pointer;
+            font-family: 'Economica', sans-serif, Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+            -webkit-appearance: none;
+            appearance: none;
+            line-height: 1;
+            outline: none;
+        }
 
         /* Round Management Modal */
         #roundManagementModal {
@@ -500,6 +499,16 @@
         th.drag-over {
             border-left: 2px solid #333;
         }
+        @media screen and (max-width: 768px) {
+    #popupOptions button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    #popupOptions button:contains('⤺') { /* Pseudo-selector not real, see below */
+        transform: translateY(-4px); /* Move up 4px */
+    }
+}
     </style>
 </head>
 <body>
@@ -677,7 +686,7 @@
                     options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
                 }
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">↻</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⤺</button>`;
             } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
                 const faceValueMap = {
                     'Ones': 1,
@@ -693,7 +702,7 @@
                     options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
                 }
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">↻</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⤺</button>`;
             }
             document.getElementById('popupOptions').innerHTML = options;
             window.lastClickedCell = cell;
