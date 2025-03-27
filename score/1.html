@@ -676,7 +676,7 @@
                     options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
                 }
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)" style="font-size: 1.2em; font-weight: bold;"><</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)" style="position: relative; top: 0; @media (max-width: 768px) { top: -5px; }">↩</button>`;
             } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
                 const faceValueMap = {
                     'Ones': 1,
@@ -692,7 +692,7 @@
                     options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
                 }
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)" style="font-size: 1.2em; font-weight: bold;"><</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)" style="position: relative; top: 0; @media (max-width: 768px) { top: -5px; }">↩</button>`;
             }
             document.getElementById('popupOptions').innerHTML = options;
             window.lastClickedCell = cell;
