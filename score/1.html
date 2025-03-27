@@ -499,16 +499,6 @@
         th.drag-over {
             border-left: 2px solid #333;
         }
-        @media screen and (max-width: 768px) {
-    #popupOptions button {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    #popupOptions button:contains('⤺') { /* Pseudo-selector not real, see below */
-        transform: translateY(4px); /* Move up 4px */
-    }
-}
     </style>
 </head>
 <body>
@@ -686,7 +676,7 @@
                     options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
                 }
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⤺</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><</button>`;
             } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
                 const faceValueMap = {
                     'Ones': 1,
@@ -702,7 +692,7 @@
                     options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
                 }
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
-                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)">⤺</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><</button>`;
             }
             document.getElementById('popupOptions').innerHTML = options;
             window.lastClickedCell = cell;
