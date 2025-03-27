@@ -675,7 +675,7 @@
                 for (let i = 1; i <= 30; i++) {
                     options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
                 const isMobile = window.innerWidth <= 768;
 options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
             } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
@@ -692,7 +692,7 @@ options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', even
                     let score = i * faceValue;
                     options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
                 }
-                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">❌</button>`;
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
                 const isMobile = window.innerWidth <= 768;
 options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
             }
