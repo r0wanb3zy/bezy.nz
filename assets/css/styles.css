@@ -27,7 +27,7 @@ body.loading {
     padding: 20px;
     background-color: #fff;
     position: relative;
-    height: 150px;
+    height: 200px;
 }
 
 .header .logo {
@@ -37,7 +37,7 @@ body.loading {
 }
 
 .header .logo img {
-    height: 50px;
+    height: 100px;
     width: auto;
 }
 
@@ -170,12 +170,18 @@ body.loading {
 }
 
 .main-title {
+    font-family: 'Bungee Hairline', sans-serif;
+    color: black;
+    -webkit-text-stroke: 1px black;
     text-align: center;
-    font-size: 28px;
-    color: #000;
-    font-weight: 900;
 }
-
+.title {
+    font-family: 'Bungee Hairline', sans-serif;
+    font-size: 20px;
+    color: black;
+    -webkit-text-stroke: 1.5px black;
+    text-align: center;
+}
 .main-paragraph {
     text-align: center;
     margin: 30px 20px;
