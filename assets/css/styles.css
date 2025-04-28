@@ -27,7 +27,7 @@ body.loading {
     padding: 20px;
     background-color: #fff;
     position: relative;
-    height: 250px;
+    height: 300px;
 }
 
 .header .logo {
@@ -37,8 +37,16 @@ body.loading {
 }
 
 .header .logo img {
-    height: 100px;
+    height: 120px;
     width: auto;
+}
+
+/* Media query for mobile devices */
+@media (max-width: 768px) {
+    .header .logo img {
+        height: 100px; /* Adjust this value to make the logo smaller */
+        width: auto;
+    }
 }
 
 .hamburger {
