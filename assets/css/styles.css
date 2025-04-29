@@ -44,7 +44,7 @@ body.loading {
 /* Media query for mobile devices */
 @media (max-width: 768px) {
     .header .logo img {
-        height: 80px; /* Adjust this value to make the logo smaller */
+        height: 60px; /* Adjust this value to make the logo smaller */
         width: auto;
     }
 }
