@@ -37,14 +37,14 @@ body.loading {
 }
 
 .header .logo img {
-    height: 120px;
+    height: 100px;
     width: auto;
 }
 
 /* Media query for mobile devices */
 @media (max-width: 768px) {
     .header .logo img {
-        height: 100px; /* Adjust this value to make the logo smaller */
+        height: 80px; /* Adjust this value to make the logo smaller */
         width: auto;
     }
 }
