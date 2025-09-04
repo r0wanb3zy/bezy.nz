@@ -243,14 +243,16 @@
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
 
-        /* Sort-by-rank button styles (light when off, dark when on) */
+        /* Sort-by-rank button styles: match Low/High segmented scheme */
         .popup-modal button#sortByRankBtn {
-            background: linear-gradient(to bottom, #dbeafe 0%, #bfdbfe 100%);
+            background: #f8f9fa;
             color: #0f172a;
+            border: 1px solid #333333;
         }
         .popup-modal button#sortByRankBtn.active {
-            background: linear-gradient(to bottom, #1e3a8a 0%, #1e40af 100%);
-            color: #fff;
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: #ffffff;
+            border: 1px solid #333333;
         }
 
         /* Adjust spacing for h2 in popups */
@@ -811,7 +813,7 @@
             if (btn) btn.classList.toggle('active', sortByRankEnabled);
 
             if (sortByRankEnabled) {
-                applySortByRank(true); // sort now
+                applySortByRank(true); // sort now if enabled
             }
             updateUI(); // keep dialog open
         }
