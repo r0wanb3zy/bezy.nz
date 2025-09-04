@@ -156,7 +156,7 @@
             appearance: textfield;
         }
 
-        /* Highlighting */
+        /* Legacy highlight classes kept (not used now) */
         .highlight-winner {
             background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
         }
@@ -241,6 +241,18 @@
         }
         .popup-modal button[data-state="confirm"] {
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
+
+        /* Sort-by-rank button styles: match Low/High segmented scheme */
+        .popup-modal button#sortByRankBtn {
+            background: #f8f9fa;
+            color: #0f172a;
+            border: 1px solid #333333;
+        }
+        .popup-modal button#sortByRankBtn.active {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: #ffffff;
+            border: 1px solid #333333;
         }
 
         /* Adjust spacing for h2 in popups */
@@ -440,6 +452,7 @@
     
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
         let unsubmittedScores = JSON.parse(localStorage.getItem('unsubmittedScores')) || {};
+        let sortByRankEnabled = localStorage.getItem('sortByRankEnabled') === 'true';
     
         // Add new round scores and scroll to the last row
         function addRoundScores() {
@@ -471,6 +484,7 @@
             localStorage.setItem('players', JSON.stringify(players));
             localStorage.setItem('rounds', JSON.stringify(rounds));
             localStorage.setItem('scoringMode', scoringMode);
+            localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
         }
     
         // Save unsubmitted scores to localStorage
@@ -482,9 +496,32 @@
             });
             localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
         }
+
+        // Apply sort-by-rank to underlying arrays
+        function applySortByRank(silent = false) {
+            if (players.length <= 1 || rounds.length === 0) {
+                if (!silent) updateUI();
+                return;
+            }
+            const indices = players
+                .map((p, i) => ({ i, score: p.totalScore }))
+                .sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score))
+                .map(o => o.i);
+
+            players = indices.map(i => players[i]);
+            rounds = rounds.map(round => indices.map(i => round[i] ?? 0));
+
+            saveData();
+            if (!silent) updateUI();
+        }
     
         // Update the UI with current data
         function updateUI() {
+            // Keep columns ordered by rank automatically when enabled
+            if (sortByRankEnabled && players.length > 1 && rounds.length > 0) {
+                applySortByRank(true); // silent sort (no recursive UI call)
+            }
+
             const playerRow = document.getElementById("playerRow");
             const scoreTable = document.getElementById("scoreTable");
             const stickyHeader = document.querySelector(".sticky-header");
@@ -532,15 +569,14 @@
     
             const inputRow = document.createElement('tr');
             inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
-            players.forEach((player, index) => {
+            players.forEach((player) => {
                 const savedValue = unsubmittedScores[player.name] || '';
                 inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" /></td>`;
             });
             scoreBody.appendChild(inputRow);
     
-            if (rounds.length > 0) {
-                updateRankings();
-            }
+            // Always update rankings so single-player gray/blue logic applies
+            updateRankings();
     
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
@@ -600,39 +636,90 @@
             updateUI();
         }
     
-        // Update player rankings with highlights
+        // Update player rankings with blue gradient shading (no badges)
+        // Last = lightest, First = darkest. Contrast scales with number of ranks.
+        // For single player: gray (default) until at least one round is submitted; then darkest blue.
+        // If all players are tied, everyone gets darkest first-place color.
         function updateRankings() {
-            if (rounds.length === 0 || players.length === 1) return;
-            const sortedPlayers = [...players];
-            if (scoringMode === "highest") {
-                sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
-            } else {
-                sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
-            }
             const playerRow = document.getElementById("playerRow");
             const columns = Array.from(playerRow.children).slice(1);
-            if (columns.length !== players.length) {
-                console.error("Mismatch between players and columns!", players.length, columns.length);
+
+            // Clear previous styles
+            columns.forEach((th) => {
+                th.style.background = '';
+            });
+
+            // Single player logic
+            if (players.length === 1) {
+                if (rounds.length > 0) {
+                    const H = 210, S = 85;
+                    const Lmax = 82, range = 36;
+                    const Lmin = Lmax - range; // darkest
+                    const L = Lmin;
+                    const Ltop = Math.max(18, L - 10);
+                    const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
+                    if (columns[0]) columns[0].style.background = gradient;
+                }
+                // else: keep default gray background (no override)
                 return;
             }
-            columns.forEach((th) => th.classList.remove("highlight-winner", "highlight-loser"));
-            const winningScore = sortedPlayers[0].totalScore;
-            const losingScore = sortedPlayers[sortedPlayers.length - 1].totalScore;
-            const allSameScore = players.every(player => player.totalScore === winningScore);
-            if (allSameScore) {
-                columns.forEach((th) => th.classList.add("highlight-winner"));
-            } else {
-                players.forEach((player, index) => {
-                    if (player.totalScore === winningScore) {
-                        columns[index].classList.add("highlight-winner");
-                    }
-                });
-                players.forEach((player, index) => {
-                    if (player.totalScore === losingScore) {
-                        columns[index].classList.add("highlight-loser");
-                    }
-                });
+
+            // Multiple players: no shading until at least one round exists
+            if (rounds.length === 0) {
+                return;
             }
+
+            // Build ranked list according to scoringMode
+            const scored = players.map((p, i) => ({ index: i, score: p.totalScore }));
+            scored.sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score));
+
+            // Group ties
+            const groups = [];
+            for (const item of scored) {
+                const last = groups[groups.length - 1];
+                if (!last || last.score !== item.score) {
+                    groups.push({ score: item.score, members: [item.index] });
+                } else {
+                    last.members.push(item.index);
+                }
+            }
+
+            // Color parameters
+            const H = 210;   // hue (blue)
+            const S = 85;    // saturation
+            const Lmax = 82; // lightest for last
+            const minRange = 18; // minimal contrast for few ranks
+            const maxRange = 44; // maximal contrast for many ranks
+
+            const effectiveRanks = groups.length;
+
+            // If everyone is tied, shade all with darkest "first" color
+            if (effectiveRanks === 1) {
+                const darkestL = Math.max(28, Lmax - maxRange); // darkest first-place lightness
+                const Ltop = Math.max(18, darkestL - 10);
+                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${darkestL}%) 100%)`;
+                columns.forEach(th => th.style.background = gradient);
+                return;
+            }
+
+            // Dynamic contrast based on number of ranks
+            const maxRanksForScaling = 8; // normalize contrast as if up to 8 ranks
+            const normalized = Math.min(1, Math.max(0, (effectiveRanks - 1) / (maxRanksForScaling - 1)));
+            const range = Math.round(minRange + (maxRange - minRange) * normalized);
+            const Lmin = Math.max(28, Lmax - range); // darkest for first place
+
+            groups.forEach((group, g) => {
+                // g=0 -> first (darkest), g=last -> last (lightest)
+                const ratio = g / (effectiveRanks - 1);
+                const L = Math.round(Lmin + (Lmax - Lmin) * ratio);
+                const Ltop = Math.max(18, L - 10); // subtle vertical gradient
+                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
+
+                group.members.forEach(idx => {
+                    const th = columns[idx];
+                    if (th) th.style.background = gradient;
+                });
+            });
         }
     
         // Remove a player
@@ -723,10 +810,24 @@
                     <input type="radio" id="highest" name="scoringMode" value="highest" ${scoringMode === 'highest' ? 'checked' : ''} onchange="scoringMode = 'highest'; saveData(); updateUI();">
                     <label for="highest">High</label>
                 </div>
+                <button id="sortByRankBtn" class="${sortByRankEnabled ? 'active' : ''}" onclick="toggleSortByRank()">Sort by Rank</button>
                 <button onclick="handleResetScores(this)" data-state="initial">Reset</button>
             `;
             modal.style.display = 'block';
             showOverlay();
+        }
+
+        // Toggle Sort by Rank (dark when ON, light when OFF). Does not close the popup.
+        function toggleSortByRank() {
+            sortByRankEnabled = !sortByRankEnabled;
+            localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
+            const btn = document.getElementById('sortByRankBtn');
+            if (btn) btn.classList.toggle('active', sortByRankEnabled);
+
+            if (sortByRankEnabled) {
+                applySortByRank(true); // sort now if enabled
+            }
+            updateUI(); // keep dialog open
         }
     
         // Handle reset scores with button state
@@ -761,12 +862,10 @@
                         roundScores: Array(rounds.length).fill(0)  
                     });
                     rounds.forEach(round => round.push(0));
-                    // New players start with no unsubmitted score unless already in unsubmittedScores
                 }
             } else if (newCount < players.length) {
                 players = players.slice(0, newCount);
                 rounds.forEach(round => round.length = newCount);
-                // Unsubmitted scores for removed players remain in the object but won't be used
             }
             saveData();
             updateUI();
