@@ -248,7 +248,7 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Highlighting */
+        /* Legacy highlight classes (not used now, kept for compatibility) */
         .highlight-winner {
             background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
         }
@@ -281,9 +281,9 @@
         #popupModal h2,
         #roundManagementModal h2,
         #playerNameModal h2 {
-            margin-top: 15px;    /* Space above the heading */
-            margin-bottom: 15px; /* Space below the heading */
-            padding: 0;          /* Optional: removes any default padding */
+            margin-top: 15px;
+            margin-bottom: 15px;
+            padding: 0;
         }
 
         #popupModal button {
@@ -377,6 +377,18 @@
             border: none;
             border-radius: 6px;
             transition: background 0.2s;
+        }
+
+        /* Sort-by-rank button styles to match segmented scheme (light off, dark on) */
+        #roundManagementModal button#sortByRankBtn {
+            background: #f8f9fa;
+            color: #0f172a;
+            border: 1px solid #333333;
+        }
+        #roundManagementModal button#sortByRankBtn.active {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: #ffffff;
+            border: 1px solid #333333;
         }
 
         /* Player Name Modal */
@@ -549,6 +561,7 @@
             <option value="7">7 Players</option>
             <option value="8">8 Players</option>
         </select>
+        <button id="sortByRankBtn" onclick="toggleSortByRank()">Sort by Rank</button>
         <button id="resetButton" onclick="handleResetClick()">Reset</button>
     </div>
 
@@ -565,6 +578,9 @@
     <div id="overlay" style="display: none;"></div>
 
     <script>
+        // Persistent toggle for auto-sorting by rank (unique key for Yahtzee)
+        let sortByRankEnabled = localStorage.getItem('yahtzee-sortByRankEnabled') === 'true';
+
         // Set table height to match viewport
         function setFullHeight() {
             const table = document.getElementById("scoreTable");
@@ -587,6 +603,11 @@
             loadScores();
             reattachEventListeners();
             attachDragListeners();
+
+            // Initialize Sort by Rank button state
+            const sortBtn = document.getElementById('sortByRankBtn');
+            if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
+
             const playerNameInput = document.getElementById('playerNameInput');
             playerNameInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -648,6 +669,20 @@
                 document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
                 document.getElementById(`total${player}`).textContent = total + bonus;
             }
+        }
+
+        // Determine if any score entry exists (any cell filled, including ❌ or 0)
+        function hasAnyEntry() {
+            const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
+            for (const c of cells) {
+                if (c.classList.contains('lower-section-cell')) {
+                    const state = parseInt(c.getAttribute('data-state')) || 0;
+                    if (state !== 0) return true;
+                } else {
+                    if (c.textContent.trim() !== '') return true;
+                }
+            }
+            return false;
         }
     
         // Overlay controls
@@ -734,6 +769,9 @@
         function showRoundManagement() {
             closeAllPopups();
             document.getElementById('roundManagementModal').style.display = 'block';
+            // Set sort toggle visual state
+            const sortBtn = document.getElementById('sortByRankBtn');
+            if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
             showOverlay();
         }
     
@@ -782,7 +820,7 @@
             const playerCount = parseInt(document.getElementById('playerCount').value);
             for (let i = 1; i <= playerCount; i++) {
                 const player = `P${i}`;
-                document.getElementById(`total${player}`).textContent = '0';
+                document.getElementById(`total${player}`).textContent = ''; // blank totals on reset
                 document.getElementById(`upperScore${player}`).textContent = '0';
                 document.getElementById(`lowerScore${player}`).textContent = '0';
                 document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
@@ -819,7 +857,7 @@
                 for (let i = existingPlayers + 1; i <= playerCount; i++) {
                     const newHeader = document.createElement('th');
                     const savedName = localStorage.getItem(`playerName-P${i}`) || `P${i}`;
-                    newHeader.innerHTML = `${savedName}<div id="totalP${i}">0</div>`;
+                    newHeader.innerHTML = `${savedName}<div id="totalP${i}"></div>`; // blank initial total
                     newHeader.setAttribute('data-player', `P${i}`);
                     newHeader.draggable = true;
                     headers.appendChild(newHeader);
@@ -932,78 +970,284 @@
             }
             updateRanks();
         }
-    
-        // Update player rankings
-        function updateRanks() {
-            const totalScores = document.querySelectorAll('[id^="total"]');
-            let anyScoreEntered = false;
-            totalScores.forEach(scoreElement => {
-                if ((parseInt(scoreElement.textContent) || 0) > 0) {
-                    anyScoreEntered = true;
-                }
+
+        // Toggle Sort by Rank (dark when ON, light when OFF). Does not close modal.
+        function toggleSortByRank() {
+            sortByRankEnabled = !sortByRankEnabled;
+            localStorage.setItem('yahtzee-sortByRankEnabled', sortByRankEnabled);
+            const btn = document.getElementById('sortByRankBtn');
+            if (btn) btn.classList.toggle('active', sortByRankEnabled);
+            if (sortByRankEnabled) {
+                applySortByRank(true); // sort now if enabled
+            }
+            updateRanks(); // keep dialog open
+        }
+
+        // Apply sort-by-rank to columns and storage
+        function applySortByRank(silent = false) {
+            const table = document.getElementById('scoreTable');
+            const headers = table.querySelector('thead tr');
+            const rows = table.querySelectorAll('tbody tr');
+            const playerCount = parseInt(document.getElementById('playerCount').value) || 0;
+            if (playerCount <= 1) return;
+
+            // Only sort if any entry exists
+            if (!hasAnyEntry()) return;
+
+            // Build scores array from header totals
+            const totals = [];
+            for (let i = 0; i < playerCount; i++) {
+                const totalEl = document.getElementById(`totalP${i+1}`);
+                const val = totalEl ? parseInt(totalEl.textContent) || 0 : 0;
+                totals.push({ index: i, score: val });
+            }
+
+            // Sort indices by score desc (stable)
+            const order = totals
+                .map((t, idx) => ({ ...t, idx }))
+                .sort((a, b) => b.score - a.score || a.idx - b.idx)
+                .map(o => o.index);
+
+            // If order is identical, no-op
+            if (order.every((v, i) => v === i)) return;
+
+            // Categories to move in storage
+            const categories = [
+                'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                'Three of a Kind', 'Four of a Kind', 'Full House',
+                'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+            ];
+
+            // Snapshot current player data (names + scores)
+            const playerData = [];
+            for (let i = 0; i < playerCount; i++) {
+                const p = `P${i+1}`;
+                const name = localStorage.getItem(`playerName-${p}`) || p;
+                const scores = {};
+                categories.forEach(cat => {
+                    scores[cat] = localStorage.getItem(`${p}-${cat}`);
+                });
+                playerData.push({ name, scores });
+            }
+
+            // Reorder headers
+            const headerCells = Array.from(headers.children);
+            const firstCell = headerCells[0];
+            const playerHeaderCells = headerCells.slice(1);
+            const newHeaderCells = [firstCell, ...order.map(idx => playerHeaderCells[idx])];
+            headers.innerHTML = '';
+            newHeaderCells.forEach(cell => headers.appendChild(cell));
+
+            // Reorder body rows
+            rows.forEach(row => {
+                const cells = Array.from(row.children);
+                const first = cells[0];
+                const playerCells = cells.slice(1);
+                const reordered = [first, ...order.map(idx => playerCells[idx])];
+                row.innerHTML = '';
+                reordered.forEach(c => row.appendChild(c));
             });
-    
-            if (!anyScoreEntered) {
-                totalScores.forEach(scoreElement => {
-                    scoreElement.textContent = "";
-                    while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
-                        scoreElement.parentElement.removeChild(scoreElement.nextSibling);
-                    }
-                    scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
-                });
-            } else {
-                const scoresArray = Array.from(totalScores).map(scoreElement => ({
-                    player: scoreElement.id,
-                    score: parseInt(scoreElement.textContent) || 0
-                }));
-                scoresArray.sort((a, b) => b.score - a.score);
-    
-                let rank = 1;
-                let lastScore = null;
-                const rankMap = {};
-                let lastPlaceScores = [];
-    
-                scoresArray.forEach((player, index) => {
-                    if (lastScore !== null && player.score === lastScore) {
-                        rankMap[player.player] = rank;
+
+            // New ordered data for storage
+            const newData = order.map(idx => playerData[idx]);
+
+            // Update attributes/IDs and storage mapping
+            for (let i = 0; i < playerCount; i++) {
+                const player = `P${i+1}`;
+                const headersRow = headers.children;
+                const header = headersRow[i + 1];
+                header.setAttribute('data-player', player);
+
+                // Keep currently displayed total text but correct ID
+                const totalDiv = header.querySelector('div');
+                const currentTotalText = totalDiv ? totalDiv.textContent : '';
+                header.innerHTML = `${newData[i].name}<div id="total${player}">${currentTotalText}</div>`;
+
+                // Update storage name and scores to new P#
+                localStorage.setItem(`playerName-${player}`, newData[i].name);
+                categories.forEach(cat => {
+                    if (newData[i].scores[cat] !== null && newData[i].scores[cat] !== undefined) {
+                        localStorage.setItem(`${player}-${cat}`, newData[i].scores[cat]);
                     } else {
-                        rank = index + 1;
-                        rankMap[player.player] = rank;
-                    }
-                    lastScore = player.score;
-    
-                    if (index === scoresArray.length - 1) {
-                        lastPlaceScores = scoresArray.filter(p => p.score === player.score).map(p => p.player);
+                        localStorage.removeItem(`${player}-${cat}`);
                     }
                 });
-    
-                const allScoresSame = scoresArray.every(player => player.score === scoresArray[0].score);
-                const maxScore = scoresArray[0].score;
-                const minScore = scoresArray[scoresArray.length - 1].score;
-    
-                totalScores.forEach(scoreElement => {
-                    const rank = rankMap[scoreElement.id];
-                    const score = parseInt(scoreElement.textContent) || 0;
-    
-                    scoreElement.parentElement.classList.remove('highlight-winner', 'highlight-loser');
-                    while (scoreElement.nextSibling && scoreElement.nextSibling.nodeName === "SMALL") {
-                        scoreElement.parentElement.removeChild(scoreElement.nextSibling);
+
+                // Update data-player attributes and special row IDs
+                rows.forEach(row => {
+                    const cell = row.children[i + 1];
+                    if (!cell) return;
+                    if (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell')) {
+                        cell.setAttribute('data-player', player);
                     }
-    
-                    if (allScoresSame) {
-                        scoreElement.parentElement.classList.add('highlight-winner');
-                    } else if (score === maxScore && score > minScore) {
-                        scoreElement.parentElement.classList.add('highlight-winner');
-                    } else if (lastPlaceScores.includes(scoreElement.id) && score < maxScore) {
-                        scoreElement.parentElement.classList.add('highlight-loser');
+                    if (row.classList.contains('bonus-row')) {
+                        cell.id = `bonus${player}`;
+                        const span = cell.querySelector('span');
+                        if (span) span.id = `pointsNeeded${player}`;
+                    } else if (row.classList.contains('upper-score-row')) {
+                        cell.id = `upperScore${player}`;
+                    } else if (row.classList.contains('lower-score-row')) {
+                        cell.id = `lowerScore${player}`;
                     }
-    
-                    scoreElement.textContent = score;
-                    const rankElement = document.createElement('small');
-                    rankElement.textContent = ordinalSuffixOf(rank);
-                    scoreElement.parentElement.appendChild(rankElement);
                 });
             }
+
+            // Reattach listeners and recalc totals
+            reattachEventListeners();
+            attachDragListeners();
+            for (let i = 1; i <= playerCount; i++) {
+                calculateTotal(`P${i}`);
+            }
+            if (!silent) updateRanks();
+        }
+    
+        // Update player rankings (blue gradient + optional auto-sort)
+        // - If no entries at all: show only names (no totals/labels/shading).
+        // - Single player: gray by default; if any entry, darkest blue and totals visible.
+        // - Multiple players: if any entry, show totals/labels and shade; ties share shade; all-tied => darkest for all.
+        function updateRanks() {
+            const table = document.getElementById('scoreTable');
+            const headers = Array.from(table.querySelectorAll('thead th')).slice(1); // skip menu
+            const playerCount = headers.length;
+
+            // helper to remove small rank labels
+            function removeAllRankSmall() {
+                headers.forEach(h => {
+                    let next = h.querySelector('div[id^="total"]')?.nextSibling;
+                    while (next && next.nodeName === 'SMALL') {
+                        const toRemove = next;
+                        next = next.nextSibling;
+                        toRemove.parentElement.removeChild(toRemove);
+                    }
+                });
+            }
+
+            const anyEntry = hasAnyEntry();
+
+            // If no entries anywhere: names only, clear totals/labels/backgrounds
+            if (!anyEntry) {
+                headers.forEach(h => {
+                    const div = h.querySelector('div[id^="total"]');
+                    if (div) div.textContent = '';
+                    h.style.background = '';
+                });
+                removeAllRankSmall();
+                return;
+            }
+
+            // Auto-sort if enabled and meaningful
+            if (sortByRankEnabled && playerCount > 1) {
+                applySortByRank(true); // reorder silently
+            }
+
+            // Refresh after possible reordering
+            const headersNow = Array.from(table.querySelectorAll('thead th')).slice(1);
+            const totalDivs = headersNow.map(h => h.querySelector('div[id^="total"]'));
+
+            // Ensure any blank total shows 0 once entries exist
+            totalDivs.forEach(div => {
+                if (div && (div.textContent === '' || div.textContent == null)) {
+                    div.textContent = '0';
+                }
+            });
+
+            // Clear previous inline backgrounds and labels
+            headersNow.forEach(h => { h.style.background = ''; });
+            removeAllRankSmall();
+
+            // Single-player: darkest blue when any entry exists
+            if (playerCount === 1) {
+                const H = 210, S = 85;
+                const Lmax = 82, range = 36;
+                const Lmin = Math.max(28, Lmax - range);
+                const L = Lmin;
+                const Ltop = Math.max(18, L - 10);
+                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
+                headersNow[0].style.background = gradient;
+
+                // Show "1st" below total
+                const small = document.createElement('small');
+                small.textContent = ordinalSuffixOf(1);
+                headersNow[0].appendChild(small);
+                return;
+            }
+
+            // Build sorted groups for shading
+            const scoresArray = totalDivs.map(div => ({ score: div ? (parseInt(div.textContent) || 0) : 0 }));
+            const scored = scoresArray.map((s, i) => ({ idx: i, score: s.score }));
+            scored.sort((a, b) => b.score - a.score);
+
+            // Group ties
+            const groups = [];
+            for (const item of scored) {
+                const last = groups[groups.length - 1];
+                if (!last || last.score !== item.score) {
+                    groups.push({ score: item.score, members: [item.idx] });
+                } else {
+                    last.members.push(item.idx);
+                }
+            }
+
+            // Color parameters
+            const H = 210;   // hue (blue)
+            const S = 85;    // saturation
+            const Lmax = 82; // lightest (last)
+            const minRange = 18;
+            const maxRange = 44;
+
+            const effectiveRanks = groups.length;
+
+            // If everyone tied, darkest for all
+            if (effectiveRanks === 1) {
+                const darkestL = Math.max(28, Lmax - maxRange);
+                const Ltop = Math.max(18, darkestL - 10);
+                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${darkestL}%) 100%)`;
+                headersNow.forEach(h => { h.style.background = gradient; });
+                updateRankLabels(scored.map(s => s.score), totalDivs);
+                return;
+            }
+
+            // Dynamic contrast scaling
+            const maxRanksForScaling = 8;
+            const normalized = Math.min(1, Math.max(0, (effectiveRanks - 1) / (maxRanksForScaling - 1)));
+            const range = Math.round(minRange + (maxRange - minRange) * normalized);
+            const Lmin = Math.max(28, Lmax - range);
+
+            groups.forEach((group, g) => {
+                // g=0 first (darkest), g=last last (lightest)
+                const ratio = g / (effectiveRanks - 1);
+                const L = Math.round(Lmin + (Lmax - Lmin) * ratio);
+                const Ltop = Math.max(18, L - 10);
+                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
+                group.members.forEach(idx => {
+                    const th = headersNow[idx];
+                    if (th) th.style.background = gradient;
+                });
+            });
+
+            // Update ordinal labels
+            updateRankLabels(scored.map(s => s.score), totalDivs);
+        }
+
+        // Update ordinal labels (small) under totals
+        function updateRankLabels(sortedScoresDesc, totalDivs) {
+            // Build rank map
+            const uniqueDesc = Array.from(new Set(sortedScoresDesc));
+            const rankMapScoreToRank = new Map();
+            uniqueDesc.forEach((score, i) => rankMapScoreToRank.set(score, i + 1)); // 1-based rank
+
+            totalDivs.forEach(div => {
+                if (!div) return;
+                // Remove existing smalls
+                while (div.nextSibling && div.nextSibling.nodeName === "SMALL") {
+                    div.parentElement.removeChild(div.nextSibling);
+                }
+                const score = parseInt(div.textContent) || 0;
+                const rank = rankMapScoreToRank.get(score) || 1;
+                const small = document.createElement('small');
+                small.textContent = ordinalSuffixOf(rank);
+                div.parentElement.appendChild(small);
+            });
         }
     
         // Convert number to ordinal suffix
@@ -1034,7 +1278,7 @@
                 const playerHeader = document.querySelector(`#scoreTable thead th[data-player="${window.currentPlayer}"]`);
                 if (playerHeader) {
                     const totalDiv = playerHeader.querySelector('div');
-                    const score = totalDiv ? totalDiv.textContent : '0';
+                    const score = totalDiv ? totalDiv.textContent : '';
                     const rankElement = playerHeader.querySelector('small');
                     let rankHTML = rankElement ? rankElement.outerHTML : '';
                     playerHeader.innerHTML = `${newName}<div id="total${window.currentPlayer}">${score}</div>${rankHTML}`;
