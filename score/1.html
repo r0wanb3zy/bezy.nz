@@ -402,6 +402,53 @@
                 font-size: 12px;
             }
         }
+
+        /* ========== New additions for equal widths + one-line, auto-fitted names ========== */
+        :root {
+            --index-col: 30px;         /* width of the first (#) column */
+            --player-count: 4;         /* set via JS based on players.length */
+            --name-font-size: 22px;    /* computed via JS to fit longest name */
+            --scrollbar-width: 0px;    /* computed via JS to align sticky header */
+        }
+
+        /* Keep header aligned with body when vertical scrollbar appears */
+        .sticky-header {
+            padding-right: var(--scrollbar-width);
+        }
+
+        /* Lock first column width using variable (overrides earlier rule) */
+        .sticky-header table th:first-child,
+        #scoreTable th:first-child,
+        #scoreTable td:first-child {
+            width: var(--index-col);
+            min-width: var(--index-col);
+            max-width: var(--index-col);
+        }
+
+        /* Make all player columns equal width */
+        .sticky-header table th:not(:first-child),
+        #scoreTable th:not(:first-child),
+        #scoreTable td:not(:first-child) {
+            width: calc((100% - var(--index-col)) / var(--player-count));
+        }
+
+        /* Player name: force one line, consistent size; we shrink via --name-font-size so it fits */
+        .player-name {
+            display: block;
+            white-space: nowrap;
+            overflow-wrap: normal;
+            word-break: keep-all;
+            overflow: hidden; /* shouldn't trigger if we fit correctly */
+            font-size: var(--name-font-size);
+            line-height: 1.1;
+        }
+
+        /* Keep score/rank on their own lines */
+        .sticky-header th .score,
+        .sticky-header th small {
+            display: block;
+        }
+        /* ================================================================================ */
     </style>
 </head>
 <body>
@@ -453,7 +500,58 @@
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
         let unsubmittedScores = JSON.parse(localStorage.getItem('unsubmittedScores')) || {};
         let sortByRankEnabled = localStorage.getItem('sortByRankEnabled') === 'true';
-    
+
+        // ========== Helpers for equal widths and fitted names ==========
+        function setColumnCountVar() {
+            document.documentElement.style.setProperty('--player-count', players.length);
+        }
+
+        function updateScrollbarCompensation() {
+            const sc = document.querySelector('.score-container');
+            const sw = sc ? (sc.offsetWidth - sc.clientWidth) : 0;
+            document.documentElement.style.setProperty('--scrollbar-width', sw + 'px');
+        }
+
+        // Fit all player names to one line by shrinking font-size equally to accommodate the longest name
+        function fitPlayerNameFont() {
+            const ths = document.querySelectorAll('.sticky-header th:not(:first-child)');
+            if (!ths.length) return;
+
+            // Available width inside a player cell (minus padding)
+            const probeTH = ths[0];
+            const styles = window.getComputedStyle(probeTH);
+            const padLeft = parseFloat(styles.paddingLeft) || 0;
+            const padRight = parseFloat(styles.paddingRight) || 0;
+            const available = probeTH.getBoundingClientRect().width - padLeft - padRight;
+            if (available <= 0) return;
+
+            // Base font size to scale from (same as body default)
+            const base = 22;
+
+            // Measure the widest name at base size
+            const meas = document.createElement('span');
+            meas.style.cssText = `
+                position:absolute; visibility:hidden; white-space:nowrap;
+                font-family:'Economica',sans-serif; font-size:${base}px; font-weight:normal;
+            `;
+            document.body.appendChild(meas);
+
+            let maxWidth = 0;
+            for (const p of players) {
+                meas.textContent = p.name || '';
+                const w = meas.getBoundingClientRect().width;
+                if (w > maxWidth) maxWidth = w;
+            }
+            document.body.removeChild(meas);
+
+            // Compute size so the widest fits exactly inside the column
+            // If names are short, size stays at base; if long, we shrink.
+            const scale = maxWidth > 0 ? Math.min(1, available / maxWidth) : 1;
+            const size = Math.max(10, Math.floor(base * scale)); // clamp to a reasonable minimum for readability
+            document.documentElement.style.setProperty('--name-font-size', size + 'px');
+        }
+        // ===============================================================
+
         // Add new round scores and scroll to the last row
         function addRoundScores() {
             const scores = [];
@@ -544,8 +642,8 @@
                         ondrop="handleDrop(event, ${index})"
                         ondragend="handleDragEnd(event)"
                         onclick="handlePlayerNameClick(event, ${index})" 
-                        title="Player">
-                        ${player.name}
+                        title="${player.name}">
+                        <span class="player-name">${player.name}</span>
                         <br>
                         <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
                         ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
@@ -602,6 +700,13 @@
                         }
                     }
                 });
+            });
+
+            // Update CSS vars and fit names after layout
+            setColumnCountVar();
+            updateScrollbarCompensation();
+            requestAnimationFrame(() => {
+                fitPlayerNameFont();
             });
         }
     
@@ -981,6 +1086,17 @@
             const ths = document.querySelectorAll('#playerRow th');
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
+        }
+
+        // Fit names again when window resizes or font finishes loading
+        window.addEventListener('resize', () => {
+            updateScrollbarCompensation();
+            fitPlayerNameFont();
+        });
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                fitPlayerNameFont();
+            });
         }
     
         // Initial UI update
