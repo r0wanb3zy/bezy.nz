@@ -94,14 +94,16 @@
         }
 
         .sticky-header th span.score {
-            font-size: 22px;
             font-family: 'Economica', sans-serif;
+            font-size: var(--header-score-font-size);
+            white-space: nowrap;
         }
 
         .sticky-header th small {
-            font-size: 16px;
             font-family: 'Economica', sans-serif;
             color: rgba(255, 255, 255, 0.8);
+            font-size: var(--rank-font-size);
+            white-space: nowrap;
         }
 
         #scoreBody tr:not(:last-child) td:not(:first-child) {
@@ -113,6 +115,10 @@
 
         #scoreBody tr td:not(:first-child) {
             font-weight: bold;
+            font-size: var(--cell-score-font-size);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Input Styles */
@@ -121,7 +127,7 @@
             box-sizing: border-box;
             padding: 8px;
             text-align: center;
-            font-size: inherit;
+            font-size: var(--input-font-size);
             font-family: 'Economica', sans-serif;
             border: 1px solid #d0d7de;
             border-radius: 6px;
@@ -132,7 +138,7 @@
 
         table input::placeholder {
             font-family: 'Economica', sans-serif;
-            font-size: 16px;
+            font-size: var(--input-placeholder-font-size);
             text-align: center;
             line-height: 16px;
             color: #6b7280;
@@ -372,36 +378,83 @@
         }
 
         @media (max-width: 480px) {
+            /* Use the same variables even in small mode */
             .sticky-header.small-scores th span.score {
-                font-size: 18px;
+                font-size: var(--header-score-font-size);
                 line-height: 1.2;
             }
             #scoreTable.small-scores thead th {
                 padding: 3px;
             }
             #scoreTable.small-scores thead th span.score {
-                font-size: 16px;
+                font-size: var(--header-score-font-size);
                 line-height: 1.2;
             }
             #scoreTable.small-scores thead th small {
-                font-size: 12px;
+                font-size: var(--rank-font-size);
             }
             #scoreTable.small-scores tbody td {
-                font-size: 16px;
+                font-size: var(--cell-score-font-size);
             }
             #scoreTable.small-scores tbody tr:last-child input[type="number"] {
-                font-size: 14px;
+                font-size: var(--input-font-size);
                 padding: 5px;
                 height: 32px;
             }
             #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
-                font-size: 14px;
+                font-size: var(--input-placeholder-font-size);
                 line-height: 10px;
             }
             .sticky-header.small-scores th small {
-                font-size: 12px;
+                font-size: var(--rank-font-size);
             }
         }
+
+        /* ========== Equal widths + one-line, auto-fitted typography ========== */
+        :root {
+            --index-col: 30px;         /* width of the first (#) column */
+            --player-count: 4;         /* set via JS based on players.length */
+            --scrollbar-width: 0px;    /* computed via JS to align sticky header */
+
+            /* Auto-fit typography variables */
+            --name-font-size: 22px;
+            --header-score-font-size: 22px;
+            --rank-font-size: 16px;
+            --cell-score-font-size: 20px;
+            --input-font-size: 20px;
+            --input-placeholder-font-size: 16px;
+        }
+
+        /* Keep header aligned with body when vertical scrollbar appears */
+        .sticky-header {
+            padding-right: var(--scrollbar-width);
+        }
+
+        /* Lock first column width using variable (overrides earlier rule) */
+        .sticky-header table th:first-child,
+        #scoreTable th:first-child,
+        #scoreTable td:first-child {
+            width: var(--index-col);
+            min-width: var(--index-col);
+            max-width: var(--index-col);
+        }
+
+        /* Make all player columns equal width */
+        .sticky-header table th:not(:first-child),
+        #scoreTable th:not(:first-child),
+        #scoreTable td:not(:first-child) {
+            width: calc((100% - var(--index-col)) / var(--player-count));
+        }
+
+        /* Player name: one line + consistent size; use <br> for spacing like before */
+        .player-name {
+            white-space: nowrap;
+            overflow-wrap: normal;
+            word-break: keep-all;
+            font-size: var(--name-font-size);
+            /* spacing preserved by <br> */
+        }
+        /* ================================================================================ */
     </style>
 </head>
 <body>
@@ -453,7 +506,112 @@
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
         let unsubmittedScores = JSON.parse(localStorage.getItem('unsubmittedScores')) || {};
         let sortByRankEnabled = localStorage.getItem('sortByRankEnabled') === 'true';
-    
+
+        // ========== Helpers for equal widths and fitted typography ==========
+        function setColumnCountVar() {
+            document.documentElement.style.setProperty('--player-count', players.length);
+        }
+
+        function updateScrollbarCompensation() {
+            const sc = document.querySelector('.score-container');
+            const sw = sc ? (sc.offsetWidth - sc.clientWidth) : 0;
+            document.documentElement.style.setProperty('--scrollbar-width', sw + 'px');
+        }
+
+        function getColumnAvailableWidth() {
+            const th = document.querySelector('.sticky-header th:not(:first-child)');
+            if (!th) return 0;
+            const styles = getComputedStyle(th);
+            const padLeft = parseFloat(styles.paddingLeft) || 0;
+            const padRight = parseFloat(styles.paddingRight) || 0;
+            return Math.max(0, th.getBoundingClientRect().width - padLeft - padRight);
+        }
+
+        function measureMaxTextWidth(strings, basePx) {
+            const meas = document.createElement('span');
+            meas.style.cssText = `
+                position:absolute; visibility:hidden; white-space:nowrap;
+                font-family:'Economica',sans-serif; font-size:${basePx}px; font-weight:normal;
+            `;
+            document.body.appendChild(meas);
+            let maxW = 0;
+            for (const str of strings) {
+                meas.textContent = String(str ?? '');
+                const w = meas.getBoundingClientRect().width;
+                if (w > maxW) maxW = w;
+            }
+            meas.remove();
+            return maxW;
+        }
+
+        function computeFittedSize(strings, base, min, available) {
+            if (!available) return base;
+            const maxW = measureMaxTextWidth(strings.length ? strings : [''], base);
+            if (maxW <= 0) return base;
+            const scale = Math.min(1, available / maxW);
+            return Math.max(min, Math.floor(base * scale));
+        }
+
+        function fitTypography() {
+            const available = getColumnAvailableWidth();
+            if (available <= 0) return;
+
+            // Names
+            const nameStrings = players.map(p => p.name || '');
+            const nameSize = computeFittedSize(nameStrings, 22, 10, available);
+
+            // Header total scores (empty when no rounds and 0 score; measure '0' as fallback)
+            const headerScoreStrings = players.map(p => {
+                const show = !(p.totalScore === 0 && rounds.length === 0);
+                return show ? String(p.totalScore) : '0';
+            });
+            const headerScoreSize = computeFittedSize(headerScoreStrings, 22, 12, available);
+
+            // Ranks (measure actual ranks if any rounds; else '1st')
+            const rankStrings = players.length
+                ? players.map(p => (rounds.length ? getRank(p.totalScore) : '1st'))
+                : ['1st'];
+            const rankSize = computeFittedSize(rankStrings, 16, 10, available);
+
+            // Round cell scores
+            const cellScoreStrings = rounds.length
+                ? rounds.flat().map(v => String(v ?? 0))
+                : ['0'];
+            const cellScoreSize = computeFittedSize(cellScoreStrings, 20, 12, available);
+
+            // Inputs (use the longer of value or placeholder for each input)
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            let inputAvailable = available;
+            if (inputs.length) {
+                const s = getComputedStyle(inputs[0]);
+                const padL = parseFloat(s.paddingLeft) || 0;
+                const padR = parseFloat(s.paddingRight) || 0;
+                const bL = parseFloat(s.borderLeftWidth) || 0;
+                const bR = parseFloat(s.borderRightWidth) || 0;
+                inputAvailable = Math.max(0, inputs[0].getBoundingClientRect().width - padL - padR - bL - bR);
+            }
+
+            const inputStrings = [];
+            inputs.forEach(inp => {
+                const v = inp.value || '';
+                const ph = inp.getAttribute('placeholder') || '';
+                inputStrings.push((measureMaxTextWidth([v], 20) >= measureMaxTextWidth([ph], 20)) ? v : ph);
+            });
+            if (!inputStrings.length) inputStrings.push('0');
+
+            const inputSize = computeFittedSize(inputStrings, 20, 12, inputAvailable);
+
+            // Apply CSS variables
+            const root = document.documentElement.style;
+            root.setProperty('--name-font-size', nameSize + 'px');
+            root.setProperty('--header-score-font-size', headerScoreSize + 'px');
+            root.setProperty('--rank-font-size', rankSize + 'px');
+            root.setProperty('--cell-score-font-size', cellScoreSize + 'px');
+            root.setProperty('--input-font-size', inputSize + 'px');
+            root.setProperty('--input-placeholder-font-size', inputSize + 'px');
+        }
+        // ===============================================================
+
         // Add new round scores and scroll to the last row
         function addRoundScores() {
             const scores = [];
@@ -544,8 +702,8 @@
                         ondrop="handleDrop(event, ${index})"
                         ondragend="handleDragEnd(event)"
                         onclick="handlePlayerNameClick(event, ${index})" 
-                        title="Player">
-                        ${player.name}
+                        title="${player.name}">
+                        <span class="player-name">${player.name}</span>
                         <br>
                         <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
                         ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
@@ -580,7 +738,10 @@
     
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
-                input.addEventListener('input', saveUnsubmittedScores); // Save on input change
+                input.addEventListener('input', () => {
+                    saveUnsubmittedScores();
+                    fitTypography(); // refit when input length changes
+                }); // Save on input change
                 input.addEventListener('keydown', function(event) {
                     if (event.key === 'Enter' || event.keyCode === 13) {
                         event.preventDefault();
@@ -602,6 +763,13 @@
                         }
                     }
                 });
+            });
+
+            // Update CSS vars and fit typography after layout
+            setColumnCountVar();
+            updateScrollbarCompensation();
+            requestAnimationFrame(() => {
+                fitTypography();
             });
         }
     
@@ -981,6 +1149,17 @@
             const ths = document.querySelectorAll('#playerRow th');
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
+        }
+
+        // Refit on resize and when font finishes loading
+        window.addEventListener('resize', () => {
+            updateScrollbarCompensation();
+            fitTypography();
+        });
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                fitTypography();
+            });
         }
     
         // Initial UI update
