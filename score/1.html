@@ -403,7 +403,7 @@
             }
         }
 
-        /* ========== New additions for equal widths + one-line, auto-fitted names ========== */
+        /* ========== Equal widths + one-line, auto-fitted names (spacing restored) ========== */
         :root {
             --index-col: 30px;         /* width of the first (#) column */
             --player-count: 4;         /* set via JS based on players.length */
@@ -432,21 +432,13 @@
             width: calc((100% - var(--index-col)) / var(--player-count));
         }
 
-        /* Player name: force one line, consistent size; we shrink via --name-font-size so it fits */
+        /* Player name: one line + consistent size; use <br> for spacing like before */
         .player-name {
-            display: block;
             white-space: nowrap;
             overflow-wrap: normal;
             word-break: keep-all;
-            overflow: hidden; /* shouldn't trigger if we fit correctly */
             font-size: var(--name-font-size);
-            line-height: 1.1;
-        }
-
-        /* Keep score/rank on their own lines */
-        .sticky-header th .score,
-        .sticky-header th small {
-            display: block;
+            /* no display or line-height tweaks to preserve original spacing */
         }
         /* ================================================================================ */
     </style>
@@ -545,9 +537,8 @@
             document.body.removeChild(meas);
 
             // Compute size so the widest fits exactly inside the column
-            // If names are short, size stays at base; if long, we shrink.
             const scale = maxWidth > 0 ? Math.min(1, available / maxWidth) : 1;
-            const size = Math.max(10, Math.floor(base * scale)); // clamp to a reasonable minimum for readability
+            const size = Math.max(10, Math.floor(base * scale)); // clamp to a reasonable minimum
             document.documentElement.style.setProperty('--name-font-size', size + 'px');
         }
         // ===============================================================
