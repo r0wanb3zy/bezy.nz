@@ -312,6 +312,14 @@
             box-sizing: border-box;
         }
 
+        /* Invisible spacers to center 3-button layout while keeping width */
+        #popupOptions .popup-spacer {
+            width: 40px;
+            height: 40px;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
         #popupOptions button {
             width: 40px;
             height: 40px;
@@ -630,15 +638,13 @@
                 const category = cell.closest('tr').cells[0].querySelector('img').alt;
 
                 if (cell.classList.contains('lower-section-cell')) {
-                    // Full House, Small Straight, Large Straight, Yahtzee (fixed scores)
-                    const state = parseInt(cell.getAttribute('data-state')) || 0;
-                    if (state === 1) {
-                        const scoreValue = parseInt(cell.getAttribute('data-score')) || 0;
-                        total += scoreValue;
-                        lowerSectionTotal += scoreValue;
+                    const text = cell.textContent.trim();
+                    if (text && text !== '❌') {
+                        const value = parseInt(text) || 0;
+                        total += value;
+                        lowerSectionTotal += value;
                     }
                 } else if (cell.classList.contains('upper-section-cell')) {
-                    // Ones..Sixes and 3/4 of a Kind, Chance (numeric entry or ❌)
                     const text = cell.textContent.trim();
                     if (text && text !== '❌') {
                         const value = parseInt(text) || 0;
@@ -675,12 +681,7 @@
         function hasAnyEntry() {
             const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
             for (const c of cells) {
-                if (c.classList.contains('lower-section-cell')) {
-                    const state = parseInt(c.getAttribute('data-state')) || 0;
-                    if (state !== 0) return true;
-                } else {
-                    if (c.textContent.trim() !== '') return true;
-                }
+                if (c.textContent.trim() !== '') return true;
             }
             return false;
         }
@@ -699,6 +700,8 @@
             closeAllPopups();
             document.getElementById('popupModal').style.display = 'block';
             showOverlay();
+
+            const optionsDiv = document.getElementById('popupOptions');
 
             const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
             const player = cell.getAttribute('data-player');
@@ -730,8 +733,19 @@
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
                 const isMobile = window.innerWidth <= 768;
                 options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
+            } else if (['Full House', 'Small Straight', 'Large Straight', 'Yahtzee'].includes(categoryAlt)) {
+                // Use correct fixed values (25, 30, 40, 50)
+                const fixed = { 'Full House': 25, 'Small Straight': 30, 'Large Straight': 40, 'Yahtzee': 50 };
+                const isMobile = window.innerWidth <= 768;
+
+                // Add invisible spacers to center the 3 buttons while keeping grid width
+                options += `<span class="popup-spacer" aria-hidden="true"></span>`;
+                options += `<button onclick="selectScore(${fixed[categoryAlt]}, '${player}', '${categoryAlt}', event)">${fixed[categoryAlt]}</button>`;
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
+                options += `<span class="popup-spacer" aria-hidden="true"></span>`;
             }
-            document.getElementById('popupOptions').innerHTML = options;
+            optionsDiv.innerHTML = options;
             window.lastClickedCell = cell;
         }
     
@@ -878,32 +892,9 @@
                             newCell.className = 'lower-section-cell';
                             newCell.setAttribute('data-player', `P${i}`);
                             newCell.setAttribute('data-category', categoryAlt);
-                            newCell.setAttribute('data-score', categoryAlt === 'Full House' ? '25' : categoryAlt === 'Small Straight' ? '30' : categoryAlt === 'Large Straight' ? '40' : '50');
                             newCell.setAttribute('data-state', '0');
-                            newCell.onclick = function(e) {
-                                let currentState = parseInt(this.getAttribute('data-state')) || 0;
-                                currentState = (currentState + 1) % 3;
-                                this.setAttribute('data-state', currentState);
-                                const cellId = this.getAttribute('data-player') + '-' + this.closest('tr').cells[0].querySelector('img').alt;
-                                switch(currentState) {
-                                    case 0:
-                                        this.textContent = '';
-                                        localStorage.removeItem(cellId);
-                                        this.style.textDecoration = 'none';
-                                        break;
-                                    case 1:
-                                        this.textContent = this.getAttribute('data-score');
-                                        localStorage.setItem(cellId, this.getAttribute('data-score'));
-                                        this.style.textDecoration = 'none';
-                                        break;
-                                    case 2:
-                                        this.innerHTML = '<span class="scaled-emoji">❌</span>';
-                                        localStorage.setItem(cellId, '❌');
-                                        this.style.textDecoration = 'none';
-                                        break;
-                                }
-                                calculateTotal(this.getAttribute('data-player'));
-                                updateRanks();
+                            newCell.onclick = function() {
+                                showPopup(this);
                             };
                         } else {
                             newCell.className = 'upper-section-cell';
@@ -1102,9 +1093,6 @@
         }
     
         // Update player rankings (blue gradient + optional auto-sort)
-        // - If no entries at all: show only names (no totals/labels/shading).
-        // - Single player: gray by default; if any entry, darkest blue and totals visible.
-        // - Multiple players: if any entry, show totals/labels and shade; ties share shade; all-tied => darkest for all.
         function updateRanks() {
             const table = document.getElementById('scoreTable');
             const headers = Array.from(table.querySelectorAll('thead th')).slice(1); // skip menu
@@ -1231,14 +1219,12 @@
 
         // Update ordinal labels (small) under totals
         function updateRankLabels(sortedScoresDesc, totalDivs) {
-            // Build rank map
             const uniqueDesc = Array.from(new Set(sortedScoresDesc));
             const rankMapScoreToRank = new Map();
-            uniqueDesc.forEach((score, i) => rankMapScoreToRank.set(score, i + 1)); // 1-based rank
+            uniqueDesc.forEach((score, i) => rankMapScoreToRank.set(score, i + 1));
 
             totalDivs.forEach(div => {
                 if (!div) return;
-                // Remove existing smalls
                 while (div.nextSibling && div.nextSibling.nodeName === "SMALL") {
                     div.parentElement.removeChild(div.nextSibling);
                 }
