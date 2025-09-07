@@ -184,9 +184,10 @@
             border-radius: 10px;
         }
 
+        /* Center the player modal like the others */
         #playerManagementModal {
-            top: 15%;
-            transform: translate(-50%, -15%);
+            top: 50%;
+            transform: translate(-50%, -50%);
         }
 
         .popup-modal input[type="text"] {
@@ -793,67 +794,76 @@
             updateUI();
         }
 
-        // Create player management dialog (text/uppercase mode)
-        function createPlayerManagementDialog(index) {
-            const modal = document.getElementById('playerManagementModal');
-            modal.innerHTML = `
-                <h2>Player</h2>
-                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-                <input type="text" id="playerNameInput" value="${players[index].name}" autocapitalize="characters" inputmode="text" style="text-transform: uppercase;">
-                <button onclick="updatePlayerName(${index})">Update</button>
-                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
-            `;
-            modal.style.display = 'block';
-            showOverlay();
-            const input = modal.querySelector('#playerNameInput');
-            // Focus and select in normal (non-emoji) mode
-            input.focus();
-            input.select();
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    updatePlayerName(index);
-                    closePopup('playerManagementModal');
-                }
-            });
-            input.addEventListener('input', function() {
-                this.value = this.value.toUpperCase();
-            });
+// Create player management dialog (text/uppercase mode)
+function createPlayerManagementDialog(index) {
+    const modal = document.getElementById('playerManagementModal');
+    modal.innerHTML = `
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+        <input type="text" id="playerNameInput" value="${players[index].name}" autocapitalize="characters" inputmode="text" style="text-transform: uppercase;">
+        <button onclick="updatePlayerName(${index})">Update</button>
+        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
+    `;
+    modal.style.display = 'block';
+    showOverlay();
+    const input = modal.querySelector('#playerNameInput');
+    input.focus();
+    input.select();
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            updatePlayerName(index);
+            closePopup('playerManagementModal');
         }
+    });
+    input.addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+    });
+}
 
-        // Emoji-only player management dialog
-        function createEmojiPlayerDialog(index) {
-            const modal = document.getElementById('playerManagementModal');
-            const favEmojis = [
-                "🍔","🩰","🌹","🌰","🔔",
-                "👑","🎣","🌻","🏏","🦈",
-                "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
-                "❄️","🔥","💥","⚡","⭐",
-                "🐬","🐳","🦀","🕷️","🐝"
-            ];
-            const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}" onclick="setEmojiFromButton(this, ${index})">${e}</button>`).join('');
-            
-            modal.innerHTML = `
-                <h2>Player</h2>
-                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-                <input type="text" id="emojiNameInput" value="${players[index].name}" inputmode="text" placeholder="Pick an emoji" enterkeyhint="done">
-                <div class="emoji-grid">${grid}</div>
-                <button onclick="updatePlayerNameEmoji(${index})">Update</button>
-                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
-            `;
-            modal.style.display = 'block';
-            showOverlay();
+// Emoji-only player management dialog (focus + select to bring up keyboard)
+function createEmojiPlayerDialog(index) {
+    const modal = document.getElementById('playerManagementModal');
+    const favEmojis = [
+        "🍔","🩰","🌹","🌰","🔔",
+        "👑","🎣","🌻","🏏","🦈",
+        "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
+        "❄️","🔥","💥","⚡","⭐",
+        "🐬","🐳","🦀","🕷️","🐝"
+    ];
+    const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}" onclick="setEmojiFromButton(this, ${index})">${e}</button>`).join('');
+    
+    modal.innerHTML = `
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+        <input type="text" id="emojiNameInput" value="${players[index].name}" inputmode="text" placeholder="Pick an emoji" enterkeyhint="done" autocapitalize="off" autocomplete="off">
+        <div class="emoji-grid">${grid}</div>
+        <button onclick="updatePlayerNameEmoji(${index})">Update</button>
+        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
+    `;
+    modal.style.display = 'block';
+    showOverlay();
 
-            // Do NOT focus the input automatically (prevents keyboard popping)
-            const input = modal.querySelector('#emojiNameInput');
-            input.addEventListener('input', function () {
-                this.value = extractEmojis(this.value);
-            });
-            input.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    updatePlayerNameEmoji(index);
-                }
-            });
+    const input = modal.querySelector('#emojiNameInput');
+
+    const focusAndSelect = () => {
+        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+        try { input.select(); } catch (_) {}
+        try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+    };
+
+    requestAnimationFrame(focusAndSelect);
+    input.addEventListener('focus', focusAndSelect);
+    input.addEventListener('click', focusAndSelect);
+
+    input.addEventListener('input', function () {
+        this.value = extractEmojis(this.value);
+    });
+    input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            updatePlayerNameEmoji(index);
         }
+    });
+}
 
         function extractEmojis(str) {
             if (!str) return '';
@@ -932,7 +942,7 @@
                     <label for="highest">High</label>
                 </div>
                 <button id="sortByRankBtn" class="${sortByRankEnabled ? 'active' : ''}" onclick="toggleSortByRank()">Sort by Rank</button>
-                <button id="emojiModeBtn" class="${emojiModeEnabled ? 'active' : ''}" onclick="toggleEmojiMode()">Emoji</button>
+                <button id="emojiModeBtn" class="${emojiModeEnabled ? 'active' : ''}" onclick="toggleEmojiMode()">Emoji Mode</button>
                 <button onclick="handleResetScores(this)" data-state="initial">Reset</button>
             `;
             modal.style.display = 'block';
