@@ -86,7 +86,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             font-family: 'Economica', sans-serif;
-            border-bottom: 1px solid rgba(200, 200, 200, 0.3); /* Lighter border for non-dark areas */
+            border-bottom: 1px solid rgba(200, 200, 200, 0.3);
         }
 
         table td {
@@ -106,7 +106,7 @@
             max-width: 30px;
             overflow: hidden;
             color: white;
-            border-bottom: 1px solid #666; /* Reinstated for border between top two cells */
+            border-bottom: 1px solid #666;
         }
 
         table td:first-child {
@@ -118,7 +118,7 @@
             overflow: hidden;
             color: white;
             border-bottom: 1px solid #666;
-            border-right: none; /* Prevents border poking out */
+            border-right: none;
         }
 
         table td:first-child img {
@@ -135,15 +135,15 @@
 
         #scoreTable thead th:first-child {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-            border-right: none; /* Remove right border from top-left cell */
-            border-bottom: 1px solid #666; /* Explicitly add border for first header cell */
+            border-right: none;
+            border-bottom: 1px solid #666;
         }
 
         #scoreTable thead th {
             height: 80px;
             font-family: 'Economica', sans-serif;
             font-size: 22px;
-            border-bottom: none; /* No border under top row, overridden for first-child */
+            border-bottom: none;
         }
 
         /* Input Styles */
@@ -191,8 +191,8 @@
         .bonus-row td, .upper-score-row td, .lower-score-row td {
             background: #4d4d4d;
             color: white;
-            border-bottom: 1px solid #666; /* Darker border for dark area */
-            border-right: 1px solid #666; /* Vertical border for dark area */
+            border-bottom: 1px solid #666;
+            border-right: 1px solid #666;
         }
 
         .bonus-row td:first-child,
@@ -248,7 +248,7 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Legacy highlight classes (not used now, kept for compatibility) */
+        /* Legacy highlight classes */
         .highlight-winner {
             background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
         }
@@ -257,7 +257,7 @@
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
 
-        /* Popup Modal */
+        /* Score Selection Popup */
         #popupModal {
             display: none;
             position: fixed;
@@ -364,6 +364,7 @@
             border-radius: 10px;
         }
 
+        /* Make select full-width like the other app */
         #roundManagementModal select {
             font-size: 24px;
             padding: 10px;
@@ -371,13 +372,16 @@
             font-family: 'Economica', sans-serif;
             border: 1px solid #333;
             border-radius: 6px;
-            background: #ffffff;
+            background: #f8f9fa;
+            width: 100%;
+            box-sizing: border-box;
         }
 
+        /* Make buttons full-width, stacked */
         #roundManagementModal button {
             font-size: 24px;
             padding: 10px 20px;
-            margin: 5px;
+            margin: 5px 0;            /* stacked */
             cursor: pointer;
             font-family: 'Economica', sans-serif;
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
@@ -385,15 +389,29 @@
             border: none;
             border-radius: 6px;
             transition: background 0.2s;
+            width: 100%;               /* full width like other app */
+            box-sizing: border-box;
         }
 
-        /* Sort-by-rank button styles to match segmented scheme (light off, dark on) */
+        /* Sort-by-rank button styles (light off, dark on) */
         #roundManagementModal button#sortByRankBtn {
             background: #f8f9fa;
             color: #0f172a;
             border: 1px solid #333333;
         }
         #roundManagementModal button#sortByRankBtn.active {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: #ffffff;
+            border: 1px solid #333333;
+        }
+
+        /* Emoji Mode toggle (light off, dark on) */
+        #roundManagementModal button#emojiModeBtn {
+            background: #f8f9fa;
+            color: #0f172a;
+            border: 1px solid #333333;
+        }
+        #roundManagementModal button#emojiModeBtn.active {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: #ffffff;
             border: 1px solid #333333;
@@ -442,10 +460,32 @@
             text-transform: uppercase;
         }
 
+        /* Emoji Name Input (emoji modal) */
+        #emojiNameInput {
+            -webkit-touch-callout: none;
+            font-size: 24px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 5px 0;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+            transition: border-color 0.2s ease;
+        }
+        #emojiNameInput:focus {
+            outline: none;
+            border: 1px solid #333333;
+        }
+
+        /* Player modal action buttons (text or emoji modal) */
         #playerNameModal button {
             font-size: 24px;
             padding: 10px 20px;
-            margin: 5px;
+            margin: 5px 0;            /* stacked full width */
             cursor: pointer;
             font-family: 'Economica', sans-serif;
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
@@ -453,6 +493,8 @@
             border: none;
             border-radius: 6px;
             transition: background 0.2s;
+            width: 100%;              /* full width like other app */
+            box-sizing: border-box;
         }
 
         #playerNameModal button[data-state="confirm"] {
@@ -477,7 +519,44 @@
             transition: color 0.2s ease;
         }
 
-        /* Emoji Scaling */
+        /* Emoji Grid (shared) */
+        .emoji-grid {
+            --emoji-gap: 8px;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: var(--emoji-gap);
+            padding: 0;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Make sure emoji pick buttons are not overridden by #playerNameModal button rules */
+        #playerNameModal .emoji-grid .emoji-pick {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Economica', sans-serif;
+            font-size: 22px;
+            display: grid;
+            place-items: center;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            padding: 0;
+            margin: 0;
+            line-height: 1;
+            cursor: pointer;
+            transition: transform 0.05s ease, filter 0.1s ease;
+            box-sizing: border-box;
+        }
+
+        #playerNameModal .emoji-grid .emoji-pick:active {
+            transform: scale(0.95);
+            filter: brightness(1.05);
+        }
+
+        /* Emoji Scaling in score cells */
         .scaled-emoji {
             transform: scale(0.6);
             transform-origin: center;
@@ -570,6 +649,7 @@
             <option value="8">8 Players</option>
         </select>
         <button id="sortByRankBtn" onclick="toggleSortByRank()">Sort by Rank</button>
+        <button id="emojiModeBtn" onclick="toggleEmojiMode()">Emoji Mode</button>
         <button id="resetButton" onclick="handleResetClick()">Reset</button>
     </div>
 
@@ -586,8 +666,12 @@
     <div id="overlay" style="display: none;"></div>
 
     <script>
-        // Persistent toggle for auto-sorting by rank (unique key for Yahtzee)
+        // Persistent toggles (unique keys for Yahtzee)
         let sortByRankEnabled = localStorage.getItem('yahtzee-sortByRankEnabled') === 'true';
+        let emojiModeEnabled = localStorage.getItem('yahtzee-emojiModeEnabled') === 'true';
+
+        // Keep original playerName modal markup so we can restore after emoji modal swaps
+        let playerNameModalTemplate = null;
 
         // Set table height to match viewport
         function setFullHeight() {
@@ -607,6 +691,13 @@
                 document.getElementById('playerCount').value = '4';
                 localStorage.setItem('playerCount', '4');
             }
+
+            // Save the original player name modal HTML
+            const modal = document.getElementById('playerNameModal');
+            if (modal && !playerNameModalTemplate) {
+                playerNameModalTemplate = modal.innerHTML;
+            }
+
             updatePlayerCount(); // Setup table based on player count
             loadScores();
             reattachEventListeners();
@@ -616,13 +707,20 @@
             const sortBtn = document.getElementById('sortByRankBtn');
             if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
 
+            // Initialize Emoji Mode button state
+            const emojiBtn = document.getElementById('emojiModeBtn');
+            if (emojiBtn) emojiBtn.classList.toggle('active', emojiModeEnabled);
+
+            // Enter to update (text modal)
             const playerNameInput = document.getElementById('playerNameInput');
-            playerNameInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    updatePlayerName();
-                    closePlayerNameModal();
-                }
-            });
+            if (playerNameInput) {
+                playerNameInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        updatePlayerName();
+                        closePlayerNameModal();
+                    }
+                });
+            }
         });
     
         // Resize handler
@@ -734,11 +832,9 @@
                 const isMobile = window.innerWidth <= 768;
                 options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
             } else if (['Full House', 'Small Straight', 'Large Straight', 'Yahtzee'].includes(categoryAlt)) {
-                // Use correct fixed values (25, 30, 40, 50)
                 const fixed = { 'Full House': 25, 'Small Straight': 30, 'Large Straight': 40, 'Yahtzee': 50 };
                 const isMobile = window.innerWidth <= 768;
 
-                // Add invisible spacers to center the 3 buttons while keeping grid width
                 options += `<span class="popup-spacer" aria-hidden="true"></span>`;
                 options += `<button onclick="selectScore(${fixed[categoryAlt]}, '${player}', '${categoryAlt}', event)">${fixed[categoryAlt]}</button>`;
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
@@ -783,42 +879,41 @@
         function showRoundManagement() {
             closeAllPopups();
             document.getElementById('roundManagementModal').style.display = 'block';
-            // Set sort toggle visual state
             const sortBtn = document.getElementById('sortByRankBtn');
             if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
+
+            const emojiBtn = document.getElementById('emojiModeBtn');
+            if (emojiBtn) emojiBtn.classList.toggle('active', emojiModeEnabled);
+
             showOverlay();
         }
     
         function closeRoundManagement() {
-            resetButtonState(); // Reset button state when closing the modal
+            resetButtonState();
             document.getElementById('roundManagementModal').style.display = 'none';
             hideOverlay();
         }
     
-        // Add this variable at the top of the reset section
+        // Reset confirmation state
         let resetConfirm = false;
     
-        // Function to reset the button to its original state
         function resetButtonState() {
             const resetButton = document.getElementById('resetButton');
             resetButton.textContent = 'Reset';
-            resetButton.removeAttribute('data-confirm'); // Remove attribute to revert to gray gradient
+            resetButton.removeAttribute('data-confirm');
             resetConfirm = false;
         }
     
-        // Updated reset handling functions
         function handleResetClick() {
             const resetButton = document.getElementById('resetButton');
             
             if (!resetConfirm) {
-                // First click: change to Confirm
                 resetButton.textContent = 'Confirm';
-                resetButton.setAttribute('data-confirm', 'true'); // Add attribute for CSS targeting
+                resetButton.setAttribute('data-confirm', 'true');
                 resetConfirm = true;
             } else {
-                // Second click: execute reset
                 resetScores();
-                resetButtonState(); // Reset button state after confirming
+                resetButtonState();
             }
         }
     
@@ -834,7 +929,7 @@
             const playerCount = parseInt(document.getElementById('playerCount').value);
             for (let i = 1; i <= playerCount; i++) {
                 const player = `P${i}`;
-                document.getElementById(`total${player}`).textContent = ''; // blank totals on reset
+                document.getElementById(`total${player}`).textContent = '';
                 document.getElementById(`upperScore${player}`).textContent = '0';
                 document.getElementById(`lowerScore${player}`).textContent = '0';
                 document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
@@ -871,7 +966,7 @@
                 for (let i = existingPlayers + 1; i <= playerCount; i++) {
                     const newHeader = document.createElement('th');
                     const savedName = localStorage.getItem(`playerName-P${i}`) || `P${i}`;
-                    newHeader.innerHTML = `${savedName}<div id="totalP${i}"></div>`; // blank initial total
+                    newHeader.innerHTML = `${savedName}<div id="totalP${i}"></div>`;
                     newHeader.setAttribute('data-player', `P${i}`);
                     newHeader.draggable = true;
                     headers.appendChild(newHeader);
@@ -900,7 +995,7 @@
                             newCell.className = 'upper-section-cell';
                             newCell.setAttribute('data-player', `P${i}`);
                             newCell.onclick = function() {
-                                showPopup(this); // derive player/category at click time
+                                showPopup(this);
                             };
                         }
                         row.appendChild(newCell);
@@ -923,19 +1018,108 @@
                     e.stopPropagation();
                     const player = this.getAttribute('data-player');
                     const playerName = this.innerText.split('\n')[0].trim();
-                    const playerNameInput = document.getElementById('playerNameInput');
-                    playerNameInput.value = playerName;
-                    closeAllPopups();
-                    document.getElementById('playerNameModal').style.display = 'block';
-                    showOverlay();
                     window.currentPlayer = player;
-                    playerNameInput.focus();
-                    playerNameInput.select();
+                    closeAllPopups();
+                    if (emojiModeEnabled) {
+                        openEmojiPlayerModal(playerName);
+                    } else {
+                        openTextPlayerModal(playerName);
+                    }
                 };
                 header.addEventListener('click', header.clickHandler);
             });
         }
-    
+
+        // Open the original text player modal
+        function openTextPlayerModal(name) {
+            const modal = document.getElementById('playerNameModal');
+            if (!document.getElementById('playerNameInput') && playerNameModalTemplate) {
+                modal.innerHTML = playerNameModalTemplate;
+            }
+            const input = document.getElementById('playerNameInput');
+            input.value = name;
+            modal.style.display = 'block';
+            showOverlay();
+
+            try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+            try { input.select(); } catch (_) {}
+
+            input.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    updatePlayerName();
+                    closePlayerNameModal();
+                }
+            };
+        }
+
+        // Open the emoji-only player modal
+        function openEmojiPlayerModal(currentName) {
+            const modal = document.getElementById('playerNameModal');
+            if (!playerNameModalTemplate) {
+                playerNameModalTemplate = modal.innerHTML;
+            }
+
+            const favEmojis = [
+                "🍔","🩰","🌹","🌰","🔔",
+                "👑","🎣","🌻","🏏","🦈",
+                "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
+                "❄️","🔥","💥","⚡","⭐",
+                "🐬","🐳","🦀","🕷️","🐝"
+            ];
+            const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" onclick="setEmojiFromButton('${e}')">${e}</button>`).join('');
+
+            modal.innerHTML = `
+                <h2>Player</h2>
+                <span class="close-btn" onclick="closePlayerNameModal()">×</span>
+                <input
+                    type="text"
+                    id="emojiNameInput"
+                    value="${currentName}"
+                    inputmode="text"
+                    placeholder="Pick an emoji"
+                    enterkeyhint="done"
+                    autocapitalize="off"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                >
+                <div class="emoji-grid">${grid}</div>
+                <button onclick="updatePlayerNameEmoji()">Update</button>
+                <button onclick="handleRemovePlayer(this)" data-state="initial">Remove</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
+
+            const input = document.getElementById('emojiNameInput');
+
+            // iOS-friendly: prime focus on first tap to avoid OS cut/copy/paste bubble
+            let primed = false;
+            const primeFocus = (e) => {
+                if (primed) return;
+                primed = true;
+                e.preventDefault();
+                try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+                requestAnimationFrame(() => {
+                    try { input.select(); } catch (_) {}
+                });
+            };
+            input.addEventListener('pointerdown', primeFocus, { passive: false });
+            input.addEventListener('touchstart', primeFocus, { passive: false });
+            input.addEventListener('mousedown', primeFocus);
+            input.addEventListener('mouseup', (e) => e.preventDefault());
+            input.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // Keep emoji-only input
+            input.addEventListener('input', function () {
+                this.value = extractEmojis(this.value);
+            });
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    updatePlayerNameEmoji();
+                }
+            });
+        }
+
         // Load saved scores from localStorage
         function loadScores() {
             const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
@@ -969,9 +1153,60 @@
             const btn = document.getElementById('sortByRankBtn');
             if (btn) btn.classList.toggle('active', sortByRankEnabled);
             if (sortByRankEnabled) {
-                applySortByRank(true); // sort now if enabled
+                applySortByRank(true);
             }
-            updateRanks(); // keep dialog open
+            updateRanks();
+        }
+
+        // Toggle Emoji Mode (dark when ON, light when OFF). Does not close modal.
+        function toggleEmojiMode() {
+            emojiModeEnabled = !emojiModeEnabled;
+            localStorage.setItem('yahtzee-emojiModeEnabled', emojiModeEnabled);
+            const btn = document.getElementById('emojiModeBtn');
+            if (btn) btn.classList.toggle('active', emojiModeEnabled);
+        }
+
+        // Extract emojis from a string (keeps grapheme clusters intact)
+        function extractEmojis(str) {
+            if (!str) return '';
+            let segments;
+            if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+                segments = Array.from(new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(str), s => s.segment);
+            } else {
+                segments = Array.from(str);
+            }
+            const emojiRegex = /\p{Extended_Pictographic}/u;
+            return segments.filter(seg => emojiRegex.test(seg)).join('');
+        }
+
+        // Apply a name (text or emoji) to the current player, preserving total and rank <small>
+        function applyPlayerName(playerId, newName) {
+            if (!playerId) return;
+            const header = document.querySelector(`#scoreTable thead th[data-player="${playerId}"]`);
+            if (!header) return;
+
+            const totalDiv = header.querySelector('div');
+            const score = totalDiv ? totalDiv.textContent : '';
+            const rankElement = header.querySelector('small');
+            const rankHTML = rankElement ? rankElement.outerHTML : '';
+            header.innerHTML = `${newName}<div id="total${playerId}">${score}</div>${rankHTML}`;
+            localStorage.setItem(`playerName-${playerId}`, newName);
+        }
+
+        function updatePlayerNameEmoji() {
+            const input = document.getElementById('emojiNameInput');
+            const newName = extractEmojis((input?.value || '').trim());
+            if (newName && window.currentPlayer) {
+                applyPlayerName(window.currentPlayer, newName);
+            }
+            closePlayerNameModal();
+        }
+
+        function setEmojiFromButton(emoji) {
+            if (emoji && window.currentPlayer) {
+                applyPlayerName(window.currentPlayer, emoji);
+                closePlayerNameModal();
+            }
         }
 
         // Apply sort-by-rank to columns and storage
@@ -982,10 +1217,8 @@
             const playerCount = parseInt(document.getElementById('playerCount').value) || 0;
             if (playerCount <= 1) return;
 
-            // Only sort if any entry exists
             if (!hasAnyEntry()) return;
 
-            // Build scores array from header totals
             const totals = [];
             for (let i = 0; i < playerCount; i++) {
                 const totalEl = document.getElementById(`totalP${i+1}`);
@@ -993,23 +1226,19 @@
                 totals.push({ index: i, score: val });
             }
 
-            // Sort indices by score desc (stable)
             const order = totals
                 .map((t, idx) => ({ ...t, idx }))
                 .sort((a, b) => b.score - a.score || a.idx - b.idx)
                 .map(o => o.index);
 
-            // If order is identical, no-op
             if (order.every((v, i) => v === i)) return;
 
-            // Categories to move in storage
             const categories = [
                 'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
                 'Three of a Kind', 'Four of a Kind', 'Full House',
                 'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
             ];
 
-            // Snapshot current player data (names + scores)
             const playerData = [];
             for (let i = 0; i < playerCount; i++) {
                 const p = `P${i+1}`;
@@ -1021,7 +1250,6 @@
                 playerData.push({ name, scores });
             }
 
-            // Reorder headers
             const headerCells = Array.from(headers.children);
             const firstCell = headerCells[0];
             const playerHeaderCells = headerCells.slice(1);
@@ -1029,7 +1257,6 @@
             headers.innerHTML = '';
             newHeaderCells.forEach(cell => headers.appendChild(cell));
 
-            // Reorder body rows
             rows.forEach(row => {
                 const cells = Array.from(row.children);
                 const first = cells[0];
@@ -1039,22 +1266,18 @@
                 reordered.forEach(c => row.appendChild(c));
             });
 
-            // New ordered data for storage
             const newData = order.map(idx => playerData[idx]);
 
-            // Update attributes/IDs and storage mapping
             for (let i = 0; i < playerCount; i++) {
                 const player = `P${i+1}`;
                 const headersRow = headers.children;
                 const header = headersRow[i + 1];
                 header.setAttribute('data-player', player);
 
-                // Keep currently displayed total text but correct ID
                 const totalDiv = header.querySelector('div');
                 const currentTotalText = totalDiv ? totalDiv.textContent : '';
                 header.innerHTML = `${newData[i].name}<div id="total${player}">${currentTotalText}</div>`;
 
-                // Update storage name and scores to new P#
                 localStorage.setItem(`playerName-${player}`, newData[i].name);
                 categories.forEach(cat => {
                     if (newData[i].scores[cat] !== null && newData[i].scores[cat] !== undefined) {
@@ -1064,7 +1287,6 @@
                     }
                 });
 
-                // Update data-player attributes and special row IDs
                 rows.forEach(row => {
                     const cell = row.children[i + 1];
                     if (!cell) return;
@@ -1083,7 +1305,6 @@
                 });
             }
 
-            // Reattach listeners and recalc totals
             reattachEventListeners();
             attachDragListeners();
             for (let i = 1; i <= playerCount; i++) {
@@ -1095,10 +1316,9 @@
         // Update player rankings (blue gradient + optional auto-sort)
         function updateRanks() {
             const table = document.getElementById('scoreTable');
-            const headers = Array.from(table.querySelectorAll('thead th')).slice(1); // skip menu
+            const headers = Array.from(table.querySelectorAll('thead th')).slice(1);
             const playerCount = headers.length;
 
-            // helper to remove small rank labels
             function removeAllRankSmall() {
                 headers.forEach(h => {
                     let next = h.querySelector('div[id^="total"]')?.nextSibling;
@@ -1112,7 +1332,6 @@
 
             const anyEntry = hasAnyEntry();
 
-            // If no entries anywhere: names only, clear totals/labels/backgrounds
             if (!anyEntry) {
                 headers.forEach(h => {
                     const div = h.querySelector('div[id^="total"]');
@@ -1123,27 +1342,22 @@
                 return;
             }
 
-            // Auto-sort if enabled and meaningful
             if (sortByRankEnabled && playerCount > 1) {
-                applySortByRank(true); // reorder silently
+                applySortByRank(true);
             }
 
-            // Refresh after possible reordering
             const headersNow = Array.from(table.querySelectorAll('thead th')).slice(1);
             const totalDivs = headersNow.map(h => h.querySelector('div[id^="total"]'));
 
-            // Ensure any blank total shows 0 once entries exist
             totalDivs.forEach(div => {
                 if (div && (div.textContent === '' || div.textContent == null)) {
                     div.textContent = '0';
                 }
             });
 
-            // Clear previous inline backgrounds and labels
             headersNow.forEach(h => { h.style.background = ''; });
             removeAllRankSmall();
 
-            // Single-player: darkest blue when any entry exists
             if (playerCount === 1) {
                 const H = 210, S = 85;
                 const Lmax = 82, range = 36;
@@ -1153,19 +1367,16 @@
                 const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
                 headersNow[0].style.background = gradient;
 
-                // Show "1st" below total
                 const small = document.createElement('small');
                 small.textContent = ordinalSuffixOf(1);
                 headersNow[0].appendChild(small);
                 return;
             }
 
-            // Build sorted groups for shading
             const scoresArray = totalDivs.map(div => ({ score: div ? (parseInt(div.textContent) || 0) : 0 }));
             const scored = scoresArray.map((s, i) => ({ idx: i, score: s.score }));
             scored.sort((a, b) => b.score - a.score);
 
-            // Group ties
             const groups = [];
             for (const item of scored) {
                 const last = groups[groups.length - 1];
@@ -1176,16 +1387,14 @@
                 }
             }
 
-            // Color parameters
-            const H = 210;   // hue (blue)
-            const S = 85;    // saturation
-            const Lmax = 82; // lightest (last)
+            const H = 210;
+            const S = 85;
+            const Lmax = 82;
             const minRange = 18;
             const maxRange = 44;
 
             const effectiveRanks = groups.length;
 
-            // If everyone tied, darkest for all
             if (effectiveRanks === 1) {
                 const darkestL = Math.max(28, Lmax - maxRange);
                 const Ltop = Math.max(18, darkestL - 10);
@@ -1195,14 +1404,12 @@
                 return;
             }
 
-            // Dynamic contrast scaling
             const maxRanksForScaling = 8;
             const normalized = Math.min(1, Math.max(0, (effectiveRanks - 1) / (maxRanksForScaling - 1)));
             const range = Math.round(minRange + (maxRange - minRange) * normalized);
             const Lmin = Math.max(28, Lmax - range);
 
             groups.forEach((group, g) => {
-                // g=0 first (darkest), g=last last (lightest)
                 const ratio = g / (effectiveRanks - 1);
                 const L = Math.round(Lmin + (Lmax - Lmin) * ratio);
                 const Ltop = Math.max(18, L - 10);
@@ -1213,7 +1420,6 @@
                 });
             });
 
-            // Update ordinal labels
             updateRankLabels(scored.map(s => s.score), totalDivs);
         }
 
@@ -1257,32 +1463,43 @@
         document.getElementById('playerCount').addEventListener('change', updateRanks);
         document.addEventListener('DOMContentLoaded', updateRanks);
     
-        // Update player name
+        // Update player name (text mode)
         function updatePlayerName() {
-            const newName = document.getElementById('playerNameInput').value.toUpperCase();
+            const input = document.getElementById('playerNameInput');
+            const newName = (input?.value || '').toUpperCase();
             if (newName && window.currentPlayer) {
-                const playerHeader = document.querySelector(`#scoreTable thead th[data-player="${window.currentPlayer}"]`);
-                if (playerHeader) {
-                    const totalDiv = playerHeader.querySelector('div');
-                    const score = totalDiv ? totalDiv.textContent : '';
-                    const rankElement = playerHeader.querySelector('small');
-                    let rankHTML = rankElement ? rankElement.outerHTML : '';
-                    playerHeader.innerHTML = `${newName}<div id="total${window.currentPlayer}">${score}</div>${rankHTML}`;
-                    localStorage.setItem(`playerName-${window.currentPlayer}`, newName);
-                    closePlayerNameModal();
-                }
+                applyPlayerName(window.currentPlayer, newName);
+                closePlayerNameModal();
             }
         }
     
         // Close player name modal
         function closePlayerNameModal() {
-            document.getElementById('playerNameModal').style.display = 'none';
-            const removeButton = document.querySelector('#playerNameModal button[onclick^="handleRemovePlayer"]');
+            const modal = document.getElementById('playerNameModal');
+            modal.style.display = 'none';
+
+            // If showing emoji variant (no #playerNameInput), restore template
+            if (!document.getElementById('playerNameInput') && playerNameModalTemplate) {
+                modal.innerHTML = playerNameModalTemplate;
+            }
+
+            const removeButton = modal.querySelector('button[onclick^="handleRemovePlayer"]');
             if (removeButton) {
                 removeButton.textContent = 'Remove';
                 removeButton.dataset.state = 'initial';
             }
             hideOverlay();
+
+            // Reattach Enter-to-submit for text input if present
+            const input = document.getElementById('playerNameInput');
+            if (input) {
+                input.onkeypress = function(e) {
+                    if (e.key === 'Enter') {
+                        updatePlayerName();
+                        closePlayerNameModal();
+                    }
+                };
+            }
         }
     
         // Remove a player
@@ -1297,14 +1514,12 @@
                 return;
             }
             
-            // Remove the player from the table headers and rows
             const table = document.getElementById('scoreTable');
             const headers = table.querySelector('thead tr');
             const rows = table.querySelectorAll('tbody tr');
             
-            // Remove the player's column
             if (headers.children[playerIndex + 1]) {
-                headers.removeChild(headers.children[playerIndex + 1]); // +1 to skip the first column
+                headers.removeChild(headers.children[playerIndex + 1]);
             }
             rows.forEach(row => {
                 if (row.children[playerIndex + 1]) {
@@ -1312,7 +1527,6 @@
                 }
             });
             
-            // Clear local storage for the removed player
             const categories = [
                 'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
                 'Three of a Kind', 'Four of a Kind', 'Full House',
@@ -1323,16 +1537,14 @@
             });
             localStorage.removeItem(`playerName-${player}`);
             
-            // Decrease player count
             const newPlayerCount = playerCount - 1;
             document.getElementById('playerCount').value = newPlayerCount;
             localStorage.setItem('playerCount', newPlayerCount);
             
-            // Adjust remaining players' names and IDs
             for (let i = playerIndex + 1; i < playerCount; i++) {
                 const oldPlayer = `P${i + 1}`;
                 const newPlayer = `P${i}`;
-                const headerIndex = i; // Since we already removed one column
+                const headerIndex = i;
                 const headersRow = headers.children;
                 const header = headersRow[headerIndex];
                 if (header) {
@@ -1352,7 +1564,6 @@
                     if (cell && (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell'))) {
                         cell.setAttribute('data-player', newPlayer);
                     }
-                    // Update IDs for special rows
                     if (row.classList.contains('bonus-row') && cell) {
                         cell.id = `bonus${newPlayer}`;
                         cell.innerHTML = `<span id="pointsNeeded${newPlayer}" class="points-needed">63</span>`;
@@ -1365,7 +1576,6 @@
                     }
                 });
                 
-                // Update local storage for renamed players
                 const savedName = localStorage.getItem(`playerName-${oldPlayer}`);
                 if (savedName) {
                     localStorage.setItem(`playerName-${newPlayer}`, savedName);
@@ -1380,7 +1590,6 @@
                 });
             }
             
-            // Reattach event listeners and update UI
             reattachEventListeners();
             attachDragListeners();
             for (let i = 1; i <= newPlayerCount; i++) {
@@ -1485,7 +1694,6 @@
                     'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
                 ];
 
-                // Get current player data before reordering
                 const playerData = [];
                 for (let i = 0; i < playerCount; i++) {
                     const player = `P${i + 1}`;
@@ -1497,14 +1705,12 @@
                     playerData.push({ name, scores });
                 }
 
-                // Reorder headers
                 const headerRow = Array.from(headers.children);
-                const [draggedHeader] = headerRow.splice(draggedIndex + 1, 1); // +1 to skip first column
+                const [draggedHeader] = headerRow.splice(draggedIndex + 1, 1);
                 headerRow.splice(dropIndex + 1, 0, draggedHeader);
                 headers.innerHTML = '';
                 headerRow.forEach(th => headers.appendChild(th));
 
-                // Reorder scores in each row
                 rows.forEach(row => {
                     const cells = Array.from(row.children);
                     const [draggedCell] = cells.splice(draggedIndex + 1, 1);
@@ -1513,11 +1719,9 @@
                     cells.forEach(cell => row.appendChild(cell));
                 });
 
-                // Reorder player data
                 const [draggedData] = playerData.splice(draggedIndex, 1);
                 playerData.splice(dropIndex, 0, draggedData);
 
-                // Update localStorage and DOM with new order
                 for (let i = 0; i < playerCount; i++) {
                     const player = `P${i + 1}`;
                     const header = headers.children[i + 1];
@@ -1527,7 +1731,6 @@
                         header.innerHTML = `${playerData[i].name}<div id="total${player}">${totalDiv.textContent}</div>`;
                     }
 
-                    // Update localStorage
                     localStorage.setItem(`playerName-${player}`, playerData[i].name);
                     categories.forEach(category => {
                         if (playerData[i].scores[category]) {
@@ -1537,7 +1740,6 @@
                         }
                     });
 
-                    // Update cell attributes
                     rows.forEach(row => {
                         const cell = row.children[i + 1];
                         if (!cell) return;
@@ -1556,7 +1758,6 @@
                     });
                 }
 
-                // Reattach listeners and update UI
                 reattachEventListeners();
                 attachDragListeners();
                 for (let i = 1; i <= playerCount; i++) {
