@@ -674,6 +674,19 @@
         </select>
         <button id="sortByRankBtn" onclick="toggleSortByRank()">Sort by Rank</button>
         <button id="emojiModeBtn" onclick="toggleEmojiMode()">Emoji Mode</button>
+
+        <!-- Theme Colour (NEW) -->
+        <label for="themeColorSelect" style="display:block; margin-top:5px;">Theme Colour</label>
+        <select id="themeColorSelect" onchange="setThemeColor(this.value)">
+            <option value="blue">Blue</option>
+            <option value="red">Red</option>
+            <option value="green">Green</option>
+            <option value="pink">Pink</option>
+            <option value="purple">Purple</option>
+            <option value="grey">Grey</option>
+            <option value="yellow">Yellow</option>
+        </select>
+
         <button id="resetButton" onclick="handleResetClick()">Reset</button>
     </div>
 
@@ -693,6 +706,8 @@
         // Persistent toggles (unique keys for Yahtzee)
         let sortByRankEnabled = localStorage.getItem('yahtzee-sortByRankEnabled') === 'true';
         let emojiModeEnabled = localStorage.getItem('yahtzee-emojiModeEnabled') === 'true';
+        // NEW: theme color (default blue)
+        let themeColor = localStorage.getItem('yahtzee-themeColor') || 'blue';
 
         // Keycap digit helpers
         const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
@@ -700,6 +715,25 @@
         function keycapToNumber(str) {
             const idx = KEYCAP_DIGITS.indexOf(str);
             return idx === -1 ? null : idx;
+        }
+
+        // Theme map for rank shading (NEW)
+        const THEME_MAP = {
+            blue:   { h: 210, s: 85 },
+            red:    { h:   0, s: 78 },
+            green:  { h: 140, s: 65 },
+            pink:   { h: 330, s: 70 },
+            purple: { h: 268, s: 70 },
+            grey:   { h: 210, s:  0 }, // s=0 => greyscale
+            yellow: { h:  45, s: 90 }
+        };
+        function getThemeHS() {
+            return THEME_MAP[themeColor] || THEME_MAP.blue;
+        }
+        function setThemeColor(value) {
+            themeColor = value || 'blue';
+            localStorage.setItem('yahtzee-themeColor', themeColor);
+            updateRanks();
         }
 
         // Keep original playerName modal markup so we can restore after emoji modal swaps
@@ -722,6 +756,12 @@
             } else {
                 document.getElementById('playerCount').value = '4';
                 localStorage.setItem('playerCount', '4');
+            }
+
+            // Initialize Theme Colour select (NEW)
+            const themeSel = document.getElementById('themeColorSelect');
+            if (themeSel) {
+                themeSel.value = themeColor;
             }
 
             // Save the original player name modal HTML
@@ -919,6 +959,10 @@
 
             const emojiBtn = document.getElementById('emojiModeBtn');
             if (emojiBtn) emojiBtn.classList.toggle('active', emojiModeEnabled);
+
+            // Ensure theme select shows current value (in case changed programmatically)
+            const themeSel = document.getElementById('themeColorSelect');
+            if (themeSel) themeSel.value = themeColor;
 
             showOverlay();
         }
@@ -1144,7 +1188,7 @@
             input.addEventListener('mouseup', (e) => e.preventDefault());
             input.addEventListener('contextmenu', (e) => e.preventDefault());
 
-            // Keep emoji-only input
+            // Keep emoji-only input (broadened acceptance)
             input.addEventListener('input', function () {
                 this.value = extractEmojis(this.value);
             });
@@ -1204,7 +1248,7 @@
             syncDefaultNamesToMode();
         }
 
-        // Extract emojis from a string (keeps grapheme clusters intact)
+        // Broadened emoji extractor (accepts flags, keycaps, VS16 symbols, tag flags)
         function extractEmojis(str) {
             if (!str) return '';
             let segments;
@@ -1213,8 +1257,15 @@
             } else {
                 segments = Array.from(str);
             }
-            const emojiRegex = /\p{Extended_Pictographic}/u;
-            return segments.filter(seg => emojiRegex.test(seg)).join('');
+            const rePict = /\p{Extended_Pictographic}/u;           // pictographic
+            const reRI = /[\u{1F1E6}-\u{1F1FF}]/u;                  // regional indicators (flags)
+            const reKeycap = /[#*0-9]\uFE0F?\u20E3/u;               // keycap sequences
+            const reVS16 = /\uFE0F/u;                                // VS16 emoji presentation
+            const reTagFlag = /\u{1F3F4}[\u{E0061}-\u{E007A}]{1,14}\u{E007F}/u; // tag-based flags
+
+            return segments
+                .filter(seg => rePict.test(seg) || reRI.test(seg) || reKeycap.test(seg) || reVS16.test(seg) || reTagFlag.test(seg))
+                .join('');
         }
 
         // Apply a name (text or emoji) to the current player, preserving total and rank <small>
@@ -1351,7 +1402,7 @@
             if (!silent) updateRanks();
         }
     
-        // Update player rankings (blue gradient + optional auto-sort)
+        // Update player rankings (theme gradient + optional auto-sort)
         function updateRanks() {
             const table = document.getElementById('scoreTable');
             const headers = Array.from(table.querySelectorAll('thead th')).slice(1);
@@ -1396,8 +1447,10 @@
             headersNow.forEach(h => { h.style.background = ''; });
             removeAllRankSmall();
 
+            // Theme H/S (NEW)
+            const { h: H, s: S } = getThemeHS();
+
             if (playerCount === 1) {
-                const H = 210, S = 85;
                 const Lmax = 82, range = 36;
                 const Lmin = Math.max(28, Lmax - range);
                 const L = Lmin;
@@ -1425,8 +1478,6 @@
                 }
             }
 
-            const H = 210;
-            const S = 85;
             const Lmax = 82;
             const minRange = 18;
             const maxRange = 44;
