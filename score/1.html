@@ -387,39 +387,38 @@
             border-left: 2px solid #333;
         }
 
-        /* Emoji favorites grid (dark buttons, compact, centered) */
-        .emoji-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            margin: 8px 0 8px 0;
-            width: 100%;
-            box-sizing: border-box;
-            justify-items: stretch;
-            align-items: stretch;
-        }
-        .emoji-grid .emoji-pick {
-            /* Default dark button look (compact) */
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            font-family: 'Economica', sans-serif;
-            font-size: 22px;
-            padding: 6px 0;
-            line-height: 1;
-            cursor: pointer;
-            transition: transform 0.05s ease, filter 0.1s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .emoji-grid .emoji-pick:active {
-            transform: scale(0.95);
-            filter: brightness(1.05);
-        }
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px; /* even horizontal + vertical spacing */
+    margin: 8px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.emoji-grid .emoji-pick {
+    background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Economica', sans-serif;
+    font-size: 22px;
+    display: flex;                /* center emoji inside */
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1 / 1;          /* square buttons -> even gaps vertically */
+    padding: 0;                   /* remove variable vertical padding */
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.05s ease, filter 0.1s ease;
+    box-sizing: border-box;
+}
+
+.emoji-grid .emoji-pick:active {
+    transform: scale(0.95);
+    filter: brightness(1.05);
+}
 
         @media (max-width: 480px) {
             .sticky-header.small-scores th span.score {
@@ -793,7 +792,45 @@
             saveData();
             updateUI();
         }
+// Create player management dialog (text/uppercase mode)
+function createPlayerManagementDialog(index) {
+    const modal = document.getElementById('playerManagementModal');
+    modal.innerHTML = `
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+        <input
+            type="text"
+            id="playerNameInput"
+            value="${players[index].name}"
+            autocapitalize="characters"
+            inputmode="text"
+            style="text-transform: uppercase;"
+        >
+        <button onclick="updatePlayerName(${index})">Update</button>
+        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
+    `;
+    modal.style.display = 'block';
+    showOverlay();
 
+    const input = modal.querySelector('#playerNameInput');
+
+    // Focus and select all text on open
+    try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+    try { input.select(); } catch (_) {}
+    try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+
+    // Force uppercase as the user types
+    input.addEventListener('input', function () {
+        this.value = this.value.toUpperCase();
+    });
+
+    // Enter to submit
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            updatePlayerName(index);
+        }
+    });
+}
 // Emoji-only player management dialog (open keyboard only when user taps input)
 function createEmojiPlayerDialog(index) {
     const modal = document.getElementById('playerManagementModal');
