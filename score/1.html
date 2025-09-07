@@ -794,33 +794,7 @@
             updateUI();
         }
 
-// Create player management dialog (text/uppercase mode)
-function createPlayerManagementDialog(index) {
-    const modal = document.getElementById('playerManagementModal');
-    modal.innerHTML = `
-        <h2>Player</h2>
-        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-        <input type="text" id="playerNameInput" value="${players[index].name}" autocapitalize="characters" inputmode="text" style="text-transform: uppercase;">
-        <button onclick="updatePlayerName(${index})">Update</button>
-        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
-    `;
-    modal.style.display = 'block';
-    showOverlay();
-    const input = modal.querySelector('#playerNameInput');
-    input.focus();
-    input.select();
-    input.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            updatePlayerName(index);
-            closePopup('playerManagementModal');
-        }
-    });
-    input.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-    });
-}
-
-// Emoji-only player management dialog (focus + select to bring up keyboard)
+// Emoji-only player management dialog (open keyboard only when user taps input)
 function createEmojiPlayerDialog(index) {
     const modal = document.getElementById('playerManagementModal');
     const favEmojis = [
@@ -835,7 +809,18 @@ function createEmojiPlayerDialog(index) {
     modal.innerHTML = `
         <h2>Player</h2>
         <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-        <input type="text" id="emojiNameInput" value="${players[index].name}" inputmode="text" placeholder="Pick an emoji" enterkeyhint="done" autocapitalize="off" autocomplete="off">
+        <input
+            type="text"
+            id="emojiNameInput"
+            value="${players[index].name}"
+            inputmode="text"
+            placeholder="Pick an emoji"
+            enterkeyhint="done"
+            autocapitalize="off"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+        >
         <div class="emoji-grid">${grid}</div>
         <button onclick="updatePlayerNameEmoji(${index})">Update</button>
         <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
@@ -845,16 +830,19 @@ function createEmojiPlayerDialog(index) {
 
     const input = modal.querySelector('#emojiNameInput');
 
-    const focusAndSelect = () => {
-        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+    // Select-all helper (no programmatic focus here)
+    const selectAll = () => {
         try { input.select(); } catch (_) {}
         try { input.setSelectionRange(0, input.value.length); } catch (_) {}
     };
 
-    requestAnimationFrame(focusAndSelect);
-    input.addEventListener('focus', focusAndSelect);
-    input.addEventListener('click', focusAndSelect);
+    // Only when user interacts with the input:
+    input.addEventListener('focus', selectAll);
+    // Ensure selection stays selected after the tap
+    input.addEventListener('click', () => setTimeout(selectAll, 0));
+    input.addEventListener('mouseup', (e) => e.preventDefault());
 
+    // Keep emoji-only input
     input.addEventListener('input', function () {
         this.value = extractEmojis(this.value);
     });
