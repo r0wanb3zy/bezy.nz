@@ -598,6 +598,30 @@
         th.drag-over {
             border-left: 2px solid #333;
         }
+        /* Center text + remove native arrow for the Players dropdown */
+#roundManagementModal select#playerCount {
+  text-align: center;            /* centers in many browsers */
+  text-align-last: center;       /* centers selected value (Chrome/Firefox) */
+  -moz-text-align-last: center;  /* Firefox */
+  
+  -webkit-appearance: none;      /* Safari/Chrome */
+  -moz-appearance: none;         /* Firefox */
+  appearance: none;              /* Standard */
+
+  background-image: none !important; /* ensure no chevron background */
+  background-color: #f8f9fa;     /* keep your styling */
+  padding-right: 12px;           /* even spacing since arrow is gone */
+}
+
+/* Hide the arrow in IE/Edge Legacy */
+#roundManagementModal select#playerCount::-ms-expand {
+  display: none;
+}
+
+/* Optional: center the options list contents in some browsers */
+#roundManagementModal select#playerCount option {
+  text-align: center;
+}
     </style>
 </head>
 <body>
