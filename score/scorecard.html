@@ -464,6 +464,7 @@
                 font-size: 12px;
             }
         }
+
         /* Center text + remove native arrow for the Players dropdown */
 #roundManagementModal select#playerCount {
   text-align: center;            /* centers in many browsers */
@@ -486,6 +487,31 @@
 
 /* Optional: center the options list contents in some browsers */
 #roundManagementModal select#playerCount option {
+  text-align: center;
+}
+
+/* Center text + remove native arrow for the Theme Colour dropdown */
+#roundManagementModal select#themeColorSelect {
+  text-align: center;
+  text-align-last: center;
+  -moz-text-align-last: center;
+
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  background-image: none !important;
+  background-color: #f8f9fa;
+  padding-right: 12px;
+}
+
+/* Hide the arrow in IE/Edge Legacy for Theme Colour dropdown */
+#roundManagementModal select#themeColorSelect::-ms-expand {
+  display: none;
+}
+
+/* Optional: center option text */
+#roundManagementModal select#themeColorSelect option {
   text-align: center;
 }
     </style>
@@ -1105,7 +1131,6 @@
                 <button id="sortByRankBtn" class="${sortByRankEnabled ? 'active' : ''}" onclick="toggleSortByRank()">Sort by Rank</button>
                 <button id="emojiModeBtn" class="${emojiModeEnabled ? 'active' : ''}" onclick="toggleEmojiMode()">Emoji Mode</button>
 
-                <label for="themeColorSelect" style="display:block; margin-top:5px;">Theme Colour</label>
                 <select id="themeColorSelect" onchange="setThemeColor(this.value)">
                     ${[
                         {v:'blue', t:'Blue'},
