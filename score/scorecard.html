@@ -540,6 +540,7 @@
         let unsubmittedScores = JSON.parse(localStorage.getItem('unsubmittedScores')) || {};
         let sortByRankEnabled = localStorage.getItem('sortByRankEnabled') === 'true';
         let emojiModeEnabled = localStorage.getItem('emojiModeEnabled') === 'true';
+        let themeColor = localStorage.getItem('themeColor') || 'blue'; // NEW: theme color (default blue)
 
         // Keycap digit helpers
         const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
@@ -547,6 +548,25 @@
         function keycapToNumber(str) {
             const idx = KEYCAP_DIGITS.indexOf(str);
             return idx === -1 ? null : idx;
+        }
+
+        // Theme map for rank shading
+        const THEME_MAP = {
+            blue:   { h: 210, s: 85 },
+            red:    { h:   0, s: 78 },
+            green:  { h: 140, s: 65 },
+            pink:   { h: 330, s: 70 },
+            purple: { h: 268, s: 70 },
+            grey:   { h: 210, s:  0 }, // saturation 0 -> greyscale
+            yellow: { h:  45, s: 90 }
+        };
+        function getThemeHS() {
+            return THEME_MAP[themeColor] || THEME_MAP.blue;
+        }
+        function setThemeColor(value) {
+            themeColor = value || 'blue';
+            localStorage.setItem('themeColor', themeColor);
+            updateUI(); // re-render shading immediately
         }
     
         // Add new round scores and scroll to the last row
@@ -581,6 +601,7 @@
             localStorage.setItem('scoringMode', scoringMode);
             localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
             localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
+            localStorage.setItem('themeColor', themeColor); // NEW
         }
     
         // Save unsubmitted scores to localStorage
@@ -776,7 +797,7 @@
             updateUI();
         }
     
-        // Update player rankings with blue gradient shading (no badges)
+        // Update player rankings with THEME gradient shading (no badges)
         function updateRankings() {
             const playerRow = document.getElementById("playerRow");
             const columns = Array.from(playerRow.children).slice(1);
@@ -786,10 +807,11 @@
                 th.style.background = '';
             });
 
+            const { h: H, s: S } = getThemeHS();
+
             // Single player logic
             if (players.length === 1) {
                 if (rounds.length > 0) {
-                    const H = 210, S = 85;
                     const Lmax = 82, range = 36;
                     const Lmin = Lmax - range; // darkest
                     const L = Lmin;
@@ -821,13 +843,9 @@
                 }
             }
 
-            // Color parameters
-            const H = 210;   // hue (blue)
-            const S = 85;    // saturation
             const Lmax = 82; // lightest for last
             const minRange = 18; // minimal contrast for few ranks
             const maxRange = 44; // maximal contrast for many ranks
-
             const effectiveRanks = groups.length;
 
             // If everyone is tied, shade all with darkest "first" color
@@ -858,17 +876,18 @@
                 });
             });
         }
-function removePlayer(index) {
-    if (players.length <= 1) {
-        alert("At least one player must remain.");
-        return false; // block removal
-    }
-    players.splice(index, 1);
-    rounds.forEach(round => round.splice(index, 1));
-    saveData();
-    updateUI();
-    return true; // removed
-}
+
+        function removePlayer(index) {
+            if (players.length <= 1) {
+                alert("At least one player must remain.");
+                return false; // block removal
+            }
+            players.splice(index, 1);
+            rounds.forEach(round => round.splice(index, 1));
+            saveData();
+            updateUI();
+            return true; // removed
+        }
     
         // Generic rename that transfers unsubmittedScores
         function renamePlayer(index, newName) {
@@ -882,116 +901,124 @@ function removePlayer(index) {
             saveData();
             updateUI();
         }
-// Create player management dialog (text/uppercase mode)
-function createPlayerManagementDialog(index) {
-    const modal = document.getElementById('playerManagementModal');
-    modal.innerHTML = `
-        <h2>Player</h2>
-        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-        <input
-            type="text"
-            id="playerNameInput"
-            value="${players[index].name}"
-            autocapitalize="characters"
-            inputmode="text"
-            style="text-transform: uppercase;"
-        >
-        <button onclick="updatePlayerName(${index})">Update</button>
-        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
-    `;
-    modal.style.display = 'block';
-    showOverlay();
 
-    const input = modal.querySelector('#playerNameInput');
+        // Create player management dialog (text/uppercase mode)
+        function createPlayerManagementDialog(index) {
+            const modal = document.getElementById('playerManagementModal');
+            modal.innerHTML = `
+                <h2>Player</h2>
+                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+                <input
+                    type="text"
+                    id="playerNameInput"
+                    value="${players[index].name}"
+                    autocapitalize="characters"
+                    inputmode="text"
+                    style="text-transform: uppercase;"
+                >
+                <button onclick="updatePlayerName(${index})">Update</button>
+                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
 
-    // Focus and select all text on open
-    try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-    try { input.select(); } catch (_) {}
-    try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+            const input = modal.querySelector('#playerNameInput');
 
-    // Force uppercase as the user types
-    input.addEventListener('input', function () {
-        this.value = this.value.toUpperCase();
-    });
-
-    // Enter to submit
-    input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-            updatePlayerName(index);
-        }
-    });
-}
-// Emoji-only player management dialog (open keyboard only when user taps input)
-function createEmojiPlayerDialog(index) {
-    const modal = document.getElementById('playerManagementModal');
-    const favEmojis = [
-        "🍔","🩰","🌹","🌰","🔔",
-        "👑","🎣","🌻","🏏","🦈",
-        "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
-        "❄️","🔥","💥","⚡","⭐",
-        "🐬","🐳","🦀","🕷️","🐝"
-    ];
-    const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}" onclick="setEmojiFromButton(this, ${index})">${e}</button>`).join('');
-    
-    modal.innerHTML = `
-        <h2>Player</h2>
-        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-        <input
-            type="text"
-            id="emojiNameInput"
-            value="${players[index].name}"
-            inputmode="text"
-            placeholder="Pick an emoji"
-            enterkeyhint="done"
-            autocapitalize="off"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-        >
-        <div class="emoji-grid">${grid}</div>
-        <button onclick="updatePlayerNameEmoji(${index})">Update</button>
-        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
-    `;
-    modal.style.display = 'block';
-    showOverlay();
-
-    const input = modal.querySelector('#emojiNameInput');
-
-    // NEW: Prevent native tap selection bubble and programmatically focus+select on first tap
-    let primed = false;
-    const primeFocus = (e) => {
-        if (primed) return;
-        primed = true;
-        // Stop native tap handling (prevents the OS cut/copy/paste bubble)
-        e.preventDefault();
-        // Focus and select programmatically (still within the user gesture)
-        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-        requestAnimationFrame(() => {
+            // Focus and select all text on open
+            try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
             try { input.select(); } catch (_) {}
             try { input.setSelectionRange(0, input.value.length); } catch (_) {}
-        });
-    };
 
-    // Use pointerdown when available, with fallbacks
-    input.addEventListener('pointerdown', primeFocus, { passive: false });
-    input.addEventListener('touchstart', primeFocus, { passive: false });
-    input.addEventListener('mousedown', primeFocus);
+            // Force uppercase as the user types
+            input.addEventListener('input', function () {
+                this.value = this.value.toUpperCase();
+            });
 
-    // Keep selection intact and block long-press/context menus
-    input.addEventListener('mouseup', (e) => e.preventDefault());
-    input.addEventListener('contextmenu', (e) => e.preventDefault());
-
-    // Keep emoji-only input
-    input.addEventListener('input', function () {
-        this.value = extractEmojis(this.value);
-    });
-    input.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            updatePlayerNameEmoji(index);
+            // Enter to submit
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    updatePlayerName(index);
+                }
+            });
         }
-    });
-}
 
+        // Emoji-only player management dialog (open keyboard only when user taps input)
+        function createEmojiPlayerDialog(index) {
+            const modal = document.getElementById('playerManagementModal');
+            const favEmojis = [
+                "🍔","🩰","🌹","🌰","🔔",
+                "👑","🎣","🌻","🏏","🦈",
+                "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
+                "❄️","🔥","💥","⚡","⭐",
+                "🐬","🐳","🦀","🕷️","🐝"
+            ];
+            const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}" onclick="setEmojiFromButton(this, ${index})">${e}</button>`).join('');
+            
+            modal.innerHTML = `
+                <h2>Player</h2>
+                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+                <input
+                    type="text"
+                    id="emojiNameInput"
+                    value="${players[index].name}"
+                    inputmode="text"
+                    placeholder="Pick an emoji"
+                    enterkeyhint="done"
+                    autocapitalize="off"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                >
+                <div class="emoji-grid">${grid}</div>
+                <button onclick="updatePlayerNameEmoji(${index})">Update</button>
+                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
+
+            const input = modal.querySelector('#emojiNameInput');
+
+            // NEW: Prevent native tap selection bubble and programmatically focus+select on first tap
+            let primed = false;
+            const primeFocus = (e) => {
+                if (primed) return;
+                primed = true;
+                // Stop native tap handling (prevents the OS cut/copy/paste bubble)
+                e.preventDefault();
+                // Focus and select programmatically (still within the user gesture)
+                try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+                requestAnimationFrame(() => {
+                    try { input.select(); } catch (_) {}
+                    try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+                });
+            };
+
+            // Use pointerdown when available, with fallbacks
+            input.addEventListener('pointerdown', primeFocus, { passive: false });
+            input.addEventListener('touchstart', primeFocus, { passive: false });
+            input.addEventListener('mousedown', primeFocus);
+
+            // Keep selection intact and block long-press/context menus
+            input.addEventListener('mouseup', (e) => e.preventDefault());
+            input.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // Keep emoji-only input (broadened to accept flags, keycaps, VS16 symbols, etc.)
+            input.addEventListener('input', function () {
+                this.value = extractEmojis(this.value);
+            });
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    updatePlayerNameEmoji(index);
+                }
+            });
+        }
+
+        // Broadened emoji extractor:
+        // - Keeps grapheme clusters with Extended_Pictographic
+        // - Accepts flag sequences (regional indicators)
+        // - Accepts keycap sequences (#,*,0-9 + VS16? + 20E3)
+        // - Accepts symbols with Variation Selector-16 (emoji presentation)
+        // - Accepts tag-based flags (e.g., England/Scotland/Wales)
         function extractEmojis(str) {
             if (!str) return '';
             let segments;
@@ -1000,8 +1027,15 @@ function createEmojiPlayerDialog(index) {
             } else {
                 segments = Array.from(str);
             }
-            const emojiRegex = /\p{Extended_Pictographic}/u;
-            return segments.filter(seg => emojiRegex.test(seg)).join('');
+            const rePict = /\p{Extended_Pictographic}/u;
+            const reRI = /[\u{1F1E6}-\u{1F1FF}]/u; // regional indicators
+            const reKeycap = /[#*0-9]\uFE0F?\u20E3/u; // keycap sequences
+            const reVS16 = /\uFE0F/u; // emoji presentation selector
+            const reTagFlag = /\u{1F3F4}[\u{E0061}-\u{E007A}]{1,14}\u{E007F}/u; // tag-based flags
+
+            return segments
+                .filter(seg => rePict.test(seg) || reRI.test(seg) || reKeycap.test(seg) || reVS16.test(seg) || reTagFlag.test(seg))
+                .join('');
         }
 
         function setEmojiFromButton(btn, index) {
@@ -1070,6 +1104,20 @@ function createEmojiPlayerDialog(index) {
                 </div>
                 <button id="sortByRankBtn" class="${sortByRankEnabled ? 'active' : ''}" onclick="toggleSortByRank()">Sort by Rank</button>
                 <button id="emojiModeBtn" class="${emojiModeEnabled ? 'active' : ''}" onclick="toggleEmojiMode()">Emoji Mode</button>
+
+                <label for="themeColorSelect" style="display:block; margin-top:5px;">Theme Colour</label>
+                <select id="themeColorSelect" onchange="setThemeColor(this.value)">
+                    ${[
+                        {v:'blue', t:'Blue'},
+                        {v:'red', t:'Red'},
+                        {v:'green', t:'Green'},
+                        {v:'pink', t:'Pink'},
+                        {v:'purple', t:'Purple'},
+                        {v:'grey', t:'Grey'},
+                        {v:'yellow', t:'Yellow'}
+                    ].map(opt => `<option value="${opt.v}" ${themeColor === opt.v ? 'selected' : ''}>${opt.t}</option>`).join('')}
+                </select>
+
                 <button onclick="handleResetScores(this)" data-state="initial">Reset</button>
             `;
             modal.style.display = 'block';
