@@ -420,6 +420,11 @@
     filter: brightness(1.05);
 }
 
+/* NEW: suppress iOS cut/copy/paste callout on the emoji input */
+#emojiNameInput {
+    -webkit-touch-callout: none;
+}
+
         @media (max-width: 480px) {
             .sticky-header.small-scores th span.score {
                 font-size: 18px;
@@ -867,17 +872,29 @@ function createEmojiPlayerDialog(index) {
 
     const input = modal.querySelector('#emojiNameInput');
 
-    // Select-all helper (no programmatic focus here)
-    const selectAll = () => {
-        try { input.select(); } catch (_) {}
-        try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+    // NEW: Prevent native tap selection bubble and programmatically focus+select on first tap
+    let primed = false;
+    const primeFocus = (e) => {
+        if (primed) return;
+        primed = true;
+        // Stop native tap handling (prevents the OS cut/copy/paste bubble)
+        e.preventDefault();
+        // Focus and select programmatically (still within the user gesture)
+        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+        requestAnimationFrame(() => {
+            try { input.select(); } catch (_) {}
+            try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+        });
     };
 
-    // Only when user interacts with the input:
-    input.addEventListener('focus', selectAll);
-    // Ensure selection stays selected after the tap
-    input.addEventListener('click', () => setTimeout(selectAll, 0));
+    // Use pointerdown when available, with fallbacks
+    input.addEventListener('pointerdown', primeFocus, { passive: false });
+    input.addEventListener('touchstart', primeFocus, { passive: false });
+    input.addEventListener('mousedown', primeFocus);
+
+    // Keep selection intact and block long-press/context menus
     input.addEventListener('mouseup', (e) => e.preventDefault());
+    input.addEventListener('contextmenu', (e) => e.preventDefault());
 
     // Keep emoji-only input
     input.addEventListener('input', function () {
