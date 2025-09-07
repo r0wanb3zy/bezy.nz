@@ -858,16 +858,17 @@
                 });
             });
         }
-    
-        // Remove a player
-        function removePlayer(index) {
-            const removedPlayerName = players[index].name;
-            players.splice(index, 1);
-            rounds.forEach(round => round.splice(index, 1));
-            // No need to delete from unsubmittedScores; it will simply not be used if the player is gone
-            saveData();
-            updateUI();
-        }
+function removePlayer(index) {
+    if (players.length <= 1) {
+        alert("At least one player must remain.");
+        return false; // block removal
+    }
+    players.splice(index, 1);
+    rounds.forEach(round => round.splice(index, 1));
+    saveData();
+    updateUI();
+    return true; // removed
+}
     
         // Generic rename that transfers unsubmittedScores
         function renamePlayer(index, newName) {
