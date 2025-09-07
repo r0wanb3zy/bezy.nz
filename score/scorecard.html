@@ -184,9 +184,10 @@
             border-radius: 10px;
         }
 
+        /* Center the player modal like the others */
         #playerManagementModal {
-            top: 15%;
-            transform: translate(-50%, -15%);
+            top: 50%;
+            transform: translate(-50%, -50%);
         }
 
         .popup-modal input[type="text"] {
@@ -215,6 +216,8 @@
             border: 1px solid #ddd;
             border-radius: 6px;
             background: #f8f9fa;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         #roundManagementModal select {
@@ -225,12 +228,14 @@
             border: 1px solid #333;
             border-radius: 6px;
             background: #f8f9fa;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .popup-modal button {
             font-size: 24px;
             padding: 10px 20px;
-            margin: 5px;
+            margin: 5px 0; /* stack vertically by default */
             cursor: pointer;
             font-family: 'Economica', sans-serif;
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
@@ -238,21 +243,32 @@
             border: none;
             border-radius: 6px;
             transition: background 0.2s;
+            width: 100%; /* single-column full width buttons */
+            box-sizing: border-box;
         }
         .popup-modal button[data-state="confirm"] {
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
 
-        /* Sort-by-rank button styles: match Low/High segmented scheme */
-        .popup-modal button#sortByRankBtn {
+        /* Sort-by-rank + Emoji toggle styles (same shape, active state flips to dark) */
+        #roundManagementModal button#sortByRankBtn,
+        #roundManagementModal button#emojiModeBtn {
             background: #f8f9fa;
             color: #0f172a;
             border: 1px solid #333333;
         }
-        .popup-modal button#sortByRankBtn.active {
+        #roundManagementModal button#sortByRankBtn.active,
+        #roundManagementModal button#emojiModeBtn.active {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: #ffffff;
             border: 1px solid #333333;
+        }
+
+        /* Round modal single-column layout */
+        #roundManagementModal .segmented-control {
+            width: 100%;
+            box-sizing: border-box;
+            margin: 5px 0;
         }
 
         /* Adjust spacing for h2 in popups */
@@ -371,6 +387,52 @@
             border-left: 2px solid #333;
         }
 
+.emoji-grid {
+  /* even spacing between emojis horizontally and vertically */
+  --emoji-gap: 8px;               /* tweak as you like */
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--emoji-gap);
+
+  /* keep the grid flush with the modal edges so it aligns with other buttons */
+  padding: 0;
+  margin: 5px 0;                  /* match popup/modal button margin (your buttons use 5px 0) */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.emoji-grid .emoji-pick {
+  background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Economica', sans-serif;
+  font-size: 22px;
+
+  /* perfect centering + square buttons */
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.05s ease, filter 0.1s ease;
+  box-sizing: border-box;
+}
+
+.emoji-grid .emoji-pick:active {
+  transform: scale(0.95);
+  filter: brightness(1.05);
+}
+
+/* NEW: suppress iOS cut/copy/paste callout on the emoji input */
+#emojiNameInput {
+    -webkit-touch-callout: none;
+}
+
         @media (max-width: 480px) {
             .sticky-header.small-scores th span.score {
                 font-size: 18px;
@@ -453,6 +515,7 @@
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
         let unsubmittedScores = JSON.parse(localStorage.getItem('unsubmittedScores')) || {};
         let sortByRankEnabled = localStorage.getItem('sortByRankEnabled') === 'true';
+        let emojiModeEnabled = localStorage.getItem('emojiModeEnabled') === 'true';
     
         // Add new round scores and scroll to the last row
         function addRoundScores() {
@@ -485,6 +548,7 @@
             localStorage.setItem('rounds', JSON.stringify(rounds));
             localStorage.setItem('scoringMode', scoringMode);
             localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
+            localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
         }
     
         // Save unsubmitted scores to localStorage
@@ -637,9 +701,6 @@
         }
     
         // Update player rankings with blue gradient shading (no badges)
-        // Last = lightest, First = darkest. Contrast scales with number of ranks.
-        // For single player: gray (default) until at least one round is submitted; then darkest blue.
-        // If all players are tied, everyone gets darkest first-place color.
         function updateRankings() {
             const playerRow = document.getElementById("playerRow");
             const columns = Array.from(playerRow.children).slice(1);
@@ -732,30 +793,155 @@
             updateUI();
         }
     
-        // Create player management dialog
-        function createPlayerManagementDialog(index) {
-            const modal = document.getElementById('playerManagementModal');
-            modal.innerHTML = `
-                <h2>Player</h2>
-                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-                <input type="text" id="playerNameInput" value="${players[index].name}" autocapitalize="characters" inputmode="text" style="text-transform: uppercase;">
-                <button onclick="updatePlayerName(${index})">Update</button>
-                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
-            `;
-            modal.style.display = 'block';
-            showOverlay();
-            const input = modal.querySelector('#playerNameInput');
-            input.focus();
-            input.select();
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    updatePlayerName(index);
-                    closePopup('playerManagementModal');
-                }
-            });
-            input.addEventListener('input', function() {
-                this.value = this.value.toUpperCase();
-            });
+        // Generic rename that transfers unsubmittedScores
+        function renamePlayer(index, newName) {
+            const oldName = players[index].name;
+            players[index].name = newName;
+            if (unsubmittedScores[oldName] !== undefined) {
+                unsubmittedScores[newName] = unsubmittedScores[oldName];
+                delete unsubmittedScores[oldName];
+                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+            }
+            saveData();
+            updateUI();
+        }
+// Create player management dialog (text/uppercase mode)
+function createPlayerManagementDialog(index) {
+    const modal = document.getElementById('playerManagementModal');
+    modal.innerHTML = `
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+        <input
+            type="text"
+            id="playerNameInput"
+            value="${players[index].name}"
+            autocapitalize="characters"
+            inputmode="text"
+            style="text-transform: uppercase;"
+        >
+        <button onclick="updatePlayerName(${index})">Update</button>
+        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
+    `;
+    modal.style.display = 'block';
+    showOverlay();
+
+    const input = modal.querySelector('#playerNameInput');
+
+    // Focus and select all text on open
+    try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+    try { input.select(); } catch (_) {}
+    try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+
+    // Force uppercase as the user types
+    input.addEventListener('input', function () {
+        this.value = this.value.toUpperCase();
+    });
+
+    // Enter to submit
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            updatePlayerName(index);
+        }
+    });
+}
+// Emoji-only player management dialog (open keyboard only when user taps input)
+function createEmojiPlayerDialog(index) {
+    const modal = document.getElementById('playerManagementModal');
+    const favEmojis = [
+        "🍔","🩰","🌹","🌰","🔔",
+        "👑","🎣","🌻","🏏","🦈",
+        "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
+        "❄️","🔥","💥","⚡","⭐",
+        "🐬","🐳","🦀","🕷️","🐝"
+    ];
+    const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}" onclick="setEmojiFromButton(this, ${index})">${e}</button>`).join('');
+    
+    modal.innerHTML = `
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+        <input
+            type="text"
+            id="emojiNameInput"
+            value="${players[index].name}"
+            inputmode="text"
+            placeholder="Pick an emoji"
+            enterkeyhint="done"
+            autocapitalize="off"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+        >
+        <div class="emoji-grid">${grid}</div>
+        <button onclick="updatePlayerNameEmoji(${index})">Update</button>
+        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
+    `;
+    modal.style.display = 'block';
+    showOverlay();
+
+    const input = modal.querySelector('#emojiNameInput');
+
+    // NEW: Prevent native tap selection bubble and programmatically focus+select on first tap
+    let primed = false;
+    const primeFocus = (e) => {
+        if (primed) return;
+        primed = true;
+        // Stop native tap handling (prevents the OS cut/copy/paste bubble)
+        e.preventDefault();
+        // Focus and select programmatically (still within the user gesture)
+        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+        requestAnimationFrame(() => {
+            try { input.select(); } catch (_) {}
+            try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+        });
+    };
+
+    // Use pointerdown when available, with fallbacks
+    input.addEventListener('pointerdown', primeFocus, { passive: false });
+    input.addEventListener('touchstart', primeFocus, { passive: false });
+    input.addEventListener('mousedown', primeFocus);
+
+    // Keep selection intact and block long-press/context menus
+    input.addEventListener('mouseup', (e) => e.preventDefault());
+    input.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // Keep emoji-only input
+    input.addEventListener('input', function () {
+        this.value = extractEmojis(this.value);
+    });
+    input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            updatePlayerNameEmoji(index);
+        }
+    });
+}
+
+        function extractEmojis(str) {
+            if (!str) return '';
+            let segments;
+            if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+                segments = Array.from(new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(str), s => s.segment);
+            } else {
+                segments = Array.from(str);
+            }
+            const emojiRegex = /\p{Extended_Pictographic}/u;
+            return segments.filter(seg => emojiRegex.test(seg)).join('');
+        }
+
+        function setEmojiFromButton(btn, index) {
+            const emoji = btn.getAttribute('data-emoji') || '';
+            if (emoji) {
+                renamePlayer(index, emoji);
+                closePopup('playerManagementModal');
+            }
+        }
+
+        function updatePlayerNameEmoji(index) {
+            const input = document.getElementById('emojiNameInput');
+            const newName = extractEmojis((input.value || '').trim());
+            if (newName && newName !== players[index].name) {
+                renamePlayer(index, newName);
+            }
+            closePopup('playerManagementModal');
         }
     
         // Handle player removal with button state
@@ -769,21 +955,12 @@
             }
         }
     
-        // Update player name
+        // Update player name (normal text mode)
         function updatePlayerName(index) {
             const input = document.getElementById('playerNameInput');
-            const newName = input.value.trim().toUpperCase();
+            const newName = (input.value || '').trim().toUpperCase();
             if (newName && newName !== players[index].name) {
-                const oldName = players[index].name;
-                players[index].name = newName;
-                // Transfer unsubmitted score to new name
-                if (unsubmittedScores[oldName] !== undefined) {
-                    unsubmittedScores[newName] = unsubmittedScores[oldName];
-                    delete unsubmittedScores[oldName];
-                    localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
-                }
-                saveData();
-                updateUI();
+                renamePlayer(index, newName);
                 closePopup('playerManagementModal');
             }
         }
@@ -792,10 +969,14 @@
         function handlePlayerNameClick(event, index) {
             event.stopPropagation();
             closeAllPopups();
-            createPlayerManagementDialog(index);
+            if (emojiModeEnabled) {
+                createEmojiPlayerDialog(index);
+            } else {
+                createPlayerManagementDialog(index);
+            }
         }
     
-        // Create round management dialog
+        // Create round management dialog (single column)
         function createRoundManagementDialog() {
             const modal = document.getElementById('roundManagementModal');
             modal.innerHTML = `
@@ -811,6 +992,7 @@
                     <label for="highest">High</label>
                 </div>
                 <button id="sortByRankBtn" class="${sortByRankEnabled ? 'active' : ''}" onclick="toggleSortByRank()">Sort by Rank</button>
+                <button id="emojiModeBtn" class="${emojiModeEnabled ? 'active' : ''}" onclick="toggleEmojiMode()">Emoji Mode</button>
                 <button onclick="handleResetScores(this)" data-state="initial">Reset</button>
             `;
             modal.style.display = 'block';
@@ -828,6 +1010,14 @@
                 applySortByRank(true); // sort now if enabled
             }
             updateUI(); // keep dialog open
+        }
+
+        // Toggle Emoji mode (dark when ON, light when OFF). Does not close the popup.
+        function toggleEmojiMode() {
+            emojiModeEnabled = !emojiModeEnabled;
+            localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
+            const btn = document.getElementById('emojiModeBtn');
+            if (btn) btn.classList.toggle('active', emojiModeEnabled);
         }
     
         // Handle reset scores with button state
