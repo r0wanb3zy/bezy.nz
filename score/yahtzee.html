@@ -598,30 +598,54 @@
         th.drag-over {
             border-left: 2px solid #333;
         }
+
         /* Center text + remove native arrow for the Players dropdown */
-#roundManagementModal select#playerCount {
-  text-align: center;            /* centers in many browsers */
-  text-align-last: center;       /* centers selected value (Chrome/Firefox) */
-  -moz-text-align-last: center;  /* Firefox */
-  
-  -webkit-appearance: none;      /* Safari/Chrome */
-  -moz-appearance: none;         /* Firefox */
-  appearance: none;              /* Standard */
+        #roundManagementModal select#playerCount {
+          text-align: center;            /* centers in many browsers */
+          text-align-last: center;       /* centers selected value (Chrome/Firefox) */
+          -moz-text-align-last: center;  /* Firefox */
+          
+          -webkit-appearance: none;      /* Safari/Chrome */
+          -moz-appearance: none;         /* Firefox */
+          appearance: none;              /* Standard */
 
-  background-image: none !important; /* ensure no chevron background */
-  background-color: #f8f9fa;     /* keep your styling */
-  padding-right: 12px;           /* even spacing since arrow is gone */
-}
+          background-image: none !important; /* ensure no chevron background */
+          background-color: #f8f9fa;     /* keep your styling */
+          padding-right: 12px;           /* even spacing since arrow is gone */
+        }
 
-/* Hide the arrow in IE/Edge Legacy */
-#roundManagementModal select#playerCount::-ms-expand {
-  display: none;
-}
+        /* Hide the arrow in IE/Edge Legacy */
+        #roundManagementModal select#playerCount::-ms-expand {
+          display: none;
+        }
 
-/* Optional: center the options list contents in some browsers */
-#roundManagementModal select#playerCount option {
-  text-align: center;
-}
+        /* Optional: center the options list contents in some browsers */
+        #roundManagementModal select#playerCount option {
+          text-align: center;
+        }
+
+        /* Match Theme Colour dropdown behavior (same as Scorecard app) */
+        #roundManagementModal select#themeColorSelect {
+          text-align: center;
+          text-align-last: center;
+          -moz-text-align-last: center;
+
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+
+          background-image: none !important;
+          background-color: #f8f9fa;
+          padding-right: 12px;
+        }
+
+        #roundManagementModal select#themeColorSelect::-ms-expand {
+          display: none;
+        }
+
+        #roundManagementModal select#themeColorSelect option {
+          text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -675,8 +699,7 @@
         <button id="sortByRankBtn" onclick="toggleSortByRank()">Sort by Rank</button>
         <button id="emojiModeBtn" onclick="toggleEmojiMode()">Emoji Mode</button>
 
-        <!-- Theme Colour (NEW) -->
-        <label for="themeColorSelect" style="display:block; margin-top:5px;">Theme Colour</label>
+        <!-- Theme Colour -->
         <select id="themeColorSelect" onchange="setThemeColor(this.value)">
             <option value="blue">Blue</option>
             <option value="red">Red</option>
@@ -706,8 +729,8 @@
         // Persistent toggles (unique keys for Yahtzee)
         let sortByRankEnabled = localStorage.getItem('yahtzee-sortByRankEnabled') === 'true';
         let emojiModeEnabled = localStorage.getItem('yahtzee-emojiModeEnabled') === 'true';
-        // NEW: theme color (default blue)
-        let themeColor = localStorage.getItem('yahtzee-themeColor') || 'blue';
+        // Theme color — match Scorecard app exactly; also sync across apps via fallback + write-back
+        let themeColor = localStorage.getItem('yahtzee-themeColor') || localStorage.getItem('themeColor') || 'blue';
 
         // Keycap digit helpers
         const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
@@ -717,23 +740,43 @@
             return idx === -1 ? null : idx;
         }
 
-        // Theme map for rank shading (NEW)
+        // Theme map — EXACT match with Scorecard app
         const THEME_MAP = {
             blue:   { h: 210, s: 85 },
             red:    { h:   0, s: 78 },
-            green:  { h: 140, s: 65 },
+            green:  { h: 120, s: 50 }, // changed to match Scorecard
             pink:   { h: 330, s: 70 },
             purple: { h: 268, s: 70 },
-            grey:   { h: 210, s:  0 }, // s=0 => greyscale
-            yellow: { h:  45, s: 90 }
+            yellow: { h:  45, s: 90 },
+            grey:   { h: 210, s:  0 }
         };
         function getThemeHS() {
             return THEME_MAP[themeColor] || THEME_MAP.blue;
         }
+        // Match Scorecard's readable text color function for theme select
+        function getThemeTextColor(key) {
+            const t = THEME_MAP[key] || THEME_MAP.blue;
+            const L = key === 'yellow' ? 32 : 34; // darker tone for #f8f9fa
+            return `hsl(${t.h}, ${t.s}%, ${L}%)`;
+        }
+        // Apply selected theme color to the Theme Colour select (outer text + option colors)
+        function applyThemeSelectColors() {
+            const select = document.querySelector('#roundManagementModal select#themeColorSelect');
+            if (!select) return;
+            // Outer (collapsed) text matches the selected theme
+            select.style.color = getThemeTextColor(themeColor);
+            // Inner options each correspond to their theme color
+            Array.from(select.options).forEach(opt => {
+                opt.style.color = getThemeTextColor(opt.value);
+            });
+        }
         function setThemeColor(value) {
             themeColor = value || 'blue';
+            // store under both keys so both apps stay in sync
             localStorage.setItem('yahtzee-themeColor', themeColor);
+            localStorage.setItem('themeColor', themeColor);
             updateRanks();
+            applyThemeSelectColors();
         }
 
         // Keep original playerName modal markup so we can restore after emoji modal swaps
@@ -758,10 +801,11 @@
                 localStorage.setItem('playerCount', '4');
             }
 
-            // Initialize Theme Colour select (NEW)
+            // Initialize Theme Colour select
             const themeSel = document.getElementById('themeColorSelect');
             if (themeSel) {
                 themeSel.value = themeColor;
+                applyThemeSelectColors();
             }
 
             // Save the original player name modal HTML
@@ -962,7 +1006,10 @@
 
             // Ensure theme select shows current value (in case changed programmatically)
             const themeSel = document.getElementById('themeColorSelect');
-            if (themeSel) themeSel.value = themeColor;
+            if (themeSel) {
+                themeSel.value = themeColor;
+                applyThemeSelectColors();
+            }
 
             showOverlay();
         }
@@ -1447,7 +1494,7 @@
             headersNow.forEach(h => { h.style.background = ''; });
             removeAllRankSmall();
 
-            // Theme H/S (NEW)
+            // Theme H/S (EXACT match palette)
             const { h: H, s: S } = getThemeHS();
 
             if (playerCount === 1) {
