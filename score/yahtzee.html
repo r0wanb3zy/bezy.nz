@@ -670,6 +670,14 @@
         let sortByRankEnabled = localStorage.getItem('yahtzee-sortByRankEnabled') === 'true';
         let emojiModeEnabled = localStorage.getItem('yahtzee-emojiModeEnabled') === 'true';
 
+        // Keycap digit helpers
+        const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
+        function numberToKeycap(n) { return KEYCAP_DIGITS[n] || String(n); }
+        function keycapToNumber(str) {
+            const idx = KEYCAP_DIGITS.indexOf(str);
+            return idx === -1 ? null : idx;
+        }
+
         // Keep original playerName modal markup so we can restore after emoji modal swaps
         let playerNameModalTemplate = null;
 
@@ -721,6 +729,9 @@
                     }
                 });
             }
+
+            // Ensure default names follow the current Emoji Mode on load
+            syncDefaultNamesToMode();
         });
     
         // Resize handler
@@ -769,7 +780,7 @@
                     pointsNeededElement.classList.remove('bonus-achieved');
                 }
             
-                document.getElementById(`upperScore${player}`).textContent = upperSectionTotal;
+                document.getElementById(`upperScore${player}`).textContent = lowerSectionTotal ? upperSectionTotal : upperSectionTotal;
                 document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
                 document.getElementById(`total${player}`).textContent = total + bonus;
             }
@@ -965,7 +976,7 @@
             } else {
                 for (let i = existingPlayers + 1; i <= playerCount; i++) {
                     const newHeader = document.createElement('th');
-                    const savedName = localStorage.getItem(`playerName-P${i}`) || `P${i}`;
+                    const savedName = localStorage.getItem(`playerName-P${i}`) || (emojiModeEnabled ? numberToKeycap(i) : `P${i}`);
                     newHeader.innerHTML = `${savedName}<div id="totalP${i}"></div>`;
                     newHeader.setAttribute('data-player', `P${i}`);
                     newHeader.draggable = true;
@@ -1164,6 +1175,9 @@
             localStorage.setItem('yahtzee-emojiModeEnabled', emojiModeEnabled);
             const btn = document.getElementById('emojiModeBtn');
             if (btn) btn.classList.toggle('active', emojiModeEnabled);
+
+            // Sync Pn <-> keycap digits based on mode
+            syncDefaultNamesToMode();
         }
 
         // Extract emojis from a string (keeps grapheme clusters intact)
@@ -1242,7 +1256,7 @@
             const playerData = [];
             for (let i = 0; i < playerCount; i++) {
                 const p = `P${i+1}`;
-                const name = localStorage.getItem(`playerName-${p}`) || p;
+                const name = localStorage.getItem(`playerName-${p}`) || (emojiModeEnabled ? numberToKeycap(i + 1) : p);
                 const scores = {};
                 categories.forEach(cat => {
                     scores[cat] = localStorage.getItem(`${p}-${cat}`);
@@ -1629,6 +1643,46 @@
             hideOverlay();
         }
     
+        // Sync default placeholder names with mode for current headers
+        function syncDefaultNamesToMode() {
+            const playerCount = parseInt(document.getElementById('playerCount').value) || 0;
+            for (let i = 1; i <= playerCount; i++) {
+                const playerId = `P${i}`;
+                const header = document.querySelector(`#scoreTable thead th[data-player="${playerId}"]`);
+                if (!header) continue;
+                const displayedName = header.innerText.split('\n')[0].trim();
+                const storedName = localStorage.getItem(`playerName-${playerId}`);
+                const currentName = storedName !== null ? storedName : displayedName;
+                let newName = currentName;
+
+                if (emojiModeEnabled) {
+                    const m = /^P(\d{1,2})$/i.exec(currentName);
+                    if (m) {
+                        const n = parseInt(m[1], 10);
+                        if (n >= 0 && n <= 9) {
+                            newName = numberToKeycap(n);
+                        }
+                    } else if (storedName === null && i <= 9) {
+                        newName = numberToKeycap(i);
+                    }
+                } else {
+                    const n = keycapToNumber(currentName);
+                    if (n !== null) {
+                        newName = `P${n}`;
+                    }
+                }
+
+                if (newName !== currentName) {
+                    applyPlayerName(playerId, newName);
+                } else if (storedName === null) {
+                    // Persist current so we can transform reliably next time
+                    localStorage.setItem(`playerName-${playerId}`, currentName);
+                }
+            }
+            reattachEventListeners();
+            updateRanks();
+        }
+
         // Overlay click handler
         document.getElementById('overlay').addEventListener('click', function() {
             closeAllPopups();
@@ -1697,7 +1751,7 @@
                 const playerData = [];
                 for (let i = 0; i < playerCount; i++) {
                     const player = `P${i + 1}`;
-                    const name = localStorage.getItem(`playerName-${player}`) || player;
+                    const name = localStorage.getItem(`playerName-${player}`) || (emojiModeEnabled ? numberToKeycap(i + 1) : player);
                     const scores = {};
                     categories.forEach(category => {
                         scores[category] = localStorage.getItem(`${player}-${category}`);
