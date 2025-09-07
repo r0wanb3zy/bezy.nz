@@ -516,6 +516,14 @@
         let unsubmittedScores = JSON.parse(localStorage.getItem('unsubmittedScores')) || {};
         let sortByRankEnabled = localStorage.getItem('sortByRankEnabled') === 'true';
         let emojiModeEnabled = localStorage.getItem('emojiModeEnabled') === 'true';
+
+        // Keycap digit helpers
+        const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
+        function numberToKeycap(n) { return KEYCAP_DIGITS[n] || String(n); }
+        function keycapToNumber(str) {
+            const idx = KEYCAP_DIGITS.indexOf(str);
+            return idx === -1 ? null : idx;
+        }
     
         // Add new round scores and scroll to the last row
         function addRoundScores() {
@@ -559,6 +567,50 @@
                 unsubmittedScores[players[index].name] = input.value;
             });
             localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+        }
+
+        // Sync default placeholder names with mode:
+        // - Emoji mode ON: P1..P8 -> 1️⃣..8️⃣
+        // - Emoji mode OFF: 1️⃣..8️⃣ -> P1..P8
+        function syncDefaultNamesToMode() {
+            let changed = false;
+            players.forEach((p) => {
+                const name = (p.name || '').trim();
+                if (emojiModeEnabled) {
+                    const m = /^P(\d{1,2})$/i.exec(name);
+                    if (m) {
+                        const n = parseInt(m[1], 10);
+                        if (n >= 0 && n <= 9) {
+                            const emoji = numberToKeycap(n);
+                            if (name !== emoji) {
+                                if (unsubmittedScores[name] !== undefined) {
+                                    unsubmittedScores[emoji] = unsubmittedScores[name];
+                                    delete unsubmittedScores[name];
+                                }
+                                p.name = emoji;
+                                changed = true;
+                            }
+                        }
+                    }
+                } else {
+                    const n = keycapToNumber(name);
+                    if (n !== null) {
+                        const pn = `P${n}`.toUpperCase();
+                        if (name !== pn) {
+                            if (unsubmittedScores[name] !== undefined) {
+                                unsubmittedScores[pn] = unsubmittedScores[name];
+                                delete unsubmittedScores[name];
+                            }
+                            p.name = pn;
+                            changed = true;
+                        }
+                    }
+                }
+            });
+            if (changed) {
+                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+                saveData();
+            }
         }
 
         // Apply sort-by-rank to underlying arrays
@@ -1018,6 +1070,10 @@ function createEmojiPlayerDialog(index) {
             localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
             const btn = document.getElementById('emojiModeBtn');
             if (btn) btn.classList.toggle('active', emojiModeEnabled);
+
+            // Sync Pn <-> keycap digits based on mode
+            syncDefaultNamesToMode();
+            updateUI(); // keep dialog open
         }
     
         // Handle reset scores with button state
@@ -1034,6 +1090,10 @@ function createEmojiPlayerDialog(index) {
                 rounds = [];
                 unsubmittedScores = {}; // Clear unsubmitted scores on reset
                 localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+
+                // Ensure default names follow current mode after reset
+                syncDefaultNamesToMode();
+
                 saveData();
                 updateUI();
                 closePopup('roundManagementModal');
@@ -1045,9 +1105,9 @@ function createEmojiPlayerDialog(index) {
             const newCount = parseInt(document.getElementById('playerCount').value);
             if (newCount > players.length) {
                 for (let i = players.length; i < newCount; i++) {
-                    const newPlayerName = `P${i+1}`.toUpperCase();
+                    const newLabel = emojiModeEnabled ? numberToKeycap(i + 1) : `P${i + 1}`.toUpperCase();
                     players.push({ 
-                        name: newPlayerName,
+                        name: newLabel,
                         totalScore: 0, 
                         roundScores: Array(rounds.length).fill(0)  
                     });
@@ -1173,7 +1233,8 @@ function createEmojiPlayerDialog(index) {
             draggedIndex = -1;
         }
     
-        // Initial UI update
+        // Initial sync and UI update
+        syncDefaultNamesToMode();
         updateUI();
     </script>
 </body>
