@@ -388,36 +388,44 @@
         }
 
 .emoji-grid {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 8px; /* even horizontal + vertical spacing */
-    margin: 8px 0;
-    width: 100%;
-    box-sizing: border-box;
+  /* even spacing between emojis horizontally and vertically */
+  --emoji-gap: 8px;               /* tweak as you like */
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--emoji-gap);
+
+  /* keep the grid flush with the modal edges so it aligns with other buttons */
+  padding: 0;
+  margin: 5px 0;                  /* match popup/modal button margin (your buttons use 5px 0) */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .emoji-grid .emoji-pick {
-    background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
-    font-family: 'Economica', sans-serif;
-    font-size: 22px;
-    display: flex;                /* center emoji inside */
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    aspect-ratio: 1 / 1;          /* square buttons -> even gaps vertically */
-    padding: 0;                   /* remove variable vertical padding */
-    line-height: 1;
-    cursor: pointer;
-    transition: transform 0.05s ease, filter 0.1s ease;
-    box-sizing: border-box;
+  background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Economica', sans-serif;
+  font-size: 22px;
+
+  /* perfect centering + square buttons */
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.05s ease, filter 0.1s ease;
+  box-sizing: border-box;
 }
 
 .emoji-grid .emoji-pick:active {
-    transform: scale(0.95);
-    filter: brightness(1.05);
+  transform: scale(0.95);
+  filter: brightness(1.05);
 }
 
 /* NEW: suppress iOS cut/copy/paste callout on the emoji input */
