@@ -580,19 +580,41 @@
         const THEME_MAP = {
             blue:   { h: 210, s: 85 },
             red:    { h:   0, s: 78 },
-            green:  { h: 140, s: 65 },
+            green:  { h: 120, s: 50 },
             pink:   { h: 330, s: 70 },
             purple: { h: 268, s: 70 },
-            grey:   { h: 210, s:  0 }, // saturation 0 -> greyscale
-            yellow: { h:  45, s: 90 }
+            yellow: { h:  45, s: 90 },
+            grey:   { h: 210, s:  0 }
         };
         function getThemeHS() {
             return THEME_MAP[themeColor] || THEME_MAP.blue;
         }
+
+        // Text color to use for UI elements based on theme key (readable on light background)
+        function getThemeTextColor(key) {
+            const t = THEME_MAP[key] || THEME_MAP.blue;
+            // Slightly darker tone for readability on #f8f9fa background
+            const L = key === 'yellow' ? 32 : 34;
+            return `hsl(${t.h}, ${t.s}%, ${L}%)`;
+        }
+
         function setThemeColor(value) {
             themeColor = value || 'blue';
             localStorage.setItem('themeColor', themeColor);
-            updateUI(); // re-render shading immediately
+            updateUI();                // re-render shading immediately
+            applyThemeSelectColors();  // recolor the dropdown text to match
+        }
+
+        // Apply selected theme color to the Theme Colour select (outer) and color-code options (inner)
+        function applyThemeSelectColors() {
+            const select = document.querySelector('#roundManagementModal select#themeColorSelect');
+            if (!select) return;
+            // Outer (collapsed) text matches the currently selected theme
+            select.style.color = getThemeTextColor(themeColor);
+            // Inner options each correspond to their theme color
+            Array.from(select.options).forEach(opt => {
+                opt.style.color = getThemeTextColor(opt.value);
+            });
         }
     
         // Add new round scores and scroll to the last row
@@ -845,7 +867,6 @@
                     const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
                     if (columns[0]) columns[0].style.background = gradient;
                 }
-                // else: keep default gray background (no override)
                 return;
             }
 
@@ -876,7 +897,7 @@
 
             // If everyone is tied, shade all with darkest "first" color
             if (effectiveRanks === 1) {
-                const darkestL = Math.max(28, Lmax - maxRange); // darkest first-place lightness
+                const darkestL = Math.max(28, Lmax - maxRange);
                 const Ltop = Math.max(18, darkestL - 10);
                 const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${darkestL}%) 100%)`;
                 columns.forEach(th => th.style.background = gradient);
@@ -884,16 +905,15 @@
             }
 
             // Dynamic contrast based on number of ranks
-            const maxRanksForScaling = 8; // normalize contrast as if up to 8 ranks
+            const maxRanksForScaling = 8;
             const normalized = Math.min(1, Math.max(0, (effectiveRanks - 1) / (maxRanksForScaling - 1)));
             const range = Math.round(minRange + (maxRange - minRange) * normalized);
             const Lmin = Math.max(28, Lmax - range); // darkest for first place
 
             groups.forEach((group, g) => {
-                // g=0 -> first (darkest), g=last -> last (lightest)
                 const ratio = g / (effectiveRanks - 1);
                 const L = Math.round(Lmin + (Lmax - Lmin) * ratio);
-                const Ltop = Math.max(18, L - 10); // subtle vertical gradient
+                const Ltop = Math.max(18, L - 10);
                 const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
 
                 group.members.forEach(idx => {
@@ -906,13 +926,13 @@
         function removePlayer(index) {
             if (players.length <= 1) {
                 alert("At least one player must remain.");
-                return false; // block removal
+                return false;
             }
             players.splice(index, 1);
             rounds.forEach(round => round.splice(index, 1));
             saveData();
             updateUI();
-            return true; // removed
+            return true;
         }
     
         // Generic rename that transfers unsubmittedScores
@@ -950,17 +970,14 @@
 
             const input = modal.querySelector('#playerNameInput');
 
-            // Focus and select all text on open
             try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
             try { input.select(); } catch (_) {}
             try { input.setSelectionRange(0, input.value.length); } catch (_) {}
 
-            // Force uppercase as the user types
             input.addEventListener('input', function () {
                 this.value = this.value.toUpperCase();
             });
 
-            // Enter to submit
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     updatePlayerName(index);
@@ -968,7 +985,7 @@
             });
         }
 
-        // Emoji-only player management dialog (open keyboard only when user taps input)
+        // Emoji-only player management dialog
         function createEmojiPlayerDialog(index) {
             const modal = document.getElementById('playerManagementModal');
             const favEmojis = [
@@ -1004,14 +1021,11 @@
 
             const input = modal.querySelector('#emojiNameInput');
 
-            // NEW: Prevent native tap selection bubble and programmatically focus+select on first tap
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
                 primed = true;
-                // Stop native tap handling (prevents the OS cut/copy/paste bubble)
                 e.preventDefault();
-                // Focus and select programmatically (still within the user gesture)
                 try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
                 requestAnimationFrame(() => {
                     try { input.select(); } catch (_) {}
@@ -1019,16 +1033,13 @@
                 });
             };
 
-            // Use pointerdown when available, with fallbacks
             input.addEventListener('pointerdown', primeFocus, { passive: false });
             input.addEventListener('touchstart', primeFocus, { passive: false });
             input.addEventListener('mousedown', primeFocus);
 
-            // Keep selection intact and block long-press/context menus
             input.addEventListener('mouseup', (e) => e.preventDefault());
             input.addEventListener('contextmenu', (e) => e.preventDefault());
 
-            // Keep emoji-only input (broadened to accept flags, keycaps, VS16 symbols, etc.)
             input.addEventListener('input', function () {
                 this.value = extractEmojis(this.value);
             });
@@ -1039,12 +1050,7 @@
             });
         }
 
-        // Broadened emoji extractor:
-        // - Keeps grapheme clusters with Extended_Pictographic
-        // - Accepts flag sequences (regional indicators)
-        // - Accepts keycap sequences (#,*,0-9 + VS16? + 20E3)
-        // - Accepts symbols with Variation Selector-16 (emoji presentation)
-        // - Accepts tag-based flags (e.g., England/Scotland/Wales)
+        // Broadened emoji extractor
         function extractEmojis(str) {
             if (!str) return '';
             let segments;
@@ -1054,10 +1060,10 @@
                 segments = Array.from(str);
             }
             const rePict = /\p{Extended_Pictographic}/u;
-            const reRI = /[\u{1F1E6}-\u{1F1FF}]/u; // regional indicators
-            const reKeycap = /[#*0-9]\uFE0F?\u20E3/u; // keycap sequences
-            const reVS16 = /\uFE0F/u; // emoji presentation selector
-            const reTagFlag = /\u{1F3F4}[\u{E0061}-\u{E007A}]{1,14}\u{E007F}/u; // tag-based flags
+            const reRI = /[\u{1F1E6}-\u{1F1FF}]/u;
+            const reKeycap = /[#*0-9]\uFE0F?\u20E3/u;
+            const reVS16 = /\uFE0F/u;
+            const reTagFlag = /\u{1F3F4}[\u{E0061}-\u{E007A}]{1,14}\u{E007F}/u;
 
             return segments
                 .filter(seg => rePict.test(seg) || reRI.test(seg) || reKeycap.test(seg) || reVS16.test(seg) || reTagFlag.test(seg))
@@ -1138,15 +1144,18 @@
                         {v:'green', t:'Green'},
                         {v:'pink', t:'Pink'},
                         {v:'purple', t:'Purple'},
-                        {v:'grey', t:'Grey'},
-                        {v:'yellow', t:'Yellow'}
-                    ].map(opt => `<option value="${opt.v}" ${themeColor === opt.v ? 'selected' : ''}>${opt.t}</option>`).join('')}
+                        {v:'yellow', t:'Yellow'},
+                        {v:'grey', t:'Grey'}
+                        
+                    ].map(opt => `<option value="${opt.v}" ${themeColor === opt.v ? 'selected' : ''} style="color:${getThemeTextColor(opt.v)};">${opt.t}</option>`).join('')}
                 </select>
 
                 <button onclick="handleResetScores(this)" data-state="initial">Reset</button>
             `;
             modal.style.display = 'block';
             showOverlay();
+            // Color the Theme Colour dropdown (outer + inner)
+            applyThemeSelectColors();
         }
 
         // Toggle Sort by Rank (dark when ON, light when OFF). Does not close the popup.
@@ -1157,9 +1166,9 @@
             if (btn) btn.classList.toggle('active', sortByRankEnabled);
 
             if (sortByRankEnabled) {
-                applySortByRank(true); // sort now if enabled
+                applySortByRank(true);
             }
-            updateUI(); // keep dialog open
+            updateUI();
         }
 
         // Toggle Emoji mode (dark when ON, light when OFF). Does not close the popup.
@@ -1169,9 +1178,8 @@
             const btn = document.getElementById('emojiModeBtn');
             if (btn) btn.classList.toggle('active', emojiModeEnabled);
 
-            // Sync Pn <-> keycap digits based on mode
             syncDefaultNamesToMode();
-            updateUI(); // keep dialog open
+            updateUI();
         }
     
         // Handle reset scores with button state
@@ -1186,10 +1194,9 @@
                     player.name = player.name.toUpperCase();
                 });
                 rounds = [];
-                unsubmittedScores = {}; // Clear unsubmitted scores on reset
+                unsubmittedScores = {};
                 localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
 
-                // Ensure default names follow current mode after reset
                 syncDefaultNamesToMode();
 
                 saveData();
@@ -1305,17 +1312,14 @@
         function handleDrop(event, dropIndex) {
             event.preventDefault();
             if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
-                // Reorder players array
                 const [draggedPlayer] = players.splice(draggedIndex, 1);
                 players.splice(dropIndex, 0, draggedPlayer);
     
-                // Reorder scores in each round
                 rounds.forEach(round => {
                     const [draggedScore] = round.splice(draggedIndex, 1);
                     round.splice(dropIndex, 0, draggedScore);
                 });
     
-                // Unsubmitted scores stay tied to player names, so no need to reorder them here
                 saveData();
                 updateUI();
             }
