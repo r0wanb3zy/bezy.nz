@@ -1540,102 +1540,105 @@
             }
         }
     
-        // Remove a player
-        function removePlayer(player) {
-            if (!player) return;
+// Remove a player — close the modal even when blocking last-player removal
+function removePlayer(player) {
+    if (!player) return false;
             
-            const playerIndex = parseInt(player.replace('P', '')) - 1;
-            const playerCount = parseInt(document.getElementById('playerCount').value);
+    const playerIndex = parseInt(player.replace('P', '')) - 1;
+    const playerCount = parseInt(document.getElementById('playerCount').value);
             
-            if (playerCount <= 1) {
-                alert("At least one player must remain.");
-                return;
-            }
+    if (playerCount <= 1) {
+        alert("At least one player must remain.");
+        // Close the popup after OK'ing the alert
+        closePlayerNameModal();
+        return false;
+    }
             
-            const table = document.getElementById('scoreTable');
-            const headers = table.querySelector('thead tr');
-            const rows = table.querySelectorAll('tbody tr');
+    const table = document.getElementById('scoreTable');
+    const headers = table.querySelector('thead tr');
+    const rows = table.querySelectorAll('tbody tr');
             
-            if (headers.children[playerIndex + 1]) {
-                headers.removeChild(headers.children[playerIndex + 1]);
-            }
-            rows.forEach(row => {
-                if (row.children[playerIndex + 1]) {
-                    row.removeChild(row.children[playerIndex + 1]);
-                }
-            });
-            
-            const categories = [
-                'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
-                'Three of a Kind', 'Four of a Kind', 'Full House',
-                'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
-            ];
-            categories.forEach(category => {
-                localStorage.removeItem(`${player}-${category}`);
-            });
-            localStorage.removeItem(`playerName-${player}`);
-            
-            const newPlayerCount = playerCount - 1;
-            document.getElementById('playerCount').value = newPlayerCount;
-            localStorage.setItem('playerCount', newPlayerCount);
-            
-            for (let i = playerIndex + 1; i < playerCount; i++) {
-                const oldPlayer = `P${i + 1}`;
-                const newPlayer = `P${i}`;
-                const headerIndex = i;
-                const headersRow = headers.children;
-                const header = headersRow[headerIndex];
-                if (header) {
-                    const totalDiv = header.querySelector('div');
-                    const rankElement = header.querySelector('small');
-                    let rankHTML = rankElement ? rankElement.outerHTML : '';
-                    const playerName = header.innerText.split('\n')[0].trim();
-                    
-                    header.setAttribute('data-player', newPlayer);
-                    if (totalDiv) {
-                        header.innerHTML = `${playerName}<div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
-                    }
-                }
-                
-                rows.forEach(row => {
-                    const cell = row.children[headerIndex];
-                    if (cell && (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell'))) {
-                        cell.setAttribute('data-player', newPlayer);
-                    }
-                    if (row.classList.contains('bonus-row') && cell) {
-                        cell.id = `bonus${newPlayer}`;
-                        cell.innerHTML = `<span id="pointsNeeded${newPlayer}" class="points-needed">63</span>`;
-                    } else if (row.classList.contains('upper-score-row') && cell) {
-                        cell.id = `upperScore${newPlayer}`;
-                        cell.textContent = '0';
-                    } else if (row.classList.contains('lower-score-row') && cell) {
-                        cell.id = `lowerScore${newPlayer}`;
-                        cell.textContent = '0';
-                    }
-                });
-                
-                const savedName = localStorage.getItem(`playerName-${oldPlayer}`);
-                if (savedName) {
-                    localStorage.setItem(`playerName-${newPlayer}`, savedName);
-                    localStorage.removeItem(`playerName-${oldPlayer}`);
-                }
-                categories.forEach(category => {
-                    const savedScore = localStorage.getItem(`${oldPlayer}-${category}`);
-                    if (savedScore) {
-                        localStorage.setItem(`${newPlayer}-${category}`, savedScore);
-                        localStorage.removeItem(`${oldPlayer}-${category}`);
-                    }
-                });
-            }
-            
-            reattachEventListeners();
-            attachDragListeners();
-            for (let i = 1; i <= newPlayerCount; i++) {
-                calculateTotal(`P${i}`);
-            }
-            updateRanks();
-            closePlayerNameModal();
+    if (headers.children[playerIndex + 1]) {
+        headers.removeChild(headers.children[playerIndex + 1]);
+    }
+    rows.forEach(row => {
+        if (row.children[playerIndex + 1]) {
+            row.removeChild(row.children[playerIndex + 1]);
         }
+    });
+            
+    const categories = [
+        'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+        'Three of a Kind', 'Four of a Kind', 'Full House',
+        'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+    ];
+    categories.forEach(category => {
+        localStorage.removeItem(`${player}-${category}`);
+    });
+    localStorage.removeItem(`playerName-${player}`);
+            
+    const newPlayerCount = playerCount - 1;
+    document.getElementById('playerCount').value = newPlayerCount;
+    localStorage.setItem('playerCount', newPlayerCount);
+            
+    for (let i = playerIndex + 1; i < playerCount; i++) {
+        const oldPlayer = `P${i + 1}`;
+        const newPlayer = `P${i}`;
+        const headerIndex = i;
+        const headersRow = headers.children;
+        const header = headersRow[headerIndex];
+        if (header) {
+            const totalDiv = header.querySelector('div');
+            const rankElement = header.querySelector('small');
+            let rankHTML = rankElement ? rankElement.outerHTML : '';
+            const playerName = header.innerText.split('\n')[0].trim();
+                    
+            header.setAttribute('data-player', newPlayer);
+            if (totalDiv) {
+                header.innerHTML = `${playerName}<div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
+            }
+        }
+                
+        rows.forEach(row => {
+            const cell = row.children[headerIndex];
+            if (cell && (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell'))) {
+                cell.setAttribute('data-player', newPlayer);
+            }
+            if (row.classList.contains('bonus-row') && cell) {
+                cell.id = `bonus${newPlayer}`;
+                cell.innerHTML = `<span id="pointsNeeded${newPlayer}" class="points-needed">63</span>`;
+            } else if (row.classList.contains('upper-score-row') && cell) {
+                cell.id = `upperScore${newPlayer}`;
+                cell.textContent = '0';
+            } else if (row.classList.contains('lower-score-row') && cell) {
+                cell.id = `lowerScore${newPlayer}`;
+                cell.textContent = '0';
+            }
+        });
+                
+        const savedName = localStorage.getItem(`playerName-${oldPlayer}`);
+        if (savedName) {
+            localStorage.setItem(`playerName-${newPlayer}`, savedName);
+            localStorage.removeItem(`playerName-${oldPlayer}`);
+        }
+        categories.forEach(category => {
+            const savedScore = localStorage.getItem(`${oldPlayer}-${category}`);
+            if (savedScore) {
+                localStorage.setItem(`${newPlayer}-${category}`, savedScore);
+                localStorage.removeItem(`${oldPlayer}-${category}`);
+            }
+        });
+    }
+            
+    reattachEventListeners();
+    attachDragListeners();
+    for (let i = 1; i <= newPlayerCount; i++) {
+        calculateTotal(`P${i}`);
+    }
+    updateRanks();
+    closePlayerNameModal(); // close on successful removal
+    return true;
+}
     
         // Handle player removal with confirmation state
         function handleRemovePlayer(button) {
