@@ -18,6 +18,8 @@
         html, body {
             height: 100%;
             margin: 0;
+            overflow: hidden;          /* lock page scrolling */
+            overscroll-behavior: none; /* prevent rubber-banding */
         }
 
         body {
@@ -26,7 +28,7 @@
             max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
-            min-height: 100vh;
+            /* removed min-height: 100vh to avoid conflicts with overflow hidden */
             background-size: cover;
         }
 
@@ -55,29 +57,14 @@
 
         /* Score Table Specific Styles */
         #scoreTable {
-            height: 100vh;
+            height: 100dvh;                 /* fill the visible viewport height */
+            overflow-y: auto;               /* if content overflows, scroll inside the table */
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
-        /* Orientation-Based Scrolling */
-        @media screen and (orientation: portrait) {
-            html, body {
-                overflow: hidden;
-                touch-action: none; /* Prevent touch scrolling */
-            }
-            #scoreTable {
-                overflow-y: hidden; /* No scrolling inside table */
-            }
-        }
-
-        @media screen and (orientation: landscape) {
-            html, body {
-                overflow: auto; /* Allow scrolling on body */
-                touch-action: auto; /* Enable touch scrolling */
-            }
-            #scoreTable {
-                overflow-y: auto; /* Enable scrolling inside table */
-            }
+        /* Fallback for browsers that don't support 100dvh */
+        @supports not (height: 100dvh) {
+            #scoreTable { height: 100vh; }
         }
 
         /* Headers */
@@ -205,10 +192,10 @@
             border-right: 1px solid #666;
         }
         /* Keep themed color once the bonus is achieved (after pulse ends too) */
-.bonus-row .points-needed.bonus-achieved:not(.animate-bonus) {
-  color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l));
-  font-weight: bold;
-}
+        .bonus-row .points-needed.bonus-achieved:not(.animate-bonus) {
+          color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l));
+          font-weight: bold;
+        }
 
         .bonus-row td:first-child,
         .upper-score-row td:first-child,
@@ -218,12 +205,6 @@
 
         table tr:last-child td {
             border-bottom: none;
-        }
-
-        .bonus-row td:last-child, 
-        .upper-score-row td:last-child, 
-        .lower-score-row td:last-child {
-            border-right: none;
         }
 
         .bonus-row .points-needed {
@@ -749,8 +730,8 @@
             <option value="green">Green</option>
             <option value="pink">Pink</option>
             <option value="purple">Purple</option>
-            <option value="grey">Grey</option>
             <option value="yellow">Yellow</option>
+            <option value="grey">Grey</option>
         </select>
 
         <button id="resetButton" onclick="handleResetClick()">Reset</button>
@@ -864,17 +845,8 @@
             root.style.setProperty('--pulse-shadow-alpha-strong', `0.6`);
         }
 
-        // Set table height to match viewport
-        function setFullHeight() {
-            const table = document.getElementById("scoreTable");
-            if (table) {
-                table.style.height = `${window.innerHeight}px`;
-            }
-        }
-    
         // Initial page load setup
         document.addEventListener("DOMContentLoaded", function() {
-            setFullHeight();
             let savedPlayerCount = localStorage.getItem('playerCount');
             if (savedPlayerCount) {
                 document.getElementById('playerCount').value = savedPlayerCount;
@@ -929,10 +901,7 @@
             // Done booting: prevent relaunch from retriggering bonus pulse
             isAppBooting = false;
         });
-    
-        // Resize handler
-        window.addEventListener('resize', setFullHeight);
-    
+
         // Calculate player's total score (with bonus animation when crossing 63)
         function calculateTotal(player) {
             let total = 0;
@@ -1282,86 +1251,83 @@
             };
         }
 
-        // Open the emoji-only player modal
-        function openEmojiPlayerModal(currentName) {
-            const modal = document.getElementById('playerNameModal');
-            if (!playerNameModalTemplate) {
-                playerNameModalTemplate = modal.innerHTML;
-            }
+function openEmojiPlayerModal(currentName) {
+    const modal = document.getElementById('playerNameModal');
+    if (!playerNameModalTemplate) {
+        playerNameModalTemplate = modal.innerHTML;
+    }
 
-            const favEmojis = [
-                "🍔","🩰","🌹","🌰","🔔",
-                "👑","🎣","🌻","🏏","🦈",
-                "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
-                "❄️","🔥","💥","⚡","⭐",
-                "🐬","🐳","🦀","🕷️","🐝"
-            ];
-            const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" onclick="setEmojiFromButton('${e}')">${e}</button>`).join('');
+    const favEmojis = [
+        "🍔","🩰","🌹","🌰","🔔",
+        "👑","🎣","🌻","🏏","🦈",
+        "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
+        "❄️","🔥","💥","⚡","⭐",
+        "🐬","🐳","🦀","🕷️","🐝"
+    ];
+    const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" onclick="setEmojiFromButton('${e}')">${e}</button>`).join('');
 
-            modal.innerHTML = `
-                <h2>Player</h2>
-                <span class="close-btn" onclick="closePlayerNameModal()">×</span>
-                <input
-                    type="text"
-                    id="emojiNameInput"
-                    value="${currentName}"
-                    inputmode="text"
-                    placeholder="Pick an emoji"
-                    enterkeyhint="done"
-                    autocapitalize="off"
-                    autocomplete="off"
-                    autocorrect="off"
-                    spellcheck="false"
-                >
-                <div class="emoji-grid">${grid}</div>
-                <button onclick="updatePlayerNameEmoji()">Update</button>
-                <button onclick="handleRemovePlayer(this)" data-state="initial">Remove</button>
-            `;
-            modal.style.display = 'block';
-            showOverlay();
+    modal.innerHTML = `
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePlayerNameModal()">×</span>
+        <input
+            type="text"
+            id="emojiNameInput"
+            value="${currentName}"
+            inputmode="text"
+            placeholder="Pick an emoji"
+            enterkeyhint="done"
+            autocapitalize="off"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+        >
+        <div class="emoji-grid">${grid}</div>
+        <!-- Removed the Update button -->
+        <button onclick="handleRemovePlayer(this)" data-state="initial">Remove</button>
+    `;
+    modal.style.display = 'block';
+    showOverlay();
 
-            const input = document.getElementById('emojiNameInput');
+    const input = document.getElementById('emojiNameInput');
 
-            // iOS-friendly: prime focus on first tap to avoid OS cut/copy/paste bubble
-            let primed = false;
-            const primeFocus = (e) => {
-                if (primed) return;
-                primed = true;
-                e.preventDefault();
-                try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-                requestAnimationFrame(() => {
-                    try { input.select(); } catch (_) {}
-                });
-            };
-            input.addEventListener('pointerdown', primeFocus, { passive: false });
-            input.addEventListener('touchstart', primeFocus, { passive: false });
-            input.addEventListener('mousedown', primeFocus);
-            input.addEventListener('mouseup', (e) => e.preventDefault());
-            input.addEventListener('contextmenu', (e) => e.preventDefault());
+    // iOS-friendly: prime focus on first tap
+    let primed = false;
+    const primeFocus = (e) => {
+        if (primed) return;
+        primed = true;
+        e.preventDefault();
+        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+        requestAnimationFrame(() => { try { input.select(); } catch (_) {} });
+    };
+    input.addEventListener('pointerdown', primeFocus, { passive: false });
+    input.addEventListener('touchstart', primeFocus, { passive: false });
+    input.addEventListener('mousedown', primeFocus);
+    input.addEventListener('mouseup', (e) => e.preventDefault());
+    input.addEventListener('contextmenu', (e) => e.preventDefault());
 
-            // UPDATED: Auto-apply and close as soon as an emoji is entered
-            let autoClosed = false;
-            input.addEventListener('input', function () {
-                const sanitized = extractEmojis(this.value);
-                if (sanitized !== this.value) {
-                    this.value = sanitized;
-                }
-                if (sanitized && !autoClosed) {
-                    if (window.currentPlayer) {
-                        applyPlayerName(window.currentPlayer, sanitized);
-                    }
-                    autoClosed = true;
-                    closePlayerNameModal();
-                }
-            });
-
-            // Still allow pressing Enter to confirm (fallback)
-            input.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    updatePlayerNameEmoji();
-                }
-            });
+    // Auto-apply and close on first emoji input
+    let autoClosed = false;
+    input.addEventListener('input', function () {
+        const sanitized = extractEmojis(this.value);
+        if (sanitized !== this.value) {
+            this.value = sanitized;
         }
+        if (sanitized && !autoClosed) {
+            if (window.currentPlayer) {
+                applyPlayerName(window.currentPlayer, sanitized);
+            }
+            autoClosed = true;
+            closePlayerNameModal();
+        }
+    });
+
+    // Optional fallback: allow Enter to confirm (won’t usually be needed)
+    input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            updatePlayerNameEmoji();
+        }
+    });
+}
 
         // Load saved scores from localStorage
         function loadScores() {
