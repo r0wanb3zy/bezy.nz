@@ -30,6 +30,15 @@
             background-size: cover;
         }
 
+        /* Theme-driven pulse variables (defaults to blue theme) */
+        :root {
+            --pulse-h: 210;                 /* hue */
+            --pulse-s: 85%;                 /* saturation with % */
+            --pulse-l: 46%;                 /* base lightness */
+            --pulse-l-light: 62%;           /* lighter lightness for mid-pulse */
+            --pulse-shadow-alpha-strong: 0.6;
+        }
+
         /* Table Base Styles */
         table {
             width: 100%;
@@ -646,6 +655,34 @@
         #roundManagementModal select#themeColorSelect option {
           text-align: center;
         }
+
+        /* Theme-colored bonus pulse animation */
+        @keyframes bonusPulse {
+          0%, 100% {
+            transform: scale(1);
+            color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l));
+            text-shadow: 0 0 0 hsla(var(--pulse-h), var(--pulse-s), var(--pulse-l), 0);
+          }
+          50% {
+            transform: scale(1.5);
+            color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l-light));
+            text-shadow: 0 0 10px hsla(var(--pulse-h), var(--pulse-s), var(--pulse-l), var(--pulse-shadow-alpha-strong));
+          }
+        }
+
+        .bonus-row .points-needed.animate-bonus {
+          color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l)) !important;
+          animation: bonusPulse 1200ms ease-in-out infinite;
+          display: inline-block;
+          transform-origin: center;
+          will-change: transform;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .bonus-row .points-needed.animate-bonus {
+            animation: none;
+          }
+        }
     </style>
 </head>
 <body>
@@ -775,12 +812,48 @@
             // store under both keys so both apps stay in sync
             localStorage.setItem('yahtzee-themeColor', themeColor);
             localStorage.setItem('themeColor', themeColor);
+            // Apply theme-dependent visuals
             updateRanks();
             applyThemeSelectColors();
+            applyPulseThemeColors(); // NEW: sync pulse color to theme
         }
 
         // Keep original playerName modal markup so we can restore after emoji modal swaps
         let playerNameModalTemplate = null;
+
+        // Bonus animation helpers
+        const prevUpperTotals = {}; // Track previous upper-section totals per player
+        const BONUS_ANIM_MS = 6000;
+        const BONUS_ANIM_CLASS = 'animate-bonus';
+        function triggerBonusAnimation(player) {
+            const el = document.getElementById(`pointsNeeded${player}`);
+            if (!el) return;
+            // Restart animation if it's already running
+            el.classList.remove(BONUS_ANIM_CLASS);
+            void el.offsetWidth; // reflow to reset animation
+            el.classList.add(BONUS_ANIM_CLASS);
+            // Remove after ~5s
+            clearTimeout(el._bonusTimer);
+            el._bonusTimer = setTimeout(() => {
+                el.classList.remove(BONUS_ANIM_CLASS);
+            }, BONUS_ANIM_MS);
+            // Tiny haptic tap on supported devices
+            if (navigator.vibrate) navigator.vibrate(60);
+        }
+
+        // Apply CSS variables for pulse color based on theme
+        function applyPulseThemeColors() {
+            const root = document.documentElement;
+            const { h: H, s: S } = getThemeHS();
+            // Base and lighter lightness for the pulse steps
+            const Lbase = 46;                       // readable on dark grey bonus row
+            const Llight = Math.min(90, Lbase + 16);
+            root.style.setProperty('--pulse-h', String(H));
+            root.style.setProperty('--pulse-s', `${S}%`);
+            root.style.setProperty('--pulse-l', `${Lbase}%`);
+            root.style.setProperty('--pulse-l-light', `${Llight}%`);
+            // alpha is already defined; keep defaults unless you want to expose a slider later
+        }
 
         // Set table height to match viewport
         function setFullHeight() {
@@ -807,6 +880,9 @@
                 themeSel.value = themeColor;
                 applyThemeSelectColors();
             }
+
+            // Initialize pulse color variables to current theme
+            applyPulseThemeColors();
 
             // Save the original player name modal HTML
             const modal = document.getElementById('playerNameModal');
@@ -845,7 +921,7 @@
         // Resize handler
         window.addEventListener('resize', setFullHeight);
     
-        // Calculate player's total score
+        // Calculate player's total score (with bonus animation when crossing 63)
         function calculateTotal(player) {
             let total = 0;
             let upperSectionTotal = 0;
@@ -878,6 +954,11 @@
             const bonus = upperSectionTotal >= 63 ? 35 : 0;
             const bonusElement = document.getElementById(`bonus${player}`);
             const pointsNeededElement = document.getElementById(`pointsNeeded${player}`);
+
+            // Detect crossing 63 threshold (no animation on first load without prior value)
+            const prevUpper = prevUpperTotals[player];
+            const gotBonusNow = upperSectionTotal >= 63;
+            const crossedThreshold = (prevUpper != null && prevUpper < 63 && gotBonusNow);
             
             if (bonusElement && pointsNeededElement) {
                 if (bonus > 0) {
@@ -888,10 +969,18 @@
                     pointsNeededElement.classList.remove('bonus-achieved');
                 }
             
-                document.getElementById(`upperScore${player}`).textContent = lowerSectionTotal ? upperSectionTotal : upperSectionTotal;
+                document.getElementById(`upperScore${player}`).textContent = upperSectionTotal;
                 document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
                 document.getElementById(`total${player}`).textContent = total + bonus;
+
+                // Trigger the 5s theme-colored pulse when the player first earns the bonus
+                if (crossedThreshold) {
+                    triggerBonusAnimation(player);
+                }
             }
+
+            // Update previous total for next comparison
+            prevUpperTotals[player] = upperSectionTotal;
         }
 
         // Determine if any score entry exists (any cell filled, including ❌ or 0)
@@ -1059,6 +1148,7 @@
                 document.getElementById(`upperScore${player}`).textContent = '0';
                 document.getElementById(`lowerScore${player}`).textContent = '0';
                 document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
+                prevUpperTotals[player] = 0; // reset previous tracker
             }
             closeRoundManagement();
             updateRanks();
@@ -1087,6 +1177,7 @@
                         localStorage.removeItem(cellId);
                     }
                     localStorage.removeItem(`playerName-${player}`);
+                    delete prevUpperTotals[`P${i}`];
                 }
             } else {
                 for (let i = existingPlayers + 1; i <= playerCount; i++) {
@@ -1126,6 +1217,7 @@
                         }
                         row.appendChild(newCell);
                     });
+                    prevUpperTotals[`P${i}`] = 0;
                 }
             }
             for (let i = 1; i <= playerCount; i++) {
@@ -1415,7 +1507,12 @@
                 header.innerHTML = `${newData[i].name}<div id="total${player}">${currentTotalText}</div>`;
 
                 localStorage.setItem(`playerName-${player}`, newData[i].name);
-                categories.forEach(cat => {
+                const categoriesList = [
+                    'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                    'Three of a Kind', 'Four of a Kind', 'Full House',
+                    'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+                ];
+                categoriesList.forEach(cat => {
                     if (newData[i].scores[cat] !== null && newData[i].scores[cat] !== undefined) {
                         localStorage.setItem(`${player}-${cat}`, newData[i].scores[cat]);
                     } else {
@@ -1726,6 +1823,8 @@ function removePlayer(player) {
                 localStorage.removeItem(`${oldPlayer}-${category}`);
             }
         });
+        prevUpperTotals[newPlayer] = prevUpperTotals[oldPlayer] || 0;
+        delete prevUpperTotals[oldPlayer];
     }
             
     reattachEventListeners();
