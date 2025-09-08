@@ -97,6 +97,8 @@
             text-overflow: ellipsis;
             font-family: 'Economica', sans-serif;
             border-bottom: 1px solid rgba(200, 200, 200, 0.3);
+            /* New: ensure perfect vertical centering for all cells */
+            vertical-align: middle;
         }
 
         table td {
@@ -135,6 +137,9 @@
             filter: brightness(0) invert(1);
             width: 20px;
             height: 20px;
+            /* New: center the icon horizontally and remove inline baseline gap */
+            display: block;
+            margin: 0 auto;
         }
 
         /* Table Headers */
