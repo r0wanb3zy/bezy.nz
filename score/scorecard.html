@@ -1021,7 +1021,7 @@ table input[type="number"]::placeholder {
             });
         }
 
-        // Emoji-only player management dialog
+        // Emoji-only player management dialog (auto-apply + no Update button)
         function createEmojiPlayerDialog(index) {
             const modal = document.getElementById('playerManagementModal');
             const favEmojis = [
@@ -1049,7 +1049,7 @@ table input[type="number"]::placeholder {
                     spellcheck="false"
                 >
                 <div class="emoji-grid">${grid}</div>
-                <button onclick="updatePlayerNameEmoji(${index})">Update</button>
+                <!-- Removed Update button (auto-apply on input) -->
                 <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
             `;
             modal.style.display = 'block';
@@ -1057,6 +1057,7 @@ table input[type="number"]::placeholder {
 
             const input = modal.querySelector('#emojiNameInput');
 
+            // iOS-friendly: prime focus to avoid OS callout
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
@@ -1076,9 +1077,21 @@ table input[type="number"]::placeholder {
             input.addEventListener('mouseup', (e) => e.preventDefault());
             input.addEventListener('contextmenu', (e) => e.preventDefault());
 
+            // Auto-apply + close as soon as an emoji is entered
+            let autoClosed = false;
             input.addEventListener('input', function () {
-                this.value = extractEmojis(this.value);
+                const sanitized = extractEmojis(this.value);
+                if (sanitized !== this.value) {
+                    this.value = sanitized;
+                }
+                if (sanitized && !autoClosed) {
+                    renamePlayer(index, sanitized);
+                    autoClosed = true;
+                    closePopup('playerManagementModal');
+                }
             });
+
+            // Fallback: Enter key also applies
             input.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     updatePlayerNameEmoji(index);
