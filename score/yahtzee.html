@@ -97,8 +97,7 @@
             text-overflow: ellipsis;
             font-family: 'Economica', sans-serif;
             border-bottom: 1px solid rgba(200, 200, 200, 0.3);
-            /* New: ensure perfect vertical centering for all cells */
-            vertical-align: middle;
+            vertical-align: middle; /* Center content vertically */
         }
 
         table td {
@@ -137,9 +136,8 @@
             filter: brightness(0) invert(1);
             width: 20px;
             height: 20px;
-            /* New: center the icon horizontally and remove inline baseline gap */
-            display: block;
-            margin: 0 auto;
+            display: block;   /* remove baseline gap */
+            margin: 0 auto;   /* center horizontally */
         }
 
         /* Table Headers */
@@ -210,10 +208,10 @@
             border-right: 1px solid #666;
         }
         /* Keep themed color once the bonus is achieved (after pulse ends too) */
-.bonus-row .points-needed.bonus-achieved:not(.animate-bonus) {
-  color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l));
-  font-weight: bold;
-}
+        .bonus-row .points-needed.bonus-achieved:not(.animate-bonus) {
+          color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l));
+          font-weight: bold;
+        }
 
         .bonus-row td:first-child,
         .upper-score-row td:first-child,
@@ -441,9 +439,9 @@
         #playerNameModal {
             display: none;
             position: fixed;
-            top: 15%;
+            top: 50%;                 /* centered like round modal */
             left: 50%;
-            transform: translate(-50%, -15%);
+            transform: translate(-50%, -50%);
             background: #ffffff;
             border: none;
             padding: 5px 20px 20px 20px;
@@ -851,8 +849,6 @@
             el._bonusTimer = setTimeout(() => {
                 el.classList.remove(BONUS_ANIM_CLASS);
             }, BONUS_ANIM_MS);
-            // Tiny haptic tap on supported devices
-            if (navigator.vibrate) navigator.vibrate(60);
         }
 
         // Apply CSS variables for pulse color based on theme (lighter for contrast)
