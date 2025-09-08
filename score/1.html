@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- External Libraries -->
+    <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    
     <!-- Meta Tags -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <!-- Title and Fonts -->
-    <title>Scorecard</title>
+    <title>Yahtzee Scorecard</title>
     <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
     <style>
-        /* Modified Base Styles */
+        /* Base Styles */
         html, body {
             height: 100%;
             margin: 0;
-            padding: 0;
-            overflow: hidden;
         }
 
         body {
@@ -24,46 +26,78 @@
             max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
-            background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
+            min-height: 100vh;
             background-size: cover;
-            display: flex;
-            flex-direction: column;
         }
 
-        h1 {
-            text-align: center;
-        }
-
-        /* New scrollable container */
-        .score-container {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        /* Table Styles */
+        /* Table Base Styles */
         table {
             width: 100%;
-            table-layout: fixed;
             border-collapse: collapse;
             font-size: 20px;
+            table-layout: fixed;
+            font-family: 'Economica', sans-serif;
+        }
+
+        table, table th, table td {
+            font-weight: bold;
+        }
+
+        /* Score Table Specific Styles */
+        #scoreTable {
+            height: 100vh;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
+        /* Orientation-Based Scrolling */
+        @media screen and (orientation: portrait) {
+            html, body {
+                overflow: hidden;
+                touch-action: none; /* Prevent touch scrolling */
+            }
+            #scoreTable {
+                overflow-y: hidden; /* No scrolling inside table */
+            }
+        }
+
+        @media screen and (orientation: landscape) {
+            html, body {
+                overflow: auto; /* Allow scrolling on body */
+                touch-action: auto; /* Enable touch scrolling */
+            }
+            #scoreTable {
+                overflow-y: auto; /* Enable scrolling inside table */
+            }
+        }
+
+        /* Headers */
+        h1, h2 {
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+        }
+
+        /* Table Cells */
         table th, table td {
             border: none;
             text-align: center;
             padding: 5px;
             word-wrap: break-word;
             cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: 'Economica', sans-serif;
             border-bottom: 1px solid rgba(200, 200, 200, 0.3);
         }
 
-        table th {
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-            color: white;
+        table td {
+            border-right: 1px solid rgba(200, 200, 200, 0.3);
         }
 
+        table td:last-child {
+            border-right: none;
+        }
+
+        /* First Column Styles */
         table th:first-child {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             font-weight: bold;
@@ -84,35 +118,32 @@
             overflow: hidden;
             color: white;
             border-bottom: 1px solid #666;
+            border-right: none;
         }
 
-        /* Sticky Header Styles */
-        .sticky-header th {
+        table td:first-child img {
+            filter: brightness(0) invert(1);
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Table Headers */
+        table th {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+        }
+
+        #scoreTable thead th:first-child {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            border-right: none;
+            border-bottom: 1px solid #666;
+        }
+
+        #scoreTable thead th {
             height: 80px;
             font-family: 'Economica', sans-serif;
             font-size: 22px;
-        }
-
-        .sticky-header th span.score {
-            font-size: 22px;
-            font-family: 'Economica', sans-serif;
-        }
-
-        .sticky-header th small {
-            font-size: 16px;
-            font-family: 'Economica', sans-serif;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        #scoreBody tr:not(:last-child) td:not(:first-child) {
-            max-height: 5px;
-            height: 5px;
-            line-height: 5px;
-            overflow: hidden;
-        }
-
-        #scoreBody tr td:not(:first-child) {
-            font-weight: bold;
+            border-bottom: none;
         }
 
         /* Input Styles */
@@ -130,19 +161,18 @@
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        table input::placeholder {
-            font-family: 'Economica', sans-serif;
-            font-size: 16px;
-            text-align: center;
-            line-height: 16px;
-            color: #6b7280;
-            opacity: 0.8;
-        }
-
         table input:focus {
             outline: none;
             border-color: #333333;
             box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
+        }
+
+        table input::placeholder {
+            font-family: 'Economica', sans-serif;
+            font-size: 12px;
+            text-align: center;
+            color: #6b7280;
+            opacity: 0.8;
         }
 
         table input[type="number"]::-webkit-outer-spin-button,
@@ -154,9 +184,71 @@
         table input[type="number"] {
             -moz-appearance: textfield;
             appearance: textfield;
+            font-family: 'Economica', sans-serif;
         }
 
-        /* Legacy highlight classes kept (not used now) */
+        /* Special Row Styles */
+        .bonus-row td, .upper-score-row td, .lower-score-row td {
+            background: #4d4d4d;
+            color: white;
+            border-bottom: 1px solid #666;
+            border-right: 1px solid #666;
+        }
+
+        .bonus-row td:first-child,
+        .upper-score-row td:first-child,
+        .lower-score-row td:first-child {
+            border-right: 1px solid #666;
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .bonus-row td:last-child, 
+        .upper-score-row td:last-child, 
+        .lower-score-row td:last-child {
+            border-right: none;
+        }
+
+        .bonus-row .points-needed {
+            color: #888;
+        }
+
+        .bonus-row .points-needed.bonus-achieved {
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Cell Categories */
+        .lower-section-cell, .upper-section-cell {
+            cursor: pointer;
+            width: auto;
+        }
+
+        .lower-section-cell:active, 
+        .upper-section-cell:active {
+            background-color: transparent !important;
+        }
+
+        /* Header Text */
+        th div {
+            font-size: 14px;
+            font-family: 'Economica', sans-serif;
+        }
+
+        #scoreTable thead th div {
+            font-size: 22px;
+            font-family: 'Economica', sans-serif;
+        }
+
+        #scoreTable thead th small {
+            font-size: 16px;
+            font-family: 'Economica', sans-serif;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Legacy highlight classes */
         .highlight-winner {
             background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
         }
@@ -165,8 +257,97 @@
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
 
-        /* Popup Modal Styles */
-        .popup-modal {
+        /* Score Selection Popup */
+        #popupModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ffffff;
+            border: none;
+            padding: 5px 20px 12px 20px;
+            z-index: 1000;
+            font-family: 'Economica', sans-serif;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        #popupModal, #roundManagementModal {
+            text-align: center;
+        }
+
+        #popupModal h2,
+        #roundManagementModal h2,
+        #playerNameModal h2 {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            padding: 0;
+        }
+
+        #popupModal button {
+            font-size: 24px;
+            padding: 10px 20px;
+            margin: 2px;
+            cursor: pointer;
+            font-family: 'Economica', sans-serif;
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        #roundManagementModal button#resetButton[data-confirm="true"] {
+            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
+
+        #popupOptions {
+            display: grid;
+            grid-template-columns: repeat(5, 40px);
+            gap: 5px;
+            justify-content: center;
+            padding: 10px 0;
+            box-sizing: border-box;
+        }
+
+        /* Invisible spacers to center 3-button layout while keeping width */
+        #popupOptions .popup-spacer {
+            width: 40px;
+            height: 40px;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        #popupOptions button {
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            cursor: pointer;
+            font-family: 'Economica', sans-serif, Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+            -webkit-appearance: none;
+            appearance: none;
+            line-height: 1;
+            outline: none;
+        }
+
+        /* Round Management Modal */
+        #roundManagementModal {
             display: none;
             position: fixed;
             top: 50%;
@@ -175,51 +356,15 @@
             background: #ffffff;
             border: none;
             padding: 5px 20px 20px 20px;
-            z-index: 1000;
+            z-index: 1001;
             width: 200px;
             max-width: 90%;
-            text-align: center;
             font-family: 'Economica', sans-serif;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
 
-        /* Center the player modal like the others */
-        #playerManagementModal {
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .popup-modal input[type="text"] {
-            font-size: 24px;
-            padding: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            margin: 5px 0;
-            text-align: center;
-            font-family: 'Economica', sans-serif;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background: #f8f9fa;
-        }
-
-        .popup-modal input[type="text"]:focus {
-            outline: none;
-            border: 1px solid #333333;
-        }
-
-        .popup-modal select {
-            font-size: 24px;
-            padding: 10px;
-            margin: 5px 0;
-            font-family: 'Economica', sans-serif;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background: #f8f9fa;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
+        /* Make select full-width like the other app */
         #roundManagementModal select {
             font-size: 24px;
             padding: 10px;
@@ -232,10 +377,11 @@
             box-sizing: border-box;
         }
 
-        .popup-modal button {
+        /* Make buttons full-width, stacked */
+        #roundManagementModal button {
             font-size: 24px;
             padding: 10px 20px;
-            margin: 5px 0; /* stack vertically by default */
+            margin: 5px 0;            /* stacked */
             cursor: pointer;
             font-family: 'Economica', sans-serif;
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
@@ -243,77 +389,116 @@
             border: none;
             border-radius: 6px;
             transition: background 0.2s;
-            width: 100%; /* single-column full width buttons */
+            width: 100%;               /* full width like other app */
             box-sizing: border-box;
         }
-        .popup-modal button[data-state="confirm"] {
-            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+
+        /* Sort-by-rank button styles (light off, dark on) */
+        #roundManagementModal button#sortByRankBtn {
+            background: #f8f9fa;
+            color: #0f172a;
+            border: 1px solid #333333;
+        }
+        #roundManagementModal button#sortByRankBtn.active {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: #ffffff;
+            border: 1px solid #333333;
         }
 
-        /* Sort-by-rank + Emoji toggle styles (same shape, active state flips to dark) */
-        #roundManagementModal button#sortByRankBtn,
+        /* Emoji Mode toggle (light off, dark on) */
         #roundManagementModal button#emojiModeBtn {
             background: #f8f9fa;
             color: #0f172a;
             border: 1px solid #333333;
         }
-        #roundManagementModal button#sortByRankBtn.active,
         #roundManagementModal button#emojiModeBtn.active {
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: #ffffff;
             border: 1px solid #333333;
         }
 
-        /* Round modal single-column layout */
-        #roundManagementModal .segmented-control {
+        /* Player Name Modal */
+        #playerNameModal {
+            display: none;
+            position: fixed;
+            top: 15%;
+            left: 50%;
+            transform: translate(-50%, -15%);
+            background: #ffffff;
+            border: none;
+            padding: 5px 20px 20px 20px;
+            z-index: 1001;
+            width: 200px;
+            max-width: 90%;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        #playerNameModal input[type="text"] {
+            font-size: 24px;
+            padding: 10px;
             width: 100%;
             box-sizing: border-box;
             margin: 5px 0;
-        }
-
-        /* Adjust spacing for h2 in popups */
-        #playerManagementModal h2,
-        #roundManagementModal h2,
-        #deleteRoundModal h2 {
-            margin-top: 15px;
-            margin-bottom: 15px;
-            padding: 0;
-        }
-
-        /* Segmented Control Styles */
-        .segmented-control {
-            display: flex;
-            justify-content: center;
-            margin: 5px auto;
-            background: #f8f9fa;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #333333;
-            width: 150px;
-        }
-
-        .segmented-control label {
-            flex: 1;
-            padding: 10px 0px;
             text-align: center;
-            font-size: 24px;
             font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.2s ease;
+        }
+
+        #playerNameModal input[type="text"]:focus {
+            outline: none;
+            border: 1px solid #333333;
+        }
+
+        #playerNameInput {
+            text-transform: uppercase;
+        }
+
+        /* Emoji Name Input (emoji modal) */
+        #emojiNameInput {
+            -webkit-touch-callout: none;
+            font-size: 24px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 5px 0;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+            transition: border-color 0.2s ease;
+        }
+        #emojiNameInput:focus {
+            outline: none;
+            border: 1px solid #333333;
+        }
+
+        /* Player modal action buttons (text or emoji modal) */
+        #playerNameModal button {
+            font-size: 24px;
+            padding: 10px 20px;
+            margin: 5px 0;            /* stacked full width */
             cursor: pointer;
-            background: #f8f9fa;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .segmented-control input[type="radio"] {
-            display: none;
-        }
-
-        .segmented-control input[type="radio"]:checked + label {
+            font-family: 'Economica', sans-serif;
             background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
             color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+            width: 100%;              /* full width like other app */
+            box-sizing: border-box;
         }
 
-        .segmented-control label[for="lowest"] {
-            border-right: 1px solid #ddd;
+        #playerNameModal button[data-state="confirm"] {
+            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
 
         /* Close Button */
@@ -334,16 +519,56 @@
             transition: color 0.2s ease;
         }
 
-        /* Emoji Scaling */
-        .scaled-emoji {
-            transform: scale(.75);
-            transform-origin: center;
-            display: inline-block;
+        /* Emoji Grid (shared) */
+        .emoji-grid {
+            --emoji-gap: 8px;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: var(--emoji-gap);
+            padding: 0;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
         }
 
-        /* Disable Tap Highlight */
-        * {
-            -webkit-tap-highlight-color: transparent;
+        /* Make sure emoji pick buttons are not overridden by #playerNameModal button rules */
+        #playerNameModal .emoji-grid .emoji-pick {
+            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Economica', sans-serif;
+            font-size: 22px;
+            display: grid;
+            place-items: center;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            padding: 0;
+            margin: 0;
+            line-height: 1;
+            cursor: pointer;
+            transition: transform 0.05s ease, filter 0.1s ease;
+            box-sizing: border-box;
+        }
+
+        #playerNameModal .emoji-grid .emoji-pick:active {
+            transform: scale(0.95);
+            filter: brightness(1.05);
+        }
+
+        /* Emoji Scaling in score cells */
+        .scaled-emoji {
+            transform: scale(0.6);
+            transform-origin: center;
+            display: inline-block;
+            height: 20px;
+            line-height: 20px;
+        }
+
+        .scaled-emoji-2 {
+            transform: scale(.6);
+            transform-origin: center;
+            display: inline-block;
         }
 
         /* Overlay */
@@ -359,22 +584,9 @@
             cursor: pointer;
         }
 
-        /* Sticky Header */
-        .sticky-header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .sticky-header table {
-            margin-bottom: 0;
-        }
-
-        /* Adjust main table */
-        #scoreTable {
-            margin-top: 0;
+        /* Disable Tap Highlight */
+        * {
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* Drag feedback styles */
@@ -387,717 +599,369 @@
             border-left: 2px solid #333;
         }
 
-.emoji-grid {
-  /* even spacing between emojis horizontally and vertically */
-  --emoji-gap: 8px;               /* tweak as you like */
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: var(--emoji-gap);
+        /* Center text + remove native arrow for the Players dropdown */
+        #roundManagementModal select#playerCount {
+          text-align: center;            /* centers in many browsers */
+          text-align-last: center;       /* centers selected value (Chrome/Firefox) */
+          -moz-text-align-last: center;  /* Firefox */
+          
+          -webkit-appearance: none;      /* Safari/Chrome */
+          -moz-appearance: none;         /* Firefox */
+          appearance: none;              /* Standard */
 
-  /* keep the grid flush with the modal edges so it aligns with other buttons */
-  padding: 0;
-  margin: 5px 0;                  /* match popup/modal button margin (your buttons use 5px 0) */
-  width: 100%;
-  box-sizing: border-box;
-}
+          background-image: none !important; /* ensure no chevron background */
+          background-color: #f8f9fa;     /* keep your styling */
+          padding-right: 12px;           /* even spacing since arrow is gone */
+        }
 
-.emoji-grid .emoji-pick {
-  background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-family: 'Economica', sans-serif;
-  font-size: 22px;
+        /* Hide the arrow in IE/Edge Legacy */
+        #roundManagementModal select#playerCount::-ms-expand {
+          display: none;
+        }
 
-  /* perfect centering + square buttons */
-  display: grid;
-  place-items: center;
-  width: 100%;
-  aspect-ratio: 1 / 1;
+        /* Optional: center the options list contents in some browsers */
+        #roundManagementModal select#playerCount option {
+          text-align: center;
+        }
 
-  padding: 0;
-  margin: 0;
-  line-height: 1;
-  cursor: pointer;
-  transition: transform 0.05s ease, filter 0.1s ease;
-  box-sizing: border-box;
-}
+        /* Match Theme Colour dropdown behavior (same as Scorecard app) */
+        #roundManagementModal select#themeColorSelect {
+          text-align: center;
+          text-align-last: center;
+          -moz-text-align-last: center;
 
-.emoji-grid .emoji-pick:active {
-  transform: scale(0.95);
-  filter: brightness(1.05);
-}
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
 
-/* NEW: suppress iOS cut/copy/paste callout on the emoji input */
-#emojiNameInput {
-    -webkit-touch-callout: none;
-}
+          background-image: none !important;
+          background-color: #f8f9fa;
+          padding-right: 12px;
+        }
 
-        @media (max-width: 480px) {
-            .sticky-header.small-scores th span.score {
-                font-size: 18px;
-                line-height: 1.2;
-            }
-            #scoreTable.small-scores thead th {
-                padding: 3px;
-            }
-            #scoreTable.small-scores thead th span.score {
-                font-size: 16px;
-                line-height: 1.2;
-            }
-            #scoreTable.small-scores thead th small {
-                font-size: 12px;
-            }
-            #scoreTable.small-scores tbody td {
-                font-size: 16px;
-            }
-            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
-                font-size: 14px;
-                padding: 5px;
-                height: 32px;
-            }
-            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
-                font-size: 14px;
-                line-height: 10px;
-            }
-            .sticky-header.small-scores th small {
-                font-size: 12px;
-            }
+        #roundManagementModal select#themeColorSelect::-ms-expand {
+          display: none;
+        }
+
+        #roundManagementModal select#themeColorSelect option {
+          text-align: center;
+        }
+
+        /* Bonus pulse animation */
+        @keyframes bonusPulse {
+          0%, 100% {
+            transform: scale(1);
+            color: #e63946; /* red */
+            text-shadow: 0 0 0 rgba(230,57,70,0);
+          }
+          50% {
+            transform: scale(1.5);
+            color: #ff6b6b; /* lighter red */
+            text-shadow: 0 0 10px rgba(230,57,70,0.6);
+          }
+        }
+
+        .bonus-row .points-needed.animate-bonus {
+          color: #e63946 !important;  /* ensure red wins during animation */
+          animation: bonusPulse 1000ms ease-in-out infinite;
+          display: inline-block;       /* scale smoothly */
+          transform-origin: center;
+          will-change: transform;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .bonus-row .points-needed.animate-bonus {
+            animation: none;
+          }
         }
     </style>
 </head>
 <body>
-    <!-- Sticky Header -->
-    <div class="sticky-header">
-        <table>
-            <thead>
-                <tr id="playerRow">
-                    <th>#</th>
-                </tr>
-            </thead>
-        </table>
+    <!-- Score Table -->
+    <table id="scoreTable">
+        <thead>
+            <tr>
+                <th onclick="showRoundManagement()" style="cursor: pointer;">☰</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-01.svg" alt="Ones" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-02.svg" alt="Twos" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-03.svg" alt="Threes" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-04.svg" alt="Fours" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-05.svg" alt="Fives" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-06.svg" alt="Sixes" style="width: 20px; height: 20px;"></td></tr>
+            <tr class="bonus-row"><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-07.svg" alt="Bonus" style="width: 20px; height: 20px;"></td></tr>
+            <tr class="upper-score-row"><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-08.svg" alt="Upper Score" style="width: 15px; height: 15px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-09.svg" alt="Three of a Kind" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-10.svg" alt="Four of a Kind" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-11.svg" alt="Full House" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-12.svg" alt="Small Straight" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-13.svg" alt="Large Straight" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-14.svg" alt="Yahtzee" style="width: 20px; height: 20px;"></td></tr>
+            <tr><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-15.svg" alt="Chance" style="width: 20px; height: 20px;"></td></tr>
+            <tr class="lower-score-row"><td><img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/yahtzee-icon-16.svg" alt="Lower Score" style="width: 15px; height: 15px;"></td></tr>
+        </tbody>
+    </table>
+
+    <!-- Score Selection Popup -->
+    <div id="popupModal">
+        <h2 id="popupTitle">Select Score:</h2>
+        <span class="close-btn" onclick="closePopup()">×</span>
+        <div id="popupOptions"></div>
     </div>
 
-    <!-- Score Container -->
-    <div class="score-container">
-        <table id="scoreTable">
-            <tbody id="scoreBody">
-            </tbody>
-        </table>
+    <div id="roundManagementModal">
+        <h2>Round</h2>
+        <span class="close-btn" onclick="closeRoundManagement()">×</span>
+        <select id="playerCount" onchange="updatePlayerCount()">
+            <option value="1">1 Players</option>
+            <option value="2">2 Players</option>
+            <option value="3">3 Players</option>
+            <option value="4">4 Players</option>
+            <option value="5">5 Players</option>
+            <option value="6">6 Players</option>
+            <option value="7">7 Players</option>
+            <option value="8">8 Players</option>
+        </select>
+        <button id="sortByRankBtn" onclick="toggleSortByRank()">Sort by Rank</button>
+        <button id="emojiModeBtn" onclick="toggleEmojiMode()">Emoji Mode</button>
+
+        <!-- Theme Colour -->
+        <select id="themeColorSelect" onchange="setThemeColor(this.value)">
+            <option value="blue">Blue</option>
+            <option value="red">Red</option>
+            <option value="green">Green</option>
+            <option value="pink">Pink</option>
+            <option value="purple">Purple</option>
+            <option value="grey">Grey</option>
+            <option value="yellow">Yellow</option>
+        </select>
+
+        <button id="resetButton" onclick="handleResetClick()">Reset</button>
     </div>
 
-    <!-- Modals -->
-    <div id="playerManagementModal" class="popup-modal"></div>
-    <div id="roundManagementModal" class="popup-modal"></div>
-    <div id="deleteRoundModal" class="popup-modal"></div>
-    
-    <!-- Overlay -->
-    <div id="overlay"></div>
+    <!-- Player Name Modal -->
+    <div id="playerNameModal">
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePlayerNameModal()">×</span>
+        <input type="text" id="playerNameInput" placeholder="" autocapitalize="characters" inputmode="text">
+        <button onclick="updatePlayerName()">Update</button>
+        <button onclick="handleRemovePlayer(this)" data-state="initial">Remove</button>
+    </div>
+
+    <!-- Overlay for Modals -->
+    <div id="overlay" style="display: none;"></div>
 
     <script>
-        // Initialize data from localStorage or set defaults
-        if (!localStorage.getItem('initialized')) {
-            players = [
-                { name: "P1", totalScore: 0, roundScores: [] },
-                { name: "P2", totalScore: 0, roundScores: [] },
-                { name: "P3", totalScore: 0, roundScores: [] },
-                { name: "P4", totalScore: 0, roundScores: [] }
-            ].map(player => ({ ...player, name: player.name.toUpperCase() }));
-            rounds = [];
-            localStorage.setItem('initialized', 'true');
-            localStorage.setItem('players', JSON.stringify(players));
-            localStorage.setItem('rounds', JSON.stringify(rounds));
-        } else {
-            players = JSON.parse(localStorage.getItem('players')) || [];
-            rounds = JSON.parse(localStorage.getItem('rounds')) || [];
+        // Persistent toggles (unique keys for Yahtzee)
+        let sortByRankEnabled = localStorage.getItem('yahtzee-sortByRankEnabled') === 'true';
+        let emojiModeEnabled = localStorage.getItem('yahtzee-emojiModeEnabled') === 'true';
+        // Theme color — match Scorecard app exactly; also sync across apps via fallback + write-back
+        let themeColor = localStorage.getItem('yahtzee-themeColor') || localStorage.getItem('themeColor') || 'blue';
+
+        // Keycap digit helpers
+        const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
+        function numberToKeycap(n) { return KEYCAP_DIGITS[n] || String(n); }
+        function keycapToNumber(str) {
+            const idx = KEYCAP_DIGITS.indexOf(str);
+            return idx === -1 ? null : idx;
         }
-    
-        let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
-        let unsubmittedScores = JSON.parse(localStorage.getItem('unsubmittedScores')) || {};
-        let sortByRankEnabled = localStorage.getItem('sortByRankEnabled') === 'true';
-        let emojiModeEnabled = localStorage.getItem('emojiModeEnabled') === 'true';
-    
-        // Add new round scores and scroll to the last row
-        function addRoundScores() {
-            const scores = [];
-            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-            inputs.forEach((input, index) => {
-                const score = parseInt(input.value) || 0;
-                scores[index] = score;
-                players[index].roundScores.push(score);
-                players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
+
+        // Theme map — EXACT match with Scorecard app
+        const THEME_MAP = {
+            blue:   { h: 210, s: 85 },
+            red:    { h:   0, s: 78 },
+            green:  { h: 120, s: 50 }, // changed to match Scorecard
+            pink:   { h: 330, s: 70 },
+            purple: { h: 268, s: 70 },
+            yellow: { h:  45, s: 90 },
+            grey:   { h: 210, s:  0 }
+        };
+        function getThemeHS() {
+            return THEME_MAP[themeColor] || THEME_MAP.blue;
+        }
+        // Match Scorecard's readable text color function for theme select
+        function getThemeTextColor(key) {
+            const t = THEME_MAP[key] || THEME_MAP.blue;
+            const L = key === 'yellow' ? 32 : 34; // darker tone for #f8f9fa
+            return `hsl(${t.h}, ${t.s}%, ${L}%)`;
+        }
+        // Apply selected theme color to the Theme Colour select (outer text + option colors)
+        function applyThemeSelectColors() {
+            const select = document.querySelector('#roundManagementModal select#themeColorSelect');
+            if (!select) return;
+            // Outer (collapsed) text matches the selected theme
+            select.style.color = getThemeTextColor(themeColor);
+            // Inner options each correspond to their theme color
+            Array.from(select.options).forEach(opt => {
+                opt.style.color = getThemeTextColor(opt.value);
             });
-            rounds.push(scores);
-            saveData();
-            unsubmittedScores = {}; // Clear unsubmitted scores after submission
-            localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
-            updateUI();
-            inputs.forEach(input => input.value = '');
-            
-            // Scroll to the last row (input row) after adding scores
-            const scoreBody = document.getElementById("scoreBody");
-            const lastRow = scoreBody.lastElementChild;
-            if (lastRow) {
-                lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+        function setThemeColor(value) {
+            themeColor = value || 'blue';
+            // store under both keys so both apps stay in sync
+            localStorage.setItem('yahtzee-themeColor', themeColor);
+            localStorage.setItem('themeColor', themeColor);
+            updateRanks();
+            applyThemeSelectColors();
+        }
+
+        // Keep original playerName modal markup so we can restore after emoji modal swaps
+        let playerNameModalTemplate = null;
+
+        // Bonus animation helpers
+        const prevUpperTotals = {}; // Track previous upper-section totals per player
+        const BONUS_ANIM_MS = 5000;
+        const BONUS_ANIM_CLASS = 'animate-bonus';
+        function triggerBonusAnimation(player) {
+            const el = document.getElementById(`pointsNeeded${player}`);
+            if (!el) return;
+            // Restart animation if it's already running
+            el.classList.remove(BONUS_ANIM_CLASS);
+            void el.offsetWidth; // reflow to reset animation
+            el.classList.add(BONUS_ANIM_CLASS);
+            // Remove after ~5s
+            clearTimeout(el._bonusTimer);
+            el._bonusTimer = setTimeout(() => {
+                el.classList.remove(BONUS_ANIM_CLASS);
+            }, BONUS_ANIM_MS);
+            // Tiny haptic tap on supported devices
+            if (navigator.vibrate) navigator.vibrate(60);
+        }
+
+        // Set table height to match viewport
+        function setFullHeight() {
+            const table = document.getElementById("scoreTable");
+            if (table) {
+                table.style.height = `${window.innerHeight}px`;
             }
         }
     
-        // Save data to localStorage
-        function saveData() {
-            localStorage.setItem('players', JSON.stringify(players));
-            localStorage.setItem('rounds', JSON.stringify(rounds));
-            localStorage.setItem('scoringMode', scoringMode);
-            localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
-            localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
-        }
-    
-        // Save unsubmitted scores to localStorage
-        function saveUnsubmittedScores() {
-            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-            unsubmittedScores = {};
-            inputs.forEach((input, index) => {
-                unsubmittedScores[players[index].name] = input.value;
-            });
-            localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
-        }
-
-        // Apply sort-by-rank to underlying arrays
-        function applySortByRank(silent = false) {
-            if (players.length <= 1 || rounds.length === 0) {
-                if (!silent) updateUI();
-                return;
-            }
-            const indices = players
-                .map((p, i) => ({ i, score: p.totalScore }))
-                .sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score))
-                .map(o => o.i);
-
-            players = indices.map(i => players[i]);
-            rounds = rounds.map(round => indices.map(i => round[i] ?? 0));
-
-            saveData();
-            if (!silent) updateUI();
-        }
-    
-        // Update the UI with current data
-        function updateUI() {
-            // Keep columns ordered by rank automatically when enabled
-            if (sortByRankEnabled && players.length > 1 && rounds.length > 0) {
-                applySortByRank(true); // silent sort (no recursive UI call)
-            }
-
-            const playerRow = document.getElementById("playerRow");
-            const scoreTable = document.getElementById("scoreTable");
-            const stickyHeader = document.querySelector(".sticky-header");
-    
-            // Apply small-scores class to both scoreTable and sticky-header
-            if (players.length >= 7) {
-                scoreTable.classList.add("small-scores");
-                stickyHeader.classList.add("small-scores");
+        // Initial page load setup
+        document.addEventListener("DOMContentLoaded", function() {
+            setFullHeight();
+            let savedPlayerCount = localStorage.getItem('playerCount');
+            if (savedPlayerCount) {
+                document.getElementById('playerCount').value = savedPlayerCount;
             } else {
-                scoreTable.classList.remove("small-scores");
-                stickyHeader.classList.remove("small-scores");
+                document.getElementById('playerCount').value = '4';
+                localStorage.setItem('playerCount', '4');
             }
-    
-            playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
-            players.forEach((player, index) => {
-                playerRow.innerHTML += `
-                    <th draggable="true" 
-                        ondragstart="handleDragStart(event, ${index})"
-                        ondragover="handleDragOver(event)"
-                        ondrop="handleDrop(event, ${index})"
-                        ondragend="handleDragEnd(event)"
-                        onclick="handlePlayerNameClick(event, ${index})" 
-                        title="Player">
-                        ${player.name}
-                        <br>
-                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
-                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
-                    </th>
-                `;
-            });
-    
-            const scoreBody = document.getElementById("scoreBody");
-            scoreBody.innerHTML = "";
-            rounds.forEach((round, roundIndex) => {
-                const row = document.createElement("tr");
-                row.innerHTML = `<td onclick="createDeleteRoundDialog(${roundIndex})">${roundIndex + 1}</td>`;
-                players.forEach((_, playerIndex) => {
-                    const displayScore = round[playerIndex] !== undefined ? 
-                        (round[playerIndex] == 0 ? '<img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">' : round[playerIndex]) : 
-                        '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">';
-                    row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
-                });
-                scoreBody.appendChild(row);
-            });
-    
-            const inputRow = document.createElement('tr');
-            inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
-            players.forEach((player) => {
-                const savedValue = unsubmittedScores[player.name] || '';
-                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" /></td>`;
-            });
-            scoreBody.appendChild(inputRow);
-    
-            // Always update rankings so single-player gray/blue logic applies
-            updateRankings();
-    
-            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-            inputs.forEach((input, index) => {
-                input.addEventListener('input', saveUnsubmittedScores); // Save on input change
-                input.addEventListener('keydown', function(event) {
-                    if (event.key === 'Enter' || event.keyCode === 13) {
-                        event.preventDefault();
-                        const allFilled = allInputsFilled(inputs);
-                        if (allFilled) {
-                            addRoundScores();
-                            inputs[0].focus();
-                        } else {
-                            if (index < inputs.length - 1) {
-                                inputs[index + 1].focus();
-                            } else {
-                                const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
-                                if (firstEmpty !== -1) {
-                                    inputs[firstEmpty].focus();
-                                } else {
-                                    inputs[0].focus();
-                                }
-                            }
-                        }
+
+            // Initialize Theme Colour select
+            const themeSel = document.getElementById('themeColorSelect');
+            if (themeSel) {
+                themeSel.value = themeColor;
+                applyThemeSelectColors();
+            }
+
+            // Save the original player name modal HTML
+            const modal = document.getElementById('playerNameModal');
+            if (modal && !playerNameModalTemplate) {
+                playerNameModalTemplate = modal.innerHTML;
+            }
+
+            updatePlayerCount(); // Setup table based on player count
+            loadScores();
+            reattachEventListeners();
+            attachDragListeners();
+
+            // Initialize Sort by Rank button state
+            const sortBtn = document.getElementById('sortByRankBtn');
+            if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
+
+            // Initialize Emoji Mode button state
+            const emojiBtn = document.getElementById('emojiModeBtn');
+            if (emojiBtn) emojiBtn.classList.toggle('active', emojiModeEnabled);
+
+            // Enter to update (text modal)
+            const playerNameInput = document.getElementById('playerNameInput');
+            if (playerNameInput) {
+                playerNameInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        updatePlayerName();
+                        closePlayerNameModal();
                     }
                 });
-            });
-        }
-    
-        // Calculate player rank
-        function getRank(score) {
-            if (players.length === 1) return "1st";
-            const sortedPlayers = [...players];
-            if (scoringMode === "highest") {
-                sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
-            } else {
-                sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
-            }
-            const rank = sortedPlayers.findIndex(player => player.totalScore === score) + 1;
-            let suffix = 'th';
-            if (rank % 10 === 1 && rank % 100 !== 11) suffix = 'st';
-            if (rank % 10 === 2 && rank % 100 !== 12) suffix = 'nd';
-            if (rank % 10 === 3 && rank % 100 !== 13) suffix = 'rd';
-            return rank + suffix;
-        }
-    
-        // Update score for a specific round and player
-        function updateScore(roundIndex, playerIndex, newScore) {
-            const score = parseInt(newScore) || 0;
-            if (rounds[roundIndex] && rounds[roundIndex][playerIndex] !== undefined) {
-                rounds[roundIndex][playerIndex] = score;
-                if (players[playerIndex] && players[playerIndex].roundScores[roundIndex] !== undefined) {
-                    players[playerIndex].roundScores[roundIndex] = score;
-                    players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
-                }
-            }
-            saveData();
-            updateUI();
-        }
-    
-        // Update player rankings with blue gradient shading (no badges)
-        function updateRankings() {
-            const playerRow = document.getElementById("playerRow");
-            const columns = Array.from(playerRow.children).slice(1);
-
-            // Clear previous styles
-            columns.forEach((th) => {
-                th.style.background = '';
-            });
-
-            // Single player logic
-            if (players.length === 1) {
-                if (rounds.length > 0) {
-                    const H = 210, S = 85;
-                    const Lmax = 82, range = 36;
-                    const Lmin = Lmax - range; // darkest
-                    const L = Lmin;
-                    const Ltop = Math.max(18, L - 10);
-                    const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
-                    if (columns[0]) columns[0].style.background = gradient;
-                }
-                // else: keep default gray background (no override)
-                return;
             }
 
-            // Multiple players: no shading until at least one round exists
-            if (rounds.length === 0) {
-                return;
-            }
-
-            // Build ranked list according to scoringMode
-            const scored = players.map((p, i) => ({ index: i, score: p.totalScore }));
-            scored.sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score));
-
-            // Group ties
-            const groups = [];
-            for (const item of scored) {
-                const last = groups[groups.length - 1];
-                if (!last || last.score !== item.score) {
-                    groups.push({ score: item.score, members: [item.index] });
-                } else {
-                    last.members.push(item.index);
-                }
-            }
-
-            // Color parameters
-            const H = 210;   // hue (blue)
-            const S = 85;    // saturation
-            const Lmax = 82; // lightest for last
-            const minRange = 18; // minimal contrast for few ranks
-            const maxRange = 44; // maximal contrast for many ranks
-
-            const effectiveRanks = groups.length;
-
-            // If everyone is tied, shade all with darkest "first" color
-            if (effectiveRanks === 1) {
-                const darkestL = Math.max(28, Lmax - maxRange); // darkest first-place lightness
-                const Ltop = Math.max(18, darkestL - 10);
-                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${darkestL}%) 100%)`;
-                columns.forEach(th => th.style.background = gradient);
-                return;
-            }
-
-            // Dynamic contrast based on number of ranks
-            const maxRanksForScaling = 8; // normalize contrast as if up to 8 ranks
-            const normalized = Math.min(1, Math.max(0, (effectiveRanks - 1) / (maxRanksForScaling - 1)));
-            const range = Math.round(minRange + (maxRange - minRange) * normalized);
-            const Lmin = Math.max(28, Lmax - range); // darkest for first place
-
-            groups.forEach((group, g) => {
-                // g=0 -> first (darkest), g=last -> last (lightest)
-                const ratio = g / (effectiveRanks - 1);
-                const L = Math.round(Lmin + (Lmax - Lmin) * ratio);
-                const Ltop = Math.max(18, L - 10); // subtle vertical gradient
-                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
-
-                group.members.forEach(idx => {
-                    const th = columns[idx];
-                    if (th) th.style.background = gradient;
-                });
-            });
-        }
-    
-        // Remove a player
-        function removePlayer(index) {
-            const removedPlayerName = players[index].name;
-            players.splice(index, 1);
-            rounds.forEach(round => round.splice(index, 1));
-            // No need to delete from unsubmittedScores; it will simply not be used if the player is gone
-            saveData();
-            updateUI();
-        }
-    
-        // Generic rename that transfers unsubmittedScores
-        function renamePlayer(index, newName) {
-            const oldName = players[index].name;
-            players[index].name = newName;
-            if (unsubmittedScores[oldName] !== undefined) {
-                unsubmittedScores[newName] = unsubmittedScores[oldName];
-                delete unsubmittedScores[oldName];
-                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
-            }
-            saveData();
-            updateUI();
-        }
-// Create player management dialog (text/uppercase mode)
-function createPlayerManagementDialog(index) {
-    const modal = document.getElementById('playerManagementModal');
-    modal.innerHTML = `
-        <h2>Player</h2>
-        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-        <input
-            type="text"
-            id="playerNameInput"
-            value="${players[index].name}"
-            autocapitalize="characters"
-            inputmode="text"
-            style="text-transform: uppercase;"
-        >
-        <button onclick="updatePlayerName(${index})">Update</button>
-        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
-    `;
-    modal.style.display = 'block';
-    showOverlay();
-
-    const input = modal.querySelector('#playerNameInput');
-
-    // Focus and select all text on open
-    try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-    try { input.select(); } catch (_) {}
-    try { input.setSelectionRange(0, input.value.length); } catch (_) {}
-
-    // Force uppercase as the user types
-    input.addEventListener('input', function () {
-        this.value = this.value.toUpperCase();
-    });
-
-    // Enter to submit
-    input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-            updatePlayerName(index);
-        }
-    });
-}
-// Emoji-only player management dialog (open keyboard only when user taps input)
-function createEmojiPlayerDialog(index) {
-    const modal = document.getElementById('playerManagementModal');
-    const favEmojis = [
-        "🍔","🩰","🌹","🌰","🔔",
-        "👑","🎣","🌻","🏏","🦈",
-        "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
-        "❄️","🔥","💥","⚡","⭐",
-        "🐬","🐳","🦀","🕷️","🐝"
-    ];
-    const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}" onclick="setEmojiFromButton(this, ${index})">${e}</button>`).join('');
-    
-    modal.innerHTML = `
-        <h2>Player</h2>
-        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-        <input
-            type="text"
-            id="emojiNameInput"
-            value="${players[index].name}"
-            inputmode="text"
-            placeholder="Pick an emoji"
-            enterkeyhint="done"
-            autocapitalize="off"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-        >
-        <div class="emoji-grid">${grid}</div>
-        <button onclick="updatePlayerNameEmoji(${index})">Update</button>
-        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
-    `;
-    modal.style.display = 'block';
-    showOverlay();
-
-    const input = modal.querySelector('#emojiNameInput');
-
-    // NEW: Prevent native tap selection bubble and programmatically focus+select on first tap
-    let primed = false;
-    const primeFocus = (e) => {
-        if (primed) return;
-        primed = true;
-        // Stop native tap handling (prevents the OS cut/copy/paste bubble)
-        e.preventDefault();
-        // Focus and select programmatically (still within the user gesture)
-        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-        requestAnimationFrame(() => {
-            try { input.select(); } catch (_) {}
-            try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+            // Ensure default names follow the current Emoji Mode on load
+            syncDefaultNamesToMode();
         });
-    };
-
-    // Use pointerdown when available, with fallbacks
-    input.addEventListener('pointerdown', primeFocus, { passive: false });
-    input.addEventListener('touchstart', primeFocus, { passive: false });
-    input.addEventListener('mousedown', primeFocus);
-
-    // Keep selection intact and block long-press/context menus
-    input.addEventListener('mouseup', (e) => e.preventDefault());
-    input.addEventListener('contextmenu', (e) => e.preventDefault());
-
-    // Keep emoji-only input
-    input.addEventListener('input', function () {
-        this.value = extractEmojis(this.value);
-    });
-    input.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            updatePlayerNameEmoji(index);
-        }
-    });
-}
-
-        function extractEmojis(str) {
-            if (!str) return '';
-            let segments;
-            if (typeof Intl !== 'undefined' && Intl.Segmenter) {
-                segments = Array.from(new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(str), s => s.segment);
-            } else {
-                segments = Array.from(str);
-            }
-            const emojiRegex = /\p{Extended_Pictographic}/u;
-            return segments.filter(seg => emojiRegex.test(seg)).join('');
-        }
-
-        function setEmojiFromButton(btn, index) {
-            const emoji = btn.getAttribute('data-emoji') || '';
-            if (emoji) {
-                renamePlayer(index, emoji);
-                closePopup('playerManagementModal');
-            }
-        }
-
-        function updatePlayerNameEmoji(index) {
-            const input = document.getElementById('emojiNameInput');
-            const newName = extractEmojis((input.value || '').trim());
-            if (newName && newName !== players[index].name) {
-                renamePlayer(index, newName);
-            }
-            closePopup('playerManagementModal');
-        }
     
-        // Handle player removal with button state
-        function handleRemovePlayer(button, index) {
-            if (button.dataset.state === 'initial') {
-                button.textContent = 'Confirm';
-                button.dataset.state = 'confirm';
-            } else {
-                removePlayer(index);
-                closePopup('playerManagementModal');
-            }
-        }
+        // Resize handler
+        window.addEventListener('resize', setFullHeight);
     
-        // Update player name (normal text mode)
-        function updatePlayerName(index) {
-            const input = document.getElementById('playerNameInput');
-            const newName = (input.value || '').trim().toUpperCase();
-            if (newName && newName !== players[index].name) {
-                renamePlayer(index, newName);
-                closePopup('playerManagementModal');
-            }
-        }
-    
-        // Handle player name click
-        function handlePlayerNameClick(event, index) {
-            event.stopPropagation();
-            closeAllPopups();
-            if (emojiModeEnabled) {
-                createEmojiPlayerDialog(index);
-            } else {
-                createPlayerManagementDialog(index);
-            }
-        }
-    
-        // Create round management dialog (single column)
-        function createRoundManagementDialog() {
-            const modal = document.getElementById('roundManagementModal');
-            modal.innerHTML = `
-                <h2>Round</h2>
-                <span class="close-btn" onclick="closePopup('roundManagementModal')">×</span>
-                <select id="playerCount" onchange="updatePlayerCount()">
-                    ${[1,2,3,4,5,6,7,8].map(i => `<option value="${i}" ${players.length === i ? 'selected' : ''}>${i} Players</option>`).join('')}
-                </select>
-                <div class="segmented-control">
-                    <input type="radio" id="lowest" name="scoringMode" value="lowest" ${scoringMode === 'lowest' ? 'checked' : ''} onchange="scoringMode = 'lowest'; saveData(); updateUI();">
-                    <label for="lowest">Low</label>
-                    <input type="radio" id="highest" name="scoringMode" value="highest" ${scoringMode === 'highest' ? 'checked' : ''} onchange="scoringMode = 'highest'; saveData(); updateUI();">
-                    <label for="highest">High</label>
-                </div>
-                <button id="sortByRankBtn" class="${sortByRankEnabled ? 'active' : ''}" onclick="toggleSortByRank()">Sort by Rank</button>
-                <button id="emojiModeBtn" class="${emojiModeEnabled ? 'active' : ''}" onclick="toggleEmojiMode()">Emoji Mode</button>
-                <button onclick="handleResetScores(this)" data-state="initial">Reset</button>
-            `;
-            modal.style.display = 'block';
-            showOverlay();
-        }
+        // Calculate player's total score (with bonus animation when crossing 63)
+        function calculateTotal(player) {
+            let total = 0;
+            let upperSectionTotal = 0;
+            let lowerSectionTotal = 0;
 
-        // Toggle Sort by Rank (dark when ON, light when OFF). Does not close the popup.
-        function toggleSortByRank() {
-            sortByRankEnabled = !sortByRankEnabled;
-            localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
-            const btn = document.getElementById('sortByRankBtn');
-            if (btn) btn.classList.toggle('active', sortByRankEnabled);
+            document.querySelectorAll(`td[data-player="${player}"]`).forEach(cell => {
+                const category = cell.closest('tr').cells[0].querySelector('img').alt;
 
-            if (sortByRankEnabled) {
-                applySortByRank(true); // sort now if enabled
-            }
-            updateUI(); // keep dialog open
-        }
-
-        // Toggle Emoji mode (dark when ON, light when OFF). Does not close the popup.
-        function toggleEmojiMode() {
-            emojiModeEnabled = !emojiModeEnabled;
-            localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
-            const btn = document.getElementById('emojiModeBtn');
-            if (btn) btn.classList.toggle('active', emojiModeEnabled);
-        }
-    
-        // Handle reset scores with button state
-        function handleResetScores(button) {
-            if (button.dataset.state === 'initial') {
-                button.textContent = 'Confirm';
-                button.dataset.state = 'confirm';
-            } else {
-                players.forEach(player => {
-                    player.roundScores = [];
-                    player.totalScore = 0;
-                    player.name = player.name.toUpperCase();
-                });
-                rounds = [];
-                unsubmittedScores = {}; // Clear unsubmitted scores on reset
-                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
-                saveData();
-                updateUI();
-                closePopup('roundManagementModal');
-            }
-        }
-    
-        // Update player count
-        function updatePlayerCount() {
-            const newCount = parseInt(document.getElementById('playerCount').value);
-            if (newCount > players.length) {
-                for (let i = players.length; i < newCount; i++) {
-                    const newPlayerName = `P${i+1}`.toUpperCase();
-                    players.push({ 
-                        name: newPlayerName,
-                        totalScore: 0, 
-                        roundScores: Array(rounds.length).fill(0)  
-                    });
-                    rounds.forEach(round => round.push(0));
+                if (cell.classList.contains('lower-section-cell')) {
+                    const text = cell.textContent.trim();
+                    if (text && text !== '❌') {
+                        const value = parseInt(text) || 0;
+                        total += value;
+                        lowerSectionTotal += value;
+                    }
+                } else if (cell.classList.contains('upper-section-cell')) {
+                    const text = cell.textContent.trim();
+                    if (text && text !== '❌') {
+                        const value = parseInt(text) || 0;
+                        total += value;
+                        if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(category)) {
+                            lowerSectionTotal += value;
+                        } else {
+                            upperSectionTotal += value;
+                        }
+                    }
                 }
-            } else if (newCount < players.length) {
-                players = players.slice(0, newCount);
-                rounds.forEach(round => round.length = newCount);
-            }
-            saveData();
-            updateUI();
-            closePopup('roundManagementModal');
-        }
-    
-        // Create delete round dialog with immediate deletion button
-        function createDeleteRoundDialog(roundIndex) {
-            const modal = document.getElementById('deleteRoundModal');
-            modal.innerHTML = `
-                <h2>Round ${roundIndex + 1}</h2>
-                <span class="close-btn" onclick="closePopup('deleteRoundModal')">×</span>
-                <button onclick="deleteRound(${roundIndex})">Delete</button>
-            `;
-            modal.style.display = 'block';
-            showOverlay();
-        }
-    
-        // Execute round deletion immediately
-        function deleteRound(roundIndex) {
-            rounds.splice(roundIndex, 1);
-            players.forEach(player => {
-                player.roundScores.splice(roundIndex, 1);
-                player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
             });
-            saveData();
-            updateUI();
-            closePopup('deleteRoundModal');
+            
+            const bonus = upperSectionTotal >= 63 ? 35 : 0;
+            const bonusElement = document.getElementById(`bonus${player}`);
+            const pointsNeededElement = document.getElementById(`pointsNeeded${player}`);
+
+            // Detect crossing 63 threshold (no animation on first load without prior value)
+            const prevUpper = prevUpperTotals[player];
+            const gotBonusNow = upperSectionTotal >= 63;
+            const crossedThreshold = (prevUpper != null && prevUpper < 63 && gotBonusNow);
+            
+            if (bonusElement && pointsNeededElement) {
+                if (bonus > 0) {
+                    pointsNeededElement.textContent = '35';
+                    pointsNeededElement.classList.add('bonus-achieved');
+                } else {
+                    pointsNeededElement.textContent = String(63 - upperSectionTotal);
+                    pointsNeededElement.classList.remove('bonus-achieved');
+                }
+            
+                document.getElementById(`upperScore${player}`).textContent = upperSectionTotal;
+                document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
+                document.getElementById(`total${player}`).textContent = total + bonus;
+
+                // Trigger the 5s red pulse when the player first earns the bonus
+                if (crossedThreshold) {
+                    triggerBonusAnimation(player);
+                }
+            }
+
+            // Update previous total for next comparison
+            prevUpperTotals[player] = upperSectionTotal;
         }
-    
-        // Check if all inputs are filled
-        function allInputsFilled(inputs) {
-            return Array.from(inputs).every(input => input.value.trim() !== '');
-        }
-    
-        // Select text in contenteditable element
-        function selectText(element) {
-            const range = document.createRange();
-            range.selectNodeContents(element);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
+
+        // Determine if any score entry exists (any cell filled, including ❌ or 0)
+        function hasAnyEntry() {
+            const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
+            for (const c of cells) {
+                if (c.textContent.trim() !== '') return true;
+            }
+            return false;
         }
     
         // Overlay controls
@@ -1109,32 +973,955 @@ function createEmojiPlayerDialog(index) {
             document.getElementById('overlay').style.display = 'none';
         }
     
-        // Close popup by ID
-        function closePopup(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+        // Show score selection popup
+        function showPopup(cell) {
+            closeAllPopups();
+            document.getElementById('popupModal').style.display = 'block';
+            showOverlay();
+
+            const optionsDiv = document.getElementById('popupOptions');
+
+            const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+            const player = cell.getAttribute('data-player');
+
+            document.getElementById('popupTitle').textContent = categoryAlt;
+            
+            let options = '';
+            if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(categoryAlt)) {
+                for (let i = 1; i <= 30; i++) {
+                    options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
+                }
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
+                const isMobile = window.innerWidth <= 768;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
+            } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
+                const faceValueMap = {
+                    'Ones': 1,
+                    'Twos': 2,
+                    'Threes': 3,
+                    'Fours': 4,
+                    'Fives': 5,
+                    'Sixes': 6
+                };
+                const faceValue = faceValueMap[categoryAlt] || 1;
+                for (let i = 1; i <= 5; i++) {
+                    const score = i * faceValue;
+                    options += `<button onclick="selectScore(${score}, '${player}', '${categoryAlt}', event)">${score}</button>`;
+                }
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
+                const isMobile = window.innerWidth <= 768;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
+            } else if (['Full House', 'Small Straight', 'Large Straight', 'Yahtzee'].includes(categoryAlt)) {
+                const fixed = { 'Full House': 25, 'Small Straight': 30, 'Large Straight': 40, 'Yahtzee': 50 };
+                const isMobile = window.innerWidth <= 768;
+
+                options += `<span class="popup-spacer" aria-hidden="true"></span>`;
+                options += `<button onclick="selectScore(${fixed[categoryAlt]}, '${player}', '${categoryAlt}', event)">${fixed[categoryAlt]}</button>`;
+                options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
+                options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
+                options += `<span class="popup-spacer" aria-hidden="true"></span>`;
+            }
+            optionsDiv.innerHTML = options;
+            window.lastClickedCell = cell;
+        }
+    
+        // Handle score selection
+        function selectScore(score, player, categoryAlt, event) {
+            event.stopPropagation();
+            const cell = window.lastClickedCell;
+            const cellId = `${player}-${categoryAlt}`;
+    
+            if (score === 0) {
+                cell.innerHTML = '<span class="scaled-emoji">❌</span>';
+                localStorage.setItem(cellId, '❌');
+                cell.style.textDecoration = 'none';
+            } else if (score === '') {
+                cell.textContent = '';
+                localStorage.removeItem(cellId);
+                cell.style.textDecoration = 'none';
+            } else {
+                cell.textContent = score;
+                localStorage.setItem(cellId, String(score));
+                cell.style.textDecoration = 'none';
+            }
+            
+            calculateTotal(player);
+            closePopup();
+            updateRanks();
+        }
+    
+        // Popup controls
+        function closePopup() {
+            document.getElementById('popupModal').style.display = 'none';
             hideOverlay();
+        }
+    
+        function showRoundManagement() {
+            closeAllPopups();
+            document.getElementById('roundManagementModal').style.display = 'block';
+            const sortBtn = document.getElementById('sortByRankBtn');
+            if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
+
+            const emojiBtn = document.getElementById('emojiModeBtn');
+            if (emojiBtn) emojiBtn.classList.toggle('active', emojiModeEnabled);
+
+            // Ensure theme select shows current value (in case changed programmatically)
+            const themeSel = document.getElementById('themeColorSelect');
+            if (themeSel) {
+                themeSel.value = themeColor;
+                applyThemeSelectColors();
+            }
+
+            showOverlay();
+        }
+    
+        function closeRoundManagement() {
+            resetButtonState();
+            document.getElementById('roundManagementModal').style.display = 'none';
+            hideOverlay();
+        }
+    
+        // Reset confirmation state
+        let resetConfirm = false;
+    
+        function resetButtonState() {
+            const resetButton = document.getElementById('resetButton');
+            resetButton.textContent = 'Reset';
+            resetButton.removeAttribute('data-confirm');
+            resetConfirm = false;
+        }
+    
+        function handleResetClick() {
+            const resetButton = document.getElementById('resetButton');
+            
+            if (!resetConfirm) {
+                resetButton.textContent = 'Confirm';
+                resetButton.setAttribute('data-confirm', 'true');
+                resetConfirm = true;
+            } else {
+                resetScores();
+                resetButtonState();
+            }
+        }
+    
+        function resetScores() {
+            document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
+                cell.textContent = '';
+                cell.style.textDecoration = 'none';
+                cell.setAttribute('data-state', '0');
+                const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+                localStorage.removeItem(cell.getAttribute('data-player') + '-' + categoryAlt);
+            });
+    
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            for (let i = 1; i <= playerCount; i++) {
+                const player = `P${i}`;
+                document.getElementById(`total${player}`).textContent = '';
+                document.getElementById(`upperScore${player}`).textContent = '0';
+                document.getElementById(`lowerScore${player}`).textContent = '0';
+                document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
+                prevUpperTotals[player] = 0; // reset previous tracker
+            }
+            closeRoundManagement();
+            updateRanks();
+        }
+    
+        // Update player count and table structure
+        function updatePlayerCount() {
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            localStorage.setItem('playerCount', playerCount);
+            const table = document.getElementById('scoreTable');
+            const headers = table.querySelector('thead tr');
+            const rows = table.querySelectorAll('tbody tr');
+            closeRoundManagement();
+    
+            const existingPlayers = headers.children.length - 1;
+            if (playerCount < existingPlayers) {
+                for (let i = existingPlayers; i > playerCount; i--) {
+                    headers.removeChild(headers.lastChild);
+                    rows.forEach(row => {
+                        row.removeChild(row.lastChild);
+                    });
+                    const player = `P${i}`;
+                    for (let j = 0; j < rows.length; j++) {
+                        const categoryAlt = rows[j].firstElementChild.querySelector('img').alt;
+                        const cellId = `${player}-${categoryAlt}`;
+                        localStorage.removeItem(cellId);
+                    }
+                    localStorage.removeItem(`playerName-${player}`);
+                    delete prevUpperTotals[`P${i}`];
+                }
+            } else {
+                for (let i = existingPlayers + 1; i <= playerCount; i++) {
+                    const newHeader = document.createElement('th');
+                    const savedName = localStorage.getItem(`playerName-P${i}`) || (emojiModeEnabled ? numberToKeycap(i) : `P${i}`);
+                    newHeader.innerHTML = `${savedName}<div id="totalP${i}"></div>`;
+                    newHeader.setAttribute('data-player', `P${i}`);
+                    newHeader.draggable = true;
+                    headers.appendChild(newHeader);
+    
+                    rows.forEach(row => {
+                        const newCell = document.createElement('td');
+                        const categoryAlt = row.firstElementChild.querySelector('img').alt;
+                        if (categoryAlt === 'Bonus') {
+                            newCell.id = `bonusP${i}`;
+                            newCell.innerHTML = '<span id="pointsNeededP' + i + '" class="points-needed">63</span>';
+                        } else if (categoryAlt === 'Upper Score') {
+                            newCell.id = `upperScoreP${i}`;
+                            newCell.textContent = '0';
+                        } else if (categoryAlt === 'Lower Score') {
+                            newCell.id = `lowerScoreP${i}`;
+                            newCell.textContent = '0';
+                        } else if (['Full House', 'Small Straight', 'Large Straight', 'Yahtzee'].includes(categoryAlt)) {
+                            newCell.className = 'lower-section-cell';
+                            newCell.setAttribute('data-player', `P${i}`);
+                            newCell.setAttribute('data-category', categoryAlt);
+                            newCell.setAttribute('data-state', '0');
+                            newCell.onclick = function() {
+                                showPopup(this);
+                            };
+                        } else {
+                            newCell.className = 'upper-section-cell';
+                            newCell.setAttribute('data-player', `P${i}`);
+                            newCell.onclick = function() {
+                                showPopup(this);
+                            };
+                        }
+                        row.appendChild(newCell);
+                    });
+                    prevUpperTotals[`P${i}`] = 0;
+                }
+            }
+            for (let i = 1; i <= playerCount; i++) {
+                calculateTotal(`P${i}`);
+            }
+            reattachEventListeners();
+            attachDragListeners();
+            updateRanks();
+        }
+    
+        // Reattach event listeners to headers
+        function reattachEventListeners() {
+            document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
+                header.removeEventListener('click', header.clickHandler);
+                header.clickHandler = function(e) {
+                    e.stopPropagation();
+                    const player = this.getAttribute('data-player');
+                    const playerName = this.innerText.split('\n')[0].trim();
+                    window.currentPlayer = player;
+                    closeAllPopups();
+                    if (emojiModeEnabled) {
+                        openEmojiPlayerModal(playerName);
+                    } else {
+                        openTextPlayerModal(playerName);
+                    }
+                };
+                header.addEventListener('click', header.clickHandler);
+            });
+        }
+
+        // Open the original text player modal
+        function openTextPlayerModal(name) {
+            const modal = document.getElementById('playerNameModal');
+            if (!document.getElementById('playerNameInput') && playerNameModalTemplate) {
+                modal.innerHTML = playerNameModalTemplate;
+            }
+            const input = document.getElementById('playerNameInput');
+            input.value = name;
+            modal.style.display = 'block';
+            showOverlay();
+
+            try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+            try { input.select(); } catch (_) {}
+
+            input.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    updatePlayerName();
+                    closePlayerNameModal();
+                }
+            };
+        }
+
+        // Open the emoji-only player modal
+        function openEmojiPlayerModal(currentName) {
+            const modal = document.getElementById('playerNameModal');
+            if (!playerNameModalTemplate) {
+                playerNameModalTemplate = modal.innerHTML;
+            }
+
+            const favEmojis = [
+                "🍔","🩰","🌹","🌰","🔔",
+                "👑","🎣","🌻","🏏","🦈",
+                "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
+                "❄️","🔥","💥","⚡","⭐",
+                "🐬","🐳","🦀","🕷️","🐝"
+            ];
+            const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" onclick="setEmojiFromButton('${e}')">${e}</button>`).join('');
+
+            modal.innerHTML = `
+                <h2>Player</h2>
+                <span class="close-btn" onclick="closePlayerNameModal()">×</span>
+                <input
+                    type="text"
+                    id="emojiNameInput"
+                    value="${currentName}"
+                    inputmode="text"
+                    placeholder="Pick an emoji"
+                    enterkeyhint="done"
+                    autocapitalize="off"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                >
+                <div class="emoji-grid">${grid}</div>
+                <button onclick="updatePlayerNameEmoji()">Update</button>
+                <button onclick="handleRemovePlayer(this)" data-state="initial">Remove</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
+
+            const input = document.getElementById('emojiNameInput');
+
+            // iOS-friendly: prime focus on first tap to avoid OS cut/copy/paste bubble
+            let primed = false;
+            const primeFocus = (e) => {
+                if (primed) return;
+                primed = true;
+                e.preventDefault();
+                try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+                requestAnimationFrame(() => {
+                    try { input.select(); } catch (_) {}
+                });
+            };
+            input.addEventListener('pointerdown', primeFocus, { passive: false });
+            input.addEventListener('touchstart', primeFocus, { passive: false });
+            input.addEventListener('mousedown', primeFocus);
+            input.addEventListener('mouseup', (e) => e.preventDefault());
+            input.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // Keep emoji-only input (broadened acceptance)
+            input.addEventListener('input', function () {
+                this.value = extractEmojis(this.value);
+            });
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    updatePlayerNameEmoji();
+                }
+            });
+        }
+
+        // Load saved scores from localStorage
+        function loadScores() {
+            const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
+            cells.forEach(cell => {
+                const player = cell.getAttribute('data-player');
+                const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+                const cellId = `${player}-${categoryAlt}`;
+                const savedScore = localStorage.getItem(cellId);
+                
+                if (savedScore) {
+                    if (savedScore === '❌') {
+                        cell.innerHTML = '<span class="scaled-emoji">❌</span>';
+                        cell.setAttribute('data-state', '2');
+                    } else {
+                        cell.textContent = savedScore;
+                        cell.setAttribute('data-state', '1');
+                    }
+                }
+            });
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            for (let i = 1; i <= playerCount; i++) {
+                calculateTotal(`P${i}`);
+            }
+            updateRanks();
+        }
+
+        // Toggle Sort by Rank (dark when ON, light when OFF). Does not close modal.
+        function toggleSortByRank() {
+            sortByRankEnabled = !sortByRankEnabled;
+            localStorage.setItem('yahtzee-sortByRankEnabled', sortByRankEnabled);
+            const btn = document.getElementById('sortByRankBtn');
+            if (btn) btn.classList.toggle('active', sortByRankEnabled);
+            if (sortByRankEnabled) {
+                applySortByRank(true);
+            }
+            updateRanks();
+        }
+
+        // Toggle Emoji Mode (dark when ON, light when OFF). Does not close modal.
+        function toggleEmojiMode() {
+            emojiModeEnabled = !emojiModeEnabled;
+            localStorage.setItem('yahtzee-emojiModeEnabled', emojiModeEnabled);
+            const btn = document.getElementById('emojiModeBtn');
+            if (btn) btn.classList.toggle('active', emojiModeEnabled);
+
+            // Sync Pn <-> keycap digits based on mode
+            syncDefaultNamesToMode();
+        }
+
+        // Broadened emoji extractor (accepts flags, keycaps, VS16 symbols, tag flags)
+        function extractEmojis(str) {
+            if (!str) return '';
+            let segments;
+            if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+                segments = Array.from(new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(str), s => s.segment);
+            } else {
+                segments = Array.from(str);
+            }
+            const rePict = /\p{Extended_Pictographic}/u;           // pictographic
+            const reRI = /[\u{1F1E6}-\u{1F1FF}]/u;                  // regional indicators (flags)
+            const reKeycap = /[#*0-9]\uFE0F?\u20E3/u;               // keycap sequences
+            const reVS16 = /\uFE0F/u;                                // VS16 emoji presentation
+            const reTagFlag = /\u{1F3F4}[\u{E0061}-\u{E007A}]{1,14}\u{E007F}/u; // tag-based flags
+
+            return segments
+                .filter(seg => rePict.test(seg) || reRI.test(seg) || reKeycap.test(seg) || reVS16.test(seg) || reTagFlag.test(seg))
+                .join('');
+        }
+
+        // Apply a name (text or emoji) to the current player, preserving total and rank <small>
+        function applyPlayerName(playerId, newName) {
+            if (!playerId) return;
+            const header = document.querySelector(`#scoreTable thead th[data-player="${playerId}"]`);
+            if (!header) return;
+
+            const totalDiv = header.querySelector('div');
+            const score = totalDiv ? totalDiv.textContent : '';
+            const rankElement = header.querySelector('small');
+            const rankHTML = rankElement ? rankElement.outerHTML : '';
+            header.innerHTML = `${newName}<div id="total${playerId}">${score}</div>${rankHTML}`;
+            localStorage.setItem(`playerName-${playerId}`, newName);
+        }
+
+        function updatePlayerNameEmoji() {
+            const input = document.getElementById('emojiNameInput');
+            const newName = extractEmojis((input?.value || '').trim());
+            if (newName && window.currentPlayer) {
+                applyPlayerName(window.currentPlayer, newName);
+            }
+            closePlayerNameModal();
+        }
+
+        function setEmojiFromButton(emoji) {
+            if (emoji && window.currentPlayer) {
+                applyPlayerName(window.currentPlayer, emoji);
+                closePlayerNameModal();
+            }
+        }
+
+        // Apply sort-by-rank to columns and storage
+        function applySortByRank(silent = false) {
+            const table = document.getElementById('scoreTable');
+            const headers = table.querySelector('thead tr');
+            const rows = table.querySelectorAll('tbody tr');
+            const playerCount = parseInt(document.getElementById('playerCount').value) || 0;
+            if (playerCount <= 1) return;
+
+            if (!hasAnyEntry()) return;
+
+            const totals = [];
+            for (let i = 0; i < playerCount; i++) {
+                const totalEl = document.getElementById(`totalP${i+1}`);
+                const val = totalEl ? parseInt(totalEl.textContent) || 0 : 0;
+                totals.push({ index: i, score: val });
+            }
+
+            const order = totals
+                .map((t, idx) => ({ ...t, idx }))
+                .sort((a, b) => b.score - a.score || a.idx - b.idx)
+                .map(o => o.index);
+
+            if (order.every((v, i) => v === i)) return;
+
+            const categories = [
+                'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                'Three of a Kind', 'Four of a Kind', 'Full House',
+                'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+            ];
+
+            const playerData = [];
+            for (let i = 0; i < playerCount; i++) {
+                const p = `P${i+1}`;
+                const name = localStorage.getItem(`playerName-${p}`) || (emojiModeEnabled ? numberToKeycap(i + 1) : p);
+                const scores = {};
+                categories.forEach(cat => {
+                    scores[cat] = localStorage.getItem(`${p}-${cat}`);
+                });
+                playerData.push({ name, scores });
+            }
+
+            const headerCells = Array.from(headers.children);
+            const firstCell = headerCells[0];
+            const playerHeaderCells = headerCells.slice(1);
+            const newHeaderCells = [firstCell, ...order.map(idx => playerHeaderCells[idx])];
+            headers.innerHTML = '';
+            newHeaderCells.forEach(cell => headers.appendChild(cell));
+
+            rows.forEach(row => {
+                const cells = Array.from(row.children);
+                const first = cells[0];
+                const playerCells = cells.slice(1);
+                const reordered = [first, ...order.map(idx => playerCells[idx])];
+                row.innerHTML = '';
+                reordered.forEach(c => row.appendChild(c));
+            });
+
+            const newData = order.map(idx => playerData[idx]);
+
+            for (let i = 0; i < playerCount; i++) {
+                const player = `P${i+1}`;
+                const headersRow = headers.children;
+                const header = headersRow[i + 1];
+                header.setAttribute('data-player', player);
+
+                const totalDiv = header.querySelector('div');
+                const currentTotalText = totalDiv ? totalDiv.textContent : '';
+                header.innerHTML = `${newData[i].name}<div id="total${player}">${currentTotalText}</div>`;
+
+                localStorage.setItem(`playerName-${player}`, newData[i].name);
+                const categoriesList = [
+                    'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                    'Three of a Kind', 'Four of a Kind', 'Full House',
+                    'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+                ];
+                categoriesList.forEach(cat => {
+                    if (newData[i].scores[cat] !== null && newData[i].scores[cat] !== undefined) {
+                        localStorage.setItem(`${player}-${cat}`, newData[i].scores[cat]);
+                    } else {
+                        localStorage.removeItem(`${player}-${cat}`);
+                    }
+                });
+
+                rows.forEach(row => {
+                    const cell = row.children[i + 1];
+                    if (!cell) return;
+                    if (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell')) {
+                        cell.setAttribute('data-player', player);
+                    }
+                    if (row.classList.contains('bonus-row')) {
+                        cell.id = `bonus${player}`;
+                        const span = cell.querySelector('span');
+                        if (span) span.id = `pointsNeeded${player}`;
+                    } else if (row.classList.contains('upper-score-row')) {
+                        cell.id = `upperScore${player}`;
+                    } else if (row.classList.contains('lower-score-row')) {
+                        cell.id = `lowerScore${player}`;
+                    }
+                });
+            }
+
+            reattachEventListeners();
+            attachDragListeners();
+            for (let i = 1; i <= playerCount; i++) {
+                calculateTotal(`P${i}`);
+            }
+            if (!silent) updateRanks();
+        }
+    
+        // Update player rankings (theme gradient + optional auto-sort)
+        function updateRanks() {
+            const table = document.getElementById('scoreTable');
+            const headers = Array.from(table.querySelectorAll('thead th')).slice(1);
+            const playerCount = headers.length;
+
+            function removeAllRankSmall() {
+                headers.forEach(h => {
+                    let next = h.querySelector('div[id^="total"]')?.nextSibling;
+                    while (next && next.nodeName === 'SMALL') {
+                        const toRemove = next;
+                        next = next.nextSibling;
+                        toRemove.parentElement.removeChild(toRemove);
+                    }
+                });
+            }
+
+            const anyEntry = hasAnyEntry();
+
+            if (!anyEntry) {
+                headers.forEach(h => {
+                    const div = h.querySelector('div[id^="total"]');
+                    if (div) div.textContent = '';
+                    h.style.background = '';
+                });
+                removeAllRankSmall();
+                return;
+            }
+
+            if (sortByRankEnabled && playerCount > 1) {
+                applySortByRank(true);
+            }
+
+            const headersNow = Array.from(table.querySelectorAll('thead th')).slice(1);
+            const totalDivs = headersNow.map(h => h.querySelector('div[id^="total"]'));
+
+            totalDivs.forEach(div => {
+                if (div && (div.textContent === '' || div.textContent == null)) {
+                    div.textContent = '0';
+                }
+            });
+
+            headersNow.forEach(h => { h.style.background = ''; });
+            removeAllRankSmall();
+
+            // Theme H/S (EXACT match palette)
+            const { h: H, s: S } = getThemeHS();
+
+            if (playerCount === 1) {
+                const Lmax = 82, range = 36;
+                const Lmin = Math.max(28, Lmax - range);
+                const L = Lmin;
+                const Ltop = Math.max(18, L - 10);
+                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
+                headersNow[0].style.background = gradient;
+
+                const small = document.createElement('small');
+                small.textContent = ordinalSuffixOf(1);
+                headersNow[0].appendChild(small);
+                return;
+            }
+
+            const scoresArray = totalDivs.map(div => ({ score: div ? (parseInt(div.textContent) || 0) : 0 }));
+            const scored = scoresArray.map((s, i) => ({ idx: i, score: s.score }));
+            scored.sort((a, b) => b.score - a.score);
+
+            const groups = [];
+            for (const item of scored) {
+                const last = groups[groups.length - 1];
+                if (!last || last.score !== item.score) {
+                    groups.push({ score: item.score, members: [item.idx] });
+                } else {
+                    last.members.push(item.idx);
+                }
+            }
+
+            const Lmax = 82;
+            const minRange = 18;
+            const maxRange = 44;
+
+            const effectiveRanks = groups.length;
+
+            if (effectiveRanks === 1) {
+                const darkestL = Math.max(28, Lmax - maxRange);
+                const Ltop = Math.max(18, darkestL - 10);
+                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${darkestL}%) 100%)`;
+                headersNow.forEach(h => { h.style.background = gradient; });
+                updateRankLabels(scored.map(s => s.score), totalDivs);
+                return;
+            }
+
+            const maxRanksForScaling = 8;
+            const normalized = Math.min(1, Math.max(0, (effectiveRanks - 1) / (maxRanksForScaling - 1)));
+            const range = Math.round(minRange + (maxRange - minRange) * normalized);
+            const Lmin = Math.max(28, Lmax - range);
+
+            groups.forEach((group, g) => {
+                const ratio = g / (effectiveRanks - 1);
+                const L = Math.round(Lmin + (Lmax - Lmin) * ratio);
+                const Ltop = Math.max(18, L - 10);
+                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
+                group.members.forEach(idx => {
+                    const th = headersNow[idx];
+                    if (th) th.style.background = gradient;
+                });
+            });
+
+            updateRankLabels(scored.map(s => s.score), totalDivs);
+        }
+
+        // Update ordinal labels (small) under totals
+        function updateRankLabels(sortedScoresDesc, totalDivs) {
+            const uniqueDesc = Array.from(new Set(sortedScoresDesc));
+            const rankMapScoreToRank = new Map();
+            uniqueDesc.forEach((score, i) => rankMapScoreToRank.set(score, i + 1));
+
+            totalDivs.forEach(div => {
+                if (!div) return;
+                while (div.nextSibling && div.nextSibling.nodeName === "SMALL") {
+                    div.parentElement.removeChild(div.nextSibling);
+                }
+                const score = parseInt(div.textContent) || 0;
+                const rank = rankMapScoreToRank.get(score) || 1;
+                const small = document.createElement('small');
+                small.textContent = ordinalSuffixOf(rank);
+                div.parentElement.appendChild(small);
+            });
+        }
+    
+        // Convert number to ordinal suffix
+        function ordinalSuffixOf(i) {
+            var j = i % 10,
+                k = i % 100;
+            if (j === 1 && k !== 11) {
+                return i + "st";
+            }
+            if (j === 2 && k !== 12) {
+                return i + "nd";
+            }
+            if (j === 3 && k !== 13) {
+                return i + "rd";
+            }
+            return i + "th";
+        }
+    
+        // Event listeners for ranking updates
+        document.getElementById('scoreTable').addEventListener('click', updateRanks);
+        document.getElementById('playerCount').addEventListener('change', updateRanks);
+        document.addEventListener('DOMContentLoaded', updateRanks);
+    
+        // Update player name (text mode)
+        function updatePlayerName() {
+            const input = document.getElementById('playerNameInput');
+            const newName = (input?.value || '').toUpperCase();
+            if (newName && window.currentPlayer) {
+                applyPlayerName(window.currentPlayer, newName);
+                closePlayerNameModal();
+            }
+        }
+    
+        // Close player name modal
+        function closePlayerNameModal() {
+            const modal = document.getElementById('playerNameModal');
+            modal.style.display = 'none';
+
+            // If showing emoji variant (no #playerNameInput), restore template
+            if (!document.getElementById('playerNameInput') && playerNameModalTemplate) {
+                modal.innerHTML = playerNameModalTemplate;
+            }
+
+            const removeButton = modal.querySelector('button[onclick^="handleRemovePlayer"]');
+            if (removeButton) {
+                removeButton.textContent = 'Remove';
+                removeButton.dataset.state = 'initial';
+            }
+            hideOverlay();
+
+            // Reattach Enter-to-submit for text input if present
+            const input = document.getElementById('playerNameInput');
+            if (input) {
+                input.onkeypress = function(e) {
+                    if (e.key === 'Enter') {
+                        updatePlayerName();
+                        closePlayerNameModal();
+                    }
+                };
+            }
+        }
+    
+// Remove a player — close the modal even when blocking last-player removal
+function removePlayer(player) {
+    if (!player) return false;
+            
+    const playerIndex = parseInt(player.replace('P', '')) - 1;
+    const playerCount = parseInt(document.getElementById('playerCount').value);
+            
+    if (playerCount <= 1) {
+        alert("At least one player must remain.");
+        // Close the popup after OK'ing the alert
+        closePlayerNameModal();
+        return false;
+    }
+            
+    const table = document.getElementById('scoreTable');
+    const headers = table.querySelector('thead tr');
+    const rows = table.querySelectorAll('tbody tr');
+            
+    if (headers.children[playerIndex + 1]) {
+        headers.removeChild(headers.children[playerIndex + 1]);
+    }
+    rows.forEach(row => {
+        if (row.children[playerIndex + 1]) {
+            row.removeChild(row.children[playerIndex + 1]);
+        }
+    });
+            
+    const categories = [
+        'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+        'Three of a Kind', 'Four of a Kind', 'Full House',
+        'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+    ];
+    categories.forEach(category => {
+        localStorage.removeItem(`${player}-${category}`);
+    });
+    localStorage.removeItem(`playerName-${player}`);
+            
+    const newPlayerCount = playerCount - 1;
+    document.getElementById('playerCount').value = newPlayerCount;
+    localStorage.setItem('playerCount', newPlayerCount);
+            
+    for (let i = playerIndex + 1; i < playerCount; i++) {
+        const oldPlayer = `P${i + 1}`;
+        const newPlayer = `P${i}`;
+        const headerIndex = i;
+        const headersRow = headers.children;
+        const header = headersRow[headerIndex];
+        if (header) {
+            const totalDiv = header.querySelector('div');
+            const rankElement = header.querySelector('small');
+            let rankHTML = rankElement ? rankElement.outerHTML : '';
+            const playerName = header.innerText.split('\n')[0].trim();
+                    
+            header.setAttribute('data-player', newPlayer);
+            if (totalDiv) {
+                header.innerHTML = `${playerName}<div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
+            }
+        }
+                
+        rows.forEach(row => {
+            const cell = row.children[headerIndex];
+            if (cell && (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell'))) {
+                cell.setAttribute('data-player', newPlayer);
+            }
+            if (row.classList.contains('bonus-row') && cell) {
+                cell.id = `bonus${newPlayer}`;
+                cell.innerHTML = `<span id="pointsNeeded${newPlayer}" class="points-needed">63</span>`;
+            } else if (row.classList.contains('upper-score-row') && cell) {
+                cell.id = `upperScore${newPlayer}`;
+                cell.textContent = '0';
+            } else if (row.classList.contains('lower-score-row') && cell) {
+                cell.id = `lowerScore${newPlayer}`;
+                cell.textContent = '0';
+            }
+        });
+                
+        const savedName = localStorage.getItem(`playerName-${oldPlayer}`);
+        if (savedName) {
+            localStorage.setItem(`playerName-${newPlayer}`, savedName);
+            localStorage.removeItem(`playerName-${oldPlayer}`);
+        }
+        categories.forEach(category => {
+            const savedScore = localStorage.getItem(`${oldPlayer}-${category}`);
+            if (savedScore) {
+                localStorage.setItem(`${newPlayer}-${category}`, savedScore);
+                localStorage.removeItem(`${oldPlayer}-${category}`);
+            }
+        });
+        prevUpperTotals[newPlayer] = prevUpperTotals[oldPlayer] || 0;
+        delete prevUpperTotals[oldPlayer];
+    }
+            
+    reattachEventListeners();
+    attachDragListeners();
+    for (let i = 1; i <= newPlayerCount; i++) {
+        calculateTotal(`P${i}`);
+    }
+    updateRanks();
+    closePlayerNameModal(); // close on successful removal
+    return true;
+}
+    
+        // Handle player removal with confirmation state
+        function handleRemovePlayer(button) {
+            if (button.dataset.state === 'initial') {
+                button.textContent = 'Confirm';
+                button.dataset.state = 'confirm';
+            } else {
+                if (window.currentPlayer) {
+                    removePlayer(window.currentPlayer);
+                }
+            }
         }
     
         // Close all popups
         function closeAllPopups() {
-            document.getElementById('playerManagementModal').style.display = 'none';
-            document.getElementById('roundManagementModal').style.display = 'none';
-            document.getElementById('deleteRoundModal').style.display = 'none';
+            if (document.getElementById('roundManagementModal').style.display === 'block') {
+                resetButtonState();
+                document.getElementById('roundManagementModal').style.display = 'none';
+            }
+    
+            if (document.getElementById('popupModal').style.display === 'block') {
+                document.getElementById('popupModal').style.display = 'none';
+            }
+    
+            if (document.getElementById('playerNameModal').style.display === 'block') {
+                closePlayerNameModal();
+            }
+    
             hideOverlay();
         }
     
+        // Sync default placeholder names with mode for current headers
+        function syncDefaultNamesToMode() {
+            const playerCount = parseInt(document.getElementById('playerCount').value) || 0;
+            for (let i = 1; i <= playerCount; i++) {
+                const playerId = `P${i}`;
+                const header = document.querySelector(`#scoreTable thead th[data-player="${playerId}"]`);
+                if (!header) continue;
+                const displayedName = header.innerText.split('\n')[0].trim();
+                const storedName = localStorage.getItem(`playerName-${playerId}`);
+                const currentName = storedName !== null ? storedName : displayedName;
+                let newName = currentName;
+
+                if (emojiModeEnabled) {
+                    const m = /^P(\d{1,2})$/i.exec(currentName);
+                    if (m) {
+                        const n = parseInt(m[1], 10);
+                        if (n >= 0 && n <= 9) {
+                            newName = numberToKeycap(n);
+                        }
+                    } else if (storedName === null && i <= 9) {
+                        newName = numberToKeycap(i);
+                    }
+                } else {
+                    const n = keycapToNumber(currentName);
+                    if (n !== null) {
+                        newName = `P${n}`;
+                    }
+                }
+
+                if (newName !== currentName) {
+                    applyPlayerName(playerId, newName);
+                } else if (storedName === null) {
+                    // Persist current so we can transform reliably next time
+                    localStorage.setItem(`playerName-${playerId}`, currentName);
+                }
+            }
+            reattachEventListeners();
+            updateRanks();
+        }
+
         // Overlay click handler
-        document.getElementById('overlay').addEventListener('click', closeAllPopups);
-    
-        // Drag and drop handlers
+        document.getElementById('overlay').addEventListener('click', function() {
+            closeAllPopups();
+        });
+
+        // Drag and drop functionality
         let draggedIndex = -1;
-    
+
+        function attachDragListeners() {
+            const headers = document.querySelectorAll('#scoreTable thead th:not(:first-child)');
+            headers.forEach((header, index) => {
+                header.draggable = true;
+                header.removeEventListener('dragstart', header.dragStartHandler);
+                header.removeEventListener('dragover', header.dragOverHandler);
+                header.removeEventListener('drop', header.dropHandler);
+                header.removeEventListener('dragend', header.dragEndHandler);
+
+                header.dragStartHandler = function(event) {
+                    handleDragStart(event, index);
+                };
+                header.dragOverHandler = function(event) {
+                    handleDragOver(event);
+                };
+                header.dropHandler = function(event) {
+                    handleDrop(event, index);
+                };
+                header.dragEndHandler = function(event) {
+                    handleDragEnd(event);
+                };
+
+                header.addEventListener('dragstart', header.dragStartHandler);
+                header.addEventListener('dragover', header.dragOverHandler);
+                header.addEventListener('drop', header.dropHandler);
+                header.addEventListener('dragend', header.dragEndHandler);
+            });
+        }
+
         function handleDragStart(event, index) {
             draggedIndex = index;
             event.target.classList.add('dragging');
             event.dataTransfer.effectAllowed = 'move';
         }
-    
+
         function handleDragOver(event) {
             event.preventDefault();
             event.dataTransfer.dropEffect = 'move';
@@ -1143,38 +1930,102 @@ function createEmojiPlayerDialog(index) {
                 target.classList.add('drag-over');
             }
         }
-    
+
         function handleDrop(event, dropIndex) {
             event.preventDefault();
             if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
-                // Reorder players array
-                const [draggedPlayer] = players.splice(draggedIndex, 1);
-                players.splice(dropIndex, 0, draggedPlayer);
-    
-                // Reorder scores in each round
-                rounds.forEach(round => {
-                    const [draggedScore] = round.splice(draggedIndex, 1);
-                    round.splice(dropIndex, 0, draggedScore);
+                const table = document.getElementById('scoreTable');
+                const headers = table.querySelector('thead tr');
+                const rows = table.querySelectorAll('tbody tr');
+                const playerCount = parseInt(document.getElementById('playerCount').value);
+                const categories = [
+                    'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                    'Three of a Kind', 'Four of a Kind', 'Full House',
+                    'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+                ];
+
+                const playerData = [];
+                for (let i = 0; i < playerCount; i++) {
+                    const player = `P${i + 1}`;
+                    const name = localStorage.getItem(`playerName-${player}`) || (emojiModeEnabled ? numberToKeycap(i + 1) : player);
+                    const scores = {};
+                    categories.forEach(category => {
+                        scores[category] = localStorage.getItem(`${player}-${category}`);
+                    });
+                    playerData.push({ name, scores });
+                }
+
+                const headerRow = Array.from(headers.children);
+                const [draggedHeader] = headerRow.splice(draggedIndex + 1, 1);
+                headerRow.splice(dropIndex + 1, 0, draggedHeader);
+                headers.innerHTML = '';
+                headerRow.forEach(th => headers.appendChild(th));
+
+                rows.forEach(row => {
+                    const cells = Array.from(row.children);
+                    const [draggedCell] = cells.splice(draggedIndex + 1, 1);
+                    cells.splice(dropIndex + 1, 0, draggedCell);
+                    row.innerHTML = '';
+                    cells.forEach(cell => row.appendChild(cell));
                 });
-    
-                // Unsubmitted scores stay tied to player names, so no need to reorder them here
-                saveData();
-                updateUI();
+
+                const [draggedData] = playerData.splice(draggedIndex, 1);
+                playerData.splice(dropIndex, 0, draggedData);
+
+                for (let i = 0; i < playerCount; i++) {
+                    const player = `P${i + 1}`;
+                    const header = headers.children[i + 1];
+                    header.setAttribute('data-player', player);
+                    const totalDiv = header.querySelector('div');
+                    if (totalDiv) {
+                        header.innerHTML = `${playerData[i].name}<div id="total${player}">${totalDiv.textContent}</div>`;
+                    }
+
+                    localStorage.setItem(`playerName-${player}`, playerData[i].name);
+                    categories.forEach(category => {
+                        if (playerData[i].scores[category]) {
+                            localStorage.setItem(`${player}-${category}`, playerData[i].scores[category]);
+                        } else {
+                            localStorage.removeItem(`${player}-${category}`);
+                        }
+                    });
+
+                    rows.forEach(row => {
+                        const cell = row.children[i + 1];
+                        if (!cell) return;
+                        if (cell.classList.contains('upper-section-cell') || cell.classList.contains('lower-section-cell')) {
+                            cell.setAttribute('data-player', player);
+                        }
+                        if (row.classList.contains('bonus-row')) {
+                            cell.id = `bonus${player}`;
+                            const span = cell.querySelector('span');
+                            if (span) span.id = `pointsNeeded${player}`;
+                        } else if (row.classList.contains('upper-score-row')) {
+                            cell.id = `upperScore${player}`;
+                        } else if (row.classList.contains('lower-score-row')) {
+                            cell.id = `lowerScore${player}`;
+                        }
+                    });
+                }
+
+                reattachEventListeners();
+                attachDragListeners();
+                for (let i = 1; i <= playerCount; i++) {
+                    calculateTotal(`P${i}`);
+                }
+                updateRanks();
             }
-            const ths = document.querySelectorAll('#playerRow th');
+            const ths = document.querySelectorAll('#scoreTable thead th');
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
         }
-    
+
         function handleDragEnd(event) {
             event.target.classList.remove('dragging');
-            const ths = document.querySelectorAll('#playerRow th');
+            const ths = document.querySelectorAll('#scoreTable thead th');
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
         }
-    
-        // Initial UI update
-        updateUI();
     </script>
 </body>
 </html>
