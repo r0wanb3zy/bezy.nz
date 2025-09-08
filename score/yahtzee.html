@@ -204,6 +204,11 @@
             border-bottom: 1px solid #666;
             border-right: 1px solid #666;
         }
+        /* Keep themed color once the bonus is achieved (after pulse ends too) */
+.bonus-row .points-needed.bonus-achieved:not(.animate-bonus) {
+  color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l));
+  font-weight: bold;
+}
 
         .bonus-row td:first-child,
         .upper-score-row td:first-child,
@@ -673,7 +678,7 @@
 
         .bonus-row .points-needed.animate-bonus {
           color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l)) !important;
-          animation: bonusPulse 1200ms ease-in-out infinite;
+          animation: bonusPulse 1000ms ease-in-out infinite;
           display: inline-block;
           transform-origin: center;
           will-change: transform;
@@ -827,7 +832,7 @@
 
         // Bonus animation helpers
         const prevUpperTotals = {}; // Track previous upper-section totals per player
-        const BONUS_ANIM_MS = 6000;
+        const BONUS_ANIM_MS = 5000;
         const BONUS_ANIM_CLASS = 'animate-bonus';
         function triggerBonusAnimation(player) {
             const el = document.getElementById(`pointsNeeded${player}`);
