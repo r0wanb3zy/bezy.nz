@@ -850,8 +850,8 @@
             const root = document.documentElement;
             const { h: H, s: S } = getThemeHS();
             // Lighter tones so text pops on #4d4d4d background
-            const Lbase = 78;  // base step
-            const Llight = 96; // mid-pulse highlight
+            const Lbase = 70;  // base step
+            const Llight = 100; // mid-pulse highlight
             root.style.setProperty('--pulse-h', String(H));
             root.style.setProperty('--pulse-s', `${S}%`);
             root.style.setProperty('--pulse-l', `${Lbase}%`);
