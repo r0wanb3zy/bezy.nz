@@ -535,6 +535,21 @@ table input[type="number"]::placeholder {
 #roundManagementModal select#themeColorSelect option {
   text-align: center;
 }
+/* Bottom input row: make placeholders 50% transparent */
+#scoreTable tbody tr:last-child input[type="number"]::placeholder { 
+  opacity: 0.5; 
+}
+
+/* Cross-browser placeholders */
+#scoreTable tbody tr:last-child input[type="number"]::-webkit-input-placeholder { opacity: 0.5; } /* Chrome/Safari */
+#scoreTable tbody tr:last-child input[type="number"]::-moz-placeholder { opacity: 0.5; }    /* Firefox */
+#scoreTable tbody tr:last-child input[type="number"]:-ms-input-placeholder { opacity: 0.5; } /* IE 10-11 */
+#scoreTable tbody tr:last-child input[type="number"]::-ms-input-placeholder { opacity: 0.5; } /* Edge Legacy */
+
+/* Optional: also lighten non-emoji placeholders a bit */
+#scoreTable tbody tr:last-child input[type="number"]::placeholder {
+  color: rgba(107, 114, 128, 0.5);
+}
     </style>
 </head>
 <body>
