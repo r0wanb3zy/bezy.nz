@@ -751,7 +751,6 @@
             <option value="purple">Purple</option>
             <option value="yellow">Yellow</option>
             <option value="grey">Grey</option>
-            
         </select>
 
         <button id="resetButton" onclick="handleResetClick()">Reset</button>
@@ -1283,73 +1282,83 @@
             };
         }
 
-        // Open the emoji-only player modal
-        function openEmojiPlayerModal(currentName) {
-            const modal = document.getElementById('playerNameModal');
-            if (!playerNameModalTemplate) {
-                playerNameModalTemplate = modal.innerHTML;
-            }
+function openEmojiPlayerModal(currentName) {
+    const modal = document.getElementById('playerNameModal');
+    if (!playerNameModalTemplate) {
+        playerNameModalTemplate = modal.innerHTML;
+    }
 
-            const favEmojis = [
-                "🍔","🩰","🌹","🌰","🔔",
-                "👑","🎣","🌻","🏏","🦈",
-                "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
-                "❄️","🔥","💥","⚡","⭐",
-                "🐬","🐳","🦀","🕷️","🐝"
-            ];
-            const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" onclick="setEmojiFromButton('${e}')">${e}</button>`).join('');
+    const favEmojis = [
+        "🍔","🩰","🌹","🌰","🔔",
+        "👑","🎣","🌻","🏏","🦈",
+        "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
+        "❄️","🔥","💥","⚡","⭐",
+        "🐬","🐳","🦀","🕷️","🐝"
+    ];
+    const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" onclick="setEmojiFromButton('${e}')">${e}</button>`).join('');
 
-            modal.innerHTML = `
-                <h2>Player</h2>
-                <span class="close-btn" onclick="closePlayerNameModal()">×</span>
-                <input
-                    type="text"
-                    id="emojiNameInput"
-                    value="${currentName}"
-                    inputmode="text"
-                    placeholder="Pick an emoji"
-                    enterkeyhint="done"
-                    autocapitalize="off"
-                    autocomplete="off"
-                    autocorrect="off"
-                    spellcheck="false"
-                >
-                <div class="emoji-grid">${grid}</div>
-                <button onclick="updatePlayerNameEmoji()">Update</button>
-                <button onclick="handleRemovePlayer(this)" data-state="initial">Remove</button>
-            `;
-            modal.style.display = 'block';
-            showOverlay();
+    modal.innerHTML = `
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePlayerNameModal()">×</span>
+        <input
+            type="text"
+            id="emojiNameInput"
+            value="${currentName}"
+            inputmode="text"
+            placeholder="Pick an emoji"
+            enterkeyhint="done"
+            autocapitalize="off"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+        >
+        <div class="emoji-grid">${grid}</div>
+        <!-- Removed the Update button -->
+        <button onclick="handleRemovePlayer(this)" data-state="initial">Remove</button>
+    `;
+    modal.style.display = 'block';
+    showOverlay();
 
-            const input = document.getElementById('emojiNameInput');
+    const input = document.getElementById('emojiNameInput');
 
-            // iOS-friendly: prime focus on first tap to avoid OS cut/copy/paste bubble
-            let primed = false;
-            const primeFocus = (e) => {
-                if (primed) return;
-                primed = true;
-                e.preventDefault();
-                try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-                requestAnimationFrame(() => {
-                    try { input.select(); } catch (_) {}
-                });
-            };
-            input.addEventListener('pointerdown', primeFocus, { passive: false });
-            input.addEventListener('touchstart', primeFocus, { passive: false });
-            input.addEventListener('mousedown', primeFocus);
-            input.addEventListener('mouseup', (e) => e.preventDefault());
-            input.addEventListener('contextmenu', (e) => e.preventDefault());
+    // iOS-friendly: prime focus on first tap
+    let primed = false;
+    const primeFocus = (e) => {
+        if (primed) return;
+        primed = true;
+        e.preventDefault();
+        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+        requestAnimationFrame(() => { try { input.select(); } catch (_) {} });
+    };
+    input.addEventListener('pointerdown', primeFocus, { passive: false });
+    input.addEventListener('touchstart', primeFocus, { passive: false });
+    input.addEventListener('mousedown', primeFocus);
+    input.addEventListener('mouseup', (e) => e.preventDefault());
+    input.addEventListener('contextmenu', (e) => e.preventDefault());
 
-            // Keep emoji-only input (broadened acceptance)
-            input.addEventListener('input', function () {
-                this.value = extractEmojis(this.value);
-            });
-            input.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    updatePlayerNameEmoji();
-                }
-            });
+    // Auto-apply and close on first emoji input
+    let autoClosed = false;
+    input.addEventListener('input', function () {
+        const sanitized = extractEmojis(this.value);
+        if (sanitized !== this.value) {
+            this.value = sanitized;
         }
+        if (sanitized && !autoClosed) {
+            if (window.currentPlayer) {
+                applyPlayerName(window.currentPlayer, sanitized);
+            }
+            autoClosed = true;
+            closePlayerNameModal();
+        }
+    });
+
+    // Optional fallback: allow Enter to confirm (won’t usually be needed)
+    input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            updatePlayerNameEmoji();
+        }
+    });
+}
 
         // Load saved scores from localStorage
         function loadScores() {
