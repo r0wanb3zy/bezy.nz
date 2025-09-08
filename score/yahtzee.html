@@ -34,9 +34,10 @@
         :root {
             --pulse-h: 210;                 /* hue */
             --pulse-s: 85%;                 /* saturation with % */
-            --pulse-l: 46%;                 /* base lightness */
-            --pulse-l-light: 62%;           /* lighter lightness for mid-pulse */
-            --pulse-shadow-alpha-strong: 0.6;
+            /* Lighter defaults for better contrast on dark bonus row */
+            --pulse-l: 78%;                 /* base lightness (lighter) */
+            --pulse-l-light: 96%;           /* lighter lightness for mid-pulse */
+            --pulse-shadow-alpha-strong: 0.85; /* stronger glow for pop */
         }
 
         /* Table Base Styles */
@@ -763,6 +764,9 @@
     <div id="overlay" style="display: none;"></div>
 
     <script>
+        // Prevent bonus pulse on initial page load/restore
+        let isAppBooting = true;
+
         // Persistent toggles (unique keys for Yahtzee)
         let sortByRankEnabled = localStorage.getItem('yahtzee-sortByRankEnabled') === 'true';
         let emojiModeEnabled = localStorage.getItem('yahtzee-emojiModeEnabled') === 'true';
@@ -815,7 +819,7 @@
             // Apply theme-dependent visuals
             updateRanks();
             applyThemeSelectColors();
-            applyPulseThemeColors(); // NEW: sync pulse color to theme
+            applyPulseThemeColors(); // sync pulse color to theme
         }
 
         // Keep original playerName modal markup so we can restore after emoji modal swaps
@@ -832,7 +836,7 @@
             el.classList.remove(BONUS_ANIM_CLASS);
             void el.offsetWidth; // reflow to reset animation
             el.classList.add(BONUS_ANIM_CLASS);
-            // Remove after ~5s
+            // Remove after ~6s
             clearTimeout(el._bonusTimer);
             el._bonusTimer = setTimeout(() => {
                 el.classList.remove(BONUS_ANIM_CLASS);
@@ -841,18 +845,18 @@
             if (navigator.vibrate) navigator.vibrate(60);
         }
 
-        // Apply CSS variables for pulse color based on theme
+        // Apply CSS variables for pulse color based on theme (lighter for contrast)
         function applyPulseThemeColors() {
             const root = document.documentElement;
             const { h: H, s: S } = getThemeHS();
-            // Base and lighter lightness for the pulse steps
-            const Lbase = 46;                       // readable on dark grey bonus row
-            const Llight = Math.min(90, Lbase + 16);
+            // Lighter tones so text pops on #4d4d4d background
+            const Lbase = 78;  // base step
+            const Llight = 96; // mid-pulse highlight
             root.style.setProperty('--pulse-h', String(H));
             root.style.setProperty('--pulse-s', `${S}%`);
             root.style.setProperty('--pulse-l', `${Lbase}%`);
             root.style.setProperty('--pulse-l-light', `${Llight}%`);
-            // alpha is already defined; keep defaults unless you want to expose a slider later
+            root.style.setProperty('--pulse-shadow-alpha-strong', `0.85`);
         }
 
         // Set table height to match viewport
@@ -881,7 +885,7 @@
                 applyThemeSelectColors();
             }
 
-            // Initialize pulse color variables to current theme
+            // Initialize pulse color variables to current theme (lighter)
             applyPulseThemeColors();
 
             // Save the original player name modal HTML
@@ -916,6 +920,9 @@
 
             // Ensure default names follow the current Emoji Mode on load
             syncDefaultNamesToMode();
+
+            // Done booting: prevent relaunch from retriggering bonus pulse
+            isAppBooting = false;
         });
     
         // Resize handler
@@ -955,7 +962,7 @@
             const bonusElement = document.getElementById(`bonus${player}`);
             const pointsNeededElement = document.getElementById(`pointsNeeded${player}`);
 
-            // Detect crossing 63 threshold (no animation on first load without prior value)
+            // Detect crossing 63 threshold
             const prevUpper = prevUpperTotals[player];
             const gotBonusNow = upperSectionTotal >= 63;
             const crossedThreshold = (prevUpper != null && prevUpper < 63 && gotBonusNow);
@@ -973,8 +980,8 @@
                 document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
                 document.getElementById(`total${player}`).textContent = total + bonus;
 
-                // Trigger the 5s theme-colored pulse when the player first earns the bonus
-                if (crossedThreshold) {
+                // Trigger pulse only when crossing in-session (not during initial load)
+                if (crossedThreshold && !isAppBooting) {
                     triggerBonusAnimation(player);
                 }
             }

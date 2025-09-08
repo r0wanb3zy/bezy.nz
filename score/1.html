@@ -30,6 +30,16 @@
             background-size: cover;
         }
 
+        /* Theme-driven pulse variables (defaults to blue theme) */
+        :root {
+            --pulse-h: 210;                 /* hue */
+            --pulse-s: 85%;                 /* saturation with % */
+            /* Lighter defaults for better contrast on dark bonus row */
+            --pulse-l: 78%;                 /* base lightness (lighter) */
+            --pulse-l-light: 96%;           /* lighter lightness for mid-pulse */
+            --pulse-shadow-alpha-strong: 0.85; /* stronger glow for pop */
+        }
+
         /* Table Base Styles */
         table {
             width: 100%;
@@ -647,24 +657,24 @@
           text-align: center;
         }
 
-        /* Bonus pulse animation */
+        /* Theme-colored bonus pulse animation */
         @keyframes bonusPulse {
           0%, 100% {
             transform: scale(1);
-            color: #e63946; /* red */
-            text-shadow: 0 0 0 rgba(230,57,70,0);
+            color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l));
+            text-shadow: 0 0 0 hsla(var(--pulse-h), var(--pulse-s), var(--pulse-l), 0);
           }
           50% {
             transform: scale(1.5);
-            color: #ff6b6b; /* lighter red */
-            text-shadow: 0 0 10px rgba(230,57,70,0.6);
+            color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l-light));
+            text-shadow: 0 0 10px hsla(var(--pulse-h), var(--pulse-s), var(--pulse-l), var(--pulse-shadow-alpha-strong));
           }
         }
 
         .bonus-row .points-needed.animate-bonus {
-          color: #e63946 !important;  /* ensure red wins during animation */
-          animation: bonusPulse 1000ms ease-in-out infinite;
-          display: inline-block;       /* scale smoothly */
+          color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l)) !important;
+          animation: bonusPulse 1200ms ease-in-out infinite;
+          display: inline-block;
           transform-origin: center;
           will-change: transform;
         }
@@ -754,6 +764,9 @@
     <div id="overlay" style="display: none;"></div>
 
     <script>
+        // Prevent bonus pulse on initial page load/restore
+        let isAppBooting = true;
+
         // Persistent toggles (unique keys for Yahtzee)
         let sortByRankEnabled = localStorage.getItem('yahtzee-sortByRankEnabled') === 'true';
         let emojiModeEnabled = localStorage.getItem('yahtzee-emojiModeEnabled') === 'true';
@@ -803,8 +816,10 @@
             // store under both keys so both apps stay in sync
             localStorage.setItem('yahtzee-themeColor', themeColor);
             localStorage.setItem('themeColor', themeColor);
+            // Apply theme-dependent visuals
             updateRanks();
             applyThemeSelectColors();
+            applyPulseThemeColors(); // sync pulse color to theme
         }
 
         // Keep original playerName modal markup so we can restore after emoji modal swaps
@@ -812,7 +827,7 @@
 
         // Bonus animation helpers
         const prevUpperTotals = {}; // Track previous upper-section totals per player
-        const BONUS_ANIM_MS = 5000;
+        const BONUS_ANIM_MS = 6000;
         const BONUS_ANIM_CLASS = 'animate-bonus';
         function triggerBonusAnimation(player) {
             const el = document.getElementById(`pointsNeeded${player}`);
@@ -821,13 +836,27 @@
             el.classList.remove(BONUS_ANIM_CLASS);
             void el.offsetWidth; // reflow to reset animation
             el.classList.add(BONUS_ANIM_CLASS);
-            // Remove after ~5s
+            // Remove after ~6s
             clearTimeout(el._bonusTimer);
             el._bonusTimer = setTimeout(() => {
                 el.classList.remove(BONUS_ANIM_CLASS);
             }, BONUS_ANIM_MS);
             // Tiny haptic tap on supported devices
             if (navigator.vibrate) navigator.vibrate(60);
+        }
+
+        // Apply CSS variables for pulse color based on theme (lighter for contrast)
+        function applyPulseThemeColors() {
+            const root = document.documentElement;
+            const { h: H, s: S } = getThemeHS();
+            // Lighter tones so text pops on #4d4d4d background
+            const Lbase = 78;  // base step
+            const Llight = 96; // mid-pulse highlight
+            root.style.setProperty('--pulse-h', String(H));
+            root.style.setProperty('--pulse-s', `${S}%`);
+            root.style.setProperty('--pulse-l', `${Lbase}%`);
+            root.style.setProperty('--pulse-l-light', `${Llight}%`);
+            root.style.setProperty('--pulse-shadow-alpha-strong', `0.85`);
         }
 
         // Set table height to match viewport
@@ -855,6 +884,9 @@
                 themeSel.value = themeColor;
                 applyThemeSelectColors();
             }
+
+            // Initialize pulse color variables to current theme (lighter)
+            applyPulseThemeColors();
 
             // Save the original player name modal HTML
             const modal = document.getElementById('playerNameModal');
@@ -888,6 +920,9 @@
 
             // Ensure default names follow the current Emoji Mode on load
             syncDefaultNamesToMode();
+
+            // Done booting: prevent relaunch from retriggering bonus pulse
+            isAppBooting = false;
         });
     
         // Resize handler
@@ -927,7 +962,7 @@
             const bonusElement = document.getElementById(`bonus${player}`);
             const pointsNeededElement = document.getElementById(`pointsNeeded${player}`);
 
-            // Detect crossing 63 threshold (no animation on first load without prior value)
+            // Detect crossing 63 threshold
             const prevUpper = prevUpperTotals[player];
             const gotBonusNow = upperSectionTotal >= 63;
             const crossedThreshold = (prevUpper != null && prevUpper < 63 && gotBonusNow);
@@ -945,8 +980,8 @@
                 document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
                 document.getElementById(`total${player}`).textContent = total + bonus;
 
-                // Trigger the 5s red pulse when the player first earns the bonus
-                if (crossedThreshold) {
+                // Trigger pulse only when crossing in-session (not during initial load)
+                if (crossedThreshold && !isAppBooting) {
                     triggerBonusAnimation(player);
                 }
             }
