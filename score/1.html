@@ -109,7 +109,7 @@
 
         /* First Column Styles */
         table th:first-child {
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             font-weight: bold;
             width: 30px;
             min-width: 30px;
@@ -120,7 +120,7 @@
         }
 
         table td:first-child {
-            background: #4d4d4d;
+            background: #3b3b3b;
             font-weight: bold;
             width: 30px;
             min-width: 30px;
@@ -139,12 +139,12 @@
 
         /* Table Headers */
         table th {
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             color: white;
         }
 
         #scoreTable thead th:first-child {
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             border-right: none;
             border-bottom: 1px solid #666;
         }
@@ -173,7 +173,7 @@
 
         table input:focus {
             outline: none;
-            border-color: #333333;
+            border-color: #262626;
             box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
         }
 
@@ -199,11 +199,16 @@
 
         /* Special Row Styles */
         .bonus-row td, .upper-score-row td, .lower-score-row td {
-            background: #4d4d4d;
+            background: #3b3b3b;
             color: white;
             border-bottom: 1px solid #666;
             border-right: 1px solid #666;
         }
+        /* Keep themed color once the bonus is achieved (after pulse ends too) */
+.bonus-row .points-needed.bonus-achieved:not(.animate-bonus) {
+  color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l));
+  font-weight: bold;
+}
 
         .bonus-row td:first-child,
         .upper-score-row td:first-child,
@@ -302,7 +307,7 @@
             margin: 2px;
             cursor: pointer;
             font-family: 'Economica', sans-serif;
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             color: white;
             border: none;
             border-radius: 6px;
@@ -345,7 +350,7 @@
             text-align: center;
             overflow: hidden;
             white-space: nowrap;
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             color: white;
             border: none;
             border-radius: 6px;
@@ -394,7 +399,7 @@
             margin: 5px 0;            /* stacked */
             cursor: pointer;
             font-family: 'Economica', sans-serif;
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             color: white;
             border: none;
             border-radius: 6px;
@@ -407,24 +412,24 @@
         #roundManagementModal button#sortByRankBtn {
             background: #f8f9fa;
             color: #0f172a;
-            border: 1px solid #333333;
+            border: 1px solid #262626;
         }
         #roundManagementModal button#sortByRankBtn.active {
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             color: #ffffff;
-            border: 1px solid #333333;
+            border: 1px solid #262626;
         }
 
         /* Emoji Mode toggle (light off, dark on) */
         #roundManagementModal button#emojiModeBtn {
             background: #f8f9fa;
             color: #0f172a;
-            border: 1px solid #333333;
+            border: 1px solid #262626;
         }
         #roundManagementModal button#emojiModeBtn.active {
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             color: #ffffff;
-            border: 1px solid #333333;
+            border: 1px solid #262626;
         }
 
         /* Player Name Modal */
@@ -463,7 +468,7 @@
 
         #playerNameModal input[type="text"]:focus {
             outline: none;
-            border: 1px solid #333333;
+            border: 1px solid #262626;
         }
 
         #playerNameInput {
@@ -488,7 +493,7 @@
         }
         #emojiNameInput:focus {
             outline: none;
-            border: 1px solid #333333;
+            border: 1px solid #262626;
         }
 
         /* Player modal action buttons (text or emoji modal) */
@@ -498,7 +503,7 @@
             margin: 5px 0;            /* stacked full width */
             cursor: pointer;
             font-family: 'Economica', sans-serif;
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             color: white;
             border: none;
             border-radius: 6px;
@@ -543,7 +548,7 @@
 
         /* Make sure emoji pick buttons are not overridden by #playerNameModal button rules */
         #playerNameModal .emoji-grid .emoji-pick {
-            background: linear-gradient(to bottom, #333333 0%, #4d4d4d 100%);
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             color: #ffffff;
             border: none;
             border-radius: 6px;
@@ -665,7 +670,7 @@
             text-shadow: 0 0 0 hsla(var(--pulse-h), var(--pulse-s), var(--pulse-l), 0);
           }
           50% {
-            transform: scale(1.5);
+            transform: scale(1.3);
             color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l-light));
             text-shadow: 0 0 10px hsla(var(--pulse-h), var(--pulse-s), var(--pulse-l), var(--pulse-shadow-alpha-strong));
           }
@@ -673,7 +678,7 @@
 
         .bonus-row .points-needed.animate-bonus {
           color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l)) !important;
-          animation: bonusPulse 1200ms ease-in-out infinite;
+          animation: bonusPulse 1000ms ease-in-out infinite;
           display: inline-block;
           transform-origin: center;
           will-change: transform;
@@ -827,7 +832,7 @@
 
         // Bonus animation helpers
         const prevUpperTotals = {}; // Track previous upper-section totals per player
-        const BONUS_ANIM_MS = 6000;
+        const BONUS_ANIM_MS = 5000;
         const BONUS_ANIM_CLASS = 'animate-bonus';
         function triggerBonusAnimation(player) {
             const el = document.getElementById(`pointsNeeded${player}`);
@@ -849,14 +854,14 @@
         function applyPulseThemeColors() {
             const root = document.documentElement;
             const { h: H, s: S } = getThemeHS();
-            // Lighter tones so text pops on #4d4d4d background
-            const Lbase = 78;  // base step
-            const Llight = 96; // mid-pulse highlight
+            // Lighter tones so text pops on #3b3b3b background
+            const Lbase = 70;  // base step
+            const Llight = 100; // mid-pulse highlight
             root.style.setProperty('--pulse-h', String(H));
             root.style.setProperty('--pulse-s', `${S}%`);
             root.style.setProperty('--pulse-l', `${Lbase}%`);
             root.style.setProperty('--pulse-l-light', `${Llight}%`);
-            root.style.setProperty('--pulse-shadow-alpha-strong', `0.85`);
+            root.style.setProperty('--pulse-shadow-alpha-strong', `0.6`);
         }
 
         // Set table height to match viewport
@@ -1334,10 +1339,23 @@
             input.addEventListener('mouseup', (e) => e.preventDefault());
             input.addEventListener('contextmenu', (e) => e.preventDefault());
 
-            // Keep emoji-only input (broadened acceptance)
+            // UPDATED: Auto-apply and close as soon as an emoji is entered
+            let autoClosed = false;
             input.addEventListener('input', function () {
-                this.value = extractEmojis(this.value);
+                const sanitized = extractEmojis(this.value);
+                if (sanitized !== this.value) {
+                    this.value = sanitized;
+                }
+                if (sanitized && !autoClosed) {
+                    if (window.currentPlayer) {
+                        applyPlayerName(window.currentPlayer, sanitized);
+                    }
+                    autoClosed = true;
+                    closePlayerNameModal();
+                }
             });
+
+            // Still allow pressing Enter to confirm (fallback)
             input.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     updatePlayerNameEmoji();
