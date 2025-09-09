@@ -515,6 +515,15 @@
         #scoreTable tbody tr:last-child input[type="number"]::placeholder {
           color: rgba(107, 114, 128, 0.5);
         }
+        /* Make the space above the Name/Emoji toggle consistent */
+#playerManagementModal .segmented-control {
+  margin-top: 10px;   /* ensures the collapsed gap is 10px */
+}
+
+/* If the toggle sits under the emoji grid, keep that gap the same */
+#playerManagementModal .emoji-grid {
+  margin-bottom: 10px;
+}
     </style>
 </head>
 <body>
@@ -948,56 +957,87 @@
             updateUI();
         }
 
-        // Create player management dialog (text/uppercase mode)
-        function createPlayerManagementDialog(index) {
-            const modal = document.getElementById('playerManagementModal');
-            modal.innerHTML = `
-                <h2>Player</h2>
-                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-                <input
-                    type="text"
-                    id="playerNameInput"
-                    value="${players[index].name}"
-                    autocapitalize="characters"
-                    inputmode="text"
-                    style="text-transform: uppercase;"
-                >
-                <div class="segmented-control">
-                    <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, ${index})">
-                    <label for="playerMode-name">Name</label>
-                    <input type="radio" id="playerMode-emoji" name="playerModeSwitch" value="emoji" ${emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(true, ${index})">
-                    <label for="playerMode-emoji">Emoji</label>
-                </div>
-                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
-            `;
-            modal.style.display = 'block';
-            showOverlay();
+// Create player management dialog (text/uppercase mode) with iOS callout suppressed
+function createPlayerManagementDialog(index) {
+    const modal = document.getElementById('playerManagementModal');
+    modal.innerHTML = `
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+        <input
+            type="text"
+            id="playerNameInput"
+            value="${players[index].name}"
+            autocapitalize="characters"
+            inputmode="text"
+            style="text-transform: uppercase;"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+        >
+        <div class="segmented-control">
+            <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, ${index})">
+            <label for="playerMode-name">Name</label>
+            <input type="radio" id="playerMode-emoji" name="playerModeSwitch" value="emoji" ${emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(true, ${index})">
+            <label for="playerMode-emoji">Emoji</label>
+        </div>
+        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
+    `;
+    modal.style.display = 'block';
+    showOverlay();
 
-            const input = modal.querySelector('#playerNameInput');
+    const input = modal.querySelector('#playerNameInput');
 
-            // Do NOT auto-focus to keep keyboard closed.
-            // When the user taps into the input, select all text.
-            input.addEventListener('focus', function () {
-                try { this.select(); } catch (_) {}
-                try { this.setSelectionRange(0, this.value.length); } catch (_) {}
-            });
+    // Do NOT auto-focus (keeps keyboard closed). Select all when the user taps into the field.
+    input.addEventListener('focus', function () {
+        try { this.select(); } catch (_) {}
+        try { this.setSelectionRange(0, this.value.length); } catch (_) {}
+    });
 
-            input.addEventListener('input', function () {
-                this.value = this.value.toUpperCase();
-            });
+    // Prevent iOS translate/cut/copy/paste callout and manage focus on first tap
+    let primed = false;
+    const primeFocus = (e) => {
+        if (primed) return;
+        primed = true;
+        e.preventDefault();
+        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+        requestAnimationFrame(() => {
+            try { input.select(); } catch (_) {}
+            try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+        });
+    };
+    input.addEventListener('pointerdown', primeFocus, { passive: false });
+    input.addEventListener('touchstart', primeFocus, { passive: false });
+    input.addEventListener('mousedown', primeFocus);
 
-            // Apply rename on Enter
-            input.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') {
-                    updatePlayerName(index);
-                }
-            });
+    // Block the context menu and long-press menu flash
+    input.addEventListener('contextmenu', (e) => e.preventDefault());
+    input.addEventListener('mouseup', (e) => e.preventDefault());
 
-            // Apply rename when leaving the field (tap outside or close)
-            input.addEventListener('blur', function () {
-                updatePlayerName(index, /*closeModal*/ false);
-            });
+    // Force uppercase while typing
+    input.addEventListener('input', function () {
+        this.value = this.value.toUpperCase();
+    });
+
+    // Apply rename on Enter (and close)
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const newName = (input.value || '').trim().toUpperCase();
+            if (newName && newName !== players[index].name) {
+                renamePlayer(index, newName);
+            }
+            closePopup('playerManagementModal');
         }
+    });
+
+    // Also apply rename on blur (don’t close)
+    input.addEventListener('blur', function () {
+        const newName = (input.value || '').trim().toUpperCase();
+        if (newName && newName !== players[index].name) {
+            renamePlayer(index, newName);
+        }
+    });
+}
 
         // Emoji-only player management dialog (auto-apply + no Update button)
         function createEmojiPlayerDialog(index) {

@@ -151,37 +151,29 @@
             margin: 0;
         }
 
-/* Inputs: give them a fixed height + matching line-height */
-table input[type="number"] {
-  width: 100%;
-  box-sizing: border-box;
-  height: 40px;          /* pick the height you like */
-  line-height: 40px;     /* centers the text vertically */
-  padding: 0 8px;        /* vertical 0 so the line-height does the centering */
-  text-align: center;
-  font-size: inherit;    /* inherits 20px from the table */
-  font-family: 'Economica', sans-serif;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  background: #ffffff;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-}
-
-/* Make placeholder match the input’s metrics */
-table input[type="number"]::placeholder {
-  font: inherit;         /* same family + size as input */
-  line-height: inherit;  /* use the input’s line-height */
-  text-align: center;
-  color: #6b7280;
-  opacity: 0.8;
-}
-        /* Legacy highlight classes kept (not used now) */
-        .highlight-winner {
-            background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
+        /* Inputs: give them a fixed height + matching line-height */
+        table input[type="number"] {
+          width: 100%;
+          box-sizing: border-box;
+          height: 40px;
+          line-height: 40px;
+          padding: 0 8px;
+          text-align: center;
+          font-size: inherit;
+          font-family: 'Economica', sans-serif;
+          border: 1px solid #d0d7de;
+          border-radius: 6px;
+          background: #ffffff;
+          box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        .highlight-loser {
-            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        /* Make placeholder match the input’s metrics */
+        table input[type="number"]::placeholder {
+          font: inherit;
+          line-height: inherit;
+          text-align: center;
+          color: #6b7280;
+          opacity: 0.8;
         }
 
         /* Popup Modal Styles */
@@ -254,7 +246,7 @@ table input[type="number"]::placeholder {
         .popup-modal button {
             font-size: 24px;
             padding: 10px 20px;
-            margin: 5px 0; /* stack vertically by default */
+            margin: 5px 0;
             cursor: pointer;
             font-family: 'Economica', sans-serif;
             background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
@@ -262,32 +254,23 @@ table input[type="number"]::placeholder {
             border: none;
             border-radius: 6px;
             transition: background 0.2s;
-            width: 100%; /* single-column full width buttons */
+            width: 100%;
             box-sizing: border-box;
         }
         .popup-modal button[data-state="confirm"] {
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
 
-        /* Sort-by-rank + Emoji toggle styles (same shape, active state flips to dark) */
-        #roundManagementModal button#sortByRankBtn,
-        #roundManagementModal button#emojiModeBtn {
+        /* Sort-by-rank button styles */
+        #roundManagementModal button#sortByRankBtn {
             background: #f8f9fa;
             color: #0f172a;
             border: 1px solid #262626;
         }
-        #roundManagementModal button#sortByRankBtn.active,
-        #roundManagementModal button#emojiModeBtn.active {
+        #roundManagementModal button#sortByRankBtn.active {
             background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             color: #ffffff;
             border: 1px solid #262626;
-        }
-
-        /* Round modal single-column layout */
-        #roundManagementModal .segmented-control {
-            width: 100%;
-            box-sizing: border-box;
-            margin: 5px 0;
         }
 
         /* Adjust spacing for h2 in popups */
@@ -299,41 +282,42 @@ table input[type="number"]::placeholder {
             padding: 0;
         }
 
-        /* Segmented Control Styles */
+        /* Segmented Control Styles (full width, seamless) */
         .segmented-control {
             display: flex;
-            justify-content: center;
-            margin: 5px auto;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 5px 0;
             background: #f8f9fa;
             border-radius: 6px;
             overflow: hidden;
-            border: 1px solid #262626;
-            width: 150px;
-        }
 
+            /* Use inset border to avoid hairline gaps between border and fill */
+            border: 1px solid #262626;
+            box-shadow: none;
+            -webkit-background-clip: padding-box;
+            background-clip: padding-box;
+        }
+        .segmented-control input[type="radio"] {
+            display: none;
+        }
         .segmented-control label {
-            flex: 1;
-            padding: 10px 0px;
+            flex: 1 1 0;
+            padding: 10px 0;
             text-align: center;
             font-size: 24px;
             font-family: 'Economica', sans-serif;
             cursor: pointer;
-            background: #f8f9fa;
-            transition: background 0.2s, color 0.2s;
+            user-select: none;
+            background: #f8f9fa; /* light side */
+            margin: 0;           /* ensure no seams */
         }
-
-        .segmented-control input[type="radio"] {
-            display: none;
-        }
-
         .segmented-control input[type="radio"]:checked + label {
-            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-            color: white;
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); /* dark side */
+            color: #fff;
         }
-
-        .segmented-control label[for="lowest"] {
-            border-right: 1px solid #ddd;
-        }
+        /* No center divider to prevent thin grey line */
+        /* (Intentionally no border-right on the first label) */
 
         /* Close Button */
         .close-btn {
@@ -386,7 +370,6 @@ table input[type="number"]::placeholder {
             background: #fff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-
         .sticky-header table {
             margin-bottom: 0;
         }
@@ -406,50 +389,47 @@ table input[type="number"]::placeholder {
             border-left: 2px solid #333;
         }
 
-.emoji-grid {
-  /* even spacing between emojis horizontally and vertically */
-  --emoji-gap: 8px;               /* tweak as you like */
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: var(--emoji-gap);
+        .emoji-grid {
+          --emoji-gap: 8px;
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: var(--emoji-gap);
+          padding: 0;
+          margin: 5px 0; /* consistent with other gaps */
+          width: 100%;
+          box-sizing: border-box;
+        }
 
-  /* keep the grid flush with the modal edges so it aligns with other buttons */
-  padding: 0;
-  margin: 5px 0;                  /* match popup/modal button margin (your buttons use 5px 0) */
-  width: 100%;
-  box-sizing: border-box;
-}
+        .emoji-grid .emoji-pick {
+          background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+          color: #ffffff;
+          border: none;
+          border-radius: 6px;
+          font-family: 'Economica', sans-serif;
+          font-size: 22px;
+          display: grid;
+          place-items: center;
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          padding: 0;
+          margin: 0;
+          line-height: 1;
+          cursor: pointer;
+          transition: transform 0.05s ease, filter 0.1s ease;
+          box-sizing: border-box;
+        }
 
-.emoji-grid .emoji-pick {
-  background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-family: 'Economica', sans-serif;
-  font-size: 22px;
+        .emoji-grid .emoji-pick:active {
+          transform: scale(0.95);
+          filter: brightness(1.05);
+        }
 
-  /* perfect centering + square buttons */
-  display: grid;
-  place-items: center;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-
-  padding: 0;
-  margin: 0;
-  line-height: 1;
-  cursor: pointer;
-  transition: transform 0.05s ease, filter 0.1s ease;
-  box-sizing: border-box;
-}
-
-.emoji-grid .emoji-pick:active {
-  transform: scale(0.95);
-  filter: brightness(1.05);
-}
-
-/* NEW: suppress iOS cut/copy/paste callout on the emoji input */
-#emojiNameInput {
-    -webkit-touch-callout: none;
+        /* NEW: suppress iOS cut/copy/paste callout on the emoji input */
+        #emojiNameInput {
+            -webkit-touch-callout: none;
+        }
+        #playerNameInput {
+            -webkit-touch-callout: none; /* hide Translate/Cut/Copy/Paste on long-press */
 }
 
         @media (max-width: 480px) {
@@ -470,85 +450,79 @@ table input[type="number"]::placeholder {
             #scoreTable.small-scores tbody td {
                 font-size: 16px;
             }
-/* Small-scores: keep everything consistent */
-#scoreTable.small-scores tbody tr:last-child input[type="number"] {
-  font-size: 14px;
-  height: 32px;
-  line-height: 32px;
-  padding: 0 6px;
-}
-#scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
-  font: inherit;
-  line-height: inherit;
-}
+            /* Small-scores: keep everything consistent */
+            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
+              font-size: 14px;
+              height: 32px;
+              line-height: 32px;
+              padding: 0 6px;
+            }
+            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
+              font: inherit;
+              line-height: inherit;
+            }
             .sticky-header.small-scores th small {
                 font-size: 12px;
             }
         }
 
         /* Center text + remove native arrow for the Players dropdown */
-#roundManagementModal select#playerCount {
-  text-align: center;            /* centers in many browsers */
-  text-align-last: center;       /* centers selected value (Chrome/Firefox) */
-  -moz-text-align-last: center;  /* Firefox */
-  
-  -webkit-appearance: none;      /* Safari/Chrome */
-  -moz-appearance: none;         /* Firefox */
-  appearance: none;              /* Standard */
+        #roundManagementModal select#playerCount {
+          text-align: center;
+          text-align-last: center;
+          -moz-text-align-last: center;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          background-image: none !important;
+          background-color: #f8f9fa;
+          padding-right: 12px;
+        }
+        #roundManagementModal select#playerCount::-ms-expand {
+          display: none;
+        }
+        #roundManagementModal select#playerCount option {
+          text-align: center;
+        }
 
-  background-image: none !important; /* ensure no chevron background */
-  background-color: #f8f9fa;     /* keep your styling */
-  padding-right: 12px;           /* even spacing since arrow is gone */
+        /* Center text + remove native arrow for the Theme Colour dropdown */
+        #roundManagementModal select#themeColorSelect {
+          text-align: center;
+          text-align-last: center;
+          -moz-text-align-last: center;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          background-image: none !important;
+          background-color: #f8f9fa;
+          padding-right: 12px;
+        }
+        #roundManagementModal select#themeColorSelect::-ms-expand {
+          display: none;
+        }
+        #roundManagementModal select#themeColorSelect option {
+          text-align: center;
+        }
+
+        /* Bottom input row: make placeholders 50% transparent */
+        #scoreTable tbody tr:last-child input[type="number"]::placeholder { 
+          opacity: 0.5; 
+        }
+        #scoreTable tbody tr:last-child input[type="number"]::-webkit-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::-moz-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]:-ms-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::-ms-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::placeholder {
+          color: rgba(107, 114, 128, 0.5);
+        }
+        /* Make the space above the Name/Emoji toggle consistent */
+#playerManagementModal .segmented-control {
+  margin-top: 10px;   /* ensures the collapsed gap is 10px */
 }
 
-/* Hide the arrow in IE/Edge Legacy */
-#roundManagementModal select#playerCount::-ms-expand {
-  display: none;
-}
-
-/* Optional: center the options list contents in some browsers */
-#roundManagementModal select#playerCount option {
-  text-align: center;
-}
-
-/* Center text + remove native arrow for the Theme Colour dropdown */
-#roundManagementModal select#themeColorSelect {
-  text-align: center;
-  text-align-last: center;
-  -moz-text-align-last: center;
-
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-
-  background-image: none !important;
-  background-color: #f8f9fa;
-  padding-right: 12px;
-}
-
-/* Hide the arrow in IE/Edge Legacy for Theme Colour dropdown */
-#roundManagementModal select#themeColorSelect::-ms-expand {
-  display: none;
-}
-
-/* Optional: center option text */
-#roundManagementModal select#themeColorSelect option {
-  text-align: center;
-}
-/* Bottom input row: make placeholders 50% transparent */
-#scoreTable tbody tr:last-child input[type="number"]::placeholder { 
-  opacity: 0.5; 
-}
-
-/* Cross-browser placeholders */
-#scoreTable tbody tr:last-child input[type="number"]::-webkit-input-placeholder { opacity: 0.5; } /* Chrome/Safari */
-#scoreTable tbody tr:last-child input[type="number"]::-moz-placeholder { opacity: 0.5; }    /* Firefox */
-#scoreTable tbody tr:last-child input[type="number"]:-ms-input-placeholder { opacity: 0.5; } /* IE 10-11 */
-#scoreTable tbody tr:last-child input[type="number"]::-ms-input-placeholder { opacity: 0.5; } /* Edge Legacy */
-
-/* Optional: also lighten non-emoji placeholders a bit */
-#scoreTable tbody tr:last-child input[type="number"]::placeholder {
-  color: rgba(107, 114, 128, 0.5);
+/* If the toggle sits under the emoji grid, keep that gap the same */
+#playerManagementModal .emoji-grid {
+  margin-bottom: 10px;
 }
     </style>
 </head>
@@ -629,7 +603,6 @@ table input[type="number"]::placeholder {
         // Text color to use for UI elements based on theme key (readable on light background)
         function getThemeTextColor(key) {
             const t = THEME_MAP[key] || THEME_MAP.blue;
-            // Slightly darker tone for readability on #f8f9fa background
             const L = key === 'yellow' ? 32 : 34;
             return `hsl(${t.h}, ${t.s}%, ${L}%)`;
         }
@@ -984,42 +957,87 @@ table input[type="number"]::placeholder {
             updateUI();
         }
 
-        // Create player management dialog (text/uppercase mode)
-        function createPlayerManagementDialog(index) {
-            const modal = document.getElementById('playerManagementModal');
-            modal.innerHTML = `
-                <h2>Player</h2>
-                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-                <input
-                    type="text"
-                    id="playerNameInput"
-                    value="${players[index].name}"
-                    autocapitalize="characters"
-                    inputmode="text"
-                    style="text-transform: uppercase;"
-                >
-                <button onclick="updatePlayerName(${index})">Update</button>
-                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
-            `;
-            modal.style.display = 'block';
-            showOverlay();
+// Create player management dialog (text/uppercase mode) with iOS callout suppressed
+function createPlayerManagementDialog(index) {
+    const modal = document.getElementById('playerManagementModal');
+    modal.innerHTML = `
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+        <input
+            type="text"
+            id="playerNameInput"
+            value="${players[index].name}"
+            autocapitalize="characters"
+            inputmode="text"
+            style="text-transform: uppercase;"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+        >
+        <div class="segmented-control">
+            <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, ${index})">
+            <label for="playerMode-name">Name</label>
+            <input type="radio" id="playerMode-emoji" name="playerModeSwitch" value="emoji" ${emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(true, ${index})">
+            <label for="playerMode-emoji">Emoji</label>
+        </div>
+        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
+    `;
+    modal.style.display = 'block';
+    showOverlay();
 
-            const input = modal.querySelector('#playerNameInput');
+    const input = modal.querySelector('#playerNameInput');
 
-            try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+    // Do NOT auto-focus (keeps keyboard closed). Select all when the user taps into the field.
+    input.addEventListener('focus', function () {
+        try { this.select(); } catch (_) {}
+        try { this.setSelectionRange(0, this.value.length); } catch (_) {}
+    });
+
+    // Prevent iOS translate/cut/copy/paste callout and manage focus on first tap
+    let primed = false;
+    const primeFocus = (e) => {
+        if (primed) return;
+        primed = true;
+        e.preventDefault();
+        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+        requestAnimationFrame(() => {
             try { input.select(); } catch (_) {}
             try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+        });
+    };
+    input.addEventListener('pointerdown', primeFocus, { passive: false });
+    input.addEventListener('touchstart', primeFocus, { passive: false });
+    input.addEventListener('mousedown', primeFocus);
 
-            input.addEventListener('input', function () {
-                this.value = this.value.toUpperCase();
-            });
+    // Block the context menu and long-press menu flash
+    input.addEventListener('contextmenu', (e) => e.preventDefault());
+    input.addEventListener('mouseup', (e) => e.preventDefault());
 
-            input.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') {
-                    updatePlayerName(index);
-                }
-            });
+    // Force uppercase while typing
+    input.addEventListener('input', function () {
+        this.value = this.value.toUpperCase();
+    });
+
+    // Apply rename on Enter (and close)
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const newName = (input.value || '').trim().toUpperCase();
+            if (newName && newName !== players[index].name) {
+                renamePlayer(index, newName);
+            }
+            closePopup('playerManagementModal');
         }
+    });
+
+    // Also apply rename on blur (don’t close)
+    input.addEventListener('blur', function () {
+        const newName = (input.value || '').trim().toUpperCase();
+        if (newName && newName !== players[index].name) {
+            renamePlayer(index, newName);
+        }
+    });
+}
 
         // Emoji-only player management dialog (auto-apply + no Update button)
         function createEmojiPlayerDialog(index) {
@@ -1049,7 +1067,12 @@ table input[type="number"]::placeholder {
                     spellcheck="false"
                 >
                 <div class="emoji-grid">${grid}</div>
-                <!-- Removed Update button (auto-apply on input) -->
+                <div class="segmented-control">
+                    <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, ${index})">
+                    <label for="playerMode-name">Name</label>
+                    <input type="radio" id="playerMode-emoji" name="playerModeSwitch" value="emoji" ${emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(true, ${index})">
+                    <label for="playerMode-emoji">Emoji</label>
+                </div>
                 <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
             `;
             modal.style.display = 'block';
@@ -1057,7 +1080,7 @@ table input[type="number"]::placeholder {
 
             const input = modal.querySelector('#emojiNameInput');
 
-            // iOS-friendly: prime focus to avoid OS callout
+            // iOS-friendly: focus when the user taps the field (prevents callout)
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
@@ -1148,11 +1171,15 @@ table input[type="number"]::placeholder {
         }
     
         // Update player name (normal text mode)
-        function updatePlayerName(index) {
+        // If closeModal is false, do not close (used on blur).
+        function updatePlayerName(index, closeModal = true) {
             const input = document.getElementById('playerNameInput');
+            if (!input) return;
             const newName = (input.value || '').trim().toUpperCase();
             if (newName && newName !== players[index].name) {
                 renamePlayer(index, newName);
+            }
+            if (closeModal) {
                 closePopup('playerManagementModal');
             }
         }
@@ -1166,6 +1193,31 @@ table input[type="number"]::placeholder {
             } else {
                 createPlayerManagementDialog(index);
             }
+        }
+
+        // Set Emoji Mode explicitly (used by Name/Emoji segmented toggle in the name popup)
+        function setEmojiMode(enabled, reopenIndex = null) {
+            const newVal = !!enabled;
+            emojiModeEnabled = newVal;
+            localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
+
+            syncDefaultNamesToMode();
+            saveData();
+            updateUI();
+
+            // Re-open the correct player dialog for the same player so the UI switches modes seamlessly
+            if (reopenIndex !== null) {
+                if (emojiModeEnabled) {
+                    createEmojiPlayerDialog(reopenIndex);
+                } else {
+                    createPlayerManagementDialog(reopenIndex);
+                }
+            }
+        }
+
+        // Back-compat (no longer used by Round modal, but kept harmless)
+        function toggleEmojiMode() {
+            setEmojiMode(!emojiModeEnabled);
         }
     
         // Create round management dialog (single column)
@@ -1184,7 +1236,6 @@ table input[type="number"]::placeholder {
                     <label for="highest">High</label>
                 </div>
                 <button id="sortByRankBtn" class="${sortByRankEnabled ? 'active' : ''}" onclick="toggleSortByRank()">Sort by Rank</button>
-                <button id="emojiModeBtn" class="${emojiModeEnabled ? 'active' : ''}" onclick="toggleEmojiMode()">Emoji Mode</button>
 
                 <select id="themeColorSelect" onchange="setThemeColor(this.value)">
                     ${[
@@ -1217,17 +1268,6 @@ table input[type="number"]::placeholder {
             if (sortByRankEnabled) {
                 applySortByRank(true);
             }
-            updateUI();
-        }
-
-        // Toggle Emoji mode (dark when ON, light when OFF). Does not close the popup.
-        function toggleEmojiMode() {
-            emojiModeEnabled = !emojiModeEnabled;
-            localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
-            const btn = document.getElementById('emojiModeBtn');
-            if (btn) btn.classList.toggle('active', emojiModeEnabled);
-
-            syncDefaultNamesToMode();
             updateUI();
         }
     
