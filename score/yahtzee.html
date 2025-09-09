@@ -567,7 +567,7 @@
         .emoji-grid {
             --emoji-gap: 8px;
             display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: var(--emoji-gap);
             padding: 0;
             margin: 5px 0;
@@ -1375,8 +1375,7 @@
                 "🍔","🩰","🌹","🌰","🔔",
                 "👑","🎣","🌻","🏏","🦈",
                 "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
-                "❄️","🔥","💥","⚡","⭐",
-                "🐬","🐳","🦀","🕷️","🐝"
+                "🏃‍➡️"
             ];
             const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" onclick="setEmojiFromButton('${e}')">${e}</button>`).join('');
 
