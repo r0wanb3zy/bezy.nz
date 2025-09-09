@@ -175,14 +175,6 @@
           color: #6b7280;
           opacity: 0.8;
         }
-        /* Legacy highlight classes kept (not used now) */
-        .highlight-winner {
-            background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
-        }
-
-        .highlight-loser {
-            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
-        }
 
         /* Popup Modal Styles */
         .popup-modal {
@@ -269,7 +261,7 @@
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
 
-        /* Sort-by-rank button styles (active state flips to dark) */
+        /* Sort-by-rank button styles */
         #roundManagementModal button#sortByRankBtn {
             background: #f8f9fa;
             color: #0f172a;
@@ -281,13 +273,6 @@
             border: 1px solid #262626;
         }
 
-        /* Round modal single-column layout */
-        #roundManagementModal .segmented-control {
-            width: 100%;
-            box-sizing: border-box;
-            margin: 5px 0;
-        }
-
         /* Adjust spacing for h2 in popups */
         #playerManagementModal h2,
         #roundManagementModal h2,
@@ -297,43 +282,40 @@
             padding: 0;
         }
 
-        /* Segmented Control Styles (full width) */
+        /* Segmented Control Styles (full width, seamless) */
         .segmented-control {
             display: flex;
-            justify-content: center;
+            width: 100%;
+            box-sizing: border-box;
             margin: 5px 0;
             background: #f8f9fa;
             border-radius: 6px;
             overflow: hidden;
-            border: 1px solid #262626;
-            width: 100%;
-            box-sizing: border-box;
-        }
 
+            /* Use inset border to avoid hairline gaps between border and fill */
+            border: 1px solid transparent;
+            box-shadow: inset 0 0 0 1px #262626;
+        }
+        .segmented-control input[type="radio"] {
+            display: none;
+        }
         .segmented-control label {
-            flex: 1;
-            padding: 10px 0px;
+            flex: 1 1 0;
+            padding: 10px 0;
             text-align: center;
             font-size: 24px;
             font-family: 'Economica', sans-serif;
             cursor: pointer;
-            background: #f8f9fa;
-            transition: background 0.2s, color 0.2s;
+            user-select: none;
+            background: #f8f9fa; /* light side */
+            margin: 0;           /* ensure no seams */
         }
-
-        .segmented-control input[type="radio"] {
-            display: none;
-        }
-
         .segmented-control input[type="radio"]:checked + label {
-            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-            color: white;
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); /* dark side */
+            color: #fff;
         }
-
-        /* Divider for first segment (generic) */
-        .segmented-control label:first-of-type {
-            border-right: 1px solid #ddd;
-        }
+        /* No center divider to prevent thin grey line */
+        /* (Intentionally no border-right on the first label) */
 
         /* Close Button */
         .close-btn {
@@ -386,7 +368,6 @@
             background: #fff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-
         .sticky-header table {
             margin-bottom: 0;
         }
@@ -412,7 +393,7 @@
           grid-template-columns: repeat(5, minmax(0, 1fr));
           gap: var(--emoji-gap);
           padding: 0;
-          margin: 10px 0; /* increased for consistent spacing with toggle */
+          margin: 5px 0; /* consistent with other gaps */
           width: 100%;
           box-sizing: border-box;
         }
@@ -492,13 +473,9 @@
           background-color: #f8f9fa;
           padding-right: 12px;
         }
-
-        /* Hide the arrow in IE/Edge Legacy */
         #roundManagementModal select#playerCount::-ms-expand {
           display: none;
         }
-
-        /* Optional: center the options list contents in some browsers */
         #roundManagementModal select#playerCount option {
           text-align: center;
         }
@@ -515,28 +492,21 @@
           background-color: #f8f9fa;
           padding-right: 12px;
         }
-
-        /* Hide the arrow in IE/Edge Legacy for Theme Colour dropdown */
         #roundManagementModal select#themeColorSelect::-ms-expand {
           display: none;
         }
-
-        /* Optional: center option text */
         #roundManagementModal select#themeColorSelect option {
           text-align: center;
         }
+
         /* Bottom input row: make placeholders 50% transparent */
         #scoreTable tbody tr:last-child input[type="number"]::placeholder { 
           opacity: 0.5; 
         }
-
-        /* Cross-browser placeholders */
-        #scoreTable tbody tr:last-child input[type="number"]::-webkit-input-placeholder { opacity: 0.5; } /* Chrome/Safari */
-        #scoreTable tbody tr:last-child input[type="number"]::-moz-placeholder { opacity: 0.5; }    /* Firefox */
-        #scoreTable tbody tr:last-child input[type="number"]:-ms-input-placeholder { opacity: 0.5; } /* IE 10-11 */
-        #scoreTable tbody tr:last-child input[type="number"]::-ms-input-placeholder { opacity: 0.5; } /* Edge Legacy */
-
-        /* Optional: also lighten non-emoji placeholders a bit */
+        #scoreTable tbody tr:last-child input[type="number"]::-webkit-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::-moz-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]:-ms-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::-ms-input-placeholder { opacity: 0.5; }
         #scoreTable tbody tr:last-child input[type="number"]::placeholder {
           color: rgba(107, 114, 128, 0.5);
         }
@@ -626,15 +596,17 @@
         function setThemeColor(value) {
             themeColor = value || 'blue';
             localStorage.setItem('themeColor', themeColor);
-            updateUI();
-            applyThemeSelectColors();
+            updateUI();                // re-render shading immediately
+            applyThemeSelectColors();  // recolor the dropdown text to match
         }
 
         // Apply selected theme color to the Theme Colour select (outer) and color-code options (inner)
         function applyThemeSelectColors() {
             const select = document.querySelector('#roundManagementModal select#themeColorSelect');
             if (!select) return;
+            // Outer (collapsed) text matches the currently selected theme
             select.style.color = getThemeTextColor(themeColor);
+            // Inner options each correspond to their theme color
             Array.from(select.options).forEach(opt => {
                 opt.style.color = getThemeTextColor(opt.value);
             });
@@ -652,11 +624,12 @@
             });
             rounds.push(scores);
             saveData();
-            unsubmittedScores = {};
+            unsubmittedScores = {}; // Clear unsubmitted scores after submission
             localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
             updateUI();
             inputs.forEach(input => input.value = '');
             
+            // Scroll to the last row (input row) after adding scores
             const scoreBody = document.getElementById("scoreBody");
             const lastRow = scoreBody.lastElementChild;
             if (lastRow) {
@@ -671,7 +644,7 @@
             localStorage.setItem('scoringMode', scoringMode);
             localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
             localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
-            localStorage.setItem('themeColor', themeColor);
+            localStorage.setItem('themeColor', themeColor); // NEW
         }
     
         // Save unsubmitted scores to localStorage
@@ -684,7 +657,9 @@
             localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
         }
 
-        // Sync default placeholder names with mode
+        // Sync default placeholder names with mode:
+        // - Emoji mode ON: P1..P8 -> 1️⃣..8️⃣
+        // - Emoji mode OFF: 1️⃣..8️⃣ -> P1..P8
         function syncDefaultNamesToMode() {
             let changed = false;
             players.forEach((p) => {
@@ -746,14 +721,16 @@
     
         // Update the UI with current data
         function updateUI() {
+            // Keep columns ordered by rank automatically when enabled
             if (sortByRankEnabled && players.length > 1 && rounds.length > 0) {
-                applySortByRank(true);
+                applySortByRank(true); // silent sort (no recursive UI call)
             }
 
             const playerRow = document.getElementById("playerRow");
             const scoreTable = document.getElementById("scoreTable");
             const stickyHeader = document.querySelector(".sticky-header");
     
+            // Apply small-scores class to both scoreTable and sticky-header
             if (players.length >= 7) {
                 scoreTable.classList.add("small-scores");
                 stickyHeader.classList.add("small-scores");
@@ -802,11 +779,12 @@
             });
             scoreBody.appendChild(inputRow);
     
+            // Always update rankings so single-player gray/blue logic applies
             updateRankings();
     
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
-                input.addEventListener('input', saveUnsubmittedScores);
+                input.addEventListener('input', saveUnsubmittedScores); // Save on input change
                 input.addEventListener('keydown', function(event) {
                     if (event.key === 'Enter' || event.keyCode === 13) {
                         event.preventDefault();
@@ -867,16 +845,18 @@
             const playerRow = document.getElementById("playerRow");
             const columns = Array.from(playerRow.children).slice(1);
 
+            // Clear previous styles
             columns.forEach((th) => {
                 th.style.background = '';
             });
 
             const { h: H, s: S } = getThemeHS();
 
+            // Single player logic
             if (players.length === 1) {
                 if (rounds.length > 0) {
                     const Lmax = 82, range = 36;
-                    const Lmin = Lmax - range;
+                    const Lmin = Lmax - range; // darkest
                     const L = Lmin;
                     const Ltop = Math.max(18, L - 10);
                     const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
@@ -885,13 +865,16 @@
                 return;
             }
 
+            // Multiple players: no shading until at least one round exists
             if (rounds.length === 0) {
                 return;
             }
 
+            // Build ranked list according to scoringMode
             const scored = players.map((p, i) => ({ index: i, score: p.totalScore }));
             scored.sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score));
 
+            // Group ties
             const groups = [];
             for (const item of scored) {
                 const last = groups[groups.length - 1];
@@ -902,11 +885,12 @@
                 }
             }
 
-            const Lmax = 82;
-            const minRange = 18;
-            const maxRange = 44;
+            const Lmax = 82; // lightest for last
+            const minRange = 18; // minimal contrast for few ranks
+            const maxRange = 44; // maximal contrast for many ranks
             const effectiveRanks = groups.length;
 
+            // If everyone is tied, shade all with darkest "first" color
             if (effectiveRanks === 1) {
                 const darkestL = Math.max(28, Lmax - maxRange);
                 const Ltop = Math.max(18, darkestL - 10);
@@ -915,10 +899,11 @@
                 return;
             }
 
+            // Dynamic contrast based on number of ranks
             const maxRanksForScaling = 8;
             const normalized = Math.min(1, Math.max(0, (effectiveRanks - 1) / (maxRanksForScaling - 1)));
             const range = Math.round(minRange + (maxRange - minRange) * normalized);
-            const Lmin = Math.max(28, Lmax - range);
+            const Lmin = Math.max(28, Lmax - range); // darkest for first place
 
             groups.forEach((group, g) => {
                 const ratio = g / (effectiveRanks - 1);
@@ -972,7 +957,6 @@
                     inputmode="text"
                     style="text-transform: uppercase;"
                 >
-                <button onclick="updatePlayerName(${index})">Update</button>
                 <div class="segmented-control">
                     <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, ${index})">
                     <label for="playerMode-name">Name</label>
@@ -986,7 +970,8 @@
 
             const input = modal.querySelector('#playerNameInput');
 
-            // Do NOT auto-focus to keep keyboard closed. Select text only when user focuses.
+            // Do NOT auto-focus to keep keyboard closed.
+            // When the user taps into the input, select all text.
             input.addEventListener('focus', function () {
                 try { this.select(); } catch (_) {}
                 try { this.setSelectionRange(0, this.value.length); } catch (_) {}
@@ -996,10 +981,16 @@
                 this.value = this.value.toUpperCase();
             });
 
+            // Apply rename on Enter
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     updatePlayerName(index);
                 }
+            });
+
+            // Apply rename when leaving the field (tap outside or close)
+            input.addEventListener('blur', function () {
+                updatePlayerName(index, /*closeModal*/ false);
             });
         }
 
@@ -1044,7 +1035,7 @@
 
             const input = modal.querySelector('#emojiNameInput');
 
-            // iOS-friendly: prime focus on touch to avoid OS callout; does not auto-open keyboard on dialog open
+            // iOS-friendly: focus when the user taps the field (prevents callout)
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
@@ -1135,11 +1126,15 @@
         }
     
         // Update player name (normal text mode)
-        function updatePlayerName(index) {
+        // If closeModal is false, do not close (used on blur).
+        function updatePlayerName(index, closeModal = true) {
             const input = document.getElementById('playerNameInput');
+            if (!input) return;
             const newName = (input.value || '').trim().toUpperCase();
             if (newName && newName !== players[index].name) {
                 renamePlayer(index, newName);
+            }
+            if (closeModal) {
                 closePopup('playerManagementModal');
             }
         }
@@ -1165,6 +1160,7 @@
             saveData();
             updateUI();
 
+            // Re-open the correct player dialog for the same player so the UI switches modes seamlessly
             if (reopenIndex !== null) {
                 if (emojiModeEnabled) {
                     createEmojiPlayerDialog(reopenIndex);
@@ -1213,6 +1209,7 @@
             `;
             modal.style.display = 'block';
             showOverlay();
+            // Color the Theme Colour dropdown (outer + inner)
             applyThemeSelectColors();
         }
 
