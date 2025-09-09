@@ -1240,11 +1240,11 @@ function createPlayerManagementDialog(index) {
                 <select id="themeColorSelect" onchange="setThemeColor(this.value)">
                     ${[
                         {v:'blue', t:'Blue'},
-                        {v:'red', t:'Red'},
-                        {v:'green', t:'Green'},
-                        {v:'pink', t:'Pink'},
                         {v:'purple', t:'Purple'},
+                        {v:'pink', t:'Pink'},
+                        {v:'red', t:'Red'},
                         {v:'yellow', t:'Yellow'},
+                        {v:'green', t:'Green'},
                         {v:'grey', t:'Grey'}
                         
                     ].map(opt => `<option value="${opt.v}" ${themeColor === opt.v ? 'selected' : ''} style="color:${getThemeTextColor(opt.v)};">${opt.t}</option>`).join('')}
