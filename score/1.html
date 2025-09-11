@@ -240,7 +240,7 @@
             border-radius: 6px;
             background: #f8f9fa;
             width: 100%;
-            box-sizing: border-box;
+            box-sizing: border-box.
         }
 
         .popup-modal button {
@@ -259,6 +259,13 @@
         }
         .popup-modal button[data-state="confirm"] {
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
+
+        /* Light button variant (Cancel, toggle-like) */
+        .popup-modal button.light {
+            background: #f8f9fa;
+            color: #0f172a;
+            border: 1px solid #262626;
         }
 
         /* Sort-by-rank button styles */
@@ -396,6 +403,8 @@
           margin: 5px 0; /* consistent with other gaps */
           width: 100%;
           box-sizing: border-box;
+          user-select: none;
+          -webkit-user-select: none;
         }
 
         .emoji-grid .emoji-pick {
@@ -415,11 +424,46 @@
           cursor: pointer;
           transition: transform 0.05s ease, filter 0.1s ease;
           box-sizing: border-box;
+          position: relative;
         }
 
         .emoji-grid .emoji-pick:active {
           transform: scale(0.95);
           filter: brightness(1.05);
+        }
+
+        /* Selected state for bulk select */
+        .emoji-grid .emoji-pick.selected {
+          outline: 2px solid #ffffff;
+          box-shadow: 0 0 0 2px #262626 inset;
+          filter: brightness(1.08);
+        }
+        /* Centered order number overlay */
+        .emoji-grid .emoji-pick.selected::after {
+          content: attr(data-order);
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -55%);
+          font-size: 28px;
+          font-weight: 700;
+          color: #fff;
+          text-shadow: 0 2px 6px rgba(0,0,0,0.6), 0 0 2px rgba(0,0,0,0.6);
+          pointer-events: none;
+        }
+
+        /* Bulk actions (shown during multi-select) */
+        .bulk-actions {
+          display: none;
+          margin: 5px 0 0 0;
+          width: 100%;
+        }
+        .bulk-actions .row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          align-items: center;
+          width: 100%;
         }
 
         /* NEW: suppress iOS cut/copy/paste callout on the emoji input */
@@ -428,7 +472,7 @@
         }
         #playerNameInput {
             -webkit-touch-callout: none; /* hide Translate/Cut/Copy/Paste on long-press */
-}
+        }
 
         @media (max-width: 480px) {
             .sticky-header.small-scores th span.score {
@@ -518,17 +562,8 @@
         #playerManagementModal .segmented-control {
           margin-top: 5px;
         }
-
         #playerManagementModal .emoji-grid {
           margin-bottom: 10px;
-        }
-
-        /* NEW: Preset code grid inside the player modal */
-        .code-buttons {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 8px;
-          margin: 5px 0;
         }
     </style>
 </head>
@@ -584,17 +619,10 @@
         let emojiModeEnabled = localStorage.getItem('emojiModeEnabled') === 'true';
         let themeColor = localStorage.getItem('themeColor') || 'blue'; // NEW: theme color (default blue)
 
-        // NEW: Preset codes
-        const PRESET_CODES = {
-            BEZY: {
-                names: ["Row", "Apr", "Car", "Haz", "Shi", "Jul"],
-                emojis: ["🍔", "🩰", "🌹", "🌰", "🔔", "👑"]
-            },
-            DEEBLE: {
-                names: ["Don", "Jay", "Joe", "Das", "Cal", "Noa", "Til"],
-                emojis: ["🎣", "🌻", "🏏", "🩰", "🦈", "🤸🏼‍♀️", "🎁"]
-            }
-        };
+        // NEW: bulk emoji selection state
+        let bulkEmojiMode = false;
+        let bulkEmojiSelection = [];
+        const bulkMaxPlayers = 8;
 
         // Keycap digit helpers
         const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
@@ -636,9 +664,7 @@
         function applyThemeSelectColors() {
             const select = document.querySelector('#roundManagementModal select#themeColorSelect');
             if (!select) return;
-            // Outer (collapsed) text matches the currently selected theme
             select.style.color = getThemeTextColor(themeColor);
-            // Inner options each correspond to their theme color
             Array.from(select.options).forEach(opt => {
                 opt.style.color = getThemeTextColor(opt.value);
             });
@@ -661,7 +687,6 @@
             updateUI();
             inputs.forEach(input => input.value = '');
             
-            // Scroll to the last row (input row) after adding scores
             const scoreBody = document.getElementById("scoreBody");
             const lastRow = scoreBody.lastElementChild;
             if (lastRow) {
@@ -689,9 +714,7 @@
             localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
         }
 
-        // Sync default placeholder names with mode:
-        // - Emoji mode ON: P1..P8 -> 1️⃣..8️⃣
-        // - Emoji mode OFF: 1️⃣..8️⃣ -> P1..P8
+        // Sync default placeholder names with mode
         function syncDefaultNamesToMode() {
             let changed = false;
             players.forEach((p) => {
@@ -733,7 +756,7 @@
             }
         }
 
-        // Apply sort-by-rank to underlying arrays
+        // Apply sort-by-rank to arrays
         function applySortByRank(silent = false) {
             if (players.length <= 1 || rounds.length === 0) {
                 if (!silent) updateUI();
@@ -751,18 +774,16 @@
             if (!silent) updateUI();
         }
     
-        // Update the UI with current data
+        // Update UI
         function updateUI() {
-            // Keep columns ordered by rank automatically when enabled
             if (sortByRankEnabled && players.length > 1 && rounds.length > 0) {
-                applySortByRank(true); // silent sort (no recursive UI call)
+                applySortByRank(true);
             }
 
             const playerRow = document.getElementById("playerRow");
             const scoreTable = document.getElementById("scoreTable");
             const stickyHeader = document.querySelector(".sticky-header");
     
-            // Apply small-scores class to both scoreTable and sticky-header
             if (players.length >= 7) {
                 scoreTable.classList.add("small-scores");
                 stickyHeader.classList.add("small-scores");
@@ -811,12 +832,11 @@
             });
             scoreBody.appendChild(inputRow);
     
-            // Always update rankings so single-player gray/blue logic applies
             updateRankings();
     
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
-                input.addEventListener('input', saveUnsubmittedScores); // Save on input change
+                input.addEventListener('input', saveUnsubmittedScores);
                 input.addEventListener('keydown', function(event) {
                     if (event.key === 'Enter' || event.keyCode === 13) {
                         event.preventDefault();
@@ -858,7 +878,7 @@
             return rank + suffix;
         }
     
-        // Update score for a specific round and player
+        // Update score
         function updateScore(roundIndex, playerIndex, newScore) {
             const score = parseInt(newScore) || 0;
             if (rounds[roundIndex] && rounds[roundIndex][playerIndex] !== undefined) {
@@ -872,23 +892,19 @@
             updateUI();
         }
     
-        // Update player rankings with THEME gradient shading (no badges)
+        // Update player rankings with THEME gradient shading
         function updateRankings() {
             const playerRow = document.getElementById("playerRow");
             const columns = Array.from(playerRow.children).slice(1);
 
-            // Clear previous styles
-            columns.forEach((th) => {
-                th.style.background = '';
-            });
+            columns.forEach((th) => { th.style.background = ''; });
 
             const { h: H, s: S } = getThemeHS();
 
-            // Single player logic
             if (players.length === 1) {
                 if (rounds.length > 0) {
                     const Lmax = 82, range = 36;
-                    const Lmin = Lmax - range; // darkest
+                    const Lmin = Lmax - range;
                     const L = Lmin;
                     const Ltop = Math.max(18, L - 10);
                     const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
@@ -897,16 +913,11 @@
                 return;
             }
 
-            // Multiple players: no shading until at least one round exists
-            if (rounds.length === 0) {
-                return;
-            }
+            if (rounds.length === 0) return;
 
-            // Build ranked list according to scoringMode
             const scored = players.map((p, i) => ({ index: i, score: p.totalScore }));
             scored.sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score));
 
-            // Group ties
             const groups = [];
             for (const item of scored) {
                 const last = groups[groups.length - 1];
@@ -917,12 +928,11 @@
                 }
             }
 
-            const Lmax = 82; // lightest for last
-            const minRange = 18; // minimal contrast for few ranks
-            const maxRange = 44; // maximal contrast for many ranks
+            const Lmax = 82;
+            const minRange = 18;
+            const maxRange = 44;
             const effectiveRanks = groups.length;
 
-            // If everyone is tied, shade all with darkest "first" color
             if (effectiveRanks === 1) {
                 const darkestL = Math.max(28, Lmax - maxRange);
                 const Ltop = Math.max(18, darkestL - 10);
@@ -931,11 +941,10 @@
                 return;
             }
 
-            // Dynamic contrast based on number of ranks
             const maxRanksForScaling = 8;
             const normalized = Math.min(1, Math.max(0, (effectiveRanks - 1) / (maxRanksForScaling - 1)));
             const range = Math.round(minRange + (maxRange - minRange) * normalized);
-            const Lmin = Math.max(28, Lmax - range); // darkest for first place
+            const Lmin = Math.max(28, Lmax - range);
 
             groups.forEach((group, g) => {
                 const ratio = g / (effectiveRanks - 1);
@@ -975,85 +984,7 @@
             updateUI();
         }
 
-        // NEW: Minimal preset picker UI in the same modal
-        function showPresetPicker() {
-            const modal = document.getElementById('playerManagementModal');
-            if (!modal) return;
-            const btns = Object.keys(PRESET_CODES)
-                .map(code => `<button class="preset-btn" onclick="applyPreset('${code}')">${code}</button>`)
-                .join('');
-            modal.innerHTML = `
-                <h2>Presets</h2>
-                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-                <div class="code-buttons">${btns}</div>
-            `;
-            modal.style.display = 'block';
-            showOverlay();
-        }
-
-        // NEW: Programmatically set player count (1..8), preserving rounds
-        function setPlayerCount(newCount, opts = {}) {
-            const { silentUI = false } = opts;
-            newCount = Math.max(1, Math.min(8, parseInt(newCount) || players.length));
-
-            if (newCount > players.length) {
-                for (let i = players.length; i < newCount; i++) {
-                    const newLabel = emojiModeEnabled ? numberToKeycap(i + 1) : `P${i + 1}`.toUpperCase();
-                    players.push({ 
-                        name: newLabel,
-                        totalScore: 0, 
-                        roundScores: Array(rounds.length).fill(0)
-                    });
-                    rounds.forEach(round => round.push(0));
-                }
-            } else if (newCount < players.length) {
-                const removedNames = players.slice(newCount).map(p => p.name);
-                players = players.slice(0, newCount);
-                rounds.forEach(round => round.length = newCount);
-                // prune unsubmittedScores for removed players
-                if (unsubmittedScores && typeof unsubmittedScores === 'object') {
-                    removedNames.forEach(n => { delete unsubmittedScores[n]; });
-                    localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
-                }
-            }
-            saveData();
-            if (!silentUI) updateUI();
-        }
-
-        // NEW: Apply a preset (respects Emoji Mode), adjusts count, renames in bulk, closes modal
-        function applyPreset(code) {
-            const preset = PRESET_CODES[code];
-            if (!preset) return;
-
-            const list = emojiModeEnabled ? (preset.emojis || []) : (preset.names || []);
-            const targetCount = list.length;
-            if (targetCount === 0) {
-                closePopup('playerManagementModal');
-                return;
-            }
-
-            // Adjust number of players to match preset
-            setPlayerCount(targetCount, { silentUI: true });
-
-            // Bulk rename and migrate unsubmitted scores
-            const newUnsubmitted = {};
-            for (let i = 0; i < targetCount; i++) {
-                const oldName = players[i].name;
-                const newName = emojiModeEnabled ? String(list[i]) : String(list[i]).toUpperCase();
-                players[i].name = newName;
-                if (unsubmittedScores[oldName] !== undefined) {
-                    newUnsubmitted[newName] = unsubmittedScores[oldName];
-                }
-            }
-            unsubmittedScores = newUnsubmitted;
-            localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
-
-            saveData();
-            updateUI();
-            closePopup('playerManagementModal');
-        }
-
-        // Create player management dialog (text/uppercase mode) with iOS callout suppressed
+        // Create player management dialog (text mode)
         function createPlayerManagementDialog(index) {
             const modal = document.getElementById('playerManagementModal');
             modal.innerHTML = `
@@ -1083,13 +1014,11 @@
 
             const input = modal.querySelector('#playerNameInput');
 
-            // Do NOT auto-focus (keeps keyboard closed). Select all when the user taps into the field.
             input.addEventListener('focus', function () {
                 try { this.select(); } catch (_) {}
                 try { this.setSelectionRange(0, this.value.length); } catch (_) {}
             });
 
-            // Prevent iOS translate/cut/copy/paste callout and manage focus on first tap
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
@@ -1105,16 +1034,13 @@
             input.addEventListener('touchstart', primeFocus, { passive: false });
             input.addEventListener('mousedown', primeFocus);
 
-            // Block the context menu and long-press menu flash
             input.addEventListener('contextmenu', (e) => e.preventDefault());
             input.addEventListener('mouseup', (e) => e.preventDefault());
 
-            // Force uppercase while typing
             input.addEventListener('input', function () {
                 this.value = this.value.toUpperCase();
             });
 
-            // Apply rename on Enter (and close)
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1126,7 +1052,6 @@
                 }
             });
 
-            // Also apply rename on blur (don’t close)
             input.addEventListener('blur', function () {
                 const newName = (input.value || '').trim().toUpperCase();
                 if (newName && newName !== players[index].name) {
@@ -1135,7 +1060,7 @@
             });
         }
 
-        // Emoji-only player management dialog (auto-apply + no Update button)
+        // Emoji-only player management dialog (with bulk select)
         function createEmojiPlayerDialog(index) {
             const modal = document.getElementById('playerManagementModal');
             const favEmojis = [
@@ -1144,7 +1069,7 @@
                 "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
                 "🏃‍➡️"
             ];
-            const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}" onclick="setEmojiFromButton(this, ${index})">${e}</button>`).join('');
+            const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}">${e}</button>`).join('');
             
             modal.innerHTML = `
                 <h2>Player</h2>
@@ -1162,6 +1087,15 @@
                     spellcheck="false"
                 >
                 <div class="emoji-grid">${grid}</div>
+
+                <!-- Bulk multi-select toolbar (hidden until long-press) -->
+                <div id="bulkEmojiActions" class="bulk-actions">
+                  <div class="row">
+                    <button type="button" id="bulkCancelBtn" class="light">Cancel</button>
+                    <button type="button" id="bulkApplyBtn">Select</button>
+                  </div>
+                </div>
+
                 <div class="segmented-control">
                     <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, ${index})">
                     <label for="playerMode-name">Name</label>
@@ -1173,9 +1107,12 @@
             modal.style.display = 'block';
             showOverlay();
 
+            // Reset bulk state on open
+            bulkEmojiMode = false;
+            bulkEmojiSelection = [];
+
             const input = modal.querySelector('#emojiNameInput');
 
-            // iOS-friendly: focus when the user taps the field (prevents callout)
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
@@ -1195,29 +1132,30 @@
             input.addEventListener('mouseup', (e) => e.preventDefault());
             input.addEventListener('contextmenu', (e) => e.preventDefault());
 
-            // Auto-apply + close as soon as an emoji is entered
             let autoClosed = false;
             input.addEventListener('input', function () {
                 const sanitized = extractEmojis(this.value);
                 if (sanitized !== this.value) {
                     this.value = sanitized;
                 }
-                if (sanitized && !autoClosed) {
+                if (sanitized && !autoClosed && !bulkEmojiMode) {
                     renamePlayer(index, sanitized);
                     autoClosed = true;
                     closePopup('playerManagementModal');
                 }
             });
 
-            // Fallback: Enter key also applies
             input.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !bulkEmojiMode) {
                     updatePlayerNameEmoji(index);
                 }
             });
+
+            // Attach grid interactions (tap vs long-press)
+            attachEmojiGridInteractions(index);
         }
 
-        // Broadened emoji extractor
+        // Emoji extractor
         function extractEmojis(str) {
             if (!str) return '';
             let segments;
@@ -1253,7 +1191,160 @@
             }
             closePopup('playerManagementModal');
         }
-    
+
+        // Attach per-emoji interactions (tap vs long-press for bulk)
+        function attachEmojiGridInteractions(index) {
+            const modal = document.getElementById('playerManagementModal');
+            const buttons = Array.from(modal.querySelectorAll('.emoji-pick'));
+            const bulkBar = modal.querySelector('#bulkEmojiActions');
+            const seg = modal.querySelector('.segmented-control');
+            const emojiInput = modal.querySelector('#emojiNameInput');
+
+            const enterBulkEmojiMode = () => {
+                if (bulkEmojiMode) return;
+                bulkEmojiMode = true;
+                bulkEmojiSelection = [];
+                if (bulkBar) bulkBar.style.display = 'block';
+                if (seg) seg.style.display = 'none';
+                if (emojiInput) emojiInput.style.display = 'none';
+                buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
+            };
+
+            const exitBulkEmojiMode = () => {
+                bulkEmojiMode = false;
+                bulkEmojiSelection = [];
+                if (bulkBar) bulkBar.style.display = 'none';
+                if (seg) seg.style.display = '';
+                if (emojiInput) emojiInput.style.display = '';
+                buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
+            };
+
+            const renumberSelection = () => {
+                // Clear existing numbers
+                buttons.forEach(b => {
+                    if (b.classList.contains('selected')) b.setAttribute('data-order', '');
+                });
+                // Apply order numbers based on selection array
+                bulkEmojiSelection.forEach((emoji, i) => {
+                    const b = buttons.find(btn => btn.getAttribute('data-emoji') === emoji);
+                    if (b) b.setAttribute('data-order', String(i + 1));
+                });
+            };
+
+            const toggleEmojiSelection = (btn) => {
+                const emoji = btn.getAttribute('data-emoji');
+                const idx = bulkEmojiSelection.indexOf(emoji);
+                if (idx !== -1) {
+                    bulkEmojiSelection.splice(idx, 1);
+                    btn.classList.remove('selected');
+                    btn.removeAttribute('data-order');
+                } else {
+                    if (bulkEmojiSelection.length >= bulkMaxPlayers) {
+                        return;
+                    }
+                    bulkEmojiSelection.push(emoji);
+                    btn.classList.add('selected');
+                }
+                renumberSelection();
+            };
+
+            const applyBulkEmojiPlayers = (selected) => {
+                const targetCount = Math.min(bulkMaxPlayers, selected.length);
+                if (targetCount < 1) return;
+
+                emojiModeEnabled = true;
+                localStorage.setItem('emojiModeEnabled', 'true');
+
+                const currentCount = players.length;
+
+                if (targetCount > currentCount) {
+                    for (let i = currentCount; i < targetCount; i++) {
+                        const newName = selected[i] || (emojiModeEnabled ? numberToKeycap(i + 1) : `P${i + 1}`.toUpperCase());
+                        players.push({
+                            name: newName,
+                            totalScore: 0,
+                            roundScores: Array(rounds.length).fill(0)
+                        });
+                    }
+                    rounds.forEach(round => {
+                        for (let i = round.length; i < targetCount; i++) {
+                            round.push(0);
+                        }
+                    });
+                } else if (targetCount < currentCount) {
+                    players = players.slice(0, targetCount);
+                    rounds.forEach(round => round.length = targetCount);
+                }
+
+                const oldUnsubmitted = { ...unsubmittedScores };
+                const newUnsubmitted = {};
+
+                for (let i = 0; i < targetCount; i++) {
+                    const oldName = players[i].name;
+                    const newName = selected[i];
+                    players[i].name = newName;
+                    if (oldUnsubmitted[oldName] !== undefined) {
+                        newUnsubmitted[newName] = oldUnsubmitted[oldName];
+                    }
+                }
+                unsubmittedScores = newUnsubmitted;
+                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+
+                saveData();
+                updateUI();
+            };
+
+            // Bind toolbar buttons
+            const cancelBtn = modal.querySelector('#bulkCancelBtn');
+            const applyBtn = modal.querySelector('#bulkApplyBtn');
+            if (cancelBtn) cancelBtn.addEventListener('click', () => {
+                exitBulkEmojiMode();
+            });
+            if (applyBtn) applyBtn.addEventListener('click', () => {
+                if (bulkEmojiSelection.length > 0) {
+                    applyBulkEmojiPlayers(bulkEmojiSelection);
+                }
+                exitBulkEmojiMode();
+                closePopup('playerManagementModal');
+            });
+
+            // Per-emoji interactions
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (bulkEmojiMode) {
+                        toggleEmojiSelection(btn);
+                    } else {
+                        setEmojiFromButton(btn, index);
+                    }
+                });
+
+                // Long-press detection (1.5s)
+                let pressTimer = null;
+                const start = () => {
+                    if (bulkEmojiMode) return;
+                    clearTimeout(pressTimer);
+                    pressTimer = setTimeout(() => {
+                        enterBulkEmojiMode();
+                        // user releases and taps to select
+                    }, 1500);
+                };
+                const cancel = () => {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                };
+
+                btn.addEventListener('pointerdown', start);
+                btn.addEventListener('pointerup', cancel);
+                btn.addEventListener('pointerleave', cancel);
+                btn.addEventListener('touchstart', start, { passive: true });
+                btn.addEventListener('touchend', cancel);
+                btn.addEventListener('touchcancel', cancel);
+                btn.addEventListener('mousedown', start);
+                btn.addEventListener('mouseup', cancel);
+                btn.addEventListener('mouseleave', cancel);
+            });
+        }
+
         // Handle player removal with button state
         function handleRemovePlayer(button, index) {
             if (button.dataset.state === 'initial') {
@@ -1266,7 +1357,6 @@
         }
     
         // Update player name (normal text mode)
-        // If closeModal is false, do not close (used on blur).
         function updatePlayerName(index, closeModal = true) {
             const input = document.getElementById('playerNameInput');
             if (!input) return;
@@ -1290,17 +1380,15 @@
             }
         }
 
-        // Set Emoji Mode explicitly (used by Name/Emoji segmented toggle in the name popup)
+        // Set Emoji Mode explicitly
         function setEmojiMode(enabled, reopenIndex = null) {
-            const newVal = !!enabled;
-            emojiModeEnabled = newVal;
+            emojiModeEnabled = !!enabled;
             localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
 
             syncDefaultNamesToMode();
             saveData();
             updateUI();
 
-            // Re-open the correct player dialog for the same player so the UI switches modes seamlessly
             if (reopenIndex !== null) {
                 if (emojiModeEnabled) {
                     createEmojiPlayerDialog(reopenIndex);
@@ -1310,12 +1398,11 @@
             }
         }
 
-        // Back-compat (no longer used by Round modal, but kept harmless)
         function toggleEmojiMode() {
             setEmojiMode(!emojiModeEnabled);
         }
     
-        // Create round management dialog (single column)
+        // Create round management dialog
         function createRoundManagementDialog() {
             const modal = document.getElementById('roundManagementModal');
             modal.innerHTML = `
@@ -1349,11 +1436,9 @@
             `;
             modal.style.display = 'block';
             showOverlay();
-            // Color the Theme Colour dropdown (outer + inner)
             applyThemeSelectColors();
         }
 
-        // Toggle Sort by Rank (dark when ON, light when OFF). Does not close the popup.
         function toggleSortByRank() {
             sortByRankEnabled = !sortByRankEnabled;
             localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
@@ -1366,7 +1451,7 @@
             updateUI();
         }
     
-        // Handle reset scores with button state
+        // Handle reset scores
         function handleResetScores(button) {
             if (button.dataset.state === 'initial') {
                 button.textContent = 'Confirm';
@@ -1389,7 +1474,7 @@
             }
         }
     
-        // Update player count (from the Round modal)
+        // Update player count
         function updatePlayerCount() {
             const newCount = parseInt(document.getElementById('playerCount').value);
             if (newCount > players.length) {
@@ -1411,7 +1496,7 @@
             closePopup('roundManagementModal');
         }
     
-        // Create delete round dialog with immediate deletion button
+        // Delete round dialog
         function createDeleteRoundDialog(roundIndex) {
             const modal = document.getElementById('deleteRoundModal');
             modal.innerHTML = `
@@ -1423,7 +1508,7 @@
             showOverlay();
         }
     
-        // Execute round deletion immediately
+        // Execute round deletion
         function deleteRound(roundIndex) {
             rounds.splice(roundIndex, 1);
             players.forEach(player => {
@@ -1518,68 +1603,10 @@
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
         }
-
-        // NEW: Long-press anywhere in the score area (not the top row) to open the Preset picker
-        let presetLPInstalled = false;
-        function getLPXY(e) {
-            if (e.touches && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            if (e.changedTouches && e.changedTouches.length) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
-            return { x: e.clientX, y: e.clientY };
-        }
-        function installPresetLongPressArea() {
-            if (presetLPInstalled) return;
-            const area = document.querySelector('.score-container');
-            if (!area) return;
-
-            let timer = null;
-            let startX = 0, startY = 0;
-
-            const start = (e) => {
-                // Don't trigger if a modal/overlay is open
-                const overlay = document.getElementById('overlay');
-                if (overlay && overlay.style.display === 'block') return;
-
-                // Start long-press timer
-                const xy = getLPXY(e);
-                startX = xy.x; startY = xy.y;
-                clear();
-                timer = setTimeout(() => {
-                    timer = null;
-                    showPresetPicker();
-                }, 2000);
-            };
-            const move = (e) => {
-                if (!timer) return;
-                const xy = getLPXY(e);
-                if (Math.abs(xy.x - startX) > 10 || Math.abs(xy.y - startY) > 10) {
-                    clear();
-                }
-            };
-            const clear = () => {
-                if (timer) {
-                    clearTimeout(timer);
-                    timer = null;
-                }
-            };
-
-            // Prefer Pointer Events, with Touch fallback for older iOS
-            area.addEventListener('pointerdown', start);
-            area.addEventListener('pointermove', move, { passive: true });
-            area.addEventListener('pointerup', clear);
-            area.addEventListener('pointerleave', clear);
-
-            area.addEventListener('touchstart', start, { passive: true });
-            area.addEventListener('touchmove', move, { passive: true });
-            area.addEventListener('touchend', clear);
-            area.addEventListener('touchcancel', clear);
-
-            presetLPInstalled = true;
-        }
     
         // Initial sync and UI update
         syncDefaultNamesToMode();
         updateUI();
-        installPresetLongPressArea();
     </script>
 </body>
 </html>
