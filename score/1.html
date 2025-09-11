@@ -432,25 +432,37 @@
           filter: brightness(1.05);
         }
 
-        /* Selected state for bulk select */
-        .emoji-grid .emoji-pick.selected {
-          outline: 2px solid #ffffff;
-          box-shadow: 0 0 0 2px #262626 inset;
-          filter: brightness(1.08);
-        }
-        /* Centered order number overlay */
-        .emoji-grid .emoji-pick.selected::after {
-          content: attr(data-order);
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -55%);
-          font-size: 28px;
-          font-weight: 700;
-          color: #fff;
-          text-shadow: 0 2px 6px rgba(0,0,0,0.6), 0 0 2px rgba(0,0,0,0.6);
-          pointer-events: none;
-        }
+/* Was dimming everything (including the number). Remove the filter here. */
+.emoji-grid .emoji-pick.selected {
+  box-shadow: 0 0 0 2px #262626 inset;
+  /* filter: brightness(0.7);  <-- remove this */
+}
+
+/* New: a dimming overlay that sits above the emoji, below the number */
+.emoji-grid .emoji-pick.selected::before {
+  content: "";
+  position: absolute;
+  inset: 0;                     /* top: 0; right: 0; bottom: 0; left: 0; */
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 1;                   /* below the number */
+}
+
+/* Keep your number, but ensure it's above the dim overlay */
+.emoji-grid .emoji-pick.selected::after {
+  content: attr(data-order);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.7), 0 0 3px rgba(0,0,0,0.7);
+  pointer-events: none;
+  z-index: 2;                   /* above the dim overlay */
+}
 
         /* Bulk actions (shown during multi-select) */
         .bulk-actions {
@@ -1326,7 +1338,7 @@
                     pressTimer = setTimeout(() => {
                         enterBulkEmojiMode();
                         // user releases and taps to select
-                    }, 1500);
+                    }, 1000);
                 };
                 const cancel = () => {
                     clearTimeout(pressTimer);
