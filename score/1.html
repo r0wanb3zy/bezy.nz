@@ -513,22 +513,23 @@
         #scoreTable tbody tr:last-child input[type="number"]::placeholder {
           color: rgba(107, 114, 128, 0.5);
         }
+
         /* Make the space above the Name/Emoji toggle consistent */
-#playerManagementModal .segmented-control {
-  margin-top: 5px;
-}
+        #playerManagementModal .segmented-control {
+          margin-top: 5px;
+        }
 
-#playerManagementModal .emoji-grid {
-  margin-bottom: 10px;
-}
+        #playerManagementModal .emoji-grid {
+          margin-bottom: 10px;
+        }
 
-/* NEW: Preset code grid inside the player modal */
-.code-buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin: 5px 0;
-}
+        /* NEW: Preset code grid inside the player modal */
+        .code-buttons {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+          margin: 5px 0;
+        }
     </style>
 </head>
 <body>
@@ -974,41 +975,6 @@
             updateUI();
         }
 
-        // NEW: Attach a 2s long-press to the Remove button to show the Preset picker
-        function attachLongPressToRemove(button) {
-            if (!button) return;
-            let timer = null;
-            let longPressed = false;
-
-            const start = () => {
-                clear();
-                longPressed = false;
-                timer = setTimeout(() => {
-                    longPressed = true;
-                    showPresetPicker();
-                }, 2000);
-            };
-            const clear = () => {
-                if (timer) { clearTimeout(timer); timer = null; }
-            };
-
-            button.addEventListener('pointerdown', start);
-            button.addEventListener('mousedown', start);
-            button.addEventListener('touchstart', start, { passive: true });
-
-            ['pointerup','mouseup','touchend','mouseleave','pointerleave','touchcancel','blur'].forEach(ev => {
-                button.addEventListener(ev, clear);
-            });
-
-            // Suppress the normal click after a long-press
-            button.addEventListener('click', function(e) {
-                if (longPressed) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                }
-            }, true);
-        }
-
         // NEW: Minimal preset picker UI in the same modal
         function showPresetPicker() {
             const modal = document.getElementById('playerManagementModal');
@@ -1087,91 +1053,87 @@
             closePopup('playerManagementModal');
         }
 
-// Create player management dialog (text/uppercase mode) with iOS callout suppressed
-function createPlayerManagementDialog(index) {
-    const modal = document.getElementById('playerManagementModal');
-    modal.innerHTML = `
-        <h2>Player</h2>
-        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
-        <input
-            type="text"
-            id="playerNameInput"
-            value="${players[index].name}"
-            autocapitalize="characters"
-            inputmode="text"
-            style="text-transform: uppercase;"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-        >
-        <div class="segmented-control">
-            <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, ${index})">
-            <label for="playerMode-name">Name</label>
-            <input type="radio" id="playerMode-emoji" name="playerModeSwitch" value="emoji" ${emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(true, ${index})">
-            <label for="playerMode-emoji">Emoji</label>
-        </div>
-        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial" class="remove-btn">Remove</button>
-    `;
-    modal.style.display = 'block';
-    showOverlay();
+        // Create player management dialog (text/uppercase mode) with iOS callout suppressed
+        function createPlayerManagementDialog(index) {
+            const modal = document.getElementById('playerManagementModal');
+            modal.innerHTML = `
+                <h2>Player</h2>
+                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+                <input
+                    type="text"
+                    id="playerNameInput"
+                    value="${players[index].name}"
+                    autocapitalize="characters"
+                    inputmode="text"
+                    style="text-transform: uppercase;"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                >
+                <div class="segmented-control">
+                    <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, ${index})">
+                    <label for="playerMode-name">Name</label>
+                    <input type="radio" id="playerMode-emoji" name="playerModeSwitch" value="emoji" ${emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(true, ${index})">
+                    <label for="playerMode-emoji">Emoji</label>
+                </div>
+                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
 
-    const input = modal.querySelector('#playerNameInput');
+            const input = modal.querySelector('#playerNameInput');
 
-    // Do NOT auto-focus (keeps keyboard closed). Select all when the user taps into the field.
-    input.addEventListener('focus', function () {
-        try { this.select(); } catch (_) {}
-        try { this.setSelectionRange(0, this.value.length); } catch (_) {}
-    });
+            // Do NOT auto-focus (keeps keyboard closed). Select all when the user taps into the field.
+            input.addEventListener('focus', function () {
+                try { this.select(); } catch (_) {}
+                try { this.setSelectionRange(0, this.value.length); } catch (_) {}
+            });
 
-    // Prevent iOS translate/cut/copy/paste callout and manage focus on first tap
-    let primed = false;
-    const primeFocus = (e) => {
-        if (primed) return;
-        primed = true;
-        e.preventDefault();
-        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-        requestAnimationFrame(() => {
-            try { input.select(); } catch (_) {}
-            try { input.setSelectionRange(0, input.value.length); } catch (_) {}
-        });
-    };
-    input.addEventListener('pointerdown', primeFocus, { passive: false });
-    input.addEventListener('touchstart', primeFocus, { passive: false });
-    input.addEventListener('mousedown', primeFocus);
+            // Prevent iOS translate/cut/copy/paste callout and manage focus on first tap
+            let primed = false;
+            const primeFocus = (e) => {
+                if (primed) return;
+                primed = true;
+                e.preventDefault();
+                try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+                requestAnimationFrame(() => {
+                    try { input.select(); } catch (_) {}
+                    try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+                });
+            };
+            input.addEventListener('pointerdown', primeFocus, { passive: false });
+            input.addEventListener('touchstart', primeFocus, { passive: false });
+            input.addEventListener('mousedown', primeFocus);
 
-    // Block the context menu and long-press menu flash
-    input.addEventListener('contextmenu', (e) => e.preventDefault());
-    input.addEventListener('mouseup', (e) => e.preventDefault());
+            // Block the context menu and long-press menu flash
+            input.addEventListener('contextmenu', (e) => e.preventDefault());
+            input.addEventListener('mouseup', (e) => e.preventDefault());
 
-    // Force uppercase while typing
-    input.addEventListener('input', function () {
-        this.value = this.value.toUpperCase();
-    });
+            // Force uppercase while typing
+            input.addEventListener('input', function () {
+                this.value = this.value.toUpperCase();
+            });
 
-    // Apply rename on Enter (and close)
-    input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const newName = (input.value || '').trim().toUpperCase();
-            if (newName && newName !== players[index].name) {
-                renamePlayer(index, newName);
-            }
-            closePopup('playerManagementModal');
+            // Apply rename on Enter (and close)
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const newName = (input.value || '').trim().toUpperCase();
+                    if (newName && newName !== players[index].name) {
+                        renamePlayer(index, newName);
+                    }
+                    closePopup('playerManagementModal');
+                }
+            });
+
+            // Also apply rename on blur (don’t close)
+            input.addEventListener('blur', function () {
+                const newName = (input.value || '').trim().toUpperCase();
+                if (newName && newName !== players[index].name) {
+                    renamePlayer(index, newName);
+                }
+            });
         }
-    });
-
-    // Also apply rename on blur (don’t close)
-    input.addEventListener('blur', function () {
-        const newName = (input.value || '').trim().toUpperCase();
-        if (newName && newName !== players[index].name) {
-            renamePlayer(index, newName);
-        }
-    });
-
-    // NEW: long-press on Remove to open preset picker
-    const removeBtn = modal.querySelector('.remove-btn');
-    attachLongPressToRemove(removeBtn);
-}
 
         // Emoji-only player management dialog (auto-apply + no Update button)
         function createEmojiPlayerDialog(index) {
@@ -1206,7 +1168,7 @@ function createPlayerManagementDialog(index) {
                     <input type="radio" id="playerMode-emoji" name="playerModeSwitch" value="emoji" ${emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(true, ${index})">
                     <label for="playerMode-emoji">Emoji</label>
                 </div>
-                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial" class="remove-btn">Remove</button>
+                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial">Remove</button>
             `;
             modal.style.display = 'block';
             showOverlay();
@@ -1253,10 +1215,6 @@ function createPlayerManagementDialog(index) {
                     updatePlayerNameEmoji(index);
                 }
             });
-
-            // NEW: long-press on Remove to open preset picker
-            const removeBtn = modal.querySelector('.remove-btn');
-            attachLongPressToRemove(removeBtn);
         }
 
         // Broadened emoji extractor
@@ -1560,10 +1518,68 @@ function createPlayerManagementDialog(index) {
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
         }
+
+        // NEW: Long-press anywhere in the score area (not the top row) to open the Preset picker
+        let presetLPInstalled = false;
+        function getLPXY(e) {
+            if (e.touches && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            if (e.changedTouches && e.changedTouches.length) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+            return { x: e.clientX, y: e.clientY };
+        }
+        function installPresetLongPressArea() {
+            if (presetLPInstalled) return;
+            const area = document.querySelector('.score-container');
+            if (!area) return;
+
+            let timer = null;
+            let startX = 0, startY = 0;
+
+            const start = (e) => {
+                // Don't trigger if a modal/overlay is open
+                const overlay = document.getElementById('overlay');
+                if (overlay && overlay.style.display === 'block') return;
+
+                // Start long-press timer
+                const xy = getLPXY(e);
+                startX = xy.x; startY = xy.y;
+                clear();
+                timer = setTimeout(() => {
+                    timer = null;
+                    showPresetPicker();
+                }, 2000);
+            };
+            const move = (e) => {
+                if (!timer) return;
+                const xy = getLPXY(e);
+                if (Math.abs(xy.x - startX) > 10 || Math.abs(xy.y - startY) > 10) {
+                    clear();
+                }
+            };
+            const clear = () => {
+                if (timer) {
+                    clearTimeout(timer);
+                    timer = null;
+                }
+            };
+
+            // Prefer Pointer Events, with Touch fallback for older iOS
+            area.addEventListener('pointerdown', start);
+            area.addEventListener('pointermove', move, { passive: true });
+            area.addEventListener('pointerup', clear);
+            area.addEventListener('pointerleave', clear);
+
+            area.addEventListener('touchstart', start, { passive: true });
+            area.addEventListener('touchmove', move, { passive: true });
+            area.addEventListener('touchend', clear);
+            area.addEventListener('touchcancel', clear);
+
+            presetLPInstalled = true;
+        }
     
         // Initial sync and UI update
         syncDefaultNamesToMode();
         updateUI();
+        installPresetLongPressArea();
     </script>
 </body>
 </html>
