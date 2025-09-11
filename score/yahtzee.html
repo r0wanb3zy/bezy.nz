@@ -1214,7 +1214,7 @@
                 const start = () => {
                     if (bulkEmojiMode) return;
                     clearTimeout(pressTimer);
-                    pressTimer = setTimeout(() => enterBulkEmojiMode(), 1000);
+                    pressTimer = setTimeout(() => enterBulkEmojiMode(), 500);
                 };
                 const cancel = () => {
                     clearTimeout(pressTimer);
