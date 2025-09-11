@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Title and Fonts -->
+    <title>Scorecard</title>
+    <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
+
+    <style>
+        /* Modified Base Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Economica', sans-serif;
+            font-size: 22px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        /* New scrollable container */
+        .score-container {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            font-size: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        table th, table td {
+            border: none;
+            text-align: center;
+            padding: 5px;
+            word-wrap: break-word;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(200, 200, 200, 0.3);
+        }
+
+        table th {
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+            color: white;
+        }
+
+        table th:first-child {
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+            color: white;
+            border-bottom: 1px solid #666;
+        }
+
+        table td:first-child {
+            background: #3b3b3b;
+            font-weight: bold;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+            overflow: hidden;
+            color: white;
+            border-bottom: 1px solid #666;
+        }
+
+        /* Sticky Header Styles */
+        .sticky-header th {
+            height: 80px;
+            font-family: 'Economica', sans-serif;
+            font-size: 22px;
+        }
+
+        .sticky-header th span.score {
+            font-size: 22px;
+            font-family: 'Economica', sans-serif;
+        }
+
+        .sticky-header th small {
+            font-size: 16px;
+            font-family: 'Economica', sans-serif;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        #scoreBody tr:not(:last-child) td:not(:first-child) {
+            max-height: 5px;
+            height: 5px;
+            line-height: 5px;
+            overflow: hidden;
+        }
+
+        #scoreBody tr td:not(:first-child) {
+            font-weight: bold;
+        }
+
+        /* Input Styles */
+        table input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            text-align: center;
+            font-size: inherit;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        table input::placeholder {
+            font-family: 'Economica', sans-serif;
+            font-size: 16px;
+            text-align: center;
+            line-height: 16px;
+            color: #6b7280;
+            opacity: 0.8;
+        }
+
+        table input:focus {
+            outline: none;
+            border-color: #262626;
+            box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
+        }
+
+        table input[type="number"]::-webkit-outer-spin-button,
+        table input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Inputs: give them a fixed height + matching line-height */
+        table input[type="number"] {
+          width: 100%;
+          box-sizing: border-box;
+          height: 40px;
+          line-height: 40px;
+          padding: 0 8px;
+          text-align: center;
+          font-size: inherit;
+          font-family: 'Economica', sans-serif;
+          border: 1px solid #d0d7de;
+          border-radius: 6px;
+          background: #ffffff;
+          box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* Make placeholder match the input’s metrics */
+        table input[type="number"]::placeholder {
+          font: inherit;
+          line-height: inherit;
+          text-align: center;
+          color: #6b7280;
+          opacity: 0.8;
+        }
+
+        /* Popup Modal Styles */
+        .popup-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ffffff;
+            border: none;
+            padding: 5px 20px 20px 20px;
+            z-index: 1000;
+            width: 200px;
+            max-width: 90%;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        /* Center the player modal like the others */
+        #playerManagementModal {
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .popup-modal input[type="text"] {
+            font-size: 24px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 5px 0;
+            text-align: center;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+
+        .popup-modal input[type="text"]:focus {
+            outline: none;
+            border: 1px solid #262626;
+        }
+
+        .popup-modal select {
+            font-size: 24px;
+            padding: 10px;
+            margin: 5px 0;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #f8f9fa;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #roundManagementModal select {
+            font-size: 24px;
+            padding: 10px;
+            margin: 5px 0;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #f8f9fa;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .popup-modal button {
+            font-size: 24px;
+            padding: 10px 20px;
+            margin: 5px 0;
+            cursor: pointer;
+            font-family: 'Economica', sans-serif;
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .popup-modal button[data-state="confirm"] {
+            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+        }
+
+        /* Sort-by-rank button styles */
+        #roundManagementModal button#sortByRankBtn {
+            background: #f8f9fa;
+            color: #0f172a;
+            border: 1px solid #262626;
+        }
+        #roundManagementModal button#sortByRankBtn.active {
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+            color: #ffffff;
+            border: 1px solid #262626;
+        }
+
+        /* Adjust spacing for h2 in popups */
+        #playerManagementModal h2,
+        #roundManagementModal h2,
+        #deleteRoundModal h2 {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            padding: 0;
+        }
+
+        /* Segmented Control Styles (full width, seamless) */
+        .segmented-control {
+            display: flex;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 6px;
+            overflow: hidden;
+
+            /* Use inset border to avoid hairline gaps between border and fill */
+            border: 1px solid #262626;
+            box-shadow: none;
+            -webkit-background-clip: padding-box;
+            background-clip: padding-box;
+        }
+        .segmented-control input[type="radio"] {
+            display: none;
+        }
+        .segmented-control label {
+            flex: 1 1 0;
+            padding: 10px 0;
+            text-align: center;
+            font-size: 24px;
+            font-family: 'Economica', sans-serif;
+            cursor: pointer;
+            user-select: none;
+            background: #f8f9fa; /* light side */
+            margin: 0;           /* ensure no seams */
+        }
+        .segmented-control input[type="radio"]:checked + label {
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); /* dark side */
+            color: #fff;
+        }
+
+        /* Close Button */
+        .close-btn {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            font-size: 48px;
+            color: #000000;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            transition: color 0.2s ease;
+        }
+
+        /* Emoji Scaling */
+        .scaled-emoji {
+            transform: scale(.75);
+            transform-origin: center;
+            display: inline-block;
+        }
+
+        /* Disable Tap Highlight */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Overlay */
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            cursor: pointer;
+        }
+
+        /* Sticky Header */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .sticky-header table {
+            margin-bottom: 0;
+        }
+
+        /* Adjust main table */
+        #scoreTable {
+            margin-top: 0;
+        }
+
+        /* Drag feedback styles */
+        th.dragging {
+            opacity: 0.5;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        th.drag-over {
+            border-left: 2px solid #333;
+        }
+
+        .emoji-grid {
+          --emoji-gap: 8px;
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: var(--emoji-gap);
+          padding: 0;
+          margin: 5px 0; /* consistent with other gaps */
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .emoji-grid .emoji-pick {
+          background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+          color: #ffffff;
+          border: none;
+          border-radius: 6px;
+          font-family: 'Economica', sans-serif;
+          font-size: 22px;
+          display: grid;
+          place-items: center;
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          padding: 0;
+          margin: 0;
+          line-height: 1;
+          cursor: pointer;
+          transition: transform 0.05s ease, filter 0.1s ease;
+          box-sizing: border-box;
+        }
+
+        .emoji-grid .emoji-pick:active {
+          transform: scale(0.95);
+          filter: brightness(1.05);
+        }
+
+        /* NEW: suppress iOS cut/copy/paste callout on the emoji input */
+        #emojiNameInput {
+            -webkit-touch-callout: none;
+        }
+        #playerNameInput {
+            -webkit-touch-callout: none; /* hide Translate/Cut/Copy/Paste on long-press */
+}
+
+        @media (max-width: 480px) {
+            .sticky-header.small-scores th span.score {
+                font-size: 18px;
+                line-height: 1.2;
+            }
+            #scoreTable.small-scores thead th {
+                padding: 3px;
+            }
+            #scoreTable.small-scores thead th span.score {
+                font-size: 16px;
+                line-height: 1.2;
+            }
+            #scoreTable.small-scores thead th small {
+                font-size: 12px;
+            }
+            #scoreTable.small-scores tbody td {
+                font-size: 16px;
+            }
+            /* Small-scores: keep everything consistent */
+            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
+              font-size: 14px;
+              height: 32px;
+              line-height: 32px;
+              padding: 0 6px;
+            }
+            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
+              font: inherit;
+              line-height: inherit;
+            }
+            .sticky-header.small-scores th small {
+                font-size: 12px;
+            }
+        }
+
+        /* Center text + remove native arrow for the Players dropdown */
+        #roundManagementModal select#playerCount {
+          text-align: center;
+          text-align-last: center;
+          -moz-text-align-last: center;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          background-image: none !important;
+          background-color: #f8f9fa;
+          padding-right: 12px;
+        }
+        #roundManagementModal select#playerCount::-ms-expand {
+          display: none;
+        }
+        #roundManagementModal select#playerCount option {
+          text-align: center;
+        }
+
+        /* Center text + remove native arrow for the Theme Colour dropdown */
+        #roundManagementModal select#themeColorSelect {
+          text-align: center;
+          text-align-last: center;
+          -moz-text-align-last: center;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          background-image: none !important;
+          background-color: #f8f9fa;
+          padding-right: 12px;
+        }
+        #roundManagementModal select#themeColorSelect::-ms-expand {
+          display: none;
+        }
+        #roundManagementModal select#themeColorSelect option {
+          text-align: center;
+        }
+
+        /* Bottom input row: make placeholders 50% transparent */
+        #scoreTable tbody tr:last-child input[type="number"]::placeholder { 
+          opacity: 0.5; 
+        }
+        #scoreTable tbody tr:last-child input[type="number"]::-webkit-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::-moz-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]:-ms-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::-ms-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::placeholder {
+          color: rgba(107, 114, 128, 0.5);
+        }
+        /* Make the space above the Name/Emoji toggle consistent */
+#playerManagementModal .segmented-control {
+  margin-top: 5px;
+}
+
+#playerManagementModal .emoji-grid {
+  margin-bottom: 10px;
+}
+
+/* NEW: Preset code grid inside the player modal */
+.code-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 5px 0;
+}
+    </style>
+</head>
+<body>
+    <!-- Sticky Header -->
+    <div class="sticky-header">
+        <table>
+            <thead>
+                <tr id="playerRow">
+                    <th>#</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+    <!-- Score Container -->
+    <div class="score-container">
+        <table id="scoreTable">
+            <tbody id="scoreBody">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modals -->
+    <div id="playerManagementModal" class="popup-modal"></div>
+    <div id="roundManagementModal" class="popup-modal"></div>
+    <div id="deleteRoundModal" class="popup-modal"></div>
+    
+    <!-- Overlay -->
+    <div id="overlay"></div>
+
+    <script>
+        // Initialize data from localStorage or set defaults
+        if (!localStorage.getItem('initialized')) {
+            players = [
+                { name: "P1", totalScore: 0, roundScores: [] },
+                { name: "P2", totalScore: 0, roundScores: [] },
+                { name: "P3", totalScore: 0, roundScores: [] },
+                { name: "P4", totalScore: 0, roundScores: [] }
+            ].map(player => ({ ...player, name: player.name.toUpperCase() }));
+            rounds = [];
+            localStorage.setItem('initialized', 'true');
+            localStorage.setItem('players', JSON.stringify(players));
+            localStorage.setItem('rounds', JSON.stringify(rounds));
+        } else {
+            players = JSON.parse(localStorage.getItem('players')) || [];
+            rounds = JSON.parse(localStorage.getItem('rounds')) || [];
+        }
+    
+        let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
+        let unsubmittedScores = JSON.parse(localStorage.getItem('unsubmittedScores')) || {};
+        let sortByRankEnabled = localStorage.getItem('sortByRankEnabled') === 'true';
+        let emojiModeEnabled = localStorage.getItem('emojiModeEnabled') === 'true';
+        let themeColor = localStorage.getItem('themeColor') || 'blue'; // NEW: theme color (default blue)
+
+        // NEW: Preset codes
+        const PRESET_CODES = {
+            BEZY: {
+                names: ["Row", "Apr", "Car", "Haz", "Shi", "Jul"],
+                emojis: ["🍔", "🩰", "🌹", "🌰", "🔔", "👑"]
+            },
+            DEEBLE: {
+                names: ["Don", "Jay", "Joe", "Das", "Cal", "Noa", "Til"],
+                emojis: ["🎣", "🌻", "🏏", "🩰", "🦈", "🤸🏼‍♀️", "🎁"]
+            }
+        };
+
+        // Keycap digit helpers
+        const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
+        function numberToKeycap(n) { return KEYCAP_DIGITS[n] || String(n); }
+        function keycapToNumber(str) {
+            const idx = KEYCAP_DIGITS.indexOf(str);
+            return idx === -1 ? null : idx;
+        }
+
+        // Theme map for rank shading
+        const THEME_MAP = {
+            blue:   { h: 210, s: 85 },
+            red:    { h:   0, s: 78 },
+            green:  { h: 120, s: 50 },
+            pink:   { h: 330, s: 70 },
+            purple: { h: 268, s: 70 },
+            yellow: { h:  45, s: 90 },
+            grey:   { h: 210, s:  0 }
+        };
+        function getThemeHS() {
+            return THEME_MAP[themeColor] || THEME_MAP.blue;
+        }
+
+        // Text color to use for UI elements based on theme key (readable on light background)
+        function getThemeTextColor(key) {
+            const t = THEME_MAP[key] || THEME_MAP.blue;
+            const L = key === 'yellow' ? 32 : 34;
+            return `hsl(${t.h}, ${t.s}%, ${L}%)`;
+        }
+
+        function setThemeColor(value) {
+            themeColor = value || 'blue';
+            localStorage.setItem('themeColor', themeColor);
+            updateUI();                // re-render shading immediately
+            applyThemeSelectColors();  // recolor the dropdown text to match
+        }
+
+        // Apply selected theme color to the Theme Colour select (outer) and color-code options (inner)
+        function applyThemeSelectColors() {
+            const select = document.querySelector('#roundManagementModal select#themeColorSelect');
+            if (!select) return;
+            // Outer (collapsed) text matches the currently selected theme
+            select.style.color = getThemeTextColor(themeColor);
+            // Inner options each correspond to their theme color
+            Array.from(select.options).forEach(opt => {
+                opt.style.color = getThemeTextColor(opt.value);
+            });
+        }
+    
+        // Add new round scores and scroll to the last row
+        function addRoundScores() {
+            const scores = [];
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            inputs.forEach((input, index) => {
+                const score = parseInt(input.value) || 0;
+                scores[index] = score;
+                players[index].roundScores.push(score);
+                players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
+            });
+            rounds.push(scores);
+            saveData();
+            unsubmittedScores = {}; // Clear unsubmitted scores after submission
+            localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+            updateUI();
+            inputs.forEach(input => input.value = '');
+            
+            // Scroll to the last row (input row) after adding scores
+            const scoreBody = document.getElementById("scoreBody");
+            const lastRow = scoreBody.lastElementChild;
+            if (lastRow) {
+                lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+        }
+    
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('players', JSON.stringify(players));
+            localStorage.setItem('rounds', JSON.stringify(rounds));
+            localStorage.setItem('scoringMode', scoringMode);
+            localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
+            localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
+            localStorage.setItem('themeColor', themeColor); // NEW
+        }
+    
+        // Save unsubmitted scores to localStorage
+        function saveUnsubmittedScores() {
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            unsubmittedScores = {};
+            inputs.forEach((input, index) => {
+                unsubmittedScores[players[index].name] = input.value;
+            });
+            localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+        }
+
+        // Sync default placeholder names with mode:
+        // - Emoji mode ON: P1..P8 -> 1️⃣..8️⃣
+        // - Emoji mode OFF: 1️⃣..8️⃣ -> P1..P8
+        function syncDefaultNamesToMode() {
+            let changed = false;
+            players.forEach((p) => {
+                const name = (p.name || '').trim();
+                if (emojiModeEnabled) {
+                    const m = /^P(\d{1,2})$/i.exec(name);
+                    if (m) {
+                        const n = parseInt(m[1], 10);
+                        if (n >= 0 && n <= 9) {
+                            const emoji = numberToKeycap(n);
+                            if (name !== emoji) {
+                                if (unsubmittedScores[name] !== undefined) {
+                                    unsubmittedScores[emoji] = unsubmittedScores[name];
+                                    delete unsubmittedScores[name];
+                                }
+                                p.name = emoji;
+                                changed = true;
+                            }
+                        }
+                    }
+                } else {
+                    const n = keycapToNumber(name);
+                    if (n !== null) {
+                        const pn = `P${n}`.toUpperCase();
+                        if (name !== pn) {
+                            if (unsubmittedScores[name] !== undefined) {
+                                unsubmittedScores[pn] = unsubmittedScores[name];
+                                delete unsubmittedScores[name];
+                            }
+                            p.name = pn;
+                            changed = true;
+                        }
+                    }
+                }
+            });
+            if (changed) {
+                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+                saveData();
+            }
+        }
+
+        // Apply sort-by-rank to underlying arrays
+        function applySortByRank(silent = false) {
+            if (players.length <= 1 || rounds.length === 0) {
+                if (!silent) updateUI();
+                return;
+            }
+            const indices = players
+                .map((p, i) => ({ i, score: p.totalScore }))
+                .sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score))
+                .map(o => o.i);
+
+            players = indices.map(i => players[i]);
+            rounds = rounds.map(round => indices.map(i => round[i] ?? 0));
+
+            saveData();
+            if (!silent) updateUI();
+        }
+    
+        // Update the UI with current data
+        function updateUI() {
+            // Keep columns ordered by rank automatically when enabled
+            if (sortByRankEnabled && players.length > 1 && rounds.length > 0) {
+                applySortByRank(true); // silent sort (no recursive UI call)
+            }
+
+            const playerRow = document.getElementById("playerRow");
+            const scoreTable = document.getElementById("scoreTable");
+            const stickyHeader = document.querySelector(".sticky-header");
+    
+            // Apply small-scores class to both scoreTable and sticky-header
+            if (players.length >= 7) {
+                scoreTable.classList.add("small-scores");
+                stickyHeader.classList.add("small-scores");
+            } else {
+                scoreTable.classList.remove("small-scores");
+                stickyHeader.classList.remove("small-scores");
+            }
+    
+            playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
+            players.forEach((player, index) => {
+                playerRow.innerHTML += `
+                    <th draggable="true" 
+                        ondragstart="handleDragStart(event, ${index})"
+                        ondragover="handleDragOver(event)"
+                        ondrop="handleDrop(event, ${index})"
+                        ondragend="handleDragEnd(event)"
+                        onclick="handlePlayerNameClick(event, ${index})" 
+                        title="Player">
+                        ${player.name}
+                        <br>
+                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+                    </th>
+                `;
+            });
+    
+            const scoreBody = document.getElementById("scoreBody");
+            scoreBody.innerHTML = "";
+            rounds.forEach((round, roundIndex) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td onclick="createDeleteRoundDialog(${roundIndex})">${roundIndex + 1}</td>`;
+                players.forEach((_, playerIndex) => {
+                    const displayScore = round[playerIndex] !== undefined ? 
+                        (round[playerIndex] == 0 ? '<img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">' : round[playerIndex]) : 
+                        '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">';
+                    row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
+                });
+                scoreBody.appendChild(row);
+            });
+    
+            const inputRow = document.createElement('tr');
+            inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
+            players.forEach((player) => {
+                const savedValue = unsubmittedScores[player.name] || '';
+                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" /></td>`;
+            });
+            scoreBody.appendChild(inputRow);
+    
+            // Always update rankings so single-player gray/blue logic applies
+            updateRankings();
+    
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', saveUnsubmittedScores); // Save on input change
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' || event.keyCode === 13) {
+                        event.preventDefault();
+                        const allFilled = allInputsFilled(inputs);
+                        if (allFilled) {
+                            addRoundScores();
+                            inputs[0].focus();
+                        } else {
+                            if (index < inputs.length - 1) {
+                                inputs[index + 1].focus();
+                            } else {
+                                const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
+                                if (firstEmpty !== -1) {
+                                    inputs[firstEmpty].focus();
+                                } else {
+                                    inputs[0].focus();
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+    
+        // Calculate player rank
+        function getRank(score) {
+            if (players.length === 1) return "1st";
+            const sortedPlayers = [...players];
+            if (scoringMode === "highest") {
+                sortedPlayers.sort((a, b) => b.totalScore - a.totalScore);
+            } else {
+                sortedPlayers.sort((a, b) => a.totalScore - b.totalScore);
+            }
+            const rank = sortedPlayers.findIndex(player => player.totalScore === score) + 1;
+            let suffix = 'th';
+            if (rank % 10 === 1 && rank % 100 !== 11) suffix = 'st';
+            if (rank % 10 === 2 && rank % 100 !== 12) suffix = 'nd';
+            if (rank % 10 === 3 && rank % 100 !== 13) suffix = 'rd';
+            return rank + suffix;
+        }
+    
+        // Update score for a specific round and player
+        function updateScore(roundIndex, playerIndex, newScore) {
+            const score = parseInt(newScore) || 0;
+            if (rounds[roundIndex] && rounds[roundIndex][playerIndex] !== undefined) {
+                rounds[roundIndex][playerIndex] = score;
+                if (players[playerIndex] && players[playerIndex].roundScores[roundIndex] !== undefined) {
+                    players[playerIndex].roundScores[roundIndex] = score;
+                    players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+                }
+            }
+            saveData();
+            updateUI();
+        }
+    
+        // Update player rankings with THEME gradient shading (no badges)
+        function updateRankings() {
+            const playerRow = document.getElementById("playerRow");
+            const columns = Array.from(playerRow.children).slice(1);
+
+            // Clear previous styles
+            columns.forEach((th) => {
+                th.style.background = '';
+            });
+
+            const { h: H, s: S } = getThemeHS();
+
+            // Single player logic
+            if (players.length === 1) {
+                if (rounds.length > 0) {
+                    const Lmax = 82, range = 36;
+                    const Lmin = Lmax - range; // darkest
+                    const L = Lmin;
+                    const Ltop = Math.max(18, L - 10);
+                    const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
+                    if (columns[0]) columns[0].style.background = gradient;
+                }
+                return;
+            }
+
+            // Multiple players: no shading until at least one round exists
+            if (rounds.length === 0) {
+                return;
+            }
+
+            // Build ranked list according to scoringMode
+            const scored = players.map((p, i) => ({ index: i, score: p.totalScore }));
+            scored.sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score));
+
+            // Group ties
+            const groups = [];
+            for (const item of scored) {
+                const last = groups[groups.length - 1];
+                if (!last || last.score !== item.score) {
+                    groups.push({ score: item.score, members: [item.index] });
+                } else {
+                    last.members.push(item.index);
+                }
+            }
+
+            const Lmax = 82; // lightest for last
+            const minRange = 18; // minimal contrast for few ranks
+            const maxRange = 44; // maximal contrast for many ranks
+            const effectiveRanks = groups.length;
+
+            // If everyone is tied, shade all with darkest "first" color
+            if (effectiveRanks === 1) {
+                const darkestL = Math.max(28, Lmax - maxRange);
+                const Ltop = Math.max(18, darkestL - 10);
+                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${darkestL}%) 100%)`;
+                columns.forEach(th => th.style.background = gradient);
+                return;
+            }
+
+            // Dynamic contrast based on number of ranks
+            const maxRanksForScaling = 8;
+            const normalized = Math.min(1, Math.max(0, (effectiveRanks - 1) / (maxRanksForScaling - 1)));
+            const range = Math.round(minRange + (maxRange - minRange) * normalized);
+            const Lmin = Math.max(28, Lmax - range); // darkest for first place
+
+            groups.forEach((group, g) => {
+                const ratio = g / (effectiveRanks - 1);
+                const L = Math.round(Lmin + (Lmax - Lmin) * ratio);
+                const Ltop = Math.max(18, L - 10);
+                const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
+
+                group.members.forEach(idx => {
+                    const th = columns[idx];
+                    if (th) th.style.background = gradient;
+                });
+            });
+        }
+
+        function removePlayer(index) {
+            if (players.length <= 1) {
+                alert("At least one player must remain.");
+                return false;
+            }
+            players.splice(index, 1);
+            rounds.forEach(round => round.splice(index, 1));
+            saveData();
+            updateUI();
+            return true;
+        }
+    
+        // Generic rename that transfers unsubmittedScores
+        function renamePlayer(index, newName) {
+            const oldName = players[index].name;
+            players[index].name = newName;
+            if (unsubmittedScores[oldName] !== undefined) {
+                unsubmittedScores[newName] = unsubmittedScores[oldName];
+                delete unsubmittedScores[oldName];
+                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+            }
+            saveData();
+            updateUI();
+        }
+
+        // NEW: Attach a 2s long-press to the Remove button to show the Preset picker
+        function attachLongPressToRemove(button) {
+            if (!button) return;
+            let timer = null;
+            let longPressed = false;
+
+            const start = () => {
+                clear();
+                longPressed = false;
+                timer = setTimeout(() => {
+                    longPressed = true;
+                    showPresetPicker();
+                }, 2000);
+            };
+            const clear = () => {
+                if (timer) { clearTimeout(timer); timer = null; }
+            };
+
+            button.addEventListener('pointerdown', start);
+            button.addEventListener('mousedown', start);
+            button.addEventListener('touchstart', start, { passive: true });
+
+            ['pointerup','mouseup','touchend','mouseleave','pointerleave','touchcancel','blur'].forEach(ev => {
+                button.addEventListener(ev, clear);
+            });
+
+            // Suppress the normal click after a long-press
+            button.addEventListener('click', function(e) {
+                if (longPressed) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                }
+            }, true);
+        }
+
+        // NEW: Minimal preset picker UI in the same modal
+        function showPresetPicker() {
+            const modal = document.getElementById('playerManagementModal');
+            if (!modal) return;
+            const btns = Object.keys(PRESET_CODES)
+                .map(code => `<button class="preset-btn" onclick="applyPreset('${code}')">${code}</button>`)
+                .join('');
+            modal.innerHTML = `
+                <h2>Presets</h2>
+                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+                <div class="code-buttons">${btns}</div>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
+        }
+
+        // NEW: Programmatically set player count (1..8), preserving rounds
+        function setPlayerCount(newCount, opts = {}) {
+            const { silentUI = false } = opts;
+            newCount = Math.max(1, Math.min(8, parseInt(newCount) || players.length));
+
+            if (newCount > players.length) {
+                for (let i = players.length; i < newCount; i++) {
+                    const newLabel = emojiModeEnabled ? numberToKeycap(i + 1) : `P${i + 1}`.toUpperCase();
+                    players.push({ 
+                        name: newLabel,
+                        totalScore: 0, 
+                        roundScores: Array(rounds.length).fill(0)
+                    });
+                    rounds.forEach(round => round.push(0));
+                }
+            } else if (newCount < players.length) {
+                const removedNames = players.slice(newCount).map(p => p.name);
+                players = players.slice(0, newCount);
+                rounds.forEach(round => round.length = newCount);
+                // prune unsubmittedScores for removed players
+                if (unsubmittedScores && typeof unsubmittedScores === 'object') {
+                    removedNames.forEach(n => { delete unsubmittedScores[n]; });
+                    localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+                }
+            }
+            saveData();
+            if (!silentUI) updateUI();
+        }
+
+        // NEW: Apply a preset (respects Emoji Mode), adjusts count, renames in bulk, closes modal
+        function applyPreset(code) {
+            const preset = PRESET_CODES[code];
+            if (!preset) return;
+
+            const list = emojiModeEnabled ? (preset.emojis || []) : (preset.names || []);
+            const targetCount = list.length;
+            if (targetCount === 0) {
+                closePopup('playerManagementModal');
+                return;
+            }
+
+            // Adjust number of players to match preset
+            setPlayerCount(targetCount, { silentUI: true });
+
+            // Bulk rename and migrate unsubmitted scores
+            const newUnsubmitted = {};
+            for (let i = 0; i < targetCount; i++) {
+                const oldName = players[i].name;
+                const newName = emojiModeEnabled ? String(list[i]) : String(list[i]).toUpperCase();
+                players[i].name = newName;
+                if (unsubmittedScores[oldName] !== undefined) {
+                    newUnsubmitted[newName] = unsubmittedScores[oldName];
+                }
+            }
+            unsubmittedScores = newUnsubmitted;
+            localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+
+            saveData();
+            updateUI();
+            closePopup('playerManagementModal');
+        }
+
+// Create player management dialog (text/uppercase mode) with iOS callout suppressed
+function createPlayerManagementDialog(index) {
+    const modal = document.getElementById('playerManagementModal');
+    modal.innerHTML = `
+        <h2>Player</h2>
+        <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+        <input
+            type="text"
+            id="playerNameInput"
+            value="${players[index].name}"
+            autocapitalize="characters"
+            inputmode="text"
+            style="text-transform: uppercase;"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+        >
+        <div class="segmented-control">
+            <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, ${index})">
+            <label for="playerMode-name">Name</label>
+            <input type="radio" id="playerMode-emoji" name="playerModeSwitch" value="emoji" ${emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(true, ${index})">
+            <label for="playerMode-emoji">Emoji</label>
+        </div>
+        <button onclick="handleRemovePlayer(this, ${index})" data-state="initial" class="remove-btn">Remove</button>
+    `;
+    modal.style.display = 'block';
+    showOverlay();
+
+    const input = modal.querySelector('#playerNameInput');
+
+    // Do NOT auto-focus (keeps keyboard closed). Select all when the user taps into the field.
+    input.addEventListener('focus', function () {
+        try { this.select(); } catch (_) {}
+        try { this.setSelectionRange(0, this.value.length); } catch (_) {}
+    });
+
+    // Prevent iOS translate/cut/copy/paste callout and manage focus on first tap
+    let primed = false;
+    const primeFocus = (e) => {
+        if (primed) return;
+        primed = true;
+        e.preventDefault();
+        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+        requestAnimationFrame(() => {
+            try { input.select(); } catch (_) {}
+            try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+        });
+    };
+    input.addEventListener('pointerdown', primeFocus, { passive: false });
+    input.addEventListener('touchstart', primeFocus, { passive: false });
+    input.addEventListener('mousedown', primeFocus);
+
+    // Block the context menu and long-press menu flash
+    input.addEventListener('contextmenu', (e) => e.preventDefault());
+    input.addEventListener('mouseup', (e) => e.preventDefault());
+
+    // Force uppercase while typing
+    input.addEventListener('input', function () {
+        this.value = this.value.toUpperCase();
+    });
+
+    // Apply rename on Enter (and close)
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const newName = (input.value || '').trim().toUpperCase();
+            if (newName && newName !== players[index].name) {
+                renamePlayer(index, newName);
+            }
+            closePopup('playerManagementModal');
+        }
+    });
+
+    // Also apply rename on blur (don’t close)
+    input.addEventListener('blur', function () {
+        const newName = (input.value || '').trim().toUpperCase();
+        if (newName && newName !== players[index].name) {
+            renamePlayer(index, newName);
+        }
+    });
+
+    // NEW: long-press on Remove to open preset picker
+    const removeBtn = modal.querySelector('.remove-btn');
+    attachLongPressToRemove(removeBtn);
+}
+
+        // Emoji-only player management dialog (auto-apply + no Update button)
+        function createEmojiPlayerDialog(index) {
+            const modal = document.getElementById('playerManagementModal');
+            const favEmojis = [
+                "🍔","🩰","🌹","🌰","🔔",
+                "👑","🎣","🌻","🏏","🦈",
+                "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
+                "🏃‍➡️"
+            ];
+            const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}" onclick="setEmojiFromButton(this, ${index})">${e}</button>`).join('');
+            
+            modal.innerHTML = `
+                <h2>Player</h2>
+                <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
+                <input
+                    type="text"
+                    id="emojiNameInput"
+                    value="${players[index].name}"
+                    inputmode="text"
+                    placeholder="Pick an emoji"
+                    enterkeyhint="done"
+                    autocapitalize="off"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                >
+                <div class="emoji-grid">${grid}</div>
+                <div class="segmented-control">
+                    <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, ${index})">
+                    <label for="playerMode-name">Name</label>
+                    <input type="radio" id="playerMode-emoji" name="playerModeSwitch" value="emoji" ${emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(true, ${index})">
+                    <label for="playerMode-emoji">Emoji</label>
+                </div>
+                <button onclick="handleRemovePlayer(this, ${index})" data-state="initial" class="remove-btn">Remove</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
+
+            const input = modal.querySelector('#emojiNameInput');
+
+            // iOS-friendly: focus when the user taps the field (prevents callout)
+            let primed = false;
+            const primeFocus = (e) => {
+                if (primed) return;
+                primed = true;
+                e.preventDefault();
+                try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+                requestAnimationFrame(() => {
+                    try { input.select(); } catch (_) {}
+                    try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+                });
+            };
+
+            input.addEventListener('pointerdown', primeFocus, { passive: false });
+            input.addEventListener('touchstart', primeFocus, { passive: false });
+            input.addEventListener('mousedown', primeFocus);
+
+            input.addEventListener('mouseup', (e) => e.preventDefault());
+            input.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // Auto-apply + close as soon as an emoji is entered
+            let autoClosed = false;
+            input.addEventListener('input', function () {
+                const sanitized = extractEmojis(this.value);
+                if (sanitized !== this.value) {
+                    this.value = sanitized;
+                }
+                if (sanitized && !autoClosed) {
+                    renamePlayer(index, sanitized);
+                    autoClosed = true;
+                    closePopup('playerManagementModal');
+                }
+            });
+
+            // Fallback: Enter key also applies
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    updatePlayerNameEmoji(index);
+                }
+            });
+
+            // NEW: long-press on Remove to open preset picker
+            const removeBtn = modal.querySelector('.remove-btn');
+            attachLongPressToRemove(removeBtn);
+        }
+
+        // Broadened emoji extractor
+        function extractEmojis(str) {
+            if (!str) return '';
+            let segments;
+            if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+                segments = Array.from(new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(str), s => s.segment);
+            } else {
+                segments = Array.from(str);
+            }
+            const rePict = /\p{Extended_Pictographic}/u;
+            const reRI = /[\u{1F1E6}-\u{1F1FF}]/u;
+            const reKeycap = /[#*0-9]\uFE0F?\u20E3/u;
+            const reVS16 = /\uFE0F/u;
+            const reTagFlag = /\u{1F3F4}[\u{E0061}-\u{E007A}]{1,14}\u{E007F}/u;
+
+            return segments
+                .filter(seg => rePict.test(seg) || reRI.test(seg) || reKeycap.test(seg) || reVS16.test(seg) || reTagFlag.test(seg))
+                .join('');
+        }
+
+        function setEmojiFromButton(btn, index) {
+            const emoji = btn.getAttribute('data-emoji') || '';
+            if (emoji) {
+                renamePlayer(index, emoji);
+                closePopup('playerManagementModal');
+            }
+        }
+
+        function updatePlayerNameEmoji(index) {
+            const input = document.getElementById('emojiNameInput');
+            const newName = extractEmojis((input.value || '').trim());
+            if (newName && newName !== players[index].name) {
+                renamePlayer(index, newName);
+            }
+            closePopup('playerManagementModal');
+        }
+    
+        // Handle player removal with button state
+        function handleRemovePlayer(button, index) {
+            if (button.dataset.state === 'initial') {
+                button.textContent = 'Confirm';
+                button.dataset.state = 'confirm';
+            } else {
+                removePlayer(index);
+                closePopup('playerManagementModal');
+            }
+        }
+    
+        // Update player name (normal text mode)
+        // If closeModal is false, do not close (used on blur).
+        function updatePlayerName(index, closeModal = true) {
+            const input = document.getElementById('playerNameInput');
+            if (!input) return;
+            const newName = (input.value || '').trim().toUpperCase();
+            if (newName && newName !== players[index].name) {
+                renamePlayer(index, newName);
+            }
+            if (closeModal) {
+                closePopup('playerManagementModal');
+            }
+        }
+    
+        // Handle player name click
+        function handlePlayerNameClick(event, index) {
+            event.stopPropagation();
+            closeAllPopups();
+            if (emojiModeEnabled) {
+                createEmojiPlayerDialog(index);
+            } else {
+                createPlayerManagementDialog(index);
+            }
+        }
+
+        // Set Emoji Mode explicitly (used by Name/Emoji segmented toggle in the name popup)
+        function setEmojiMode(enabled, reopenIndex = null) {
+            const newVal = !!enabled;
+            emojiModeEnabled = newVal;
+            localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
+
+            syncDefaultNamesToMode();
+            saveData();
+            updateUI();
+
+            // Re-open the correct player dialog for the same player so the UI switches modes seamlessly
+            if (reopenIndex !== null) {
+                if (emojiModeEnabled) {
+                    createEmojiPlayerDialog(reopenIndex);
+                } else {
+                    createPlayerManagementDialog(reopenIndex);
+                }
+            }
+        }
+
+        // Back-compat (no longer used by Round modal, but kept harmless)
+        function toggleEmojiMode() {
+            setEmojiMode(!emojiModeEnabled);
+        }
+    
+        // Create round management dialog (single column)
+        function createRoundManagementDialog() {
+            const modal = document.getElementById('roundManagementModal');
+            modal.innerHTML = `
+                <h2>Round</h2>
+                <span class="close-btn" onclick="closePopup('roundManagementModal')">×</span>
+                <select id="playerCount" onchange="updatePlayerCount()">
+                    ${[1,2,3,4,5,6,7,8].map(i => `<option value="${i}" ${players.length === i ? 'selected' : ''}>${i} Players</option>`).join('')}
+                </select>
+                <div class="segmented-control">
+                    <input type="radio" id="lowest" name="scoringMode" value="lowest" ${scoringMode === 'lowest' ? 'checked' : ''} onchange="scoringMode = 'lowest'; saveData(); updateUI();">
+                    <label for="lowest">Low</label>
+                    <input type="radio" id="highest" name="scoringMode" value="highest" ${scoringMode === 'highest' ? 'checked' : ''} onchange="scoringMode = 'highest'; saveData(); updateUI();">
+                    <label for="highest">High</label>
+                </div>
+                <button id="sortByRankBtn" class="${sortByRankEnabled ? 'active' : ''}" onclick="toggleSortByRank()">Sort by Rank</button>
+
+                <select id="themeColorSelect" onchange="setThemeColor(this.value)">
+                    ${[
+                        {v:'blue', t:'Blue'},
+                        {v:'purple', t:'Purple'},
+                        {v:'pink', t:'Pink'},
+                        {v:'red', t:'Red'},
+                        {v:'yellow', t:'Yellow'},
+                        {v:'green', t:'Green'},
+                        {v:'grey', t:'Grey'}
+                        
+                    ].map(opt => `<option value="${opt.v}" ${themeColor === opt.v ? 'selected' : ''} style="color:${getThemeTextColor(opt.v)};">${opt.t}</option>`).join('')}
+                </select>
+
+                <button onclick="handleResetScores(this)" data-state="initial">Reset</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
+            // Color the Theme Colour dropdown (outer + inner)
+            applyThemeSelectColors();
+        }
+
+        // Toggle Sort by Rank (dark when ON, light when OFF). Does not close the popup.
+        function toggleSortByRank() {
+            sortByRankEnabled = !sortByRankEnabled;
+            localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
+            const btn = document.getElementById('sortByRankBtn');
+            if (btn) btn.classList.toggle('active', sortByRankEnabled);
+
+            if (sortByRankEnabled) {
+                applySortByRank(true);
+            }
+            updateUI();
+        }
+    
+        // Handle reset scores with button state
+        function handleResetScores(button) {
+            if (button.dataset.state === 'initial') {
+                button.textContent = 'Confirm';
+                button.dataset.state = 'confirm';
+            } else {
+                players.forEach(player => {
+                    player.roundScores = [];
+                    player.totalScore = 0;
+                    player.name = player.name.toUpperCase();
+                });
+                rounds = [];
+                unsubmittedScores = {};
+                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+
+                syncDefaultNamesToMode();
+
+                saveData();
+                updateUI();
+                closePopup('roundManagementModal');
+            }
+        }
+    
+        // Update player count (from the Round modal)
+        function updatePlayerCount() {
+            const newCount = parseInt(document.getElementById('playerCount').value);
+            if (newCount > players.length) {
+                for (let i = players.length; i < newCount; i++) {
+                    const newLabel = emojiModeEnabled ? numberToKeycap(i + 1) : `P${i + 1}`.toUpperCase();
+                    players.push({ 
+                        name: newLabel,
+                        totalScore: 0, 
+                        roundScores: Array(rounds.length).fill(0)  
+                    });
+                    rounds.forEach(round => round.push(0));
+                }
+            } else if (newCount < players.length) {
+                players = players.slice(0, newCount);
+                rounds.forEach(round => round.length = newCount);
+            }
+            saveData();
+            updateUI();
+            closePopup('roundManagementModal');
+        }
+    
+        // Create delete round dialog with immediate deletion button
+        function createDeleteRoundDialog(roundIndex) {
+            const modal = document.getElementById('deleteRoundModal');
+            modal.innerHTML = `
+                <h2>Round ${roundIndex + 1}</h2>
+                <span class="close-btn" onclick="closePopup('deleteRoundModal')">×</span>
+                <button onclick="deleteRound(${roundIndex})">Delete</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
+        }
+    
+        // Execute round deletion immediately
+        function deleteRound(roundIndex) {
+            rounds.splice(roundIndex, 1);
+            players.forEach(player => {
+                player.roundScores.splice(roundIndex, 1);
+                player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
+            });
+            saveData();
+            updateUI();
+            closePopup('deleteRoundModal');
+        }
+    
+        // Check if all inputs are filled
+        function allInputsFilled(inputs) {
+            return Array.from(inputs).every(input => input.value.trim() !== '');
+        }
+    
+        // Select text in contenteditable element
+        function selectText(element) {
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+    
+        // Overlay controls
+        function showOverlay() {
+            document.getElementById('overlay').style.display = 'block';
+        }
+    
+        function hideOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+        }
+    
+        // Close popup by ID
+        function closePopup(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            hideOverlay();
+        }
+    
+        // Close all popups
+        function closeAllPopups() {
+            document.getElementById('playerManagementModal').style.display = 'none';
+            document.getElementById('roundManagementModal').style.display = 'none';
+            document.getElementById('deleteRoundModal').style.display = 'none';
+            hideOverlay();
+        }
+    
+        // Overlay click handler
+        document.getElementById('overlay').addEventListener('click', closeAllPopups);
+    
+        // Drag and drop handlers
+        let draggedIndex = -1;
+    
+        function handleDragStart(event, index) {
+            draggedIndex = index;
+            event.target.classList.add('dragging');
+            event.dataTransfer.effectAllowed = 'move';
+        }
+    
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            const target = event.target.closest('th');
+            if (target && target !== event.currentTarget && !target.textContent.includes('☰')) {
+                target.classList.add('drag-over');
+            }
+        }
+    
+        function handleDrop(event, dropIndex) {
+            event.preventDefault();
+            if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
+                const [draggedPlayer] = players.splice(draggedIndex, 1);
+                players.splice(dropIndex, 0, draggedPlayer);
+    
+                rounds.forEach(round => {
+                    const [draggedScore] = round.splice(draggedIndex, 1);
+                    round.splice(dropIndex, 0, draggedScore);
+                });
+    
+                saveData();
+                updateUI();
+            }
+            const ths = document.querySelectorAll('#playerRow th');
+            ths.forEach(th => th.classList.remove('drag-over'));
+            draggedIndex = -1;
+        }
+    
+        function handleDragEnd(event) {
+            event.target.classList.remove('dragging');
+            const ths = document.querySelectorAll('#playerRow th');
+            ths.forEach(th => th.classList.remove('drag-over'));
+            draggedIndex = -1;
+        }
+    
+        // Initial sync and UI update
+        syncDefaultNamesToMode();
+        updateUI();
+    </script>
+</body>
+</html>
