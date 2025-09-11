@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Meta Tags -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Title and Fonts -->
+    <!-- Meta -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Title + Font -->
     <title>Scorecard</title>
     <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
     <style>
-        /* Modified Base Styles */
+        /* ---------------------------------------
+           Base / Layout
+        --------------------------------------- */
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            overflow: hidden; /* keep table area scrollable, not page */
         }
 
         body {
@@ -30,18 +32,18 @@
             flex-direction: column;
         }
 
-        h1 {
-            text-align: center;
-        }
+        h1 { text-align: center; }
 
-        /* New scrollable container */
+        /* Scrollable area for score rows (header stays sticky) */
         .score-container {
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Table Styles */
+        /* ---------------------------------------
+           Table
+        --------------------------------------- */
         table {
             width: 100%;
             table-layout: fixed;
@@ -64,6 +66,7 @@
             color: white;
         }
 
+        /* Round number / header control column */
         table th:first-child {
             background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             font-weight: bold;
@@ -86,7 +89,7 @@
             border-bottom: 1px solid #666;
         }
 
-        /* Sticky Header Styles */
+        /* Header metrics */
         .sticky-header th {
             height: 80px;
             font-family: 'Economica', sans-serif;
@@ -104,6 +107,7 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
+        /* Tight row height for scored rows (not the input row) */
         #scoreBody tr:not(:last-child) td:not(:first-child) {
             max-height: 5px;
             height: 5px;
@@ -115,7 +119,9 @@
             font-weight: bold;
         }
 
-        /* Input Styles */
+        /* ---------------------------------------
+           Inputs
+        --------------------------------------- */
         table input {
             width: 100%;
             box-sizing: border-box;
@@ -145,43 +151,52 @@
             box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
         }
 
+        /* Remove spinners for number inputs on webkit */
         table input[type="number"]::-webkit-outer-spin-button,
         table input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
 
-        /* Inputs: give them a fixed height + matching line-height */
+        /* Fixed height for number inputs */
         table input[type="number"] {
-          width: 100%;
-          box-sizing: border-box;
-          height: 40px;
-          line-height: 40px;
-          padding: 0 8px;
-          text-align: center;
-          font-size: inherit;
-          font-family: 'Economica', sans-serif;
-          border: 1px solid #d0d7de;
-          border-radius: 6px;
-          background: #ffffff;
-          box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+            width: 100%;
+            box-sizing: border-box;
+            height: 40px;
+            line-height: 40px;
+            padding: 0 8px;
+            text-align: center;
+            font-size: inherit;
+            font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        /* Make placeholder match the input’s metrics */
+        /* Number input placeholder metrics */
         table input[type="number"]::placeholder {
-          font: inherit;
-          line-height: inherit;
-          text-align: center;
-          color: #6b7280;
-          opacity: 0.8;
+            font: inherit;
+            line-height: inherit;
+            text-align: center;
+            color: #6b7280;
+            opacity: 0.8;
         }
 
-        /* Popup Modal Styles */
+        /* Bottom input row: placeholders look lighter */
+        #scoreTable tbody tr:last-child input[type="number"]::placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
+        #scoreTable tbody tr:last-child input[type="number"]::-webkit-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::-moz-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]:-ms-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::-ms-input-placeholder { opacity: 0.5; }
+
+        /* ---------------------------------------
+           Modals / Overlay
+        --------------------------------------- */
         .popup-modal {
             display: none;
             position: fixed;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background: #ffffff;
             border: none;
@@ -195,7 +210,7 @@
             border-radius: 10px;
         }
 
-        /* Center the player modal like the others */
+        /* Ensure player modal is centered like the others */
         #playerManagementModal {
             top: 50%;
             transform: translate(-50%, -50%);
@@ -231,16 +246,9 @@
             box-sizing: border-box;
         }
 
+        /* Slightly stronger border for round-management select */
         #roundManagementModal select {
-            font-size: 24px;
-            padding: 10px;
-            margin: 5px 0;
-            font-family: 'Economica', sans-serif;
             border: 1px solid #333;
-            border-radius: 6px;
-            background: #f8f9fa;
-            width: 100%;
-            box-sizing: border-box;
         }
 
         .popup-modal button {
@@ -257,18 +265,20 @@
             width: 100%;
             box-sizing: border-box;
         }
+
+        /* Destructive confirm state */
         .popup-modal button[data-state="confirm"] {
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
 
-        /* Light button variant (Cancel, toggle-like) */
+        /* Light variant (Cancel / toggle-like) */
         .popup-modal button.light {
             background: #f8f9fa;
             color: #0f172a;
             border: 1px solid #262626;
         }
 
-        /* Sort-by-rank button styles */
+        /* Sort-by-rank button styles + active state */
         #roundManagementModal button#sortByRankBtn {
             background: #f8f9fa;
             color: #0f172a;
@@ -280,7 +290,7 @@
             border: 1px solid #262626;
         }
 
-        /* Adjust spacing for h2 in popups */
+        /* Modal headings spacing */
         #playerManagementModal h2,
         #roundManagementModal h2,
         #deleteRoundModal h2 {
@@ -289,7 +299,9 @@
             padding: 0;
         }
 
-        /* Segmented Control Styles (full width, seamless) */
+        /* ---------------------------------------
+           Segmented control (Name/Emoji, Low/High)
+        --------------------------------------- */
         .segmented-control {
             display: flex;
             width: 100%;
@@ -298,16 +310,12 @@
             background: #f8f9fa;
             border-radius: 6px;
             overflow: hidden;
-
-            /* Use inset border to avoid hairline gaps between border and fill */
-            border: 1px solid #262626;
+            border: 1px solid #262626; /* crisp border without seams */
             box-shadow: none;
             -webkit-background-clip: padding-box;
             background-clip: padding-box;
         }
-        .segmented-control input[type="radio"] {
-            display: none;
-        }
+        .segmented-control input[type="radio"] { display: none; }
         .segmented-control label {
             flex: 1 1 0;
             padding: 10px 0;
@@ -316,15 +324,15 @@
             font-family: 'Economica', sans-serif;
             cursor: pointer;
             user-select: none;
-            background: #f8f9fa; /* light side */
-            margin: 0;           /* ensure no seams */
+            background: #f8f9fa;
+            margin: 0;
         }
         .segmented-control input[type="radio"]:checked + label {
-            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); /* dark side */
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             color: #fff;
         }
 
-        /* Close Button */
+        /* Close X button */
         .close-btn {
             position: absolute;
             top: 0px;
@@ -342,32 +350,30 @@
             transition: color 0.2s ease;
         }
 
-        /* Emoji Scaling */
+        /* Emoji scaling helper (if needed) */
         .scaled-emoji {
             transform: scale(.75);
             transform-origin: center;
             display: inline-block;
         }
 
-        /* Disable Tap Highlight */
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
+        /* Remove tap highlight (mobile) */
+        * { -webkit-tap-highlight-color: transparent; }
 
-        /* Overlay */
+        /* Overlay behind modals */
         #overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.5);
             z-index: 999;
             cursor: pointer;
         }
 
-        /* Sticky Header */
+        /* ---------------------------------------
+           Sticky header
+        --------------------------------------- */
         .sticky-header {
             position: sticky;
             top: 0;
@@ -375,222 +381,169 @@
             background: #fff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-        .sticky-header table {
-            margin-bottom: 0;
-        }
+        .sticky-header table { margin-bottom: 0; }
 
-        /* Adjust main table */
-        #scoreTable {
-            margin-top: 0;
-        }
+        /* Make main table flush to header */
+        #scoreTable { margin-top: 0; }
 
-        /* Drag feedback styles */
-        th.dragging {
-            opacity: 0.5;
-            background: rgba(0, 0, 0, 0.2);
-        }
+        /* Drag feedback */
+        th.dragging { opacity: 0.5; background: rgba(0, 0, 0, 0.2); }
+        th.drag-over { border-left: 2px solid #333; }
 
-        th.drag-over {
-            border-left: 2px solid #333;
-        }
-
+        /* ---------------------------------------
+           Emoji grid (player emoji picker)
+        --------------------------------------- */
         .emoji-grid {
-          --emoji-gap: 8px;
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: var(--emoji-gap);
-          padding: 0;
-          margin: 5px 0; /* consistent with other gaps */
-          width: 100%;
-          box-sizing: border-box;
-          user-select: none;
-          -webkit-user-select: none;
+            --emoji-gap: 8px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: var(--emoji-gap);
+            padding: 0;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .emoji-grid .emoji-pick {
-          background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-          color: #ffffff;
-          border: none;
-          border-radius: 6px;
-          font-family: 'Economica', sans-serif;
-          font-size: 22px;
-          display: grid;
-          place-items: center;
-          width: 100%;
-          aspect-ratio: 1 / 1;
-          padding: 0;
-          margin: 0;
-          line-height: 1;
-          cursor: pointer;
-          transition: transform 0.05s ease, filter 0.1s ease;
-          box-sizing: border-box;
-          position: relative;
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Economica', sans-serif;
+            font-size: 22px;
+            display: grid;
+            place-items: center;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            padding: 0;
+            margin: 0;
+            line-height: 1;
+            cursor: pointer;
+            transition: transform 0.05s ease, filter 0.1s ease;
+            box-sizing: border-box;
+            position: relative;
         }
 
         .emoji-grid .emoji-pick:active {
-          transform: scale(0.95);
-          filter: brightness(1.05);
+            transform: scale(0.95);
+            filter: brightness(1.05);
         }
 
-        /* Was dimming everything (including the number). Remove the filter here. */
+        /* Selected state with dim overlay (number sits above) */
         .emoji-grid .emoji-pick.selected {
-          box-shadow: 0 0 0 2px #262626 inset;
+            box-shadow: 0 0 0 2px #262626 inset;
         }
-
-        /* New: a dimming overlay that sits above the emoji, below the number */
         .emoji-grid .emoji-pick.selected::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.35);
-          border-radius: 6px;
-          pointer-events: none;
-          z-index: 1;
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 6px;
+            pointer-events: none;
+            z-index: 1;
         }
-
-        /* Keep your number, but ensure it's above the dim overlay */
         .emoji-grid .emoji-pick.selected::after {
-          content: attr(data-order);
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -55%);
-          font-size: 28px;
-          font-weight: 700;
-          color: #fff;
-          text-shadow: 0 2px 8px rgba(0,0,0,0.7), 0 0 3px rgba(0,0,0,0.7);
-          pointer-events: none;
-          z-index: 2;
+            content: attr(data-order);
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -55%);
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.7), 0 0 3px rgba(0,0,0,0.7);
+            pointer-events: none;
+            z-index: 2;
         }
 
-        /* Bulk actions (shown during multi-select) */
+        /* Bulk actions (shown during emoji multi-select) */
         .bulk-actions {
-          display: none;
-          margin: 5px 0 0 0;
-          width: 100%;
+            display: none;
+            margin: 5px 0 0 0;
+            width: 100%;
         }
         .bulk-actions .row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
-          align-items: center;
-          width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
         }
 
-        /* NEW: suppress iOS cut/copy/paste callout on the emoji input */
-        #emojiNameInput {
-            -webkit-touch-callout: none;
-        }
-        #playerNameInput {
-            -webkit-touch-callout: none; /* hide Translate/Cut/Copy/Paste on long-press */
-        }
+        /* Suppress iOS callout on these text inputs */
+        #emojiNameInput { -webkit-touch-callout: none; }
+        #playerNameInput { -webkit-touch-callout: none; }
 
+        /* ---------------------------------------
+           Responsive: small score font for many players
+        --------------------------------------- */
         @media (max-width: 480px) {
             .sticky-header.small-scores th span.score {
                 font-size: 18px;
                 line-height: 1.2;
             }
-            #scoreTable.small-scores thead th {
-                padding: 3px;
-            }
-            #scoreTable.small-scores thead th span.score {
-                font-size: 16px;
-                line-height: 1.2;
-            }
-            #scoreTable.small-scores thead th small {
-                font-size: 12px;
-            }
-            #scoreTable.small-scores tbody td {
-                font-size: 16px;
-            }
-            /* Small-scores: keep everything consistent */
+            #scoreTable.small-scores thead th { padding: 3px; }
+            #scoreTable.small-scores thead th span.score { font-size: 16px; line-height: 1.2; }
+            #scoreTable.small-scores thead th small { font-size: 12px; }
+            #scoreTable.small-scores tbody td { font-size: 16px; }
+
+            /* Smaller inputs in the bottom row on tiny screens */
             #scoreTable.small-scores tbody tr:last-child input[type="number"] {
-              font-size: 14px;
-              height: 32px;
-              line-height: 32px;
-              padding: 0 6px;
+                font-size: 14px;
+                height: 32px;
+                line-height: 32px;
+                padding: 0 6px;
             }
             #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
-              font: inherit;
-              line-height: inherit;
+                font: inherit;
+                line-height: inherit;
             }
-            .sticky-header.small-scores th small {
-                font-size: 12px;
-            }
+
+            .sticky-header.small-scores th small { font-size: 12px; }
         }
 
-        /* Center text + remove native arrow for the Players dropdown */
+        /* Center text + remove native arrow for Players dropdown */
         #roundManagementModal select#playerCount {
-          text-align: center;
-          text-align-last: center;
-          -moz-text-align-last: center;
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          appearance: none;
-          background-image: none !important;
-          background-color: #f8f9fa;
-          padding-right: 12px;
+            text-align: center;
+            text-align-last: center;
+            -moz-text-align-last: center;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: none !important;
+            background-color: #f8f9fa;
+            padding-right: 12px;
         }
-        #roundManagementModal select#playerCount::-ms-expand {
-          display: none;
-        }
-        #roundManagementModal select#playerCount option {
-          text-align: center;
-        }
+        #roundManagementModal select#playerCount::-ms-expand { display: none; }
+        #roundManagementModal select#playerCount option { text-align: center; }
 
-        /* Center text + remove native arrow for the Theme Colour dropdown */
+        /* Center text + remove native arrow for Theme Colour dropdown */
         #roundManagementModal select#themeColorSelect {
-          text-align: center;
-          text-align-last: center;
-          -moz-text-align-last: center;
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          appearance: none;
-          background-image: none !important;
-          background-color: #f8f9fa;
-          padding-right: 12px;
+            text-align: center;
+            text-align-last: center;
+            -moz-text-align-last: center;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: none !important;
+            background-color: #f8f9fa;
+            padding-right: 12px;
         }
-        #roundManagementModal select#themeColorSelect::-ms-expand {
-          display: none;
-        }
+        #roundManagementModal select#themeColorSelect::-ms-expand { display: none; }
         #roundManagementModal select#themeColorSelect option {
-          text-align: center.
+            text-align: center; /* fixed stray period */
         }
 
-        /* Bottom input row: make placeholders 50% transparent */
-        #scoreTable tbody tr:last-child input[type="number"]::placeholder { 
-          opacity: 0.5; 
-        }
-        #scoreTable tbody tr:last-child input[type="number"]::-webkit-input-placeholder { opacity: 0.5; }
-        #scoreTable tbody tr:last-child input[type="number"]::-moz-placeholder { opacity: 0.5; }
-        #scoreTable tbody tr:last-child input[type="number"]:-ms-input-placeholder { opacity: 0.5; }
-        #scoreTable tbody tr:last-child input[type="number"]::-ms-input-placeholder { opacity: 0.5; }
-        #scoreTable tbody tr:last-child input[type="number"]::placeholder {
-          color: rgba(107, 114, 128, 0.5);
-        }
-
-        /* Spacing logic in the player modal:
-           - Normal: grid -> toggle = 10px (comfortable)
-           - Bulk:   grid -> bulk bar = 5px (consistent with other small gaps) */
-        #playerManagementModal .segmented-control {
-          margin-top: 5px;
-        }
-        /* Default: give the grid a 10px bottom gap before the toggle */
-        #playerManagementModal .emoji-grid {
-          margin: 5px 0 10px;
-        }
-        /* Bulk mode: reduce grid's bottom margin to 5px (so grid->bulk gap becomes 5px) */
-        #playerManagementModal.bulk-mode .emoji-grid {
-          margin-bottom: 5px;
-        }
-        /* Ensure the bulk toolbar sits tight (0 top margin) so the total gap is 5px */
-        #playerManagementModal .bulk-actions {
-          margin-top: 0;
-        }
+        /* Spacing tweaks inside player modal for bulk mode */
+        #playerManagementModal .segmented-control { margin-top: 5px; }
+        #playerManagementModal .emoji-grid { margin: 5px 0 10px; }
+        #playerManagementModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
+        #playerManagementModal .bulk-actions { margin-top: 0; }
     </style>
 </head>
 <body>
-    <!-- Sticky Header -->
+    <!-- Sticky header with player names / totals -->
     <div class="sticky-header">
         <table>
             <thead>
@@ -601,11 +554,10 @@
         </table>
     </div>
 
-    <!-- Score Container -->
+    <!-- Scrollable scores table -->
     <div class="score-container">
         <table id="scoreTable">
-            <tbody id="scoreBody">
-            </tbody>
+            <tbody id="scoreBody"></tbody>
         </table>
     </div>
 
@@ -613,19 +565,26 @@
     <div id="playerManagementModal" class="popup-modal"></div>
     <div id="roundManagementModal" class="popup-modal"></div>
     <div id="deleteRoundModal" class="popup-modal"></div>
-    
+
     <!-- Overlay -->
     <div id="overlay"></div>
 
     <script>
-        // Initialize data from localStorage or set defaults
+        /* ---------------------------------------
+           Globals / Bootstrapping
+        --------------------------------------- */
+        // Explicit globals (pre-declared for clarity)
+        let players = [];
+        let rounds = [];
+
+        // On first load, set default players/rounds; otherwise load saved state
         if (!localStorage.getItem('initialized')) {
             players = [
                 { name: "P1", totalScore: 0, roundScores: [] },
                 { name: "P2", totalScore: 0, roundScores: [] },
                 { name: "P3", totalScore: 0, roundScores: [] },
                 { name: "P4", totalScore: 0, roundScores: [] }
-            ].map(player => ({ ...player, name: player.name.toUpperCase() }));
+            ].map(p => ({ ...p, name: p.name.toUpperCase() }));
             rounds = [];
             localStorage.setItem('initialized', 'true');
             localStorage.setItem('players', JSON.stringify(players));
@@ -634,19 +593,22 @@
             players = JSON.parse(localStorage.getItem('players')) || [];
             rounds = JSON.parse(localStorage.getItem('rounds')) || [];
         }
-    
+
+        // User preferences / UI state
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
         let unsubmittedScores = JSON.parse(localStorage.getItem('unsubmittedScores')) || {};
         let sortByRankEnabled = localStorage.getItem('sortByRankEnabled') === 'true';
         let emojiModeEnabled = localStorage.getItem('emojiModeEnabled') === 'true';
-        let themeColor = localStorage.getItem('themeColor') || 'blue'; // NEW: theme color (default blue)
+        let themeColor = localStorage.getItem('themeColor') || 'blue';
 
-        // NEW: bulk emoji selection state
+        // Emoji bulk selection state
         let bulkEmojiMode = false;
         let bulkEmojiSelection = [];
         const bulkMaxPlayers = 8;
 
-        // Keycap digit helpers
+        /* ---------------------------------------
+           Helpers (Keycap digits / Theme)
+        --------------------------------------- */
         const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
         function numberToKeycap(n) { return KEYCAP_DIGITS[n] || String(n); }
         function keycapToNumber(str) {
@@ -654,7 +616,6 @@
             return idx === -1 ? null : idx;
         }
 
-        // Theme map for rank shading
         const THEME_MAP = {
             blue:   { h: 210, s: 85 },
             red:    { h:   0, s: 78 },
@@ -667,22 +628,17 @@
         function getThemeHS() {
             return THEME_MAP[themeColor] || THEME_MAP.blue;
         }
-
-        // Text color to use for UI elements based on theme key (readable on light background)
         function getThemeTextColor(key) {
             const t = THEME_MAP[key] || THEME_MAP.blue;
-            const L = key === 'yellow' ? 32 : 34;
+            const L = key === 'yellow' ? 32 : 34; // darker for readability on light bg
             return `hsl(${t.h}, ${t.s}%, ${L}%)`;
         }
-
         function setThemeColor(value) {
             themeColor = value || 'blue';
             localStorage.setItem('themeColor', themeColor);
-            updateUI();                // re-render shading immediately
-            applyThemeSelectColors();  // recolor the dropdown text to match
+            updateUI();               // update header shading immediately
+            applyThemeSelectColors(); // recolor dropdown options
         }
-
-        // Apply selected theme color to the Theme Colour select (outer) and color-code options (inner)
         function applyThemeSelectColors() {
             const select = document.querySelector('#roundManagementModal select#themeColorSelect');
             if (!select) return;
@@ -691,42 +647,19 @@
                 opt.style.color = getThemeTextColor(opt.value);
             });
         }
-    
-        // Add new round scores and scroll to the last row
-        function addRoundScores() {
-            const scores = [];
-            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-            inputs.forEach((input, index) => {
-                const score = parseInt(input.value) || 0;
-                scores[index] = score;
-                players[index].roundScores.push(score);
-                players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
-            });
-            rounds.push(scores);
-            saveData();
-            unsubmittedScores = {}; // Clear unsubmitted scores after submission
-            localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
-            updateUI();
-            inputs.forEach(input => input.value = '');
-            
-            const scoreBody = document.getElementById("scoreBody");
-            const lastRow = scoreBody.lastElementChild;
-            if (lastRow) {
-                lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }
-        }
-    
-        // Save data to localStorage
+
+        /* ---------------------------------------
+           Persistence
+        --------------------------------------- */
         function saveData() {
             localStorage.setItem('players', JSON.stringify(players));
             localStorage.setItem('rounds', JSON.stringify(rounds));
             localStorage.setItem('scoringMode', scoringMode);
             localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
             localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
-            localStorage.setItem('themeColor', themeColor); // NEW
+            localStorage.setItem('themeColor', themeColor);
         }
-    
-        // Save unsubmitted scores to localStorage
+
         function saveUnsubmittedScores() {
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             unsubmittedScores = {};
@@ -736,12 +669,17 @@
             localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
         }
 
-        // Sync default placeholder names with mode
+        /* ---------------------------------------
+           Players / Names / Emoji
+        --------------------------------------- */
+        // Switch default labels between P# and keycap emoji (keeps unsubmitted scores aligned)
         function syncDefaultNamesToMode() {
             let changed = false;
             players.forEach((p) => {
                 const name = (p.name || '').trim();
+
                 if (emojiModeEnabled) {
+                    // P# -> keycap emoji when turning emoji mode on
                     const m = /^P(\d{1,2})$/i.exec(name);
                     if (m) {
                         const n = parseInt(m[1], 10);
@@ -758,6 +696,7 @@
                         }
                     }
                 } else {
+                    // keycap emoji -> P# when turning emoji mode off
                     const n = keycapToNumber(name);
                     if (n !== null) {
                         const pn = `P${n}`.toUpperCase();
@@ -778,12 +717,144 @@
             }
         }
 
-        // Apply sort-by-rank to arrays
+        // Rename a player and carry over any typed-but-not-submitted score
+        function renamePlayer(index, newName) {
+            const oldName = players[index].name;
+            players[index].name = newName;
+            if (unsubmittedScores[oldName] !== undefined) {
+                unsubmittedScores[newName] = unsubmittedScores[oldName];
+                delete unsubmittedScores[oldName];
+                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+            }
+            saveData();
+            updateUI();
+        }
+
+        // Remove a player (and their column) safely
+        function removePlayer(index) {
+            if (players.length <= 1) {
+                alert("At least one player must remain.");
+                return false;
+            }
+            players.splice(index, 1);
+            rounds.forEach(round => round.splice(index, 1));
+            saveData();
+            updateUI();
+            return true;
+        }
+
+        // Toggle emoji mode; optionally re-open the correct modal after switching
+        function setEmojiMode(enabled, reopenIndex = null) {
+            emojiModeEnabled = !!enabled;
+            localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
+            syncDefaultNamesToMode();
+            saveData();
+            updateUI();
+
+            if (reopenIndex !== null) {
+                if (emojiModeEnabled) createEmojiPlayerDialog(reopenIndex);
+                else createPlayerManagementDialog(reopenIndex);
+            }
+        }
+        function toggleEmojiMode() { setEmojiMode(!emojiModeEnabled); }
+
+        /* ---------------------------------------
+           Rounds / Scores
+        --------------------------------------- */
+        // Add a round using values from the bottom input row
+        function addRoundScores() {
+            const scores = [];
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+
+            inputs.forEach((input, index) => {
+                const score = parseInt(input.value) || 0;
+                scores[index] = score;
+                players[index].roundScores.push(score);
+                players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
+            });
+
+            rounds.push(scores);
+            saveData();
+
+            // Clear the bottom inputs after submission
+            unsubmittedScores = {};
+            localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+            updateUI();
+            inputs.forEach(input => input.value = '');
+
+            // Scroll to the last row for convenience
+            const scoreBody = document.getElementById("scoreBody");
+            const lastRow = scoreBody.lastElementChild;
+            if (lastRow) lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+
+        // Update a single score (contenteditable cell), then recalc totals
+        function updateScore(roundIndex, playerIndex, newScore) {
+            const score = parseInt(newScore) || 0;
+
+            if (rounds[roundIndex] && rounds[roundIndex][playerIndex] !== undefined) {
+                rounds[roundIndex][playerIndex] = score;
+
+                if (players[playerIndex] && players[playerIndex].roundScores[roundIndex] !== undefined) {
+                    players[playerIndex].roundScores[roundIndex] = score;
+                    players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+                }
+            }
+            saveData();
+            updateUI();
+        }
+
+        // Reset scores/rounds (keeps names in the same mode)
+        function handleResetScores(button) {
+            if (button.dataset.state === 'initial') {
+                button.textContent = 'Confirm';
+                button.dataset.state = 'confirm';
+            } else {
+                players.forEach(player => {
+                    player.roundScores = [];
+                    player.totalScore = 0;
+                    player.name = player.name.toUpperCase(); // normalized before sync
+                });
+                rounds = [];
+                unsubmittedScores = {};
+                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+
+                // Respect current emoji/text mode
+                syncDefaultNamesToMode();
+
+                saveData();
+                updateUI();
+                closePopup('roundManagementModal');
+            }
+        }
+
+        // Delete a round and recompute totals
+        function deleteRound(roundIndex) {
+            rounds.splice(roundIndex, 1);
+            players.forEach(player => {
+                player.roundScores.splice(roundIndex, 1);
+                player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
+            });
+            saveData();
+            updateUI();
+            closePopup('deleteRoundModal');
+        }
+
+        // Utility: check if all bottom-row inputs are filled
+        function allInputsFilled(inputs) {
+            return Array.from(inputs).every(input => input.value.trim() !== '');
+        }
+
+        /* ---------------------------------------
+           Sorting / Ranking / Theme shading
+        --------------------------------------- */
+        // Sort players (and each round) by current rank
         function applySortByRank(silent = false) {
             if (players.length <= 1 || rounds.length === 0) {
                 if (!silent) updateUI();
                 return;
             }
+
             const indices = players
                 .map((p, i) => ({ i, score: p.totalScore }))
                 .sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score))
@@ -795,95 +866,8 @@
             saveData();
             if (!silent) updateUI();
         }
-    
-        // Update UI
-        function updateUI() {
-            if (sortByRankEnabled && players.length > 1 && rounds.length > 0) {
-                applySortByRank(true);
-            }
 
-            const playerRow = document.getElementById("playerRow");
-            const scoreTable = document.getElementById("scoreTable");
-            const stickyHeader = document.querySelector(".sticky-header");
-    
-            if (players.length >= 7) {
-                scoreTable.classList.add("small-scores");
-                stickyHeader.classList.add("small-scores");
-            } else {
-                scoreTable.classList.remove("small-scores");
-                stickyHeader.classList.remove("small-scores");
-            }
-    
-            playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
-            players.forEach((player, index) => {
-                playerRow.innerHTML += `
-                    <th draggable="true" 
-                        ondragstart="handleDragStart(event, ${index})"
-                        ondragover="handleDragOver(event)"
-                        ondrop="handleDrop(event, ${index})"
-                        ondragend="handleDragEnd(event)"
-                        onclick="handlePlayerNameClick(event, ${index})" 
-                        title="Player">
-                        ${player.name}
-                        <br>
-                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
-                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
-                    </th>
-                `;
-            });
-    
-            const scoreBody = document.getElementById("scoreBody");
-            scoreBody.innerHTML = "";
-            rounds.forEach((round, roundIndex) => {
-                const row = document.createElement("tr");
-                row.innerHTML = `<td onclick="createDeleteRoundDialog(${roundIndex})">${roundIndex + 1}</td>`;
-                players.forEach((_, playerIndex) => {
-                    const displayScore = round[playerIndex] !== undefined ? 
-                        (round[playerIndex] == 0 ? '<img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">' : round[playerIndex]) : 
-                        '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">';
-                    row.innerHTML += `<td contenteditable="true" inputmode="numeric" onclick="selectText(this)" onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">${displayScore}</td>`;
-                });
-                scoreBody.appendChild(row);
-            });
-    
-            const inputRow = document.createElement('tr');
-            inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
-            players.forEach((player) => {
-                const savedValue = unsubmittedScores[player.name] || '';
-                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" /></td>`;
-            });
-            scoreBody.appendChild(inputRow);
-    
-            updateRankings();
-    
-            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-            inputs.forEach((input, index) => {
-                input.addEventListener('input', saveUnsubmittedScores);
-                input.addEventListener('keydown', function(event) {
-                    if (event.key === 'Enter' || event.keyCode === 13) {
-                        event.preventDefault();
-                        const allFilled = allInputsFilled(inputs);
-                        if (allFilled) {
-                            addRoundScores();
-                            inputs[0].focus();
-                        } else {
-                            if (index < inputs.length - 1) {
-                                inputs[index + 1].focus();
-                            } else {
-                                const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
-                                if (firstEmpty !== -1) {
-                                    inputs[firstEmpty].focus();
-                                } else {
-                                    inputs[0].focus();
-                                }
-                            }
-                        }
-                    }
-                });
-            });
-        }
-    
-        // Calculate player rank
+        // Compute rank text ("1st", "2nd", …) for a given total
         function getRank(score) {
             if (players.length === 1) return "1st";
             const sortedPlayers = [...players];
@@ -899,30 +883,18 @@
             if (rank % 10 === 3 && rank % 100 !== 13) suffix = 'rd';
             return rank + suffix;
         }
-    
-        // Update score
-        function updateScore(roundIndex, playerIndex, newScore) {
-            const score = parseInt(newScore) || 0;
-            if (rounds[roundIndex] && rounds[roundIndex][playerIndex] !== undefined) {
-                rounds[roundIndex][playerIndex] = score;
-                if (players[playerIndex] && players[playerIndex].roundScores[roundIndex] !== undefined) {
-                    players[playerIndex].roundScores[roundIndex] = score;
-                    players[playerIndex].totalScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
-                }
-            }
-            saveData();
-            updateUI();
-        }
-    
-        // Update player rankings with THEME gradient shading
+
+        // Apply header shading based on ranks and selected theme color
         function updateRankings() {
             const playerRow = document.getElementById("playerRow");
-            const columns = Array.from(playerRow.children).slice(1);
+            const columns = Array.from(playerRow.children).slice(1); // skip first (#) col
 
+            // Clear previous bg
             columns.forEach((th) => { th.style.background = ''; });
 
             const { h: H, s: S } = getThemeHS();
 
+            // Single player: just color if there are rounds
             if (players.length === 1) {
                 if (rounds.length > 0) {
                     const Lmax = 82, range = 36;
@@ -937,9 +909,9 @@
 
             if (rounds.length === 0) return;
 
-            const scored = players.map((p, i) => ({ index: i, score: p.totalScore }));
-            scored.sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score));
-
+            // Group players by equal totals (ties share a color)
+            const scored = players.map((p, i) => ({ index: i, score: p.totalScore }))
+                                  .sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score));
             const groups = [];
             for (const item of scored) {
                 const last = groups[groups.length - 1];
@@ -950,6 +922,7 @@
                 }
             }
 
+            // Shade range scales with distinct ranks
             const Lmax = 82;
             const minRange = 18;
             const maxRange = 44;
@@ -968,12 +941,12 @@
             const range = Math.round(minRange + (maxRange - minRange) * normalized);
             const Lmin = Math.max(28, Lmax - range);
 
+            // Apply gradients from best to worst
             groups.forEach((group, g) => {
                 const ratio = g / (effectiveRanks - 1);
                 const L = Math.round(Lmin + (Lmax - Lmin) * ratio);
                 const Ltop = Math.max(18, L - 10);
                 const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
-
                 group.members.forEach(idx => {
                     const th = columns[idx];
                     if (th) th.style.background = gradient;
@@ -981,32 +954,118 @@
             });
         }
 
-        function removePlayer(index) {
-            if (players.length <= 1) {
-                alert("At least one player must remain.");
-                return false;
+        /* ---------------------------------------
+           UI Building
+        --------------------------------------- */
+        // Build header + scores table, wire up inputs
+        function updateUI() {
+            // Keep sorted (if enabled) before rendering
+            if (sortByRankEnabled && players.length > 1 && rounds.length > 0) {
+                applySortByRank(true);
             }
-            players.splice(index, 1);
-            rounds.forEach(round => round.splice(index, 1));
-            saveData();
-            updateUI();
-            return true;
-        }
-    
-        // Generic rename that transfers unsubmittedScores
-        function renamePlayer(index, newName) {
-            const oldName = players[index].name;
-            players[index].name = newName;
-            if (unsubmittedScores[oldName] !== undefined) {
-                unsubmittedScores[newName] = unsubmittedScores[oldName];
-                delete unsubmittedScores[oldName];
-                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+
+            const playerRow = document.getElementById("playerRow");
+            const scoreTable = document.getElementById("scoreTable");
+            const stickyHeader = document.querySelector(".sticky-header");
+
+            // Compact font if many players
+            if (players.length >= 7) {
+                scoreTable.classList.add("small-scores");
+                stickyHeader.classList.add("small-scores");
+            } else {
+                scoreTable.classList.remove("small-scores");
+                stickyHeader.classList.remove("small-scores");
             }
-            saveData();
-            updateUI();
+
+            // Header: first cell opens Round dialog
+            playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
+
+            // Header: player name, total, rank
+            players.forEach((player, index) => {
+                playerRow.innerHTML += `
+                    <th draggable="true" 
+                        ondragstart="handleDragStart(event, ${index})"
+                        ondragover="handleDragOver(event)"
+                        ondrop="handleDrop(event, ${index})"
+                        ondragend="handleDragEnd(event)"
+                        onclick="handlePlayerNameClick(event, ${index})" 
+                        title="Player">
+                        ${player.name}
+                        <br>
+                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+                    </th>
+                `;
+            });
+
+            // Body: scored rounds + bottom input row
+            const scoreBody = document.getElementById("scoreBody");
+            scoreBody.innerHTML = "";
+
+            // Scored rounds (click on first cell to delete round)
+            rounds.forEach((round, roundIndex) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td onclick="createDeleteRoundDialog(${roundIndex})">${roundIndex + 1}</td>`;
+
+                players.forEach((_, playerIndex) => {
+                    const displayScore = round[playerIndex] !== undefined
+                        ? (round[playerIndex] == 0
+                            ? '<img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">'
+                            : round[playerIndex])
+                        : '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">';
+
+                    row.innerHTML += `
+                        <td contenteditable="true" inputmode="numeric"
+                            onclick="selectText(this)"
+                            onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">
+                            ${displayScore}
+                        </td>`;
+                });
+
+                scoreBody.appendChild(row);
+            });
+
+            // Bottom input row (click + to submit)
+            const inputRow = document.createElement('tr');
+            inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
+            players.forEach((player) => {
+                const savedValue = unsubmittedScores[player.name] || '';
+                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" /></td>`;
+            });
+            scoreBody.appendChild(inputRow);
+
+            // Apply rank shading
+            updateRankings();
+
+            // Wire keyboard interactions for inputs (Enter to submit / move)
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', saveUnsubmittedScores);
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' || event.keyCode === 13) {
+                        event.preventDefault();
+                        const allFilled = allInputsFilled(inputs);
+                        if (allFilled) {
+                            addRoundScores();
+                            inputs[0].focus();
+                        } else {
+                            if (index < inputs.length - 1) {
+                                inputs[index + 1].focus();
+                            } else {
+                                const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
+                                if (firstEmpty !== -1) inputs[firstEmpty].focus();
+                                else inputs[0].focus();
+                            }
+                        }
+                    }
+                });
+            });
         }
 
-        // Create player management dialog (text mode)
+        /* ---------------------------------------
+           Modals
+        --------------------------------------- */
+        // Player modal (text name version)
         function createPlayerManagementDialog(index) {
             const modal = document.getElementById('playerManagementModal');
             modal.innerHTML = `
@@ -1036,11 +1095,13 @@
 
             const input = modal.querySelector('#playerNameInput');
 
+            // Auto-select contents on focus
             input.addEventListener('focus', function () {
                 try { this.select(); } catch (_) {}
                 try { this.setSelectionRange(0, this.value.length); } catch (_) {}
             });
 
+            // Make the first tap focus/select without scrolling
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
@@ -1056,33 +1117,33 @@
             input.addEventListener('touchstart', primeFocus, { passive: false });
             input.addEventListener('mousedown', primeFocus);
 
+            // Reduce mobile quirks
             input.addEventListener('contextmenu', (e) => e.preventDefault());
             input.addEventListener('mouseup', (e) => e.preventDefault());
 
+            // Force uppercase as user types
             input.addEventListener('input', function () {
                 this.value = this.value.toUpperCase();
             });
 
+            // Save on Enter
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     const newName = (input.value || '').trim().toUpperCase();
-                    if (newName && newName !== players[index].name) {
-                        renamePlayer(index, newName);
-                    }
+                    if (newName && newName !== players[index].name) renamePlayer(index, newName);
                     closePopup('playerManagementModal');
                 }
             });
 
+            // Save on blur
             input.addEventListener('blur', function () {
                 const newName = (input.value || '').trim().toUpperCase();
-                if (newName && newName !== players[index].name) {
-                    renamePlayer(index, newName);
-                }
+                if (newName && newName !== players[index].name) renamePlayer(index, newName);
             });
         }
 
-        // Emoji-only player management dialog (with bulk select)
+        // Player modal (emoji version) with optional bulk selection flow
         function createEmojiPlayerDialog(index) {
             const modal = document.getElementById('playerManagementModal');
             const favEmojis = [
@@ -1092,7 +1153,7 @@
                 "🏃‍➡️"
             ];
             const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}">${e}</button>`).join('');
-            
+
             modal.innerHTML = `
                 <h2>Player</h2>
                 <span class="close-btn" onclick="closePopup('playerManagementModal')">×</span>
@@ -1132,10 +1193,11 @@
             // Reset bulk state on open
             bulkEmojiMode = false;
             bulkEmojiSelection = [];
-            modal.classList.remove('bulk-mode'); // ensure default spacing state
+            modal.classList.remove('bulk-mode');
 
             const input = modal.querySelector('#emojiNameInput');
 
+            // First tap focuses + selects (mobile-friendly)
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
@@ -1147,7 +1209,6 @@
                     try { input.setSelectionRange(0, input.value.length); } catch (_) {}
                 });
             };
-
             input.addEventListener('pointerdown', primeFocus, { passive: false });
             input.addEventListener('touchstart', primeFocus, { passive: false });
             input.addEventListener('mousedown', primeFocus);
@@ -1155,12 +1216,11 @@
             input.addEventListener('mouseup', (e) => e.preventDefault());
             input.addEventListener('contextmenu', (e) => e.preventDefault());
 
+            // Auto-close after typing a valid emoji (single-select mode)
             let autoClosed = false;
             input.addEventListener('input', function () {
                 const sanitized = extractEmojis(this.value);
-                if (sanitized !== this.value) {
-                    this.value = sanitized;
-                }
+                if (sanitized !== this.value) this.value = sanitized;
                 if (sanitized && !autoClosed && !bulkEmojiMode) {
                     renamePlayer(index, sanitized);
                     autoClosed = true;
@@ -1168,17 +1228,18 @@
                 }
             });
 
+            // Enter -> save (single-select mode)
             input.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter' && !bulkEmojiMode) {
                     updatePlayerNameEmoji(index);
                 }
             });
 
-            // Attach grid interactions (tap vs long-press)
+            // Set up grid interactions for tap (single) and long-press (bulk)
             attachEmojiGridInteractions(index);
         }
 
-        // Emoji extractor
+        // Extract only emoji-like graphemes from a string
         function extractEmojis(str) {
             if (!str) return '';
             let segments;
@@ -1215,7 +1276,7 @@
             closePopup('playerManagementModal');
         }
 
-        // Attach per-emoji interactions (tap vs long-press for bulk)
+        // Wire up per-emoji interactions, long-press to enter bulk mode
         function attachEmojiGridInteractions(index) {
             const modal = document.getElementById('playerManagementModal');
             const buttons = Array.from(modal.querySelectorAll('.emoji-pick'));
@@ -1231,7 +1292,7 @@
                 if (seg) seg.style.display = 'none';
                 if (emojiInput) emojiInput.style.display = 'none';
                 buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
-                modal.classList.add('bulk-mode'); // spacing tweaks for bulk toolbar
+                modal.classList.add('bulk-mode');
             };
 
             const exitBulkEmojiMode = () => {
@@ -1241,15 +1302,14 @@
                 if (seg) seg.style.display = '';
                 if (emojiInput) emojiInput.style.display = '';
                 buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
-                modal.classList.remove('bulk-mode'); // restore normal spacing
+                modal.classList.remove('bulk-mode');
             };
 
             const renumberSelection = () => {
-                // Clear existing numbers
+                // Clear and reapply order numbers for selected emojis
                 buttons.forEach(b => {
                     if (b.classList.contains('selected')) b.setAttribute('data-order', '');
                 });
-                // Apply order numbers based on selection array
                 bulkEmojiSelection.forEach((emoji, i) => {
                     const b = buttons.find(btn => btn.getAttribute('data-emoji') === emoji);
                     if (b) b.setAttribute('data-order', String(i + 1));
@@ -1264,9 +1324,7 @@
                     btn.classList.remove('selected');
                     btn.removeAttribute('data-order');
                 } else {
-                    if (bulkEmojiSelection.length >= bulkMaxPlayers) {
-                        return;
-                    }
+                    if (bulkEmojiSelection.length >= bulkMaxPlayers) return;
                     bulkEmojiSelection.push(emoji);
                     btn.classList.add('selected');
                 }
@@ -1277,11 +1335,13 @@
                 const targetCount = Math.min(bulkMaxPlayers, selected.length);
                 if (targetCount < 1) return;
 
+                // Turn on emoji mode for bulk selection
                 emojiModeEnabled = true;
                 localStorage.setItem('emojiModeEnabled', 'true');
 
                 const currentCount = players.length;
 
+                // Expand/shrink players to match selected count
                 if (targetCount > currentCount) {
                     for (let i = currentCount; i < targetCount; i++) {
                         const newName = selected[i] || (emojiModeEnabled ? numberToKeycap(i + 1) : `P${i + 1}`.toUpperCase());
@@ -1292,18 +1352,16 @@
                         });
                     }
                     rounds.forEach(round => {
-                        for (let i = round.length; i < targetCount; i++) {
-                            round.push(0);
-                        }
+                        for (let i = round.length; i < targetCount; i++) round.push(0);
                     });
                 } else if (targetCount < currentCount) {
                     players = players.slice(0, targetCount);
                     rounds.forEach(round => round.length = targetCount);
                 }
 
+                // Remap unsubmitted scores by new names
                 const oldUnsubmitted = { ...unsubmittedScores };
                 const newUnsubmitted = {};
-
                 for (let i = 0; i < targetCount; i++) {
                     const oldName = players[i].name;
                     const newName = selected[i];
@@ -1319,39 +1377,32 @@
                 updateUI();
             };
 
-            // Bind toolbar buttons
+            // Toolbar buttons (Cancel / Select)
             const cancelBtn = modal.querySelector('#bulkCancelBtn');
             const applyBtn = modal.querySelector('#bulkApplyBtn');
-            if (cancelBtn) cancelBtn.addEventListener('click', () => {
-                exitBulkEmojiMode();
-            });
+            if (cancelBtn) cancelBtn.addEventListener('click', () => { exitBulkEmojiMode(); });
             if (applyBtn) applyBtn.addEventListener('click', () => {
-                if (bulkEmojiSelection.length > 0) {
-                    applyBulkEmojiPlayers(bulkEmojiSelection);
-                }
+                if (bulkEmojiSelection.length > 0) applyBulkEmojiPlayers(bulkEmojiSelection);
                 exitBulkEmojiMode();
                 closePopup('playerManagementModal');
             });
 
-            // Per-emoji interactions
+            // Button interactions (tap vs long-press)
             buttons.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    if (bulkEmojiMode) {
-                        toggleEmojiSelection(btn);
-                    } else {
-                        setEmojiFromButton(btn, index);
-                    }
+                    if (bulkEmojiMode) toggleEmojiSelection(btn);
+                    else setEmojiFromButton(btn, index);
                 });
 
-                // Long-press detection (1.0s)
+                // Long-press (1s) to enter bulk mode
                 let pressTimer = null;
                 const start = () => {
                     if (bulkEmojiMode) return;
                     clearTimeout(pressTimer);
                     pressTimer = setTimeout(() => {
                         enterBulkEmojiMode();
-                        // user releases and taps to select
-                    }, 1000);
+                        // Now user can tap to select multiple
+                    }, 500);
                 };
                 const cancel = () => {
                     clearTimeout(pressTimer);
@@ -1370,78 +1421,41 @@
             });
         }
 
-        // Handle player removal with button state
-        function handleRemovePlayer(button, index) {
-            if (button.dataset.state === 'initial') {
-                button.textContent = 'Confirm';
-                button.dataset.state = 'confirm';
-            } else {
-                removePlayer(index);
-                closePopup('playerManagementModal');
-            }
+        // Player menu click (open right modal for current mode)
+        function handlePlayerNameClick(event, index) {
+            event.stopPropagation();
+            closeAllPopups();
+            if (emojiModeEnabled) createEmojiPlayerDialog(index);
+            else createPlayerManagementDialog(index);
         }
-    
-        // Update player name (normal text mode)
+
+        // Simple text-mode update (used by Enter key)
         function updatePlayerName(index, closeModal = true) {
             const input = document.getElementById('playerNameInput');
             if (!input) return;
             const newName = (input.value || '').trim().toUpperCase();
-            if (newName && newName !== players[index].name) {
-                renamePlayer(index, newName);
-            }
-            if (closeModal) {
-                closePopup('playerManagementModal');
-            }
-        }
-    
-        // Handle player name click
-        function handlePlayerNameClick(event, index) {
-            event.stopPropagation();
-            closeAllPopups();
-            if (emojiModeEnabled) {
-                createEmojiPlayerDialog(index);
-            } else {
-                createPlayerManagementDialog(index);
-            }
+            if (newName && newName !== players[index].name) renamePlayer(index, newName);
+            if (closeModal) closePopup('playerManagementModal');
         }
 
-        // Set Emoji Mode explicitly
-        function setEmojiMode(enabled, reopenIndex = null) {
-            emojiModeEnabled = !!enabled;
-            localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
-
-            syncDefaultNamesToMode();
-            saveData();
-            updateUI();
-
-            if (reopenIndex !== null) {
-                if (emojiModeEnabled) {
-                    createEmojiPlayerDialog(reopenIndex);
-                } else {
-                    createPlayerManagementDialog(reopenIndex);
-                }
-            }
-        }
-
-        function toggleEmojiMode() {
-            setEmojiMode(!emojiModeEnabled);
-        }
-    
-        // Create round management dialog
+        // Round management (players count, high/low, theme, sort)
         function createRoundManagementDialog() {
             const modal = document.getElementById('roundManagementModal');
             modal.innerHTML = `
                 <h2>Round</h2>
                 <span class="close-btn" onclick="closePopup('roundManagementModal')">×</span>
+
                 <select id="playerCount" onchange="updatePlayerCount()">
                     ${[1,2,3,4,5,6,7,8].map(i => `<option value="${i}" ${players.length === i ? 'selected' : ''}>${i} Players</option>`).join('')}
                 </select>
+
                 <div class="segmented-control">
                     <input type="radio" id="lowest" name="scoringMode" value="lowest" ${scoringMode === 'lowest' ? 'checked' : ''} onchange="scoringMode = 'lowest'; saveData(); updateUI();">
                     <label for="lowest">Low</label>
                     <input type="radio" id="highest" name="scoringMode" value="highest" ${scoringMode === 'highest' ? 'checked' : ''} onchange="scoringMode = 'highest'; saveData(); updateUI();">
                     <label for="highest">High</label>
                 </div>
+
                 <button id="sortByRankBtn" class="${sortByRankEnabled ? 'active' : ''}" onclick="toggleSortByRank()">Sort by Rank</button>
 
                 <select id="themeColorSelect" onchange="setThemeColor(this.value)">
@@ -1453,7 +1467,6 @@
                         {v:'yellow', t:'Yellow'},
                         {v:'green', t:'Green'},
                         {v:'grey', t:'Grey'}
-                        
                     ].map(opt => `<option value="${opt.v}" ${themeColor === opt.v ? 'selected' : ''} style="color:${getThemeTextColor(opt.v)};">${opt.t}</option>`).join('')}
                 </select>
 
@@ -1469,46 +1482,20 @@
             localStorage.setItem('sortByRankEnabled', sortByRankEnabled);
             const btn = document.getElementById('sortByRankBtn');
             if (btn) btn.classList.toggle('active', sortByRankEnabled);
-
-            if (sortByRankEnabled) {
-                applySortByRank(true);
-            }
+            if (sortByRankEnabled) applySortByRank(true);
             updateUI();
         }
-    
-        // Handle reset scores
-        function handleResetScores(button) {
-            if (button.dataset.state === 'initial') {
-                button.textContent = 'Confirm';
-                button.dataset.state = 'confirm';
-            } else {
-                players.forEach(player => {
-                    player.roundScores = [];
-                    player.totalScore = 0;
-                    player.name = player.name.toUpperCase();
-                });
-                rounds = [];
-                unsubmittedScores = {};
-                localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
 
-                syncDefaultNamesToMode();
-
-                saveData();
-                updateUI();
-                closePopup('roundManagementModal');
-            }
-        }
-    
-        // Update player count
+        // Update player count (adds/removes players + aligns rounds)
         function updatePlayerCount() {
             const newCount = parseInt(document.getElementById('playerCount').value);
             if (newCount > players.length) {
                 for (let i = players.length; i < newCount; i++) {
                     const newLabel = emojiModeEnabled ? numberToKeycap(i + 1) : `P${i + 1}`.toUpperCase();
-                    players.push({ 
+                    players.push({
                         name: newLabel,
-                        totalScore: 0, 
-                        roundScores: Array(rounds.length).fill(0)  
+                        totalScore: 0,
+                        roundScores: Array(rounds.length).fill(0)
                     });
                     rounds.forEach(round => round.push(0));
                 }
@@ -1520,8 +1507,8 @@
             updateUI();
             closePopup('roundManagementModal');
         }
-    
-        // Delete round dialog
+
+        // Confirmation dialog for deleting a round
         function createDeleteRoundDialog(roundIndex) {
             const modal = document.getElementById('deleteRoundModal');
             modal.innerHTML = `
@@ -1532,25 +1519,8 @@
             modal.style.display = 'block';
             showOverlay();
         }
-    
-        // Execute round deletion
-        function deleteRound(roundIndex) {
-            rounds.splice(roundIndex, 1);
-            players.forEach(player => {
-                player.roundScores.splice(roundIndex, 1);
-                player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
-            });
-            saveData();
-            updateUI();
-            closePopup('deleteRoundModal');
-        }
-    
-        // Check if all inputs are filled
-        function allInputsFilled(inputs) {
-            return Array.from(inputs).every(input => input.value.trim() !== '');
-        }
-    
-        // Select text in contenteditable element
+
+        // Contenteditable utility: select text on click
         function selectText(element) {
             const range = document.createRange();
             range.selectNodeContents(element);
@@ -1558,42 +1528,50 @@
             sel.removeAllRanges();
             sel.addRange(range);
         }
-    
-        // Overlay controls
-        function showOverlay() {
-            document.getElementById('overlay').style.display = 'block';
-        }
-    
-        function hideOverlay() {
-            document.getElementById('overlay').style.display = 'none';
-        }
-    
-        // Close popup by ID
+
+        /* ---------------------------------------
+           Modal / Overlay helpers
+        --------------------------------------- */
+        function showOverlay() { document.getElementById('overlay').style.display = 'block'; }
+        function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
+
         function closePopup(modalId) {
             document.getElementById(modalId).style.display = 'none';
             hideOverlay();
         }
-    
-        // Close all popups
+
         function closeAllPopups() {
             document.getElementById('playerManagementModal').style.display = 'none';
             document.getElementById('roundManagementModal').style.display = 'none';
             document.getElementById('deleteRoundModal').style.display = 'none';
             hideOverlay();
         }
-    
-        // Overlay click handler
+
+        // Overlay tap closes any open modal
         document.getElementById('overlay').addEventListener('click', closeAllPopups);
-    
-        // Drag and drop handlers
+
+        // Remove player (with 2-tap confirm)
+        function handleRemovePlayer(button, index) {
+            if (button.dataset.state === 'initial') {
+                button.textContent = 'Confirm';
+                button.dataset.state = 'confirm';
+            } else {
+                removePlayer(index);
+                closePopup('playerManagementModal');
+            }
+        }
+
+        /* ---------------------------------------
+           Drag & Drop (reorder players)
+        --------------------------------------- */
         let draggedIndex = -1;
-    
+
         function handleDragStart(event, index) {
             draggedIndex = index;
             event.target.classList.add('dragging');
             event.dataTransfer.effectAllowed = 'move';
         }
-    
+
         function handleDragOver(event) {
             event.preventDefault();
             event.dataTransfer.dropEffect = 'move';
@@ -1602,18 +1580,18 @@
                 target.classList.add('drag-over');
             }
         }
-    
+
         function handleDrop(event, dropIndex) {
             event.preventDefault();
             if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
                 const [draggedPlayer] = players.splice(draggedIndex, 1);
                 players.splice(dropIndex, 0, draggedPlayer);
-    
+
                 rounds.forEach(round => {
                     const [draggedScore] = round.splice(draggedIndex, 1);
                     round.splice(dropIndex, 0, draggedScore);
                 });
-    
+
                 saveData();
                 updateUI();
             }
@@ -1621,15 +1599,17 @@
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
         }
-    
+
         function handleDragEnd(event) {
             event.target.classList.remove('dragging');
             const ths = document.querySelectorAll('#playerRow th');
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
         }
-    
-        // Initial sync and UI update
+
+        /* ---------------------------------------
+           Init
+        --------------------------------------- */
         syncDefaultNamesToMode();
         updateUI();
     </script>
