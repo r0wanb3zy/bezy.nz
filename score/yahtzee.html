@@ -1,25 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- External Libraries -->
+    <!-- External Libraries (kept for compatibility) -->
     <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     
-    <!-- Meta Tags -->
+    <!-- Meta -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- Title and Fonts -->
+    <!-- Title + Font -->
     <title>Yahtzee Scorecard</title>
     <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
     <style>
-        /* Base Styles */
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
-
+        /* Base */
+        html, body { height: 100%; margin: 0; }
         body {
             font-family: 'Economica', sans-serif;
             font-size: 22px;
@@ -30,17 +26,16 @@
             background-size: cover;
         }
 
-        /* Theme-driven pulse variables (defaults to blue theme) */
+        /* Theme pulse variables (match Scorecard theme logic) */
         :root {
-            --pulse-h: 210;                 /* hue */
-            --pulse-s: 85%;                 /* saturation with % */
-            /* Lighter defaults for better contrast on dark bonus row */
-            --pulse-l: 78%;                 /* base lightness (lighter) */
-            --pulse-l-light: 96%;           /* lighter lightness for mid-pulse */
-            --pulse-shadow-alpha-strong: 0.85; /* stronger glow for pop */
+            --pulse-h: 210;
+            --pulse-s: 85%;
+            --pulse-l: 78%;
+            --pulse-l-light: 96%;
+            --pulse-shadow-alpha-strong: 0.85;
         }
 
-        /* Table Base Styles */
+        /* Table base */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -48,45 +43,28 @@
             table-layout: fixed;
             font-family: 'Economica', sans-serif;
         }
+        table, table th, table td { font-weight: bold; }
 
-        table, table th, table td {
-            font-weight: bold;
-        }
-
-        /* Score Table Specific Styles */
+        /* Score table shell */
         #scoreTable {
             height: 100vh;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
-        /* Orientation-Based Scrolling */
+        /* Orientation-specific scrolling */
         @media screen and (orientation: portrait) {
-            html, body {
-                overflow: hidden;
-                touch-action: none; /* Prevent touch scrolling */
-            }
-            #scoreTable {
-                overflow-y: hidden; /* No scrolling inside table */
-            }
+            html, body { overflow: hidden; touch-action: none; }
+            #scoreTable { overflow-y: hidden; }
         }
-
         @media screen and (orientation: landscape) {
-            html, body {
-                overflow: auto; /* Allow scrolling on body */
-                touch-action: auto; /* Enable touch scrolling */
-            }
-            #scoreTable {
-                overflow-y: auto; /* Enable scrolling inside table */
-            }
+            html, body { overflow: auto; touch-action: auto; }
+            #scoreTable { overflow-y: auto; }
         }
 
         /* Headers */
-        h1, h2 {
-            text-align: center;
-            font-family: 'Economica', sans-serif;
-        }
+        h1, h2 { text-align: center; font-family: 'Economica', sans-serif; }
 
-        /* Table Cells */
+        /* Table cells */
         table th, table td {
             border: none;
             text-align: center;
@@ -97,61 +75,47 @@
             text-overflow: ellipsis;
             font-family: 'Economica', sans-serif;
             border-bottom: 1px solid rgba(200, 200, 200, 0.3);
-            vertical-align: middle; /* Center content vertically */
+            vertical-align: middle;
         }
+        table td { border-right: 1px solid rgba(200, 200, 200, 0.3); }
+        table td:last-child { border-right: none; }
 
-        table td {
-            border-right: 1px solid rgba(200, 200, 200, 0.3);
-        }
-
-        table td:last-child {
-            border-right: none;
-        }
-
-        /* First Column Styles */
+        /* First column (icons) */
         table th:first-child {
             background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             font-weight: bold;
-            width: 30px;
-            min-width: 30px;
-            max-width: 30px;
+            width: 30px; min-width: 30px; max-width: 30px;
             overflow: hidden;
             color: white;
             border-bottom: 1px solid #666;
         }
-
         table td:first-child {
             background: #3b3b3b;
             font-weight: bold;
-            width: 30px;
-            min-width: 30px;
-            max-width: 30px;
+            width: 30px; min-width: 30px; max-width: 30px;
             overflow: hidden;
             color: white;
             border-bottom: 1px solid #666;
             border-right: none;
         }
-
         table td:first-child img {
             filter: brightness(0) invert(1);
             width: 20px;
             height: 20px;
-            display: block;   /* remove baseline gap */
-            margin: 0 auto;   /* center horizontally */
+            display: block;
+            margin: 0 auto;
         }
 
-        /* Table Headers */
+        /* Header row */
         table th {
             background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             color: white;
         }
-
         #scoreTable thead th:first-child {
             background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
             border-right: none;
             border-bottom: 1px solid #666;
         }
-
         #scoreTable thead th {
             height: 80px;
             font-family: 'Economica', sans-serif;
@@ -159,538 +123,245 @@
             border-bottom: none;
         }
 
-        /* Input Styles */
+        /* Inputs (not used directly in this app, kept consistent) */
         table input {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 8px;
-            text-align: center;
-            font-size: inherit;
-            font-family: 'Economica', sans-serif;
-            border: 1px solid #d0d7de;
-            border-radius: 6px;
-            background: #ffffff;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            width: 100%; box-sizing: border-box; padding: 8px; text-align: center;
+            font-size: inherit; font-family: 'Economica', sans-serif;
+            border: 1px solid #d0d7de; border-radius: 6px; background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-
-        table input:focus {
-            outline: none;
-            border-color: #262626;
-            box-shadow: 0 0 5px rgba(51, 51, 51, 0.5);
-        }
-
-        table input::placeholder {
-            font-family: 'Economica', sans-serif;
-            font-size: 12px;
-            text-align: center;
-            color: #6b7280;
-            opacity: 0.8;
-        }
-
+        table input:focus { outline: none; border-color: #262626; box-shadow: 0 0 5px rgba(51,51,51,0.5); }
+        table input::placeholder { font-family: 'Economica', sans-serif; font-size: 12px; text-align: center; color: #6b7280; opacity: 0.8; }
         table input[type="number"]::-webkit-outer-spin-button,
-        table input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
+        table input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        table input[type="number"] { -moz-appearance: textfield; appearance: textfield; font-family: 'Economica', sans-serif; }
 
-        table input[type="number"] {
-            -moz-appearance: textfield;
-            appearance: textfield;
-            font-family: 'Economica', sans-serif;
-        }
-
-        /* Special Row Styles */
+        /* Special rows */
         .bonus-row td, .upper-score-row td, .lower-score-row td {
-            background: #3b3b3b;
-            color: white;
-            border-bottom: 1px solid #666;
-            border-right: 1px solid #666;
+            background: #3b3b3b; color: white;
+            border-bottom: 1px solid #666; border-right: 1px solid #666;
         }
-        /* Keep themed color once the bonus is achieved (after pulse ends too) */
+        .bonus-row td:first-child, .upper-score-row td:first-child, .lower-score-row td:first-child { border-right: 1px solid #666; }
+        table tr:last-child td { border-bottom: none; }
+        .bonus-row td:last-child, .upper-score-row td:last-child, .lower-score-row td:last-child { border-right: none; }
+
+        .bonus-row .points-needed { color: #888; }
+        .bonus-row .points-needed.bonus-achieved { color: white; font-weight: bold; }
+
+        /* Keep themed color after pulse ends */
         .bonus-row .points-needed.bonus-achieved:not(.animate-bonus) {
-          color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l));
-          font-weight: bold;
-        }
-
-        .bonus-row td:first-child,
-        .upper-score-row td:first-child,
-        .lower-score-row td:first-child {
-            border-right: 1px solid #666;
-        }
-
-        table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .bonus-row td:last-child, 
-        .upper-score-row td:last-child, 
-        .lower-score-row td:last-child {
-            border-right: none;
-        }
-
-        .bonus-row .points-needed {
-            color: #888;
-        }
-
-        .bonus-row .points-needed.bonus-achieved {
-            color: white;
+            color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l));
             font-weight: bold;
         }
 
-        /* Cell Categories */
-        .lower-section-cell, .upper-section-cell {
-            cursor: pointer;
-            width: auto;
-        }
+        /* Cell category helpers */
+        .lower-section-cell, .upper-section-cell { cursor: pointer; width: auto; }
+        .lower-section-cell:active, .upper-section-cell:active { background-color: transparent !important; }
 
-        .lower-section-cell:active, 
-        .upper-section-cell:active {
-            background-color: transparent !important;
-        }
-
-        /* Header Text */
-        th div {
-            font-size: 14px;
-            font-family: 'Economica', sans-serif;
-        }
-
-        #scoreTable thead th div {
-            font-size: 22px;
-            font-family: 'Economica', sans-serif;
-        }
-
-        #scoreTable thead th small {
-            font-size: 16px;
-            font-family: 'Economica', sans-serif;
-            color: rgba(255, 255, 255, 0.8);
-        }
+        /* Header text sizes */
+        th div { font-size: 14px; font-family: 'Economica', sans-serif; }
+        #scoreTable thead th div { font-size: 22px; font-family: 'Economica', sans-serif; }
+        #scoreTable thead th small { font-size: 16px; font-family: 'Economica', sans-serif; color: rgba(255, 255, 255, 0.8); }
 
         /* Legacy highlight classes */
-        .highlight-winner {
-            background: linear-gradient(to bottom, #34c759 0%, #28a745 100%);
-        }
+        .highlight-winner { background: linear-gradient(to bottom, #34c759 0%, #28a745 100%); }
+        .highlight-loser  { background: linear-gradient(to bottom, #e63946 0%, #c62835 100%); }
 
-        .highlight-loser {
-            background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
-        }
-
-        /* Score Selection Popup */
+        /* Score selection popup */
         #popupModal {
             display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #ffffff;
-            border: none;
-            padding: 5px 20px 12px 20px;
-            z-index: 1000;
-            font-family: 'Economica', sans-serif;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #ffffff; border: none; padding: 5px 20px 12px 20px;
+            z-index: 1000; font-family: 'Economica', sans-serif; text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
         }
-
-        #popupModal, #roundManagementModal {
-            text-align: center;
-        }
-
-        #popupModal h2,
-        #roundManagementModal h2,
-        #playerNameModal h2 {
-            margin-top: 15px;
-            margin-bottom: 15px;
-            padding: 0;
-        }
+        #popupModal, #roundManagementModal { text-align: center; }
+        #popupModal h2, #roundManagementModal h2, #playerNameModal h2 { margin: 15px 0; padding: 0; }
 
         #popupModal button {
-            font-size: 24px;
-            padding: 10px 20px;
-            margin: 2px;
-            cursor: pointer;
-            font-family: 'Economica', sans-serif;
-            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            transition: background 0.2s;
+            font-size: 24px; padding: 10px 20px; margin: 2px; cursor: pointer;
+            font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+            color: white; border: none; border-radius: 6px; transition: background 0.2s;
         }
 
+        /* Popup grid */
+        #popupOptions {
+            display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; justify-content: center;
+            padding: 10px 0; box-sizing: border-box;
+        }
+        #popupOptions .popup-spacer {
+            width: 40px; height: 40px; visibility: hidden; pointer-events: none;
+        }
+        #popupOptions button {
+            width: 40px; height: 40px; font-size: 24px; padding: 0; margin: 0; box-sizing: border-box;
+            cursor: pointer; font-family: 'Economica', sans-serif, Arial; display: flex; justify-content: center; align-items: center;
+            text-align: center; overflow: hidden; white-space: nowrap;
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+            color: white; border: none; border-radius: 6px; transition: background 0.2s ease;
+            -webkit-appearance: none; appearance: none; line-height: 1; outline: none;
+        }
+
+        /* Round management modal */
+        #roundManagementModal {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #ffffff; border: none; padding: 5px 20px 20px 20px; z-index: 1001;
+            width: 200px; max-width: 90%; font-family: 'Economica', sans-serif;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
+        }
+        #roundManagementModal select {
+            font-size: 24px; padding: 10px; margin: 5px 0;
+            font-family: 'Economica', sans-serif; border: 1px solid #333; border-radius: 6px;
+            background: #f8f9fa; width: 100%; box-sizing: border-box;
+        }
+        #roundManagementModal button {
+            font-size: 24px; padding: 10px 20px; margin: 5px 0; cursor: pointer;
+            font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+            color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
+        }
+        #roundManagementModal button#sortByRankBtn {
+            background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
+        }
+        #roundManagementModal button#sortByRankBtn.active {
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); color: #ffffff; border: 1px solid #262626;
+        }
         #roundManagementModal button#resetButton[data-confirm="true"] {
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
 
-        #popupOptions {
-            display: grid;
-            grid-template-columns: repeat(5, 40px);
-            gap: 5px;
-            justify-content: center;
-            padding: 10px 0;
-            box-sizing: border-box;
-        }
-
-        /* Invisible spacers to center 3-button layout while keeping width */
-        #popupOptions .popup-spacer {
-            width: 40px;
-            height: 40px;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        #popupOptions button {
-            width: 40px;
-            height: 40px;
-            font-size: 24px;
-            padding: 0;
-            margin: 0;
-            box-sizing: border-box;
-            cursor: pointer;
-            font-family: 'Economica', sans-serif, Arial;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            overflow: hidden;
-            white-space: nowrap;
-            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            transition: background 0.2s ease;
-            -webkit-appearance: none;
-            appearance: none;
-            line-height: 1;
-            outline: none;
-        }
-
-        /* Round Management Modal */
-        #roundManagementModal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #ffffff;
-            border: none;
-            padding: 5px 20px 20px 20px;
-            z-index: 1001;
-            width: 200px;
-            max-width: 90%;
-            font-family: 'Economica', sans-serif;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-
-        /* Make select full-width like the other app */
-        #roundManagementModal select {
-            font-size: 24px;
-            padding: 10px;
-            margin: 5px 0;
-            font-family: 'Economica', sans-serif;
-            border: 1px solid #333;
-            border-radius: 6px;
-            background: #f8f9fa;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        /* Make buttons full-width, stacked */
-        #roundManagementModal button {
-            font-size: 24px;
-            padding: 10px 20px;
-            margin: 5px 0;            /* stacked */
-            cursor: pointer;
-            font-family: 'Economica', sans-serif;
-            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            transition: background 0.2s;
-            width: 100%;               /* full width like other app */
-            box-sizing: border-box;
-        }
-
-        /* Sort-by-rank button styles (light off, dark on) */
-        #roundManagementModal button#sortByRankBtn {
-            background: #f8f9fa;
-            color: #0f172a;
-            border: 1px solid #262626;
-        }
-        #roundManagementModal button#sortByRankBtn.active {
-            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-            color: #ffffff;
-            border: 1px solid #262626;
-        }
-
         /* Player Name Modal */
         #playerNameModal {
-            display: none;
-            position: fixed;
-            top: 50%;                 /* centered like round modal */
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #ffffff;
-            border: none;
-            padding: 5px 20px 20px 20px;
-            z-index: 1001;
-            width: 200px;
-            max-width: 90%;
-            text-align: center;
-            font-family: 'Economica', sans-serif;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #ffffff; border: none; padding: 5px 20px 20px 20px; z-index: 1001;
+            width: 200px; max-width: 90%; text-align: center; font-family: 'Economica', sans-serif;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
         }
-
         #playerNameModal input[type="text"] {
-            font-size: 24px;
-            padding: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            margin: 5px 0;
-            text-align: center;
-            font-family: 'Economica', sans-serif;
-            border: 1px solid #d0d7de;
-            border-radius: 6px;
-            background: #ffffff;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-            transition: border-color 0.2s ease;
+            font-size: 24px; padding: 10px; width: 100%; box-sizing: border-box; margin: 5px 0; text-align: center;
+            font-family: 'Economica', sans-serif; border: 1px solid #d0d7de; border-radius: 6px; background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s ease;
         }
+        #playerNameModal input[type="text"]:focus { outline: none; border: 1px solid #262626; }
+        #playerNameInput { text-transform: uppercase; -webkit-touch-callout: none; }
 
-        #playerNameModal input[type="text"]:focus {
-            outline: none;
-            border: 1px solid #262626;
-        }
-
-        #playerNameInput {
-            text-transform: uppercase;
-            -webkit-touch-callout: none; /* prevent iOS translate/cut/copy/paste menu */
-        }
-
-        /* Emoji Name Input (emoji modal) */
+        /* Emoji name input (emoji modal) */
         #emojiNameInput {
             -webkit-touch-callout: none;
-            font-size: 24px;
-            padding: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            margin: 5px 0;
-            text-align: center;
-            font-family: 'Economica', sans-serif;
-            border: 1px solid #d0d7de;
-            border-radius: 6px;
-            background: #ffffff;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-            transition: border-color 0.2s ease;
-            margin: 5px 0 5px 0;
+            font-size: 24px; padding: 10px; width: 100%; box-sizing: border-box; margin: 5px 0; text-align: center;
+            font-family: 'Economica', sans-serif; border: 1px solid #d0d7de; border-radius: 6px; background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s ease;
         }
-        #emojiNameInput:focus {
-            outline: none;
-            border: 1px solid #262626;
-        }
+        #emojiNameInput:focus { outline: none; border: 1px solid #262626; }
 
-        /* Player modal action buttons (text or emoji modal) */
+        /* Player modal buttons (full width) */
         #playerNameModal button {
-            font-size: 24px;
-            padding: 10px 20px;
-            margin: 5px 0;            /* stacked full width */
-            cursor: pointer;
-            font-family: 'Economica', sans-serif;
-            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            transition: background 0.2s;
-            width: 100%;              /* full width like other app */
-            box-sizing: border-box;
+            font-size: 24px; padding: 10px 20px; margin: 5px 0; cursor: pointer;
+            font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+            color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
         }
-
         #playerNameModal button[data-state="confirm"] {
             background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
         }
+        /* Light button variant (for bulk toolbar Cancel) */
+        #playerNameModal button.light {
+            background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
+        }
 
-        /* Segmented Control (Name | Emoji) */
+        /* Segmented control (Name | Emoji) */
         .segmented-control {
-            display: flex;
-            width: 100%;
-            box-sizing: border-box;
-            margin: 5px 0;
-            background: #f8f9fa;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #262626;  /* solid, visible border */
-            -webkit-background-clip: padding-box;
-            background-clip: padding-box;
+            display: flex; width: 100%; box-sizing: border-box; margin: 5px 0;
+            background: #f8f9fa; border-radius: 6px; overflow: hidden; border: 1px solid #262626;
+            -webkit-background-clip: padding-box; background-clip: padding-box;
         }
-        .segmented-control input[type="radio"] {
-            display: none;
-        }
+        .segmented-control input[type="radio"] { display: none; }
         .segmented-control label {
-            flex: 1 1 0;
-            padding: 10px 0;
-            text-align: center;
-            font-size: 24px;
-            font-family: 'Economica', sans-serif;
-            cursor: pointer;
-            user-select: none;
-            background: #f8f9fa; /* light side */
-            margin: 0;
+            flex: 1 1 0; padding: 10px 0; text-align: center; font-size: 24px; font-family: 'Economica', sans-serif;
+            cursor: pointer; user-select: none; background: #f8f9fa; margin: 0;
         }
         .segmented-control input[type="radio"]:checked + label {
-            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); /* dark side */
-            color: #fff;
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); color: #fff;
         }
-        /* No center divider to avoid thin grey line */
 
-        /* Make the spacing consistent around toggle + emoji grid */
-        #playerNameModal .segmented-control { margin-top: 5px; }
-        #playerNameModal .emoji-grid { margin: 10px 0; margin: 5px 0 10px 0;}
-
-        /* Close Button */
+        /* Close button (X) */
         .close-btn {
-            position: absolute;
-            top: 0px;
-            right: 0px;
-            font-size: 48px;
-            color: #000000;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 0;
-            line-height: 1;
-            width: 40px;
-            height: 40px;
-            text-align: center;
-            transition: color 0.2s ease;
+            position: absolute; top: 0px; right: 0px;
+            font-size: 48px; color: #000000; cursor: pointer; background: none; border: none;
+            padding: 0; line-height: 1; width: 40px; height: 40px; text-align: center; transition: color 0.2s ease;
         }
 
-        /* Emoji Grid (shared) */
+        /* Emoji grid (shared) */
         .emoji-grid {
             --emoji-gap: 8px;
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: var(--emoji-gap);
-            padding: 0;
-            margin: 5px 0;
-            width: 100%;
-            box-sizing: border-box;
+            display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: var(--emoji-gap); padding: 0; margin: 5px 0; width: 100%; box-sizing: border-box;
+            user-select: none; -webkit-user-select: none;
         }
-
-        /* Make sure emoji pick buttons are not overridden by #playerNameModal button rules */
+        /* Emoji buttons (scoped to player modal to avoid conflicts) */
         #playerNameModal .emoji-grid .emoji-pick {
-            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            font-family: 'Economica', sans-serif;
-            font-size: 22px;
-            display: grid;
-            place-items: center;
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            padding: 0;
-            margin: 0;
-            line-height: 1;
-            cursor: pointer;
-            transition: transform 0.05s ease, filter 0.1s ease;
-            box-sizing: border-box;
+            background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); color: #ffffff; border: none; border-radius: 6px;
+            font-family: 'Economica', sans-serif; font-size: 22px; display: grid; place-items: center;
+            width: 100%; aspect-ratio: 1 / 1; padding: 0; margin: 0; line-height: 1; cursor: pointer;
+            transition: transform 0.05s ease, filter 0.1s ease; box-sizing: border-box; position: relative;
+        }
+        #playerNameModal .emoji-grid .emoji-pick:active { transform: scale(0.95); filter: brightness(1.05); }
+
+        /* Multi-select visuals: dim overlay + numbered order (like Scorecard) */
+        .emoji-grid .emoji-pick.selected { box-shadow: 0 0 0 2px #262626 inset; }
+        .emoji-grid .emoji-pick.selected::before {
+            content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35);
+            border-radius: 6px; pointer-events: none; z-index: 1;
+        }
+        .emoji-grid .emoji-pick.selected::after {
+            content: attr(data-order); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%);
+            font-size: 28px; font-weight: 700; color: #fff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.7), 0 0 3px rgba(0,0,0,0.7);
+            pointer-events: none; z-index: 2;
         }
 
-        #playerNameModal .emoji-grid .emoji-pick:active {
-            transform: scale(0.95);
-            filter: brightness(1.05);
-        }
+        /* Bulk selection toolbar (hidden by default) */
+        .bulk-actions { display: none; margin: 5px 0 0 0; width: 100%; }
+        .bulk-actions .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center; width: 100%; }
 
-        /* Emoji Scaling in score cells */
-        .scaled-emoji {
-            transform: scale(0.6);
-            transform-origin: center;
-            display: inline-block;
-            height: 20px;
-            line-height: 20px;
-        }
+        /* Spacing tweaks in emoji modal */
+        #playerNameModal .segmented-control { margin-top: 5px; }
+        #playerNameModal .emoji-grid { margin: 5px 0 10px; }
+        #playerNameModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
+        #playerNameModal .bulk-actions { margin-top: 0; }
 
-        .scaled-emoji-2 {
-            transform: scale(.6);
-            transform-origin: center;
-            display: inline-block;
-        }
+        /* Emoji scaling inside cells */
+        .scaled-emoji { transform: scale(0.6); transform-origin: center; display: inline-block; height: 20px; line-height: 20px; }
+        .scaled-emoji-2 { transform: scale(.6); transform-origin: center; display: inline-block; }
 
         /* Overlay */
         #overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            cursor: pointer;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 999; cursor: pointer;
         }
 
-        /* Disable Tap Highlight */
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
+        /* Disable tap highlight (mobile) */
+        * { -webkit-tap-highlight-color: transparent; }
 
-        /* Drag feedback styles */
-        th.dragging {
-            opacity: 0.5;
-            background: rgba(0, 0, 0, 0.2);
-        }
+        /* Drag feedback */
+        th.dragging { opacity: 0.5; background: rgba(0, 0, 0, 0.2); }
+        th.drag-over { border-left: 2px solid #333; }
 
-        th.drag-over {
-            border-left: 2px solid #333;
-        }
-
-        /* Center text + remove native arrow for the Players dropdown */
+        /* Center text + remove native arrow for Players dropdown */
         #roundManagementModal select#playerCount {
-          text-align: center;            /* centers in many browsers */
-          text-align-last: center;       /* centers selected value (Chrome/Firefox) */
-          -moz-text-align-last: center;  /* Firefox */
-          
-          -webkit-appearance: none;      /* Safari/Chrome */
-          -moz-appearance: none;         /* Firefox */
-          appearance: none;              /* Standard */
-
-          background-image: none !important; /* ensure no chevron background */
-          background-color: #f8f9fa;     /* keep your styling */
-          padding-right: 12px;           /* even spacing since arrow is gone */
+            text-align: center; text-align-last: center; -moz-text-align-last: center;
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: none !important; background-color: #f8f9fa; padding-right: 12px;
         }
+        #roundManagementModal select#playerCount::-ms-expand { display: none; }
+        #roundManagementModal select#playerCount option { text-align: center; }
 
-        /* Hide the arrow in IE/Edge Legacy */
-        #roundManagementModal select#playerCount::-ms-expand {
-          display: none;
-        }
-
-        /* Optional: center the options list contents in some browsers */
-        #roundManagementModal select#playerCount option {
-          text-align: center;
-        }
-
-        /* Match Theme Colour dropdown behavior (same as Scorecard app) */
+        /* Theme color dropdown */
         #roundManagementModal select#themeColorSelect {
-          text-align: center;
-          text-align-last: center;
-          -moz-text-align-last: center;
-
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          appearance: none;
-
-          background-image: none !important;
-          background-color: #f8f9fa;
-          padding-right: 12px;
+            text-align: center; text-align-last: center; -moz-text-align-last: center;
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: none !important; background-color: #f8f9fa; padding-right: 12px;
         }
-
-        #roundManagementModal select#themeColorSelect::-ms-expand {
-          display: none;
-        }
-
-        #roundManagementModal select#themeColorSelect option {
-          text-align: center;
-        }
+        #roundManagementModal select#themeColorSelect::-ms-expand { display: none; }
+        #roundManagementModal select#themeColorSelect option { text-align: center; }
 
         /* Theme-colored bonus pulse animation */
         @keyframes bonusPulse {
@@ -705,7 +376,6 @@
             text-shadow: 0 0 10px hsla(var(--pulse-h), var(--pulse-s), var(--pulse-l), var(--pulse-shadow-alpha-strong));
           }
         }
-
         .bonus-row .points-needed.animate-bonus {
           color: hsl(var(--pulse-h), var(--pulse-s), var(--pulse-l)) !important;
           animation: bonusPulse 1000ms ease-in-out infinite;
@@ -713,16 +383,12 @@
           transform-origin: center;
           will-change: transform;
         }
-
         @media (prefers-reduced-motion: reduce) {
-          .bonus-row .points-needed.animate-bonus {
-            animation: none;
-          }
+          .bonus-row .points-needed.animate-bonus { animation: none; }
         }
-        /* Keep body rows a consistent height when numbers/❌ appear */
-#scoreTable tbody td {
-  line-height: 20px; /* matches icon height */
-}
+
+        /* Keep body rows consistent height for numbers/❌ */
+        #scoreTable tbody td { line-height: 20px; }
     </style>
 </head>
 <body>
@@ -753,13 +419,14 @@
         </tbody>
     </table>
 
-    <!-- Score Selection Popup -->
+    <!-- Score selection popup -->
     <div id="popupModal">
         <h2 id="popupTitle">Select Score:</h2>
         <span class="close-btn" onclick="closePopup()">×</span>
         <div id="popupOptions"></div>
     </div>
 
+    <!-- Round management -->
     <div id="roundManagementModal">
         <h2>Round</h2>
         <span class="close-btn" onclick="closeRoundManagement()">×</span>
@@ -775,7 +442,6 @@
         </select>
         <button id="sortByRankBtn" onclick="toggleSortByRank()">Sort by Rank</button>
 
-        <!-- Theme Colour -->
         <select id="themeColorSelect" onchange="setThemeColor(this.value)">
             <option value="blue">Blue</option>
             <option value="purple">Purple</option>
@@ -789,7 +455,7 @@
         <button id="resetButton" onclick="handleResetClick()">Reset</button>
     </div>
 
-    <!-- Player Name Modal (default template: Name mode, no Update button, includes toggle) -->
+    <!-- Player name modal -->
     <div id="playerNameModal">
         <h2>Player</h2>
         <span class="close-btn" onclick="closePlayerNameModal()">×</span>
@@ -803,20 +469,28 @@
         <button onclick="handleRemovePlayer(this)" data-state="initial">Remove</button>
     </div>
 
-    <!-- Overlay for Modals -->
+    <!-- Overlay -->
     <div id="overlay" style="display: none;"></div>
 
     <script>
-        // Prevent bonus pulse on initial page load/restore
-        let isAppBooting = true;
+        /* --------------------------------------
+           App State / Preferences
+        -------------------------------------- */
+        let isAppBooting = true; // Prevent bonus pulse on initial restore
 
-        // Persistent toggles (unique keys for Yahtzee)
+        // Unique localStorage keys for Yahtzee app
         let sortByRankEnabled = localStorage.getItem('yahtzee-sortByRankEnabled') === 'true';
         let emojiModeEnabled = localStorage.getItem('yahtzee-emojiModeEnabled') === 'true';
-        // Theme color — match Scorecard app exactly; also sync across apps via fallback + write-back
+
+        // Theme color syncing (shared with Scorecard)
         let themeColor = localStorage.getItem('yahtzee-themeColor') || localStorage.getItem('themeColor') || 'blue';
 
-        // Keycap digit helpers
+        // Bulk emoji selection state (multi-select)
+        let bulkEmojiMode = false;
+        let bulkEmojiSelection = [];
+        const bulkMaxPlayers = 8;
+
+        // Keycap digit helpers (match Scorecard)
         const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
         function numberToKeycap(n) { return KEYCAP_DIGITS[n] || String(n); }
         function keycapToNumber(str) {
@@ -824,7 +498,7 @@
             return idx === -1 ? null : idx;
         }
 
-        // Theme map — EXACT match with Scorecard app
+        // Theme map (match Scorecard theme mapping)
         const THEME_MAP = {
             blue:   { h: 210, s: 85 },
             red:    { h:   0, s: 78 },
@@ -834,58 +508,49 @@
             yellow: { h:  45, s: 90 },
             grey:   { h: 210, s:  0 }
         };
-        function getThemeHS() {
-            return THEME_MAP[themeColor] || THEME_MAP.blue;
-        }
+        function getThemeHS() { return THEME_MAP[themeColor] || THEME_MAP.blue; }
         function getThemeTextColor(key) {
             const t = THEME_MAP[key] || THEME_MAP.blue;
-            const L = key === 'yellow' ? 32 : 34; // darker tone for #f8f9fa
+            const L = key === 'yellow' ? 32 : 34;
             return `hsl(${t.h}, ${t.s}%, ${L}%)`;
         }
         function applyThemeSelectColors() {
             const select = document.querySelector('#roundManagementModal select#themeColorSelect');
             if (!select) return;
             select.style.color = getThemeTextColor(themeColor);
-            Array.from(select.options).forEach(opt => {
-                opt.style.color = getThemeTextColor(opt.value);
-            });
+            Array.from(select.options).forEach(opt => { opt.style.color = getThemeTextColor(opt.value); });
         }
         function setThemeColor(value) {
             themeColor = value || 'blue';
-            // store under both keys so both apps stay in sync
             localStorage.setItem('yahtzee-themeColor', themeColor);
             localStorage.setItem('themeColor', themeColor);
-            // Apply theme-dependent visuals
             updateRanks();
             applyThemeSelectColors();
-            applyPulseThemeColors(); // sync pulse color to theme
+            applyPulseThemeColors(); // sync pulse colors
         }
 
-        // Keep original playerName modal markup if needed
+        // Save original modal HTML to restore when needed
         let playerNameModalTemplate = null;
 
-        // Bonus animation helpers
-        const prevUpperTotals = {}; // Track previous upper-section totals per player
+        // Bonus pulse helpers
+        const prevUpperTotals = {};
         const BONUS_ANIM_MS = 5000;
         const BONUS_ANIM_CLASS = 'animate-bonus';
         function triggerBonusAnimation(player) {
             const el = document.getElementById(`pointsNeeded${player}`);
             if (!el) return;
             el.classList.remove(BONUS_ANIM_CLASS);
-            void el.offsetWidth; // reflow to reset animation
+            void el.offsetWidth; // reflow to restart animation
             el.classList.add(BONUS_ANIM_CLASS);
             clearTimeout(el._bonusTimer);
-            el._bonusTimer = setTimeout(() => {
-                el.classList.remove(BONUS_ANIM_CLASS);
-            }, BONUS_ANIM_MS);
+            el._bonusTimer = setTimeout(() => el.classList.remove(BONUS_ANIM_CLASS), BONUS_ANIM_MS);
         }
 
-        // Apply CSS variables for pulse color based on theme (lighter for contrast)
+        // Apply CSS variables for pulse colors
         function applyPulseThemeColors() {
             const root = document.documentElement;
             const { h: H, s: S } = getThemeHS();
-            const Lbase = 70;
-            const Llight = 100;
+            const Lbase = 70, Llight = 100;
             root.style.setProperty('--pulse-h', String(H));
             root.style.setProperty('--pulse-s', `${S}%`);
             root.style.setProperty('--pulse-l', `${Lbase}%`);
@@ -893,65 +558,55 @@
             root.style.setProperty('--pulse-shadow-alpha-strong', `0.6`);
         }
 
-        // Set table height to match viewport
+        // Keep table height synchronized to viewport
         function setFullHeight() {
             const table = document.getElementById("scoreTable");
-            if (table) {
-                table.style.height = `${window.innerHeight}px`;
-            }
+            if (table) table.style.height = `${window.innerHeight}px`;
         }
-    
-        // Initial page load setup
+
+        /* --------------------------------------
+           Init
+        -------------------------------------- */
         document.addEventListener("DOMContentLoaded", function() {
             setFullHeight();
+
+            // Initialize player count
             let savedPlayerCount = localStorage.getItem('playerCount');
-            if (savedPlayerCount) {
-                document.getElementById('playerCount').value = savedPlayerCount;
-            } else {
-                document.getElementById('playerCount').value = '4';
-                localStorage.setItem('playerCount', '4');
-            }
+            const pc = document.getElementById('playerCount');
+            if (savedPlayerCount) pc.value = savedPlayerCount;
+            else { pc.value = '4'; localStorage.setItem('playerCount', '4'); }
 
-            // Initialize Theme Colour select
+            // Theme
             const themeSel = document.getElementById('themeColorSelect');
-            if (themeSel) {
-                themeSel.value = themeColor;
-                applyThemeSelectColors();
-            }
-
-            // Initialize pulse color variables to current theme (lighter)
+            if (themeSel) { themeSel.value = themeColor; applyThemeSelectColors(); }
             applyPulseThemeColors();
 
-            // Save the original player name modal HTML
+            // Store template of player modal (for restoration)
             const modal = document.getElementById('playerNameModal');
-            if (modal && !playerNameModalTemplate) {
-                playerNameModalTemplate = modal.innerHTML;
-            }
+            if (modal && !playerNameModalTemplate) playerNameModalTemplate = modal.innerHTML;
 
-            updatePlayerCount(); // Setup table based on player count
+            // Build table and load data
+            updatePlayerCount();
             loadScores();
             reattachEventListeners();
             attachDragListeners();
 
-            // Initialize Sort by Rank button state
+            // Sort button state
             const sortBtn = document.getElementById('sortByRankBtn');
             if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
 
-            // Ensure default names follow the current Emoji Mode on load
+            // Align default names to current mode
             syncDefaultNamesToMode();
 
-            // Done booting: prevent relaunch from retriggering bonus pulse
             isAppBooting = false;
         });
-    
-        // Resize handler
         window.addEventListener('resize', setFullHeight);
-    
-        // Calculate player's total score (with bonus animation when crossing 63)
+
+        /* --------------------------------------
+           Scoring / Totals / Bonus
+        -------------------------------------- */
         function calculateTotal(player) {
-            let total = 0;
-            let upperSectionTotal = 0;
-            let lowerSectionTotal = 0;
+            let total = 0, upperSectionTotal = 0, lowerSectionTotal = 0;
 
             document.querySelectorAll(`td[data-player="${player}"]`).forEach(cell => {
                 const category = cell.closest('tr').cells[0].querySelector('img').alt;
@@ -960,19 +615,15 @@
                     const text = cell.textContent.trim();
                     if (text && text !== '❌') {
                         const value = parseInt(text) || 0;
-                        total += value;
-                        lowerSectionTotal += value;
+                        total += value; lowerSectionTotal += value;
                     }
                 } else if (cell.classList.contains('upper-section-cell')) {
                     const text = cell.textContent.trim();
                     if (text && text !== '❌') {
                         const value = parseInt(text) || 0;
                         total += value;
-                        if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(category)) {
-                            lowerSectionTotal += value;
-                        } else {
-                            upperSectionTotal += value;
-                        }
+                        if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(category)) lowerSectionTotal += value;
+                        else upperSectionTotal += value;
                     }
                 }
             });
@@ -980,11 +631,10 @@
             const bonus = upperSectionTotal >= 63 ? 35 : 0;
             const bonusElement = document.getElementById(`bonus${player}`);
             const pointsNeededElement = document.getElementById(`pointsNeeded${player}`);
-
             const prevUpper = prevUpperTotals[player];
             const gotBonusNow = upperSectionTotal >= 63;
             const crossedThreshold = (prevUpper != null && prevUpper < 63 && gotBonusNow);
-            
+
             if (bonusElement && pointsNeededElement) {
                 if (bonus > 0) {
                     pointsNeededElement.textContent = '35';
@@ -993,14 +643,12 @@
                     pointsNeededElement.textContent = String(63 - upperSectionTotal);
                     pointsNeededElement.classList.remove('bonus-achieved');
                 }
-            
                 document.getElementById(`upperScore${player}`).textContent = upperSectionTotal;
                 document.getElementById(`lowerScore${player}`).textContent = lowerSectionTotal;
                 document.getElementById(`total${player}`).textContent = total + bonus;
 
-                if (crossedThreshold && !isAppBooting) {
-                    triggerBonusAnimation(player);
-                }
+                // Pulse only when crossing the threshold (not on initial boot)
+                if (crossedThreshold && !isAppBooting) triggerBonusAnimation(player);
             }
 
             prevUpperTotals[player] = upperSectionTotal;
@@ -1008,51 +656,34 @@
 
         function hasAnyEntry() {
             const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
-            for (const c of cells) {
-                if (c.textContent.trim() !== '') return true;
-            }
+            for (const c of cells) { if (c.textContent.trim() !== '') return true; }
             return false;
         }
-    
-        // Overlay controls
-        function showOverlay() {
-            document.getElementById('overlay').style.display = 'block';
-        }
-    
-        function hideOverlay() {
-            document.getElementById('overlay').style.display = 'none';
-        }
-    
-        // Show score selection popup
+
+        /* --------------------------------------
+           Overlay + Popup (score selection)
+        -------------------------------------- */
+        function showOverlay() { document.getElementById('overlay').style.display = 'block'; }
+        function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
+
         function showPopup(cell) {
             closeAllPopups();
             document.getElementById('popupModal').style.display = 'block';
             showOverlay();
 
             const optionsDiv = document.getElementById('popupOptions');
-
             const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
             const player = cell.getAttribute('data-player');
-
             document.getElementById('popupTitle').textContent = categoryAlt;
             
             let options = '';
             if (['Three of a Kind', 'Four of a Kind', 'Chance'].includes(categoryAlt)) {
-                for (let i = 1; i <= 30; i++) {
-                    options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
-                }
+                for (let i = 1; i <= 30; i++) options += `<button onclick="selectScore(${i}, '${player}', '${categoryAlt}', event)">${i}</button>`;
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
                 const isMobile = window.innerWidth <= 768;
                 options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
             } else if (['Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes'].includes(categoryAlt)) {
-                const faceValueMap = {
-                    'Ones': 1,
-                    'Twos': 2,
-                    'Threes': 3,
-                    'Fours': 4,
-                    'Fives': 5,
-                    'Sixes': 6
-                };
+                const faceValueMap = { 'Ones': 1, 'Twos': 2, 'Threes': 3, 'Fours': 4, 'Fives': 5, 'Sixes': 6 };
                 const faceValue = faceValueMap[categoryAlt] || 1;
                 for (let i = 1; i <= 5; i++) {
                     const score = i * faceValue;
@@ -1064,17 +695,17 @@
             } else if (['Full House', 'Small Straight', 'Large Straight', 'Yahtzee'].includes(categoryAlt)) {
                 const fixed = { 'Full House': 25, 'Small Straight': 30, 'Large Straight': 40, 'Yahtzee': 50 };
                 const isMobile = window.innerWidth <= 768;
-
                 options += `<span class="popup-spacer" aria-hidden="true"></span>`;
                 options += `<button onclick="selectScore(${fixed[categoryAlt]}, '${player}', '${categoryAlt}', event)">${fixed[categoryAlt]}</button>`;
                 options += `<button onclick="selectScore(0, '${player}', '${categoryAlt}', event)">0</button>`;
                 options += `<button onclick="selectScore('', '${player}', '${categoryAlt}', event)"><span style="position: relative; top: ${isMobile ? '-2px' : '0'}; font-weight: 400;">↺</span></button>`;
                 options += `<span class="popup-spacer" aria-hidden="true"></span>`;
             }
+
             optionsDiv.innerHTML = options;
-            window.lastClickedCell = cell;
+            window.lastClickedCell = cell; // remember which cell to write into
         }
-    
+
         function selectScore(score, player, categoryAlt, event) {
             event.stopPropagation();
             const cell = window.lastClickedCell;
@@ -1098,47 +729,41 @@
             closePopup();
             updateRanks();
         }
-    
         function closePopup() {
             document.getElementById('popupModal').style.display = 'none';
             hideOverlay();
         }
-    
+
+        /* --------------------------------------
+           Round Management
+        -------------------------------------- */
         function showRoundManagement() {
             closeAllPopups();
             document.getElementById('roundManagementModal').style.display = 'block';
             const sortBtn = document.getElementById('sortByRankBtn');
             if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
 
-            // Ensure theme select shows current value
             const themeSel = document.getElementById('themeColorSelect');
-            if (themeSel) {
-                themeSel.value = themeColor;
-                applyThemeSelectColors();
-            }
+            if (themeSel) { themeSel.value = themeColor; applyThemeSelectColors(); }
 
             showOverlay();
         }
-    
         function closeRoundManagement() {
             resetButtonState();
             document.getElementById('roundManagementModal').style.display = 'none';
             hideOverlay();
         }
-    
-        // Reset confirmation state
+
+        // Reset scores confirmation state
         let resetConfirm = false;
-    
         function resetButtonState() {
             const resetButton = document.getElementById('resetButton');
             resetButton.textContent = 'Reset';
             resetButton.removeAttribute('data-confirm');
             resetConfirm = false;
         }
-    
         function handleResetClick() {
             const resetButton = document.getElementById('resetButton');
-            
             if (!resetConfirm) {
                 resetButton.textContent = 'Confirm';
                 resetButton.setAttribute('data-confirm', 'true');
@@ -1148,8 +773,9 @@
                 resetButtonState();
             }
         }
-    
+
         function resetScores() {
+            // Clear all scoring cells + storage
             document.querySelectorAll('.upper-section-cell, .lower-section-cell').forEach(cell => {
                 cell.textContent = '';
                 cell.style.textDecoration = 'none';
@@ -1158,44 +784,50 @@
                 localStorage.removeItem(cell.getAttribute('data-player') + '-' + categoryAlt);
             });
     
+            // Reset per-player totals
             const playerCount = parseInt(document.getElementById('playerCount').value);
             for (let i = 1; i <= playerCount; i++) {
                 const player = `P${i}`;
                 document.getElementById(`total${player}`).textContent = '';
                 document.getElementById(`upperScore${player}`).textContent = '0';
                 document.getElementById(`lowerScore${player}`).textContent = '0';
-                document.getElementById(`bonus${player}`).innerHTML = '<span id="pointsNeeded' + player + '" class="points-needed">63</span>';
+                document.getElementById(`bonus${player}`).innerHTML = `<span id="pointsNeeded${player}" class="points-needed">63</span>`;
                 prevUpperTotals[player] = 0;
             }
             closeRoundManagement();
             updateRanks();
         }
-    
+
+        // Build/resize table for selected number of players
         function updatePlayerCount() {
             const playerCount = parseInt(document.getElementById('playerCount').value);
             localStorage.setItem('playerCount', playerCount);
+
             const table = document.getElementById('scoreTable');
             const headers = table.querySelector('thead tr');
             const rows = table.querySelectorAll('tbody tr');
             closeRoundManagement();
     
             const existingPlayers = headers.children.length - 1;
+
+            // Remove extra players
             if (playerCount < existingPlayers) {
                 for (let i = existingPlayers; i > playerCount; i--) {
                     headers.removeChild(headers.lastChild);
-                    rows.forEach(row => {
-                        row.removeChild(row.lastChild);
-                    });
+                    rows.forEach(row => row.removeChild(row.lastChild));
                     const player = `P${i}`;
-                    for (let j = 0; j < rows.length; j++) {
-                        const categoryAlt = rows[j].firstElementChild.querySelector('img').alt;
-                        const cellId = `${player}-${categoryAlt}`;
-                        localStorage.removeItem(cellId);
-                    }
+                    // Cleanup storage for removed player
+                    const categories = [
+                        'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
+                        'Three of a Kind', 'Four of a Kind', 'Full House',
+                        'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
+                    ];
+                    categories.forEach(category => localStorage.removeItem(`${player}-${category}`));
                     localStorage.removeItem(`playerName-${player}`);
                     delete prevUpperTotals[`P${i}`];
                 }
             } else {
+                // Add new players
                 for (let i = existingPlayers + 1; i <= playerCount; i++) {
                     const newHeader = document.createElement('th');
                     const savedName = localStorage.getItem(`playerName-P${i}`) || (emojiModeEnabled ? numberToKeycap(i) : `P${i}`);
@@ -1207,9 +839,10 @@
                     rows.forEach(row => {
                         const newCell = document.createElement('td');
                         const categoryAlt = row.firstElementChild.querySelector('img').alt;
+
                         if (categoryAlt === 'Bonus') {
                             newCell.id = `bonusP${i}`;
-                            newCell.innerHTML = '<span id="pointsNeededP' + i + '" class="points-needed">63</span>';
+                            newCell.innerHTML = `<span id="pointsNeededP${i}" class="points-needed">63</span>`;
                         } else if (categoryAlt === 'Upper Score') {
                             newCell.id = `upperScoreP${i}`;
                             newCell.textContent = '0';
@@ -1221,29 +854,26 @@
                             newCell.setAttribute('data-player', `P${i}`);
                             newCell.setAttribute('data-category', categoryAlt);
                             newCell.setAttribute('data-state', '0');
-                            newCell.onclick = function() {
-                                showPopup(this);
-                            };
+                            newCell.onclick = function() { showPopup(this); };
                         } else {
                             newCell.className = 'upper-section-cell';
                             newCell.setAttribute('data-player', `P${i}`);
-                            newCell.onclick = function() {
-                                showPopup(this);
-                            };
+                            newCell.onclick = function() { showPopup(this); };
                         }
                         row.appendChild(newCell);
                     });
                     prevUpperTotals[`P${i}`] = 0;
                 }
             }
-            for (let i = 1; i <= playerCount; i++) {
-                calculateTotal(`P${i}`);
-            }
+
+            // Recompute totals and rebind interactions
+            for (let i = 1; i <= playerCount; i++) calculateTotal(`P${i}`);
             reattachEventListeners();
             attachDragListeners();
             updateRanks();
         }
-    
+
+        // Re-attach header click handlers (open player modal)
         function reattachEventListeners() {
             document.querySelectorAll('#scoreTable thead th:not(:first-child)').forEach(header => {
                 header.removeEventListener('click', header.clickHandler);
@@ -1251,42 +881,36 @@
                     e.stopPropagation();
                     const player = this.getAttribute('data-player');
                     const playerName = this.innerText.split('\n')[0].trim();
-                    window.currentPlayer = player;
+                    window.currentPlayer = player; // remember which player was tapped
                     closeAllPopups();
-                    if (emojiModeEnabled) {
-                        openEmojiPlayerModal(playerName);
-                    } else {
-                        openTextPlayerModal(playerName);
-                    }
+                    if (emojiModeEnabled) openEmojiPlayerModal(playerName);
+                    else openTextPlayerModal(playerName);
                 };
                 header.addEventListener('click', header.clickHandler);
             });
         }
 
-        // Set Emoji Mode explicitly and re-open the appropriate modal for same player
+        /* --------------------------------------
+           Emoji Mode (Name/Emoji + Multi-select)
+        -------------------------------------- */
+        // Set emoji mode and re-open modal for current player
         function setEmojiMode(enabled, reopenForPlayerId = null) {
-            const newVal = !!enabled;
-            emojiModeEnabled = newVal;
+            emojiModeEnabled = !!enabled;
             localStorage.setItem('yahtzee-emojiModeEnabled', emojiModeEnabled);
 
             syncDefaultNamesToMode();
             updateRanks();
 
             if (reopenForPlayerId) {
-                if (emojiModeEnabled) {
-                    openEmojiPlayerModal(document.querySelector(`#scoreTable thead th[data-player="${reopenForPlayerId}"]`)?.innerText.split('\n')[0].trim() || '');
-                } else {
-                    openTextPlayerModal(document.querySelector(`#scoreTable thead th[data-player="${reopenForPlayerId}"]`)?.innerText.split('\n')[0].trim() || '');
-                }
+                const hdr = document.querySelector(`#scoreTable thead th[data-player="${reopenForPlayerId}"]`);
+                const name = hdr?.innerText.split('\n')[0].trim() || '';
+                if (emojiModeEnabled) openEmojiPlayerModal(name);
+                else openTextPlayerModal(name);
             }
         }
+        function toggleEmojiMode() { setEmojiMode(!emojiModeEnabled); }
 
-        // Back-compat (not used by Round modal anymore)
-        function toggleEmojiMode() {
-            setEmojiMode(!emojiModeEnabled);
-        }
-
-        // Name mode modal (no Update button; keyboard opens on tap; iOS callout suppressed)
+        // Text name modal (simple rename flow)
         function openTextPlayerModal(name) {
             const modal = document.getElementById('playerNameModal');
             modal.innerHTML = `
@@ -1316,13 +940,13 @@
 
             const input = document.getElementById('playerNameInput');
 
-            // Do NOT auto-focus to keep keyboard closed. Select on user tap.
+            // Select text on first user focus (mobile-friendly)
             input.addEventListener('focus', function () {
                 try { this.select(); } catch (_) {}
                 try { this.setSelectionRange(0, this.value.length); } catch (_) {}
             });
 
-            // Prevent iOS translate/cut/copy/paste callout and ensure focus on first tap
+            // Keep keyboard closed until user taps
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
@@ -1340,45 +964,39 @@
             input.addEventListener('contextmenu', (e) => e.preventDefault());
             input.addEventListener('mouseup', (e) => e.preventDefault());
 
-            // Uppercase while typing
-            input.addEventListener('input', function () {
-                this.value = this.value.toUpperCase();
-            });
+            // Uppercase in real-time
+            input.addEventListener('input', function () { this.value = this.value.toUpperCase(); });
 
-            // Apply rename on Enter
+            // Save on Enter
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     const newName = (input.value || '').trim().toUpperCase();
-                    if (newName && window.currentPlayer) {
-                        applyPlayerName(window.currentPlayer, newName);
-                    }
+                    if (newName && window.currentPlayer) applyPlayerName(window.currentPlayer, newName);
                     closePlayerNameModal();
                 }
             });
 
-            // Also apply rename on blur (don’t close explicitly; modal close will happen via X or overlay)
+            // Also save on blur
             input.addEventListener('blur', function () {
                 const newName = (input.value || '').trim().toUpperCase();
-                if (newName && window.currentPlayer) {
-                    applyPlayerName(window.currentPlayer, newName);
-                }
+                if (newName && window.currentPlayer) applyPlayerName(window.currentPlayer, newName);
             });
         }
 
+        // Emoji modal with multi-select (long-press to enter bulk)
         function openEmojiPlayerModal(currentName) {
             const modal = document.getElementById('playerNameModal');
-            if (!playerNameModalTemplate) {
-                playerNameModalTemplate = modal.innerHTML;
-            }
+            if (!playerNameModalTemplate) playerNameModalTemplate = modal.innerHTML;
 
+            // Favorite emojis grid
             const favEmojis = [
                 "🍔","🩰","🌹","🌰","🔔",
                 "👑","🎣","🌻","🏏","🦈",
                 "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
                 "🏃‍➡️"
             ];
-            const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" onclick="setEmojiFromButton('${e}')">${e}</button>`).join('');
+            const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}">${e}</button>`).join('');
 
             modal.innerHTML = `
                 <h2>Player</h2>
@@ -1396,6 +1014,15 @@
                     spellcheck="false"
                 >
                 <div class="emoji-grid">${grid}</div>
+
+                <!-- Bulk multi-select toolbar (hidden until long-press) -->
+                <div id="bulkEmojiActions" class="bulk-actions">
+                  <div class="row">
+                    <button type="button" id="bulkCancelBtn" class="light">Cancel</button>
+                    <button type="button" id="bulkApplyBtn">Select</button>
+                  </div>
+                </div>
+
                 <div class="segmented-control">
                     <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, window.currentPlayer)">
                     <label for="playerMode-name">Name</label>
@@ -1407,9 +1034,14 @@
             modal.style.display = 'block';
             showOverlay();
 
+            // Reset bulk state on open
+            bulkEmojiMode = false;
+            bulkEmojiSelection = [];
+            modal.classList.remove('bulk-mode');
+
             const input = document.getElementById('emojiNameInput');
 
-            // iOS-friendly: focus on first tap
+            // Focus/select on tap (iOS-friendly)
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
@@ -1424,68 +1056,28 @@
             input.addEventListener('mouseup', (e) => e.preventDefault());
             input.addEventListener('contextmenu', (e) => e.preventDefault());
 
-            // Auto-apply and close on first emoji input
+            // Typing an emoji -> apply to current player (unless in bulk mode)
             let autoClosed = false;
             input.addEventListener('input', function () {
                 const sanitized = extractEmojis(this.value);
-                if (sanitized !== this.value) {
-                    this.value = sanitized;
-                }
-                if (sanitized && !autoClosed) {
-                    if (window.currentPlayer) {
-                        applyPlayerName(window.currentPlayer, sanitized);
-                    }
+                if (sanitized !== this.value) this.value = sanitized;
+                if (sanitized && !autoClosed && !bulkEmojiMode) {
+                    if (window.currentPlayer) applyPlayerName(window.currentPlayer, sanitized);
                     autoClosed = true;
                     closePlayerNameModal();
                 }
             });
 
-            // Optional fallback: allow Enter to confirm
+            // Enter key fallback
             input.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    updatePlayerNameEmoji();
-                }
+                if (e.key === 'Enter' && !bulkEmojiMode) updatePlayerNameEmoji();
             });
+
+            // Attach tap vs long-press behavior for emoji grid
+            attachEmojiGridInteractions();
         }
 
-        // Load saved scores from localStorage
-        function loadScores() {
-            const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
-            cells.forEach(cell => {
-                const player = cell.getAttribute('data-player');
-                const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
-                const cellId = `${player}-${categoryAlt}`;
-                const savedScore = localStorage.getItem(cellId);
-                
-                if (savedScore) {
-                    if (savedScore === '❌') {
-                        cell.innerHTML = '<span class="scaled-emoji">❌</span>';
-                        cell.setAttribute('data-state', '2');
-                    } else {
-                        cell.textContent = savedScore;
-                        cell.setAttribute('data-state', '1');
-                    }
-                }
-            });
-            const playerCount = parseInt(document.getElementById('playerCount').value);
-            for (let i = 1; i <= playerCount; i++) {
-                calculateTotal(`P${i}`);
-            }
-            updateRanks();
-        }
-
-        function toggleSortByRank() {
-            sortByRankEnabled = !sortByRankEnabled;
-            localStorage.setItem('yahtzee-sortByRankEnabled', sortByRankEnabled);
-            const btn = document.getElementById('sortByRankBtn');
-            if (btn) btn.classList.toggle('active', sortByRankEnabled);
-            if (sortByRankEnabled) {
-                applySortByRank(true);
-            }
-            updateRanks();
-        }
-
-        // Broadened emoji extractor
+        // Extract emoji graphemes (covers country flags, keycaps, etc.)
         function extractEmojis(str) {
             if (!str) return '';
             let segments;
@@ -1505,6 +1097,179 @@
                 .join('');
         }
 
+        // Apply a single emoji name to the current player
+        function setEmojiFromButton(emoji) {
+            if (emoji && window.currentPlayer) {
+                applyPlayerName(window.currentPlayer, emoji);
+                closePlayerNameModal();
+            }
+        }
+
+        // Confirm typed emoji name
+        function updatePlayerNameEmoji() {
+            const input = document.getElementById('emojiNameInput');
+            const newName = extractEmojis((input?.value || '').trim());
+            if (newName && window.currentPlayer) applyPlayerName(window.currentPlayer, newName);
+            closePlayerNameModal();
+        }
+
+        // Multi-select emoji interactions (long-press to enter bulk mode)
+        function attachEmojiGridInteractions() {
+            const modal = document.getElementById('playerNameModal');
+            const buttons = Array.from(modal.querySelectorAll('.emoji-pick'));
+            const bulkBar = modal.querySelector('#bulkEmojiActions');
+            const seg = modal.querySelector('.segmented-control');
+            const emojiInput = modal.querySelector('#emojiNameInput');
+
+            const enterBulkEmojiMode = () => {
+                if (bulkEmojiMode) return;
+                bulkEmojiMode = true;
+                bulkEmojiSelection = [];
+                if (bulkBar) bulkBar.style.display = 'block';
+                if (seg) seg.style.display = 'none';
+                if (emojiInput) emojiInput.style.display = 'none';
+                buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
+                modal.classList.add('bulk-mode');
+            };
+
+            const exitBulkEmojiMode = () => {
+                bulkEmojiMode = false;
+                bulkEmojiSelection = [];
+                if (bulkBar) bulkBar.style.display = 'none';
+                if (seg) seg.style.display = '';
+                if (emojiInput) emojiInput.style.display = '';
+                buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
+                modal.classList.remove('bulk-mode');
+            };
+
+            const renumberSelection = () => {
+                // Re-apply order numbers to selected emojis
+                buttons.forEach(b => { if (b.classList.contains('selected')) b.setAttribute('data-order', ''); });
+                bulkEmojiSelection.forEach((emoji, i) => {
+                    const b = buttons.find(btn => btn.getAttribute('data-emoji') === emoji);
+                    if (b) b.setAttribute('data-order', String(i + 1));
+                });
+            };
+
+            const toggleEmojiSelection = (btn) => {
+                const emoji = btn.getAttribute('data-emoji');
+                const idx = bulkEmojiSelection.indexOf(emoji);
+                if (idx !== -1) {
+                    bulkEmojiSelection.splice(idx, 1);
+                    btn.classList.remove('selected');
+                    btn.removeAttribute('data-order');
+                } else {
+                    if (bulkEmojiSelection.length >= bulkMaxPlayers) return; // respect max
+                    bulkEmojiSelection.push(emoji);
+                    btn.classList.add('selected');
+                }
+                renumberSelection();
+            };
+
+            const applyBulkEmojiPlayers = (selected) => {
+                const targetCount = Math.min(bulkMaxPlayers, selected.length);
+                if (targetCount < 1) return;
+
+                // Force emoji mode on
+                emojiModeEnabled = true;
+                localStorage.setItem('yahtzee-emojiModeEnabled', 'true');
+
+                // Resize players to selection length
+                const pcSel = document.getElementById('playerCount');
+                pcSel.value = String(targetCount);
+                updatePlayerCount();
+
+                // Apply selected emoji names left-to-right (P1..Pn)
+                for (let i = 1; i <= targetCount; i++) {
+                    applyPlayerName(`P${i}`, selected[i - 1]);
+                }
+
+                reattachEventListeners();
+                attachDragListeners();
+                updateRanks();
+            };
+
+            // Bind bulk toolbar
+            const cancelBtn = modal.querySelector('#bulkCancelBtn');
+            const applyBtn = modal.querySelector('#bulkApplyBtn');
+            if (cancelBtn) cancelBtn.addEventListener('click', () => exitBulkEmojiMode());
+            if (applyBtn) applyBtn.addEventListener('click', () => {
+                if (bulkEmojiSelection.length > 0) applyBulkEmojiPlayers(bulkEmojiSelection);
+                exitBulkEmojiMode();
+                closePlayerNameModal();
+            });
+
+            // Per-emoji interactions: tap vs long-press
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (bulkEmojiMode) toggleEmojiSelection(btn);
+                    else {
+                        const emoji = btn.getAttribute('data-emoji');
+                        setEmojiFromButton(emoji);
+                    }
+                });
+
+                // Long-press to enter bulk (1 second)
+                let pressTimer = null;
+                const start = () => {
+                    if (bulkEmojiMode) return;
+                    clearTimeout(pressTimer);
+                    pressTimer = setTimeout(() => enterBulkEmojiMode(), 1000);
+                };
+                const cancel = () => {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                };
+
+                btn.addEventListener('pointerdown', start);
+                btn.addEventListener('pointerup', cancel);
+                btn.addEventListener('pointerleave', cancel);
+                btn.addEventListener('touchstart', start, { passive: true });
+                btn.addEventListener('touchend', cancel);
+                btn.addEventListener('touchcancel', cancel);
+                btn.addEventListener('mousedown', start);
+                btn.addEventListener('mouseup', cancel);
+                btn.addEventListener('mouseleave', cancel);
+            });
+        }
+
+        /* --------------------------------------
+           Storage Load + Sorting
+        -------------------------------------- */
+        function loadScores() {
+            const cells = document.querySelectorAll('.upper-section-cell, .lower-section-cell');
+            cells.forEach(cell => {
+                const player = cell.getAttribute('data-player');
+                const categoryAlt = cell.closest('tr').cells[0].querySelector('img').alt;
+                const cellId = `${player}-${categoryAlt}`;
+                const savedScore = localStorage.getItem(cellId);
+                
+                if (savedScore) {
+                    if (savedScore === '❌') {
+                        cell.innerHTML = '<span class="scaled-emoji">❌</span>';
+                        cell.setAttribute('data-state', '2');
+                    } else {
+                        cell.textContent = savedScore;
+                        cell.setAttribute('data-state', '1');
+                    }
+                }
+            });
+
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            for (let i = 1; i <= playerCount; i++) calculateTotal(`P${i}`);
+            updateRanks();
+        }
+
+        function toggleSortByRank() {
+            sortByRankEnabled = !sortByRankEnabled;
+            localStorage.setItem('yahtzee-sortByRankEnabled', sortByRankEnabled);
+            const btn = document.getElementById('sortByRankBtn');
+            if (btn) btn.classList.toggle('active', sortByRankEnabled);
+            if (sortByRankEnabled) applySortByRank(true);
+            updateRanks();
+        }
+
+        // Update a player's name in header + localStorage (preserves total/rank)
         function applyPlayerName(playerId, newName) {
             if (!playerId) return;
             const header = document.querySelector(`#scoreTable thead th[data-player="${playerId}"]`);
@@ -1518,22 +1283,7 @@
             localStorage.setItem(`playerName-${playerId}`, newName);
         }
 
-        function updatePlayerNameEmoji() {
-            const input = document.getElementById('emojiNameInput');
-            const newName = extractEmojis((input?.value || '').trim());
-            if (newName && window.currentPlayer) {
-                applyPlayerName(window.currentPlayer, newName);
-            }
-            closePlayerNameModal();
-        }
-
-        function setEmojiFromButton(emoji) {
-            if (emoji && window.currentPlayer) {
-                applyPlayerName(window.currentPlayer, emoji);
-                closePlayerNameModal();
-            }
-        }
-
+        // Sort columns by total points (desc)
         function applySortByRank(silent = false) {
             const table = document.getElementById('scoreTable');
             const headers = table.querySelector('thead tr');
@@ -1567,9 +1317,7 @@
                 const p = `P${i+1}`;
                 const name = localStorage.getItem(`playerName-${p}`) || (emojiModeEnabled ? numberToKeycap(i + 1) : p);
                 const scores = {};
-                categories.forEach(cat => {
-                    scores[cat] = localStorage.getItem(`${p}-${cat}`);
-                });
+                categories.forEach(cat => { scores[cat] = localStorage.getItem(`${p}-${cat}`); });
                 playerData.push({ name, scores });
             }
 
@@ -1635,12 +1383,13 @@
 
             reattachEventListeners();
             attachDragListeners();
-            for (let i = 1; i <= playerCount; i++) {
-                calculateTotal(`P${i}`);
-            }
+            for (let i = 1; i <= playerCount; i++) calculateTotal(`P${i}`);
             if (!silent) updateRanks();
         }
     
+        /* --------------------------------------
+           Ranks + Header Shading (Theme)
+        -------------------------------------- */
         function updateRanks() {
             const table = document.getElementById('scoreTable');
             const headers = Array.from(table.querySelectorAll('thead th')).slice(1);
@@ -1650,15 +1399,14 @@
                 headers.forEach(h => {
                     let next = h.querySelector('div[id^="total"]')?.nextSibling;
                     while (next && next.nodeName === 'SMALL') {
-                        const toRemove = next;
-                        next = next.nextSibling;
-                        toRemove.parentElement.removeChild(toRemove);
+                        const toRemove = next; next = next.nextSibling; toRemove.parentElement.removeChild(toRemove);
                     }
                 });
             }
 
             const anyEntry = hasAnyEntry();
 
+            // No entries: clear totals and bg
             if (!anyEntry) {
                 headers.forEach(h => {
                     const div = h.querySelector('div[id^="total"]');
@@ -1669,24 +1417,20 @@
                 return;
             }
 
-            if (sortByRankEnabled && playerCount > 1) {
-                applySortByRank(true);
-            }
+            // Keep sorted if enabled
+            if (sortByRankEnabled && playerCount > 1) applySortByRank(true);
 
             const headersNow = Array.from(table.querySelectorAll('thead th')).slice(1);
             const totalDivs = headersNow.map(h => h.querySelector('div[id^="total"]'));
 
-            totalDivs.forEach(div => {
-                if (div && (div.textContent === '' || div.textContent == null)) {
-                    div.textContent = '0';
-                }
-            });
+            totalDivs.forEach(div => { if (div && (div.textContent === '' || div.textContent == null)) div.textContent = '0'; });
 
             headersNow.forEach(h => { h.style.background = ''; });
             removeAllRankSmall();
 
             const { h: H, s: S } = getThemeHS();
 
+            // Single player shading
             if (playerCount === 1) {
                 const Lmax = 82, range = 36;
                 const Lmin = Math.max(28, Lmax - range);
@@ -1701,24 +1445,18 @@
                 return;
             }
 
+            // Rank groups (ties share color)
             const scoresArray = totalDivs.map(div => ({ score: div ? (parseInt(div.textContent) || 0) : 0 }));
-            const scored = scoresArray.map((s, i) => ({ idx: i, score: s.score }));
-            scored.sort((a, b) => b.score - a.score);
+            const scored = scoresArray.map((s, i) => ({ idx: i, score: s.score })).sort((a, b) => b.score - a.score);
 
             const groups = [];
             for (const item of scored) {
                 const last = groups[groups.length - 1];
-                if (!last || last.score !== item.score) {
-                    groups.push({ score: item.score, members: [item.idx] });
-                } else {
-                    last.members.push(item.idx);
-                }
+                if (!last || last.score !== item.score) groups.push({ score: item.score, members: [item.idx] });
+                else last.members.push(item.idx);
             }
 
-            const Lmax = 82;
-            const minRange = 18;
-            const maxRange = 44;
-
+            const Lmax = 82, minRange = 18, maxRange = 44;
             const effectiveRanks = groups.length;
 
             if (effectiveRanks === 1) {
@@ -1730,6 +1468,7 @@
                 return;
             }
 
+            // Scale range by number of distinct ranks (max 8)
             const maxRanksForScaling = 8;
             const normalized = Math.min(1, Math.max(0, (effectiveRanks - 1) / (maxRanksForScaling - 1)));
             const range = Math.round(minRange + (maxRange - minRange) * normalized);
@@ -1766,27 +1505,23 @@
                 div.parentElement.appendChild(small);
             });
         }
-    
+
         function ordinalSuffixOf(i) {
-            var j = i % 10,
-                k = i % 100;
-            if (j === 1 && k !== 11) {
-                return i + "st";
-            }
-            if (j === 2 && k !== 12) {
-                return i + "nd";
-            }
-            if (j === 3 && k !== 13) {
-                return i + "rd";
-            }
+            const j = i % 10, k = i % 100;
+            if (j === 1 && k !== 11) return i + "st";
+            if (j === 2 && k !== 12) return i + "nd";
+            if (j === 3 && k !== 13) return i + "rd";
             return i + "th";
         }
-    
+
+        // Auto-update ranks on common events
         document.getElementById('scoreTable').addEventListener('click', updateRanks);
         document.getElementById('playerCount').addEventListener('change', updateRanks);
         document.addEventListener('DOMContentLoaded', updateRanks);
-    
-        // Update player name (text mode) - retained if needed elsewhere
+
+        /* --------------------------------------
+           Player Modal Helpers
+        -------------------------------------- */
         function updatePlayerName() {
             const input = document.getElementById('playerNameInput');
             const newName = (input?.value || '').toUpperCase();
@@ -1795,21 +1530,20 @@
                 closePlayerNameModal();
             }
         }
-    
+
         function closePlayerNameModal() {
             const modal = document.getElementById('playerNameModal');
             modal.style.display = 'none';
 
-            // If showing emoji variant (no #playerNameInput), restore template
+            // If showing emoji variant (no text input), restore template
             if (!document.getElementById('playerNameInput') && playerNameModalTemplate) {
                 modal.innerHTML = playerNameModalTemplate;
             }
 
+            // Reset Remove button state
             const removeButton = modal.querySelector('button[onclick^="handleRemovePlayer"]');
-            if (removeButton) {
-                removeButton.textContent = 'Remove';
-                removeButton.dataset.state = 'initial';
-            }
+            if (removeButton) { removeButton.textContent = 'Remove'; removeButton.dataset.state = 'initial'; }
+
             hideOverlay();
 
             const input = document.getElementById('playerNameInput');
@@ -1822,13 +1556,12 @@
                 };
             }
         }
-    
+
+        // Remove player (and shift columns left)
         function removePlayer(player) {
             if (!player) return false;
-            
             const playerIndex = parseInt(player.replace('P', '')) - 1;
             const playerCount = parseInt(document.getElementById('playerCount').value);
-            
             if (playerCount <= 1) {
                 alert("At least one player must remain.");
                 closePlayerNameModal();
@@ -1839,29 +1572,22 @@
             const headers = table.querySelector('thead tr');
             const rows = table.querySelectorAll('tbody tr');
             
-            if (headers.children[playerIndex + 1]) {
-                headers.removeChild(headers.children[playerIndex + 1]);
-            }
-            rows.forEach(row => {
-                if (row.children[playerIndex + 1]) {
-                    row.removeChild(row.children[playerIndex + 1]);
-                }
-            });
+            if (headers.children[playerIndex + 1]) headers.removeChild(headers.children[playerIndex + 1]);
+            rows.forEach(row => { if (row.children[playerIndex + 1]) row.removeChild(row.children[playerIndex + 1]); });
             
             const categories = [
                 'Ones', 'Twos', 'Threes', 'Fours', 'Fives', 'Sixes',
                 'Three of a Kind', 'Four of a Kind', 'Full House',
                 'Small Straight', 'Large Straight', 'Yahtzee', 'Chance'
             ];
-            categories.forEach(category => {
-                localStorage.removeItem(`${player}-${category}`);
-            });
+            categories.forEach(category => localStorage.removeItem(`${player}-${category}`));
             localStorage.removeItem(`playerName-${player}`);
             
             const newPlayerCount = playerCount - 1;
             document.getElementById('playerCount').value = newPlayerCount;
             localStorage.setItem('playerCount', newPlayerCount);
             
+            // Reindex remaining players P(i+1)->Pi
             for (let i = playerIndex + 1; i < playerCount; i++) {
                 const oldPlayer = `P${i + 1}`;
                 const newPlayer = `P${i}`;
@@ -1873,11 +1599,8 @@
                     const rankElement = header.querySelector('small');
                     let rankHTML = rankElement ? rankElement.outerHTML : '';
                     const playerName = header.innerText.split('\n')[0].trim();
-                    
                     header.setAttribute('data-player', newPlayer);
-                    if (totalDiv) {
-                        header.innerHTML = `${playerName}<div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
-                    }
+                    if (totalDiv) header.innerHTML = `${playerName}<div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
                 }
                 
                 rows.forEach(row => {
@@ -1915,42 +1638,38 @@
             
             reattachEventListeners();
             attachDragListeners();
-            for (let i = 1; i <= newPlayerCount; i++) {
-                calculateTotal(`P${i}`);
-            }
+            for (let i = 1; i <= newPlayerCount; i++) calculateTotal(`P${i}`);
             updateRanks();
             closePlayerNameModal();
             return true;
         }
-    
+
+        // Remove player button (2-tap confirm)
         function handleRemovePlayer(button) {
             if (button.dataset.state === 'initial') {
                 button.textContent = 'Confirm';
                 button.dataset.state = 'confirm';
             } else {
-                if (window.currentPlayer) {
-                    removePlayer(window.currentPlayer);
-                }
+                if (window.currentPlayer) removePlayer(window.currentPlayer);
             }
         }
-    
+
+        // Close any open modal/popup
         function closeAllPopups() {
             if (document.getElementById('roundManagementModal').style.display === 'block') {
                 resetButtonState();
                 document.getElementById('roundManagementModal').style.display = 'none';
             }
-    
             if (document.getElementById('popupModal').style.display === 'block') {
                 document.getElementById('popupModal').style.display = 'none';
             }
-    
             if (document.getElementById('playerNameModal').style.display === 'block') {
                 closePlayerNameModal();
             }
-    
             hideOverlay();
         }
-    
+
+        // Sync default placeholder names to current mode (P# <-> keycap)
         function syncDefaultNamesToMode() {
             const playerCount = parseInt(document.getElementById('playerCount').value) || 0;
             for (let i = 1; i <= playerCount; i++) {
@@ -1963,20 +1682,18 @@
                 let newName = currentName;
 
                 if (emojiModeEnabled) {
+                    // P# -> keycap
                     const m = /^P(\d{1,2})$/i.exec(currentName);
                     if (m) {
                         const n = parseInt(m[1], 10);
-                        if (n >= 0 && n <= 9) {
-                            newName = numberToKeycap(n);
-                        }
+                        if (n >= 0 && n <= 9) newName = numberToKeycap(n);
                     } else if (storedName === null && i <= 9) {
                         newName = numberToKeycap(i);
                     }
                 } else {
+                    // keycap -> P#
                     const n = keycapToNumber(currentName);
-                    if (n !== null) {
-                        newName = `P${n}`;
-                    }
+                    if (n !== null) newName = `P${n}`;
                 }
 
                 if (newName !== currentName) {
@@ -1989,11 +1706,11 @@
             updateRanks();
         }
 
-        document.getElementById('overlay').addEventListener('click', function() {
-            closeAllPopups();
-        });
+        document.getElementById('overlay').addEventListener('click', function() { closeAllPopups(); });
 
-        // Drag and drop functionality
+        /* --------------------------------------
+           Drag & Drop (reorder players)
+        -------------------------------------- */
         let draggedIndex = -1;
 
         function attachDragListeners() {
@@ -2005,18 +1722,10 @@
                 header.removeEventListener('drop', header.dropHandler);
                 header.removeEventListener('dragend', header.dragEndHandler);
 
-                header.dragStartHandler = function(event) {
-                    handleDragStart(event, index);
-                };
-                header.dragOverHandler = function(event) {
-                    handleDragOver(event);
-                };
-                header.dropHandler = function(event) {
-                    handleDrop(event, index);
-                };
-                header.dragEndHandler = function(event) {
-                    handleDragEnd(event);
-                };
+                header.dragStartHandler = function(event) { handleDragStart(event, index); };
+                header.dragOverHandler = function(event) { handleDragOver(event); };
+                header.dropHandler = function(event) { handleDrop(event, index); };
+                header.dragEndHandler = function(event) { handleDragEnd(event); };
 
                 header.addEventListener('dragstart', header.dragStartHandler);
                 header.addEventListener('dragover', header.dragOverHandler);
@@ -2030,7 +1739,6 @@
             event.target.classList.add('dragging');
             event.dataTransfer.effectAllowed = 'move';
         }
-
         function handleDragOver(event) {
             event.preventDefault();
             event.dataTransfer.dropEffect = 'move';
@@ -2039,7 +1747,6 @@
                 target.classList.add('drag-over');
             }
         }
-
         function handleDrop(event, dropIndex) {
             event.preventDefault();
             if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
@@ -2058,9 +1765,7 @@
                     const player = `P${i + 1}`;
                     const name = localStorage.getItem(`playerName-${player}`) || (emojiModeEnabled ? numberToKeycap(i + 1) : player);
                     const scores = {};
-                    categories.forEach(category => {
-                        scores[category] = localStorage.getItem(`${player}-${category}`);
-                    });
+                    categories.forEach(category => { scores[category] = localStorage.getItem(`${player}-${category}`); });
                     playerData.push({ name, scores });
                 }
 
@@ -2086,17 +1791,12 @@
                     const header = headers.children[i + 1];
                     header.setAttribute('data-player', player);
                     const totalDiv = header.querySelector('div');
-                    if (totalDiv) {
-                        header.innerHTML = `${playerData[i].name}<div id="total${player}">${totalDiv.textContent}</div>`;
-                    }
+                    if (totalDiv) header.innerHTML = `${playerData[i].name}<div id="total${player}">${totalDiv.textContent}</div>`;
 
                     localStorage.setItem(`playerName-${player}`, playerData[i].name);
                     categories.forEach(category => {
-                        if (playerData[i].scores[category]) {
-                            localStorage.setItem(`${player}-${category}`, playerData[i].scores[category]);
-                        } else {
-                            localStorage.removeItem(`${player}-${category}`);
-                        }
+                        if (playerData[i].scores[category]) localStorage.setItem(`${player}-${category}`, playerData[i].scores[category]);
+                        else localStorage.removeItem(`${player}-${category}`);
                     });
 
                     rows.forEach(row => {
@@ -2119,16 +1819,13 @@
 
                 reattachEventListeners();
                 attachDragListeners();
-                for (let i = 1; i <= playerCount; i++) {
-                    calculateTotal(`P${i}`);
-                }
+                for (let i = 1; i <= playerCount; i++) calculateTotal(`P${i}`);
                 updateRanks();
             }
             const ths = document.querySelectorAll('#scoreTable thead th');
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
         }
-
         function handleDragEnd(event) {
             event.target.classList.remove('dragging');
             const ths = document.querySelectorAll('#scoreTable thead th');
