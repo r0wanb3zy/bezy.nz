@@ -107,21 +107,6 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Keep long player names to a single line with ellipsis */
-        .player-name {
-            display: block;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            
-
-            /* override cell-wide wrapping */
-            word-break: normal;
-            overflow-wrap: normal;
-            word-wrap: normal;
-        }
-
         /* Tight row height for scored rows (not the input row) */
         #scoreBody tr:not(:last-child) td:not(:first-child) {
             max-height: 5px;
@@ -490,6 +475,34 @@
         #emojiNameInput { -webkit-touch-callout: none; }
         #playerNameInput { -webkit-touch-callout: none; }
 
+        /* ---------------------------------------
+           Responsive: small score font for many players
+        --------------------------------------- */
+        @media (max-width: 480px) {
+            .sticky-header.small-scores th span.score {
+                font-size: 18px;
+                line-height: 1.2;
+            }
+            #scoreTable.small-scores thead th { padding: 3px; }
+            #scoreTable.small-scores thead th span.score { font-size: 16px; line-height: 1.2; }
+            #scoreTable.small-scores thead th small { font-size: 12px; }
+            #scoreTable.small-scores tbody td { font-size: 16px; }
+
+            /* Smaller inputs in the bottom row on tiny screens */
+            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
+                font-size: 14px;
+                height: 32px;
+                line-height: 32px;
+                padding: 0 6px;
+            }
+            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
+                font: inherit;
+                line-height: inherit;
+            }
+
+            .sticky-header.small-scores th small { font-size: 12px; }
+        }
+
         /* Center text + remove native arrow for Players dropdown */
         #roundManagementModal select#playerCount {
             text-align: center;
@@ -527,13 +540,16 @@
         #playerManagementModal .emoji-grid { margin: 5px 0 10px; }
         #playerManagementModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
         #playerManagementModal .bulk-actions { margin-top: 0; }
+/* Truncate long player names (only in header player columns) */
 
-        /* Optional: ellipsis long placeholders/values in bottom inputs */
-        #scoreTable input[type="number"] {
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-        }
+#playerRow th .player-name {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
     </style>
 </head>
 <body>
@@ -974,23 +990,22 @@
             // Header: first cell opens Round dialog
             playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
 
-            // Header: player name, total, rank (name wrapped for ellipsis)
-            players.forEach((player, index) => {
-                playerRow.innerHTML += `
-                    <th draggable="true" 
-                        ondragstart="handleDragStart(event, ${index})"
-                        ondragover="handleDragOver(event)"
-                        ondrop="handleDrop(event, ${index})"
-                        ondragend="handleDragEnd(event)"
-                        onclick="handlePlayerNameClick(event, ${index})" 
-                        title="Player">
-                        <span class="player-name" title="${player.name}">${player.name}</span>
-
-                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
-                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
-                    </th>
-                `;
-            });
+            // Header: player name, total, rank
+players.forEach((player, index) => {
+    playerRow.innerHTML += `
+        <th draggable="true" 
+            ondragstart="handleDragStart(event, ${index})"
+            ondragover="handleDragOver(event)"
+            ondrop="handleDrop(event, ${index})"
+            ondragend="handleDragEnd(event)"
+            onclick="handlePlayerNameClick(event, ${index})"
+            title="${player.name}">
+            <span class="player-name">${player.name}</span>
+            <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+            ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+        </th>
+    `;
+});
 
             // Body: scored rounds + bottom input row
             const scoreBody = document.getElementById("scoreBody");
@@ -1024,7 +1039,7 @@
             inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
             players.forEach((player) => {
                 const savedValue = unsubmittedScores[player.name] || '';
-                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" title="${player.name}" /></td>`;
+                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" /></td>`;
             });
             scoreBody.appendChild(inputRow);
 
