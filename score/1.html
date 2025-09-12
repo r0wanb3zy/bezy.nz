@@ -1020,7 +1020,6 @@
                         onclick="handlePlayerNameClick(event, ${index})" 
                         title="Player">
                         <span class="player-name" title="${player.name}">${player.name}</span>
-                        <br>
                         <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
                         ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
                     </th>
