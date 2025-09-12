@@ -107,11 +107,18 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Keep player name in a single line; JS trims content to fit */
+        /* Keep long player names to a single line with ellipsis */
         .player-name {
-            white-space: nowrap;
             display: block;
+            max-width: 100%;
             overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            /* override cell-wide wrapping */
+            word-break: normal;
+            overflow-wrap: normal;
+            word-wrap: normal;
         }
 
         /* Tight row height for scored rows (not the input row) */
@@ -547,6 +554,21 @@
         #playerManagementModal .emoji-grid { margin: 5px 0 10px; }
         #playerManagementModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
         #playerManagementModal .bulk-actions { margin-top: 0; }
+
+        /* Optional: slightly smaller player name on narrow screens */
+        @media (max-width: 420px) {
+            .sticky-header th .player-name {
+                font-size: 18px;
+                line-height: 1.1;
+            }
+        }
+
+        /* Optional: ellipsis long placeholders/values in bottom inputs */
+        #scoreTable input[type="number"] {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
@@ -840,7 +862,6 @@
             rounds.splice(roundIndex, 1);
             players.forEach(player => {
                 player.roundScores.splice(roundIndex, 1);
-                player.totalScore = players[player.roundScores.length - 1] ? player.roundScores.reduce((a, b) => a + b, 0) : player.roundScores.reduce((a, b) => a + b, 0);
                 player.totalScore = player.roundScores.reduce((a, b) => a + b, 0);
             });
             saveData();
@@ -963,107 +984,6 @@
         }
 
         /* ---------------------------------------
-           Name truncation (header cells only)
-        --------------------------------------- */
-        function graphemeSegments(str) {
-            if (!str) return [];
-            try {
-                if (typeof Intl !== 'undefined' && Intl.Segmenter) {
-                    return Array.from(new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(str), s => s.segment);
-                }
-            } catch (_) {}
-            return Array.from(str);
-        }
-        function graphemeSlice(str, n) {
-            return graphemeSegments(str).slice(0, n).join('');
-        }
-        function getFontString(el) {
-            const cs = getComputedStyle(el);
-            const style = cs.fontStyle || 'normal';
-            const weight = cs.fontWeight || '400';
-            const size = cs.fontSize || '22px';
-            const family = cs.fontFamily || 'Economica, sans-serif';
-            return `${style} ${weight} ${size} ${family}`;
-        }
-        function makeTextMeasurer(font) {
-            const canvas = makeTextMeasurer.canvas || (makeTextMeasurer.canvas = document.createElement('canvas'));
-            const ctx = canvas.getContext('2d');
-            ctx.font = font;
-            return (txt) => ctx.measureText(txt).width;
-        }
-        function maxCharsThatFit(el) {
-            const full = el.dataset.fullName || el.textContent || '';
-            const segments = graphemeSegments(full);
-            if (segments.length === 0) return 0;
-
-            const th = el.closest('th');
-            if (!th) return segments.length;
-
-            const csTh = getComputedStyle(th);
-            const paddingLeft = parseFloat(csTh.paddingLeft) || 0;
-            const paddingRight = parseFloat(csTh.paddingRight) || 0;
-            const available = th.clientWidth - paddingLeft - paddingRight;
-
-            const font = getFontString(el);
-            const measure = makeTextMeasurer(font);
-
-            // Binary search for max graphemes that fit
-            let lo = 0, hi = segments.length;
-            while (lo < hi) {
-                const mid = Math.ceil((lo + hi) / 2);
-                const w = measure(segments.slice(0, mid).join(''));
-                if (w <= available) lo = mid;
-                else hi = mid - 1;
-            }
-            return lo;
-        }
-        function applyNameTruncation() {
-            const nameEls = Array.from(document.querySelectorAll('#playerRow .player-name'));
-            if (nameEls.length === 0) return;
-
-            // In emoji mode, show full name (usually a single grapheme)
-            if (emojiModeEnabled) {
-                nameEls.forEach(el => {
-                    const full = el.dataset.fullName || el.textContent || '';
-                    el.textContent = full;
-                    el.removeAttribute('data-truncated');
-                });
-                return;
-            }
-
-            const fullLens = nameEls.map(el => graphemeSegments(el.dataset.fullName || el.textContent || '').length);
-            const fitLens = nameEls.map(el => maxCharsThatFit(el));
-            const allFit = fitLens.every((m, i) => m >= fullLens[i]);
-
-            // If every full name fits, don't trim anything
-            if (allFit) {
-                nameEls.forEach(el => {
-                    const full = el.dataset.fullName || el.textContent || '';
-                    el.textContent = full;
-                    el.removeAttribute('data-truncated');
-                });
-                return;
-            }
-
-            // Otherwise, enforce a global count that fits everywhere
-            const globalCount = Math.max(1, Math.min(...fitLens));
-
-            nameEls.forEach((el, i) => {
-                const full = el.dataset.fullName || '';
-                const truncated = graphemeSlice(full, Math.min(globalCount, fullLens[i]));
-                el.textContent = truncated;
-                el.dataset.truncated = (fullLens[i] > globalCount) ? 'true' : 'false';
-            });
-        }
-        function debounce(fn, wait = 120) {
-            let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), wait); };
-        }
-        window.addEventListener('resize', debounce(applyNameTruncation, 120));
-        if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(() => applyNameTruncation());
-        }
-
-        /* ---------------------------------------
            UI Building
         --------------------------------------- */
         // Build header + scores table, wire up inputs
@@ -1089,7 +1009,7 @@
             // Header: first cell opens Round dialog
             playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
 
-            // Header: player name, total, rank
+            // Header: player name, total, rank (name wrapped for ellipsis)
             players.forEach((player, index) => {
                 playerRow.innerHTML += `
                     <th draggable="true" 
@@ -1099,7 +1019,7 @@
                         ondragend="handleDragEnd(event)"
                         onclick="handlePlayerNameClick(event, ${index})" 
                         title="Player">
-                        <div class="player-name" data-full-name="${player.name}">${player.name}</div>
+                        <span class="player-name" title="${player.name}">${player.name}</span>
                         <br>
                         <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
                         ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
@@ -1139,7 +1059,7 @@
             inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
             players.forEach((player) => {
                 const savedValue = unsubmittedScores[player.name] || '';
-                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" /></td>`;
+                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" title="${player.name}" /></td>`;
             });
             scoreBody.appendChild(inputRow);
 
@@ -1169,9 +1089,6 @@
                     }
                 });
             });
-
-            // After rendering, trim names in header cells only if needed
-            applyNameTruncation();
         }
 
         /* ---------------------------------------
