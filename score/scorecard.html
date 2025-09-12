@@ -499,7 +499,6 @@
                 font: inherit;
                 line-height: inherit;
             }
-
             .sticky-header.small-scores th small { font-size: 12px; }
         }
 
@@ -540,6 +539,27 @@
         #playerManagementModal .emoji-grid { margin: 5px 0 10px; }
         #playerManagementModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
         #playerManagementModal .bulk-actions { margin-top: 0; }
+/* Truncate long player names (only in header player columns) */
+
+#playerRow th .player-name {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+#playerRow th .player-name {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+/* Only shrink player names when 7+ players (JS adds .small-scores on header/table) */
+.sticky-header.small-scores #playerRow th .player-name {
+    font-size: 18px; /* adjust as you like */
+    line-height: 1.1;
+}
     </style>
 </head>
 <body>
@@ -981,22 +1001,21 @@
             playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
 
             // Header: player name, total, rank
-            players.forEach((player, index) => {
-                playerRow.innerHTML += `
-                    <th draggable="true" 
-                        ondragstart="handleDragStart(event, ${index})"
-                        ondragover="handleDragOver(event)"
-                        ondrop="handleDrop(event, ${index})"
-                        ondragend="handleDragEnd(event)"
-                        onclick="handlePlayerNameClick(event, ${index})" 
-                        title="Player">
-                        ${player.name}
-                        <br>
-                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
-                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
-                    </th>
-                `;
-            });
+players.forEach((player, index) => {
+    playerRow.innerHTML += `
+        <th draggable="true" 
+            ondragstart="handleDragStart(event, ${index})"
+            ondragover="handleDragOver(event)"
+            ondrop="handleDrop(event, ${index})"
+            ondragend="handleDragEnd(event)"
+            onclick="handlePlayerNameClick(event, ${index})"
+            title="${player.name}">
+            <span class="player-name">${player.name}</span>
+            <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+            ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+        </th>
+    `;
+});
 
             // Body: scored rounds + bottom input row
             const scoreBody = document.getElementById("scoreBody");
