@@ -499,7 +499,6 @@
                 font: inherit;
                 line-height: inherit;
             }
-            .sticky-header.small-scores th small { font-size: 12px; }
         }
 
         /* Center text + remove native arrow for Players dropdown */
@@ -539,27 +538,21 @@
         #playerManagementModal .emoji-grid { margin: 5px 0 10px; }
         #playerManagementModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
         #playerManagementModal .bulk-actions { margin-top: 0; }
-/* Truncate long player names (only in header player columns) */
 
-#playerRow th .player-name {
-    display: block;
-    max-width: 100%;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-#playerRow th .player-name {
-    display: block;
-    max-width: 100%;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-/* Only shrink player names when 7+ players (JS adds .small-scores on header/table) */
-.sticky-header.small-scores #playerRow th .player-name {
-    font-size: 18px; /* adjust as you like */
-    line-height: 1.1;
-}
+        /* Truncate long player names (header only): no ellipsis, no half glyphs (JS clips) */
+        #playerRow th .player-name {
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: clip; /* no "..." */
+        }
+
+        /* Only shrink player names when 7+ players (JS adds .small-scores on header/table) */
+        .sticky-header.small-scores #playerRow th .player-name {
+            font-size: 18px;
+            line-height: 1.1;
+        }
     </style>
 </head>
 <body>
@@ -977,6 +970,40 @@
         /* ---------------------------------------
            UI Building
         --------------------------------------- */
+
+        // Grapheme-aware fit: clip names to whole characters (no ellipsis, no half-glyphs)
+        function clipPlayerNamesToCell() {
+            const seg = (typeof Intl !== 'undefined' && Intl.Segmenter)
+                ? new Intl.Segmenter('en', { granularity: 'grapheme' })
+                : null;
+
+            const els = document.querySelectorAll('#playerRow th .player-name');
+            els.forEach(el => {
+                const full = el.getAttribute('data-full') ?? el.textContent;
+                el.setAttribute('data-full', full);
+                el.textContent = full;
+
+                if (el.scrollWidth <= el.clientWidth) return;
+
+                const clusters = seg
+                    ? Array.from(seg.segment(full), s => s.segment)
+                    : Array.from(full); // fallback (may split emoji)
+
+                let low = 0, high = clusters.length, best = 0;
+                while (low <= high) {
+                    const mid = Math.floor((low + high) / 2);
+                    el.textContent = clusters.slice(0, mid).join('');
+                    if (el.scrollWidth <= el.clientWidth) {
+                        best = mid;
+                        low = mid + 1;
+                    } else {
+                        high = mid - 1;
+                    }
+                }
+                el.textContent = clusters.slice(0, best).join('');
+            });
+        }
+
         // Build header + scores table, wire up inputs
         function updateUI() {
             // Keep sorted (if enabled) before rendering
@@ -1001,21 +1028,21 @@
             playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
 
             // Header: player name, total, rank
-players.forEach((player, index) => {
-    playerRow.innerHTML += `
-        <th draggable="true" 
-            ondragstart="handleDragStart(event, ${index})"
-            ondragover="handleDragOver(event)"
-            ondrop="handleDrop(event, ${index})"
-            ondragend="handleDragEnd(event)"
-            onclick="handlePlayerNameClick(event, ${index})"
-            title="${player.name}">
-            <span class="player-name">${player.name}</span>
-            <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
-            ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
-        </th>
-    `;
-});
+            players.forEach((player, index) => {
+                playerRow.innerHTML += `
+                    <th draggable="true" 
+                        ondragstart="handleDragStart(event, ${index})"
+                        ondragover="handleDragOver(event)"
+                        ondrop="handleDrop(event, ${index})"
+                        ondragend="handleDragEnd(event)"
+                        onclick="handlePlayerNameClick(event, ${index})"
+                        title="${player.name}">
+                        <span class="player-name">${player.name}</span>
+                        <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
+                        ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
+                    </th>
+                `;
+            });
 
             // Body: scored rounds + bottom input row
             const scoreBody = document.getElementById("scoreBody");
@@ -1056,6 +1083,9 @@ players.forEach((player, index) => {
             // Apply rank shading
             updateRankings();
 
+            // Fit player names to header cell width (no half glyphs, no ellipsis)
+            clipPlayerNamesToCell();
+
             // Wire keyboard interactions for inputs (Enter to submit / move)
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
@@ -1066,7 +1096,8 @@ players.forEach((player, index) => {
                         const allFilled = allInputsFilled(inputs);
                         if (allFilled) {
                             addRoundScores();
-                            inputs[0].focus();
+                            const refreshedInputs = document.querySelectorAll("#scoreTable input[type='number']");
+                            if (refreshedInputs[0]) refreshedInputs[0].focus();
                         } else {
                             if (index < inputs.length - 1) {
                                 inputs[index + 1].focus();
@@ -1413,7 +1444,7 @@ players.forEach((player, index) => {
                     else setEmojiFromButton(btn, index);
                 });
 
-                // Long-press (1s) to enter bulk mode
+                // Long-press (0.5s) to enter bulk mode
                 let pressTimer = null;
                 const start = () => {
                     if (bulkEmojiMode) return;
@@ -1631,6 +1662,14 @@ players.forEach((player, index) => {
         --------------------------------------- */
         syncDefaultNamesToMode();
         updateUI();
+
+        // Re-fit names when the window resizes or fonts finish loading
+        window.addEventListener('resize', clipPlayerNamesToCell);
+        if (window.document && document.fonts && document.fonts.addEventListener) {
+            document.fonts.addEventListener('loadingdone', clipPlayerNamesToCell);
+        } else {
+            window.addEventListener('load', clipPlayerNamesToCell);
+        }
     </script>
 </body>
 </html>
