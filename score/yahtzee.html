@@ -164,6 +164,24 @@
         #scoreTable thead th div { font-size: 22px; font-family: 'Economica', sans-serif; }
         #scoreTable thead th small { font-size: 16px; font-family: 'Economica', sans-serif; color: rgba(255, 255, 255, 0.8); }
 
+        /* Truncate long player names (header only) */
+        #scoreTable thead th .player-name {
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        /* Shrink header player names when 7+ players */
+        #scoreTable.small-scores thead th .player-name {
+            font-size: 18px;
+            line-height: 1.1;
+        }
+        /* Slightly smaller rank label when many players */
+        #scoreTable.small-scores thead th small {
+            font-size: 12px;
+        }
+
         /* Legacy highlight classes */
         .highlight-winner { background: linear-gradient(to bottom, #34c759 0%, #28a745 100%); }
         .highlight-loser  { background: linear-gradient(to bottom, #e63946 0%, #c62835 100%); }
@@ -831,7 +849,7 @@
                 for (let i = existingPlayers + 1; i <= playerCount; i++) {
                     const newHeader = document.createElement('th');
                     const savedName = localStorage.getItem(`playerName-P${i}`) || (emojiModeEnabled ? numberToKeycap(i) : `P${i}`);
-                    newHeader.innerHTML = `${savedName}<div id="totalP${i}"></div>`;
+                    newHeader.innerHTML = `<span class="player-name" title="${savedName}">${savedName}</span><div id="totalP${i}"></div>`;
                     newHeader.setAttribute('data-player', `P${i}`);
                     newHeader.draggable = true;
                     headers.appendChild(newHeader);
@@ -1275,11 +1293,11 @@
             const header = document.querySelector(`#scoreTable thead th[data-player="${playerId}"]`);
             if (!header) return;
 
-            const totalDiv = header.querySelector('div');
+            const totalDiv = header.querySelector('div[id^="total"]');
             const score = totalDiv ? totalDiv.textContent : '';
             const rankElement = header.querySelector('small');
             const rankHTML = rankElement ? rankElement.outerHTML : '';
-            header.innerHTML = `${newName}<div id="total${playerId}">${score}</div>${rankHTML}`;
+            header.innerHTML = `<span class="player-name" title="${newName}">${newName}</span><div id="total${playerId}">${score}</div>${rankHTML}`;
             localStorage.setItem(`playerName-${playerId}`, newName);
         }
 
@@ -1345,9 +1363,11 @@
                 const header = headersRow[i + 1];
                 header.setAttribute('data-player', player);
 
-                const totalDiv = header.querySelector('div');
+                const totalDiv = header.querySelector('div[id^="total"]');
                 const currentTotalText = totalDiv ? totalDiv.textContent : '';
-                header.innerHTML = `${newData[i].name}<div id="total${player}">${currentTotalText}</div>`;
+                const rankElement = header.querySelector('small');
+                const rankHTML = rankElement ? rankElement.outerHTML : '';
+                header.innerHTML = `<span class="player-name" title="${newData[i].name}">${newData[i].name}</span><div id="total${player}">${currentTotalText}</div>${rankHTML}`;
 
                 localStorage.setItem(`playerName-${player}`, newData[i].name);
                 const categoriesList = [
@@ -1394,6 +1414,10 @@
             const table = document.getElementById('scoreTable');
             const headers = Array.from(table.querySelectorAll('thead th')).slice(1);
             const playerCount = headers.length;
+
+            // Toggle compact header name sizing for many players
+            if (playerCount >= 7) table.classList.add('small-scores');
+            else table.classList.remove('small-scores');
 
             function removeAllRankSmall() {
                 headers.forEach(h => {
@@ -1600,7 +1624,7 @@
                     let rankHTML = rankElement ? rankElement.outerHTML : '';
                     const playerName = header.innerText.split('\n')[0].trim();
                     header.setAttribute('data-player', newPlayer);
-                    if (totalDiv) header.innerHTML = `${playerName}<div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
+                    if (totalDiv) header.innerHTML = `<span class="player-name" title="${playerName}">${playerName}</span><div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
                 }
                 
                 rows.forEach(row => {
@@ -1790,8 +1814,11 @@
                     const player = `P${i + 1}`;
                     const header = headers.children[i + 1];
                     header.setAttribute('data-player', player);
-                    const totalDiv = header.querySelector('div');
-                    if (totalDiv) header.innerHTML = `${playerData[i].name}<div id="total${player}">${totalDiv.textContent}</div>`;
+                    const totalDiv = header.querySelector('div[id^="total"]');
+                    const currentTotalText = totalDiv ? totalDiv.textContent : '';
+                    const rankElement = header.querySelector('small');
+                    const rankHTML = rankElement ? rankElement.outerHTML : '';
+                    header.innerHTML = `<span class="player-name" title="${playerData[i].name}">${playerData[i].name}</span><div id="total${player}">${currentTotalText}</div>${rankHTML}`;
 
                     localStorage.setItem(`playerName-${player}`, playerData[i].name);
                     categories.forEach(category => {
