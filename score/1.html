@@ -114,6 +114,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            
 
             /* override cell-wide wrapping */
             word-break: normal;
@@ -489,34 +490,6 @@
         #emojiNameInput { -webkit-touch-callout: none; }
         #playerNameInput { -webkit-touch-callout: none; }
 
-        /* ---------------------------------------
-           Responsive: small score font for many players
-        --------------------------------------- */
-        @media (max-width: 480px) {
-            .sticky-header.small-scores th span.score {
-                font-size: 18px;
-                line-height: 1.2;
-            }
-            #scoreTable.small-scores thead th { padding: 3px; }
-            #scoreTable.small-scores thead th span.score { font-size: 16px; line-height: 1.2; }
-            #scoreTable.small-scores thead th small { font-size: 12px; }
-            #scoreTable.small-scores tbody td { font-size: 16px; }
-
-            /* Smaller inputs in the bottom row on tiny screens */
-            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
-                font-size: 14px;
-                height: 32px;
-                line-height: 32px;
-                padding: 0 6px;
-            }
-            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
-                font: inherit;
-                line-height: inherit;
-            }
-
-            .sticky-header.small-scores th small { font-size: 12px; }
-        }
-
         /* Center text + remove native arrow for Players dropdown */
         #roundManagementModal select#playerCount {
             text-align: center;
@@ -554,14 +527,6 @@
         #playerManagementModal .emoji-grid { margin: 5px 0 10px; }
         #playerManagementModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
         #playerManagementModal .bulk-actions { margin-top: 0; }
-
-        /* Optional: slightly smaller player name on narrow screens */
-        @media (max-width: 420px) {
-            .sticky-header th .player-name {
-                font-size: 18px;
-                line-height: 1.1;
-            }
-        }
 
         /* Optional: ellipsis long placeholders/values in bottom inputs */
         #scoreTable input[type="number"] {
@@ -1020,6 +985,7 @@
                         onclick="handlePlayerNameClick(event, ${index})" 
                         title="Player">
                         <span class="player-name" title="${player.name}">${player.name}</span>
+
                         <span class="score">${player.totalScore === 0 && rounds.length === 0 ? '' : (player.totalScore === 0 ? '0' : player.totalScore)}</span>
                         ${rounds.length > 0 ? `<br><small>${getRank(player.totalScore)}</small>` : ''}
                     </th>
