@@ -164,13 +164,13 @@
         #scoreTable thead th div { font-size: 22px; font-family: 'Economica', sans-serif; }
         #scoreTable thead th small { font-size: 16px; font-family: 'Economica', sans-serif; color: rgba(255, 255, 255, 0.8); }
 
-        /* Truncate long player names (header only) */
+        /* Truncate long player names (header only): no ellipsis, clipped cleanly */
         #scoreTable thead th .player-name {
             display: block;
             max-width: 100%;
             overflow: hidden;
             white-space: nowrap;
-            text-overflow: ellipsis;
+            text-overflow: clip; /* ensure no "..." */
         }
         /* Shrink header player names when 7+ players */
         #scoreTable.small-scores thead th .player-name {
@@ -846,7 +846,7 @@
                 for (let i = existingPlayers + 1; i <= playerCount; i++) {
                     const newHeader = document.createElement('th');
                     const savedName = localStorage.getItem(`playerName-P${i}`) || (emojiModeEnabled ? numberToKeycap(i) : `P${i}`);
-                    newHeader.innerHTML = `<span class="player-name" title="${savedName}">${savedName}</span><div id="totalP${i}"></div>`;
+                    newHeader.innerHTML = `<span class="player-name" data-full="${savedName}" title="${savedName}">${savedName}</span><div id="totalP${i}"></div>`;
                     newHeader.setAttribute('data-player', `P${i}`);
                     newHeader.draggable = true;
                     headers.appendChild(newHeader);
@@ -895,7 +895,8 @@
                 header.clickHandler = function(e) {
                     e.stopPropagation();
                     const player = this.getAttribute('data-player');
-                    const playerName = this.innerText.split('\n')[0].trim();
+                    const nameSpan = this.querySelector('.player-name');
+                    const playerName = (nameSpan?.getAttribute('data-full') || nameSpan?.textContent || '').trim();
                     window.currentPlayer = player; // remember which player was tapped
                     closeAllPopups();
                     if (emojiModeEnabled) openEmojiPlayerModal(playerName);
@@ -918,7 +919,7 @@
 
             if (reopenForPlayerId) {
                 const hdr = document.querySelector(`#scoreTable thead th[data-player="${reopenForPlayerId}"]`);
-                const name = hdr?.innerText.split('\n')[0].trim() || '';
+                const name = hdr?.querySelector('.player-name')?.getAttribute('data-full') || hdr?.querySelector('.player-name')?.textContent || '';
                 if (emojiModeEnabled) openEmojiPlayerModal(name);
                 else openTextPlayerModal(name);
             }
@@ -1294,8 +1295,11 @@
             const score = totalDiv ? totalDiv.textContent : '';
             const rankElement = header.querySelector('small');
             const rankHTML = rankElement ? rankElement.outerHTML : '';
-            header.innerHTML = `<span class="player-name" title="${newName}">${newName}</span><div id="total${playerId}">${score}</div>${rankHTML}`;
+            header.innerHTML = `<span class="player-name" data-full="${newName}" title="${newName}">${newName}</span><div id="total${playerId}">${score}</div>${rankHTML}`;
             localStorage.setItem(`playerName-${playerId}`, newName);
+
+            // Ensure visible name is clipped cleanly (no half-glyphs)
+            clipPlayerNamesToCell();
         }
 
         // Sort columns by total points (desc)
@@ -1364,7 +1368,7 @@
                 const currentTotalText = totalDiv ? totalDiv.textContent : '';
                 const rankElement = header.querySelector('small');
                 const rankHTML = rankElement ? rankElement.outerHTML : '';
-                header.innerHTML = `<span class="player-name" title="${newData[i].name}">${newData[i].name}</span><div id="total${player}">${currentTotalText}</div>${rankHTML}`;
+                header.innerHTML = `<span class="player-name" data-full="${newData[i].name}" title="${newData[i].name}">${newData[i].name}</span><div id="total${player}">${currentTotalText}</div>${rankHTML}`;
 
                 localStorage.setItem(`playerName-${player}`, newData[i].name);
                 const categoriesList = [
@@ -1405,6 +1409,41 @@
         }
     
         /* --------------------------------------
+           Name fitting: clip to whole graphemes (no ellipsis, no half-glyphs)
+        -------------------------------------- */
+        function clipPlayerNamesToCell() {
+            const seg = (typeof Intl !== 'undefined' && Intl.Segmenter)
+                ? new Intl.Segmenter('en', { granularity: 'grapheme' })
+                : null;
+
+            const els = document.querySelectorAll('#scoreTable thead th .player-name');
+            els.forEach(el => {
+                const full = el.getAttribute('data-full') ?? el.textContent;
+                el.setAttribute('data-full', full);
+                el.textContent = full;
+
+                if (el.scrollWidth <= el.clientWidth) return;
+
+                const clusters = seg
+                    ? Array.from(seg.segment(full), s => s.segment)
+                    : Array.from(full); // fallback (may split emoji)
+
+                let low = 0, high = clusters.length, best = 0;
+                while (low <= high) {
+                    const mid = Math.floor((low + high) / 2);
+                    el.textContent = clusters.slice(0, mid).join('');
+                    if (el.scrollWidth <= el.clientWidth) {
+                        best = mid;
+                        low = mid + 1;
+                    } else {
+                        high = mid - 1;
+                    }
+                }
+                el.textContent = clusters.slice(0, best).join('');
+            });
+        }
+
+        /* --------------------------------------
            Ranks + Header Shading (Theme)
         -------------------------------------- */
         function updateRanks() {
@@ -1435,6 +1474,8 @@
                     h.style.background = '';
                 });
                 removeAllRankSmall();
+                // Ensure names are clipped even in empty state
+                clipPlayerNamesToCell();
                 return;
             }
 
@@ -1463,6 +1504,8 @@
                 const small = document.createElement('small');
                 small.textContent = ordinalSuffixOf(1);
                 headersNow[0].appendChild(small);
+
+                clipPlayerNamesToCell();
                 return;
             }
 
@@ -1486,6 +1529,7 @@
                 const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${darkestL}%) 100%)`;
                 headersNow.forEach(h => { h.style.background = gradient; });
                 updateRankLabels(scored.map(s => s.score), totalDivs);
+                clipPlayerNamesToCell();
                 return;
             }
 
@@ -1507,6 +1551,9 @@
             });
 
             updateRankLabels(scored.map(s => s.score), totalDivs);
+
+            // Finally, clip names to fit (whole graphemes)
+            clipPlayerNamesToCell();
         }
 
         function updateRankLabels(sortedScoresDesc, totalDivs) {
@@ -1619,9 +1666,10 @@
                     const totalDiv = header.querySelector('div');
                     const rankElement = header.querySelector('small');
                     let rankHTML = rankElement ? rankElement.outerHTML : '';
-                    const playerName = header.innerText.split('\n')[0].trim();
+                    const oldSpan = header.querySelector('.player-name');
+                    const playerName = oldSpan?.getAttribute('data-full') || oldSpan?.textContent?.trim() || header.innerText.split('\n')[0].trim();
                     header.setAttribute('data-player', newPlayer);
-                    if (totalDiv) header.innerHTML = `<span class="player-name" title="${playerName}">${playerName}</span><div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
+                    if (totalDiv) header.innerHTML = `<span class="player-name" data-full="${playerName}" title="${playerName}">${playerName}</span><div id="total${newPlayer}">${totalDiv.textContent}</div>${rankHTML}`;
                 }
                 
                 rows.forEach(row => {
@@ -1697,7 +1745,8 @@
                 const playerId = `P${i}`;
                 const header = document.querySelector(`#scoreTable thead th[data-player="${playerId}"]`);
                 if (!header) continue;
-                const displayedName = header.innerText.split('\n')[0].trim();
+                const nameSpan = header.querySelector('.player-name');
+                const displayedName = (nameSpan?.getAttribute('data-full') || nameSpan?.textContent || '').trim();
                 const storedName = localStorage.getItem(`playerName-${playerId}`);
                 const currentName = storedName !== null ? storedName : displayedName;
                 let newName = currentName;
@@ -1815,7 +1864,7 @@
                     const currentTotalText = totalDiv ? totalDiv.textContent : '';
                     const rankElement = header.querySelector('small');
                     const rankHTML = rankElement ? rankElement.outerHTML : '';
-                    header.innerHTML = `<span class="player-name" title="${playerData[i].name}">${playerData[i].name}</span><div id="total${player}">${currentTotalText}</div>${rankHTML}`;
+                    header.innerHTML = `<span class="player-name" data-full="${playerData[i].name}" title="${playerData[i].name}">${playerData[i].name}</span><div id="total${player}">${currentTotalText}</div>${rankHTML}`;
 
                     localStorage.setItem(`playerName-${player}`, playerData[i].name);
                     categories.forEach(category => {
@@ -1855,6 +1904,16 @@
             const ths = document.querySelectorAll('#scoreTable thead th');
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
+        }
+
+        /* --------------------------------------
+           Resize/font events: re-fit names
+        -------------------------------------- */
+        window.addEventListener('resize', clipPlayerNamesToCell);
+        if (document.fonts && document.fonts.addEventListener) {
+            document.fonts.addEventListener('loadingdone', clipPlayerNamesToCell);
+        } else {
+            window.addEventListener('load', clipPlayerNamesToCell);
         }
     </script>
 </body>
