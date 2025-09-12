@@ -501,12 +501,6 @@
             }
             .sticky-header.small-scores th small { font-size: 12px; }
         }
-        @media (max-width: 480px) {
-  #playerRow th .player-name {
-    font-size: 18px;   /* tweak to taste (e.g., 16–18px) */
-    line-height: 1.1;
-  }
-}
 
         /* Center text + remove native arrow for Players dropdown */
         #roundManagementModal select#playerCount {
@@ -554,7 +548,18 @@
     white-space: nowrap;
     text-overflow: ellipsis;
 }
-
+#playerRow th .player-name {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+/* Only shrink player names when 7+ players (JS adds .small-scores on header/table) */
+.sticky-header.small-scores #playerRow th .player-name {
+    font-size: 18px; /* adjust as you like */
+    line-height: 1.1;
+}
     </style>
 </head>
 <body>
