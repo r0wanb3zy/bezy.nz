@@ -691,8 +691,6 @@
             const container = getScoreContainer();
             if (!container) return;
             const inset = getKeyboardInset();
-            // Add 24px extra when keyboard open; keep a 12px base pad when closed
-            container.style.paddingBottom = inset > 0 ? (inset + 24) + 'px' : '12px';
         }
         function ensureInputVisible(input) {
             const container = getScoreContainer();
