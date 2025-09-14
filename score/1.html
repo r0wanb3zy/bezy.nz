@@ -670,6 +670,66 @@
             }
         }
 
+        // Keyboard/viewport helpers to keep focused inputs visible on mobile
+        function getScoreContainer() {
+            return document.querySelector('.score-container');
+        }
+        function getStickyHeaderBottom() {
+            const header = document.querySelector('.sticky-header');
+            if (!header) return 0;
+            const r = header.getBoundingClientRect();
+            return r.bottom;
+        }
+        function getKeyboardInset() {
+            if (!window.visualViewport) return 0;
+            const vv = window.visualViewport;
+            // Distance between bottom of layout viewport and bottom of visual viewport
+            const inset = window.innerHeight - (vv.height + vv.offsetTop);
+            return Math.max(0, Math.round(inset));
+        }
+        function updateKeyboardPadding() {
+            const container = getScoreContainer();
+            if (!container) return;
+            const inset = getKeyboardInset();
+            // Add a bit of extra space so the input is not flush with the keyboard
+            container.style.paddingBottom = inset > 0 ? (inset + 24) + 'px' : '';
+        }
+        function ensureInputVisible(input) {
+            const container = getScoreContainer();
+            if (!container || !input) return;
+
+            const headerBottom = getStickyHeaderBottom();
+            const containerRect = container.getBoundingClientRect();
+            const inputRect = input.getBoundingClientRect();
+            const vvHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+
+            // Visible window within the container while keyboard may be open
+            const topBound = Math.max(containerRect.top, headerBottom) + 8;
+            const bottomBound = Math.min(containerRect.bottom, vvHeight) - 12;
+
+            if (inputRect.bottom > bottomBound) {
+                container.scrollTop += (inputRect.bottom - bottomBound);
+            } else if (inputRect.top < topBound) {
+                container.scrollTop -= (topBound - inputRect.top);
+            }
+        }
+        function initKeyboardAssist() {
+            updateKeyboardPadding();
+            if (window.visualViewport) {
+                const handler = () => {
+                    updateKeyboardPadding();
+                    const active = document.activeElement;
+                    if (active && active.tagName === 'INPUT') {
+                        // Re-ensure after resize/scroll from keyboard animation
+                        ensureInputVisible(active);
+                    }
+                };
+                visualViewport.addEventListener('resize', handler);
+                visualViewport.addEventListener('scroll', handler);
+                window.addEventListener('orientationchange', () => setTimeout(handler, 300));
+            }
+        }
+
         /* ---------------------------------------
            Persistence
         --------------------------------------- */
@@ -1097,10 +1157,20 @@
             // Fit player names to header cell width (no half glyphs, no ellipsis)
             clipPlayerNamesToCell();
 
-            // Wire keyboard interactions for inputs (Enter to submit / move)
+            // Wire keyboard interactions for inputs (Enter to submit / move) and focus visibility
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
                 input.addEventListener('input', saveUnsubmittedScores);
+
+                // Keep focused input visible (accounting for keyboard + sticky header)
+                const focusEnsure = () => {
+                    ensureInputVisible(input);
+                    // Re-ensure during keyboard animation
+                    setTimeout(() => ensureInputVisible(input), 50);
+                    setTimeout(() => ensureInputVisible(input), 250);
+                };
+                input.addEventListener('focus', focusEnsure, { passive: true });
+
                 input.addEventListener('keydown', function(event) {
                     if (event.key === 'Enter' || event.keyCode === 13) {
                         event.preventDefault();
@@ -1673,6 +1743,7 @@
         --------------------------------------- */
         syncDefaultNamesToMode();
         updateUI();
+        initKeyboardAssist();
 
         // Re-fit names when the window resizes or fonts finish loading
         window.addEventListener('resize', clipPlayerNamesToCell);
