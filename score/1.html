@@ -35,11 +35,12 @@
 
         h1 { text-align: center; }
 
-        /* Scrollable area for score rows (header stays sticky) */
+        /* Scrollable area for score rows with sticky header inside */
         .score-container {
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            background: #fff;
         }
 
         /* ---------------------------------------
@@ -114,9 +115,6 @@
             height: 5px;
             line-height: 5px;
             overflow: hidden;
-        }
-
-        #scoreBody tr td:not(:first-child) {
             font-weight: bold;
         }
 
@@ -210,7 +208,8 @@
             transform: translate(-50%, -50%);
         }
 
-        .popup-modal input[type="text"] {
+        .popup-modal input[type="text"],
+        .popup-modal input[type="number"] {
             font-size: 24px;
             padding: 10px;
             width: 100%;
@@ -223,9 +222,11 @@
             background: #f8f9fa;
         }
 
-        .popup-modal input[type="text"]:focus {
+        .popup-modal input[type="text"]:focus,
+        .popup-modal input[type="number"]:focus {
             outline: none;
             border: 1px solid #262626;
+            background: #fff;
         }
 
         .popup-modal select {
@@ -287,7 +288,8 @@
         /* Modal headings spacing */
         #playerManagementModal h2,
         #roundManagementModal h2,
-        #deleteRoundModal h2 {
+        #deleteRoundModal h2,
+        #editScoreModal h2 {
             margin-top: 15px;
             margin-bottom: 15px;
             padding: 0;
@@ -366,7 +368,7 @@
         }
 
         /* ---------------------------------------
-           Sticky header
+           Sticky header (now inside scroll container)
         --------------------------------------- */
         .sticky-header {
             position: sticky;
@@ -376,6 +378,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
         .sticky-header table { margin-bottom: 0; }
+        .input-table td { padding: 6px; background: #fff; }
 
         /* Make main table flush to header */
         #scoreTable { margin-top: 0; }
@@ -383,9 +386,6 @@
         /* Drag feedback */
         th.dragging { opacity: 0.5; background: rgba(0, 0, 0, 0.2); }
         th.drag-over { border-left: 2px solid #333; }
-
-        /* Input table spacing */
-        .input-table td { padding: 6px; background: #fff; }
 
         /* ---------------------------------------
            Emoji grid (player emoji picker)
@@ -536,7 +536,7 @@
         #playerManagementModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
         #playerManagementModal .bulk-actions { margin-top: 0; }
 
-        /* Truncate long player names (header only): no ellipsis, no half glyphs (JS clips) */
+        /* Truncate long player names (header only) */
         #playerRow th .player-name {
             display: block;
             max-width: 100%;
@@ -553,26 +553,28 @@
     </style>
 </head>
 <body>
-    <!-- Sticky header with player names + inputs -->
-    <div class="sticky-header">
-        <table class="header-table">
-            <thead>
-                <tr id="playerRow">
-                    <th>#</th>
-                </tr>
-            </thead>
-        </table>
-        <table class="input-table">
-            <tbody>
-                <tr id="inputRow">
-                    <td>＋</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
 
-    <!-- Scrollable scores table -->
+    <!-- Scrollable area with sticky header inside -->
     <div class="score-container">
+        <!-- Sticky header with player names + inputs -->
+        <div class="sticky-header">
+            <table class="header-table">
+                <thead>
+                    <tr id="playerRow">
+                        <th>#</th>
+                    </tr>
+                </thead>
+            </table>
+            <table class="input-table">
+                <tbody>
+                    <tr id="inputRow">
+                        <td>＋</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Scores table (scored rows only) -->
         <table id="scoreTable">
             <tbody id="scoreBody"></tbody>
         </table>
@@ -582,6 +584,7 @@
     <div id="playerManagementModal" class="popup-modal"></div>
     <div id="roundManagementModal" class="popup-modal"></div>
     <div id="deleteRoundModal" class="popup-modal"></div>
+    <div id="editScoreModal" class="popup-modal"></div>
 
     <!-- Overlay -->
     <div id="overlay"></div>
@@ -622,6 +625,11 @@
         let bulkEmojiMode = false;
         let bulkEmojiSelection = [];
         const bulkMaxPlayers = 8;
+
+        // Long-press state for score cells
+        let lpTimer = null;
+        let lpTarget = null;
+        let lpTriggered = false;
 
         /* ---------------------------------------
            Helpers (Keycap digits / Theme / Keyboard)
@@ -686,7 +694,6 @@
         function getKeyboardInset() {
             if (!window.visualViewport) return 0;
             const vv = window.visualViewport;
-            // Distance between bottom of layout viewport and bottom of visual viewport
             const inset = window.innerHeight - (vv.height + vv.offsetTop);
             return Math.max(0, Math.round(inset));
         }
@@ -694,14 +701,11 @@
             const container = getScoreContainer();
             if (!container) return;
             const inset = getKeyboardInset();
-            // Add a bit of extra space so the input is not flush with the keyboard
             container.style.paddingBottom = inset > 0 ? (inset + 24) + 'px' : '';
         }
         function ensureInputVisible(input) {
             const container = getScoreContainer();
             if (!container || !input) return;
-
-            // Only handle inputs inside the scrollable score area
             if (!container.contains(input)) return;
 
             const headerBottom = getStickyHeaderBottom();
@@ -709,7 +713,6 @@
             const inputRect = input.getBoundingClientRect();
             const vvHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
-            // Visible window within the container while keyboard may be open
             const topBound = Math.max(containerRect.top, headerBottom) + 8;
             const bottomBound = Math.min(containerRect.bottom, vvHeight) - 12;
 
@@ -726,7 +729,6 @@
                     updateKeyboardPadding();
                     const active = document.activeElement;
                     if (active && active.tagName === 'INPUT') {
-                        // Re-ensure after resize/scroll from keyboard animation
                         ensureInputVisible(active);
                     }
                 };
@@ -760,14 +762,12 @@
         /* ---------------------------------------
            Players / Names / Emoji
         --------------------------------------- */
-        // Switch default labels between P# and keycap emoji (keeps unsubmitted scores aligned)
         function syncDefaultNamesToMode() {
             let changed = false;
             players.forEach((p) => {
                 const name = (p.name || '').trim();
 
                 if (emojiModeEnabled) {
-                    // P# -> keycap emoji when turning emoji mode on
                     const m = /^P(\d{1,2})$/i.exec(name);
                     if (m) {
                         const n = parseInt(m[1], 10);
@@ -784,7 +784,6 @@
                         }
                     }
                 } else {
-                    // keycap emoji -> P# when turning emoji mode off
                     const n = keycapToNumber(name);
                     if (n !== null) {
                         const pn = `P${n}`.toUpperCase();
@@ -805,7 +804,6 @@
             }
         }
 
-        // Rename a player and carry over any typed-but-not-submitted score
         function renamePlayer(index, newName) {
             const oldName = players[index].name;
             players[index].name = newName;
@@ -818,7 +816,6 @@
             updateUI();
         }
 
-        // Remove a player (and their column) safely
         function removePlayer(index) {
             if (players.length <= 1) {
                 alert("At least one player must remain.");
@@ -831,7 +828,6 @@
             return true;
         }
 
-        // Toggle emoji mode; optionally re-open the correct modal after switching
         function setEmojiMode(enabled, reopenIndex = null) {
             emojiModeEnabled = !!enabled;
             localStorage.setItem('emojiModeEnabled', emojiModeEnabled);
@@ -878,7 +874,6 @@
             }
         }
 
-        // Update a single score (contenteditable cell), then recalc totals
         function updateScore(roundIndex, playerIndex, newScore) {
             const score = parseInt(newScore) || 0;
 
@@ -894,7 +889,6 @@
             updateUI();
         }
 
-        // Reset scores/rounds (keeps names in the same mode)
         function handleResetScores(button) {
             if (button.dataset.state === 'initial') {
                 button.textContent = 'Confirm';
@@ -903,22 +897,18 @@
                 players.forEach(player => {
                     player.roundScores = [];
                     player.totalScore = 0;
-                    player.name = player.name.toUpperCase(); // normalized before sync
+                    player.name = player.name.toUpperCase();
                 });
                 rounds = [];
                 unsubmittedScores = {};
                 localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
-
-                // Respect current emoji/text mode
                 syncDefaultNamesToMode();
-
                 saveData();
                 updateUI();
                 closePopup('roundManagementModal');
             }
         }
 
-        // Delete a round and recompute totals
         function deleteRound(roundIndex) {
             rounds.splice(roundIndex, 1);
             players.forEach(player => {
@@ -930,7 +920,6 @@
             closePopup('deleteRoundModal');
         }
 
-        // Utility: check if all sticky inputs are filled
         function allInputsFilled(inputs) {
             return Array.from(inputs).every(input => input.value.trim() !== '');
         }
@@ -938,7 +927,6 @@
         /* ---------------------------------------
            Sorting / Ranking / Theme shading
         --------------------------------------- */
-        // Sort players (and each round) by current rank
         function applySortByRank(silent = false) {
             if (players.length <= 1 || rounds.length === 0) {
                 if (!silent) updateUI();
@@ -957,7 +945,6 @@
             if (!silent) updateUI();
         }
 
-        // Compute rank text ("1st", "2nd", …) for a given total
         function getRank(score) {
             if (players.length === 1) return "1st";
             const sortedPlayers = [...players];
@@ -974,7 +961,6 @@
             return rank + suffix;
         }
 
-        // Apply header shading based on ranks and selected theme color
         function updateRankings() {
             const playerRow = document.getElementById("playerRow");
             const columns = Array.from(playerRow.children).slice(1); // skip first (#) col
@@ -999,7 +985,6 @@
 
             if (rounds.length === 0) return;
 
-            // Group players by equal totals (ties share a color)
             const scored = players.map((p, i) => ({ index: i, score: p.totalScore }))
                                   .sort((a, b) => scoringMode === "highest" ? (b.score - a.score) : (a.score - b.score));
             const groups = [];
@@ -1012,7 +997,6 @@
                 }
             }
 
-            // Shade range scales with distinct ranks
             const Lmax = 82;
             const minRange = 18;
             const maxRange = 44;
@@ -1031,7 +1015,6 @@
             const range = Math.round(minRange + (maxRange - minRange) * normalized);
             const Lmin = Math.max(28, Lmax - range);
 
-            // Apply gradients from best to worst
             groups.forEach((group, g) => {
                 const ratio = g / (effectiveRanks - 1);
                 const L = Math.round(Lmin + (Lmax - Lmin) * ratio);
@@ -1048,7 +1031,6 @@
            UI Building
         --------------------------------------- */
 
-        // Grapheme-aware fit: clip names to whole characters (no ellipsis, no half-glyphs)
         function clipPlayerNamesToCell() {
             const seg = (typeof Intl !== 'undefined' && Intl.Segmenter)
                 ? new Intl.Segmenter('en', { granularity: 'grapheme' })
@@ -1064,7 +1046,7 @@
 
                 const clusters = seg
                     ? Array.from(seg.segment(full), s => s.segment)
-                    : Array.from(full); // fallback (may split emoji)
+                    : Array.from(full);
 
                 let low = 0, high = clusters.length, best = 0;
                 while (low <= high) {
@@ -1081,9 +1063,7 @@
             });
         }
 
-        // Build header + input row + scores table, wire up inputs
         function updateUI() {
-            // Keep sorted (if enabled) before rendering
             if (sortByRankEnabled && players.length > 1 && rounds.length > 0) {
                 applySortByRank(true);
             }
@@ -1092,7 +1072,6 @@
             const scoreTable = document.getElementById("scoreTable");
             const stickyHeader = document.querySelector(".sticky-header");
 
-            // Compact font if many players
             if (players.length >= 7) {
                 scoreTable.classList.add("small-scores");
                 stickyHeader.classList.add("small-scores");
@@ -1129,7 +1108,7 @@
                 inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" enterkeyhint="done" value="${savedValue}" /></td>`;
             });
 
-            // Body: scored rounds only (click on first cell to delete round)
+            // Body: scored rounds only
             const scoreBody = document.getElementById("scoreBody");
             scoreBody.innerHTML = "";
 
@@ -1145,9 +1124,9 @@
                         : '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">';
 
                     row.innerHTML += `
-                        <td contenteditable="true" inputmode="numeric"
-                            onclick="selectText(this)"
-                            onblur="updateScore(${roundIndex}, ${playerIndex}, this.innerText)">
+                        <td class="score-cell"
+                            data-round-index="${roundIndex}"
+                            data-player-index="${playerIndex}">
                             ${displayScore}
                         </td>`;
                 });
@@ -1171,9 +1150,9 @@
                         event.preventDefault();
                         const allFilled = allInputsFilled(inputs);
                         if (allFilled) {
-                            dismissKeyboard();   // close the keyboard
-                            addRoundScores();    // submit
-                            return;              // do not re-focus any input
+                            dismissKeyboard();
+                            addRoundScores();
+                            return;
                         } else {
                             if (index < inputs.length - 1) {
                                 inputs[index + 1].focus();
@@ -1189,9 +1168,102 @@
         }
 
         /* ---------------------------------------
+           Long-press edit for past scores
+        --------------------------------------- */
+        function initScoreCellInteractions() {
+            const scoreBody = document.getElementById('scoreBody');
+            if (!scoreBody || scoreBody._lpBound) return;
+
+            scoreBody.addEventListener('pointerdown', (e) => {
+                const td = e.target.closest('td.score-cell');
+                if (!td) return;
+
+                lpTarget = td;
+                lpTriggered = false;
+                clearTimeout(lpTimer);
+
+                lpTimer = setTimeout(() => {
+                    lpTriggered = true;
+                    const roundIndex = parseInt(td.getAttribute('data-round-index'));
+                    const playerIndex = parseInt(td.getAttribute('data-player-index'));
+                    openEditScoreModal(roundIndex, playerIndex);
+                }, 500);
+            });
+
+            scoreBody.addEventListener('pointerup', (e) => {
+                clearTimeout(lpTimer);
+                const td = e.target.closest('td.score-cell');
+                if (!td) return;
+                // Short tap -> focus sticky input for that player
+                if (!lpTriggered) {
+                    const playerIndex = parseInt(td.getAttribute('data-player-index'));
+                    focusStickyInputForPlayer(playerIndex);
+                }
+                lpTarget = null;
+            });
+
+            scoreBody.addEventListener('pointerleave', () => {
+                clearTimeout(lpTimer);
+            });
+            scoreBody.addEventListener('pointercancel', () => {
+                clearTimeout(lpTimer);
+            });
+
+            scoreBody._lpBound = true;
+        }
+
+        function focusStickyInputForPlayer(playerIndex) {
+            const inputs = document.querySelectorAll(".input-table input[type='number']");
+            const input = inputs[playerIndex];
+            if (input) {
+                try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+                try { input.select(); } catch (_) {}
+            }
+        }
+
+        function openEditScoreModal(roundIndex, playerIndex) {
+            const modal = document.getElementById('editScoreModal');
+            const player = players[playerIndex];
+            const current = rounds[roundIndex]?.[playerIndex] ?? 0;
+
+            modal.innerHTML = `
+                <h2>Edit Score</h2>
+                <span class="close-btn" onclick="closePopup('editScoreModal')">×</span>
+                <div style="margin-bottom:6px;">R${roundIndex + 1} • ${player?.name ?? 'Player'}</div>
+                <input type="number" id="editScoreInput" inputmode="numeric" enterkeyhint="done" value="${current}">
+                <button id="saveScoreBtn">Save</button>
+            `;
+            modal.style.display = 'block';
+            showOverlay();
+
+            const input = document.getElementById('editScoreInput');
+            const saveBtn = document.getElementById('saveScoreBtn');
+
+            const commit = () => {
+                const val = parseInt(input.value) || 0;
+                dismissKeyboard();
+                updateScore(roundIndex, playerIndex, val);
+                closePopup('editScoreModal');
+            };
+
+            // Focus and select to pop keyboard
+            setTimeout(() => {
+                try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+                try { input.select(); } catch (_) {}
+            }, 0);
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commit();
+                }
+            });
+            saveBtn.addEventListener('click', commit);
+        }
+
+        /* ---------------------------------------
            Modals
         --------------------------------------- */
-        // Player modal (text name version)
         function createPlayerManagementDialog(index) {
             const modal = document.getElementById('playerManagementModal');
             modal.innerHTML = `
@@ -1221,13 +1293,11 @@
 
             const input = modal.querySelector('#playerNameInput');
 
-            // Auto-select contents on focus
             input.addEventListener('focus', function () {
                 try { this.select(); } catch (_) {}
                 try { this.setSelectionRange(0, this.value.length); } catch (_) {}
             });
 
-            // Make the first tap focus/select without scrolling
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
@@ -1243,16 +1313,13 @@
             input.addEventListener('touchstart', primeFocus, { passive: false });
             input.addEventListener('mousedown', primeFocus);
 
-            // Reduce mobile quirks
             input.addEventListener('contextmenu', (e) => e.preventDefault());
             input.addEventListener('mouseup', (e) => e.preventDefault());
 
-            // Force uppercase as user types
             input.addEventListener('input', function () {
                 this.value = this.value.toUpperCase();
             });
 
-            // Save on Enter
             input.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1262,14 +1329,12 @@
                 }
             });
 
-            // Save on blur
             input.addEventListener('blur', function () {
                 const newName = (input.value || '').trim().toUpperCase();
                 if (newName && newName !== players[index].name) renamePlayer(index, newName);
             });
         }
 
-        // Player modal (emoji version) with optional bulk selection flow
         function createEmojiPlayerDialog(index) {
             const modal = document.getElementById('playerManagementModal');
             const favEmojis = [
@@ -1297,7 +1362,6 @@
                 >
                 <div class="emoji-grid">${grid}</div>
 
-                <!-- Bulk multi-select toolbar (hidden until long-press) -->
                 <div id="bulkEmojiActions" class="bulk-actions">
                   <div class="row">
                     <button type="button" id="bulkCancelBtn" class="light">Cancel</button>
@@ -1316,14 +1380,12 @@
             modal.style.display = 'block';
             showOverlay();
 
-            // Reset bulk state on open
             bulkEmojiMode = false;
             bulkEmojiSelection = [];
             modal.classList.remove('bulk-mode');
 
             const input = modal.querySelector('#emojiNameInput');
 
-            // First tap focuses + selects (mobile-friendly)
             let primed = false;
             const primeFocus = (e) => {
                 if (primed) return;
@@ -1342,7 +1404,6 @@
             input.addEventListener('mouseup', (e) => e.preventDefault());
             input.addEventListener('contextmenu', (e) => e.preventDefault());
 
-            // Auto-close after typing a valid emoji (single-select mode)
             let autoClosed = false;
             input.addEventListener('input', function () {
                 const sanitized = extractEmojis(this.value);
@@ -1354,18 +1415,15 @@
                 }
             });
 
-            // Enter -> save (single-select mode)
             input.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter' && !bulkEmojiMode) {
                     updatePlayerNameEmoji(index);
                 }
             });
 
-            // Set up grid interactions for tap (single) and long-press (bulk)
             attachEmojiGridInteractions(index);
         }
 
-        // Extract only emoji-like graphemes from a string
         function extractEmojis(str) {
             if (!str) return '';
             let segments;
@@ -1402,7 +1460,6 @@
             closePopup('playerManagementModal');
         }
 
-        // Wire up per-emoji interactions, long-press to enter bulk mode
         function attachEmojiGridInteractions(index) {
             const modal = document.getElementById('playerManagementModal');
             const buttons = Array.from(modal.querySelectorAll('.emoji-pick'));
@@ -1432,7 +1489,6 @@
             };
 
             const renumberSelection = () => {
-                // Clear and reapply order numbers for selected emojis
                 buttons.forEach(b => {
                     if (b.classList.contains('selected')) b.setAttribute('data-order', '');
                 });
@@ -1461,13 +1517,11 @@
                 const targetCount = Math.min(bulkMaxPlayers, selected.length);
                 if (targetCount < 1) return;
 
-                // Turn on emoji mode for bulk selection
                 emojiModeEnabled = true;
                 localStorage.setItem('emojiModeEnabled', 'true');
 
                 const currentCount = players.length;
 
-                // Expand/shrink players to match selected count
                 if (targetCount > currentCount) {
                     for (let i = currentCount; i < targetCount; i++) {
                         const newName = selected[i] || (emojiModeEnabled ? numberToKeycap(i + 1) : `P${i + 1}`.toUpperCase());
@@ -1485,7 +1539,6 @@
                     rounds.forEach(round => round.length = targetCount);
                 }
 
-                // Remap unsubmitted scores by new names
                 const oldUnsubmitted = { ...unsubmittedScores };
                 const newUnsubmitted = {};
                 for (let i = 0; i < targetCount; i++) {
@@ -1503,7 +1556,6 @@
                 updateUI();
             };
 
-            // Toolbar buttons (Cancel / Select)
             const cancelBtn = modal.querySelector('#bulkCancelBtn');
             const applyBtn = modal.querySelector('#bulkApplyBtn');
             if (cancelBtn) cancelBtn.addEventListener('click', () => { exitBulkEmojiMode(); });
@@ -1513,21 +1565,18 @@
                 closePopup('playerManagementModal');
             });
 
-            // Button interactions (tap vs long-press)
             buttons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     if (bulkEmojiMode) toggleEmojiSelection(btn);
                     else setEmojiFromButton(btn, index);
                 });
 
-                // Long-press (0.5s) to enter bulk mode
                 let pressTimer = null;
                 const start = () => {
                     if (bulkEmojiMode) return;
                     clearTimeout(pressTimer);
                     pressTimer = setTimeout(() => {
                         enterBulkEmojiMode();
-                        // Now user can tap to select multiple
                     }, 500);
                 };
                 const cancel = () => {
@@ -1547,7 +1596,6 @@
             });
         }
 
-        // Player menu click (open right modal for current mode)
         function handlePlayerNameClick(event, index) {
             event.stopPropagation();
             closeAllPopups();
@@ -1555,7 +1603,6 @@
             else createPlayerManagementDialog(index);
         }
 
-        // Simple text-mode update (used by Enter key)
         function updatePlayerName(index, closeModal = true) {
             const input = document.getElementById('playerNameInput');
             if (!input) return;
@@ -1564,7 +1611,6 @@
             if (closeModal) closePopup('playerManagementModal');
         }
 
-        // Round management (players count, high/low, theme, sort)
         function createRoundManagementDialog() {
             const modal = document.getElementById('roundManagementModal');
             modal.innerHTML = `
@@ -1612,7 +1658,6 @@
             updateUI();
         }
 
-        // Update player count (adds/removes players + aligns rounds)
         function updatePlayerCount() {
             const newCount = parseInt(document.getElementById('playerCount').value);
             if (newCount > players.length) {
@@ -1634,7 +1679,6 @@
             closePopup('roundManagementModal');
         }
 
-        // Confirmation dialog for deleting a round
         function createDeleteRoundDialog(roundIndex) {
             const modal = document.getElementById('deleteRoundModal');
             modal.innerHTML = `
@@ -1646,7 +1690,6 @@
             showOverlay();
         }
 
-        // Contenteditable utility: select text on click
         function selectText(element) {
             const range = document.createRange();
             range.selectNodeContents(element);
@@ -1670,13 +1713,12 @@
             document.getElementById('playerManagementModal').style.display = 'none';
             document.getElementById('roundManagementModal').style.display = 'none';
             document.getElementById('deleteRoundModal').style.display = 'none';
+            document.getElementById('editScoreModal').style.display = 'none';
             hideOverlay();
         }
 
-        // Overlay tap closes any open modal
         document.getElementById('overlay').addEventListener('click', closeAllPopups);
 
-        // Remove player (with 2-tap confirm)
         function handleRemovePlayer(button, index) {
             if (button.dataset.state === 'initial') {
                 button.textContent = 'Confirm';
@@ -1739,6 +1781,7 @@
         syncDefaultNamesToMode();
         updateUI();
         initKeyboardAssist();
+        initScoreCellInteractions();
 
         // Re-fit names when the window resizes or fonts finish loading
         window.addEventListener('resize', clipPlayerNamesToCell);
