@@ -687,21 +687,44 @@
             const inset = window.innerHeight - (vv.height + vv.offsetTop);
             return Math.max(0, Math.round(inset));
         }
+
+        // NEW: fit the scroll container to the visible viewport so it never sits under the keyboard
+        function sizeScoreContainerToViewport() {
+            const container = getScoreContainer();
+            if (!container) return;
+            const vv = window.visualViewport;
+            const top = container.getBoundingClientRect().top;
+            const visibleHeight = vv ? vv.height : window.innerHeight;
+            container.style.height = Math.max(120, Math.round(visibleHeight - top)) + 'px';
+        }
+
         function updateKeyboardPadding() {
             const container = getScoreContainer();
             if (!container) return;
             const inset = getKeyboardInset();
+            // Space above the keyboard and a small base pad when closed
+            container.style.paddingBottom = inset > 0 ? (inset + 24) + 'px' : '12px';
+            // Always size the container to the visible viewport
+            if (window.visualViewport) {
+                requestAnimationFrame(sizeScoreContainerToViewport);
+            } else {
+                sizeScoreContainerToViewport();
+            }
         }
+
         function ensureInputVisible(input) {
             const container = getScoreContainer();
             if (!container || !input) return;
 
+            // First let the browser bring it close inside the nearest scroll container
+            try { input.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (_) {}
+
             const headerBottom = getStickyHeaderBottom();
             const containerRect = container.getBoundingClientRect();
             const inputRect = input.getBoundingClientRect();
-            const vvHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            const vv = window.visualViewport;
+            const vvHeight = vv ? vv.height : window.innerHeight;
 
-            // Visible window within the container while keyboard may be open
             const topBound = Math.max(containerRect.top, headerBottom) + 8;
             const bottomBound = Math.min(containerRect.bottom, vvHeight) - 12;
 
@@ -1776,6 +1799,19 @@
             ths.forEach(th => th.classList.remove('drag-over'));
             draggedIndex = -1;
         }
+
+        /* ---------------------------------------
+           Keep focused input above keyboard
+        --------------------------------------- */
+        window.addEventListener('focusin', (e) => {
+            const t = e.target;
+            if (t && t.matches && t.matches('#scoreTable input[type="number"]')) {
+                updateKeyboardPadding();
+                ensureInputVisible(t);
+                setTimeout(() => ensureInputVisible(t), 60);
+                setTimeout(() => ensureInputVisible(t), 250);
+            }
+        });
 
         /* ---------------------------------------
            Init
