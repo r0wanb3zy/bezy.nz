@@ -583,7 +583,7 @@
     <!-- Overlay -->
     <div id="overlay"></div>
 
-    <script>
+<script>
         /* ---------------------------------------
            Globals / Bootstrapping
         --------------------------------------- */
@@ -621,7 +621,7 @@
         const bulkMaxPlayers = 8;
 
         /* ---------------------------------------
-           Helpers (Keycap digits / Theme)
+           Helpers (Keycap digits / Theme / Keyboard)
         --------------------------------------- */
         const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
         function numberToKeycap(n) { return KEYCAP_DIGITS[n] || String(n); }
@@ -660,6 +660,14 @@
             Array.from(select.options).forEach(opt => {
                 opt.style.color = getThemeTextColor(opt.value);
             });
+        }
+
+        // Close the mobile keyboard by blurring the active element
+        function dismissKeyboard() {
+            const el = document.activeElement;
+            if (el && typeof el.blur === 'function') {
+                el.blur();
+            }
         }
 
         /* ---------------------------------------
@@ -776,32 +784,33 @@
            Rounds / Scores
         --------------------------------------- */
         // Add a round using values from the bottom input row
-function addRoundScores() {
-    const scores = [];
-    const inputs = document.querySelectorAll("#scoreTable input[type='number']");
-    inputs.forEach((input, index) => {
-        const score = parseInt(input.value) || 0;
-        scores[index] = score;
-        players[index].roundScores.push(score);
-        players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
-    });
-    rounds.push(scores);
-    saveData();
-    // Clear the bottom inputs after submission
-    unsubmittedScores = {};
-    localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
-    updateUI();
-    inputs.forEach(input => input.value = '');
-    // Hide the mobile keyboard by blurring the active input
-    const activeElement = document.activeElement;
-    if (activeElement && activeElement.tagName === 'INPUT') {
-        activeElement.blur();
-    }
-    // Scroll to the last row for convenience
-    const scoreBody = document.getElementById("scoreBody");
-    const lastRow = scoreBody.lastElementChild;
-    if (lastRow) lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
-}
+        function addRoundScores() {
+            dismissKeyboard(); // close mobile keyboard
+
+            const scores = [];
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+
+            inputs.forEach((input, index) => {
+                const score = parseInt(input.value) || 0;
+                scores[index] = score;
+                players[index].roundScores.push(score);
+                players[index].totalScore = players[index].roundScores.reduce((a, b) => a + b, 0);
+            });
+
+            rounds.push(scores);
+            saveData();
+
+            // Clear the bottom inputs after submission
+            unsubmittedScores = {};
+            localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+            updateUI();
+            inputs.forEach(input => input.value = '');
+
+            // Scroll to the last row for convenience
+            const scoreBody = document.getElementById("scoreBody");
+            const lastRow = scoreBody.lastElementChild;
+            if (lastRow) lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
 
         // Update a single score (contenteditable cell), then recalc totals
         function updateScore(roundIndex, playerIndex, newScore) {
@@ -1078,7 +1087,7 @@ function addRoundScores() {
             inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
             players.forEach((player) => {
                 const savedValue = unsubmittedScores[player.name] || '';
-                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" /></td>`;
+                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" enterkeyhint="done" value="${savedValue}" /></td>`;
             });
             scoreBody.appendChild(inputRow);
 
@@ -1097,9 +1106,9 @@ function addRoundScores() {
                         event.preventDefault();
                         const allFilled = allInputsFilled(inputs);
                         if (allFilled) {
-                            addRoundScores();
-                            const refreshedInputs = document.querySelectorAll("#scoreTable input[type='number']");
-                            if (refreshedInputs[0]) refreshedInputs[0].focus();
+                            dismissKeyboard();   // close the keyboard
+                            addRoundScores();    // submit
+                            return;              // do not re-focus any input
                         } else {
                             if (index < inputs.length - 1) {
                                 inputs[index + 1].focus();
