@@ -316,7 +316,7 @@
             background-clip: padding-box;
         }
         .segmented-control input[type="radio"] { display: none; }
-        .segmented-control label {
+        .egmented-control label {
             flex: 1 1 0;
             padding: 10px 0;
             text-align: center;
@@ -582,6 +582,11 @@
     <!-- Overlay -->
     <div id="overlay"></div>
 
+    <!-- ADDED: Hidden form to enable mobile Go/Done to submit -->
+    <form id="roundForm" onsubmit="handleRoundFormSubmit(event)">
+        <button type="submit" id="roundFormSubmitBtn" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0; pointer-events:none;">Submit</button>
+    </form>
+
     <script>
         /* ---------------------------------------
            Globals / Bootstrapping
@@ -774,8 +779,20 @@
         /* ---------------------------------------
            Rounds / Scores
         --------------------------------------- */
+
+        // ADDED: Dismiss mobile keyboard
+        function dismissKeyboard() {
+            const active = document.activeElement;
+            if (active && typeof active.blur === 'function') {
+                active.blur();
+            }
+        }
+
         // Add a round using values from the bottom input row
         function addRoundScores() {
+            // ADDED: ensure keyboard is closed even if + is tapped
+            dismissKeyboard();
+
             const scores = [];
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
 
@@ -1004,6 +1021,56 @@
             });
         }
 
+        // ADDED: Update enter key hints for mobile keyboards
+        function updateEnterKeyHints() {
+            const inputs = Array.from(document.querySelectorAll("#scoreTable input[type='number']"));
+            if (!inputs.length) return;
+
+            const empties = inputs.filter(i => i.value.trim() === '');
+            const focused = document.activeElement;
+
+            inputs.forEach(inp => {
+                let hint = 'next';
+                if (empties.length === 0 && inp === focused) {
+                    hint = 'go';
+                } else if (empties.length === 1 && empties[0] === inp) {
+                    hint = 'go';
+                }
+                inp.setAttribute('enterkeyhint', hint);
+                try { inp.enterKeyHint = hint; } catch (_) {}
+            });
+        }
+
+        // ADDED: Unified form submit trigger
+        function submitRoundForm() {
+            const form = document.getElementById('roundForm');
+            if (!form) return;
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                const btn = document.getElementById('roundFormSubmitBtn');
+                if (btn) btn.click();
+                else form.dispatchEvent(new Event('submit', { cancelable: true }));
+            }
+        }
+
+        // ADDED: Handle form submit (mobile Go/Done)
+        function handleRoundFormSubmit(e) {
+            e.preventDefault();
+            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            const filled = allInputsFilled(inputs);
+            if (filled) {
+                dismissKeyboard();   // Close the mobile keyboard
+                addRoundScores();    // Submit the round
+            } else {
+                // Focus first empty input if not all filled
+                const firstEmpty = Array.from(inputs).find(inp => inp.value.trim() === '');
+                if (firstEmpty) firstEmpty.focus();
+                updateEnterKeyHints();
+            }
+            return false;
+        }
+
         // Build header + scores table, wire up inputs
         function updateUI() {
             // Keep sorted (if enabled) before rendering
@@ -1074,9 +1141,21 @@
             // Bottom input row (click + to submit)
             const inputRow = document.createElement('tr');
             inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
-            players.forEach((player) => {
+            // CHANGED: add form + name + enterkeyhint attrs
+            players.forEach((player, index) => {
                 const savedValue = unsubmittedScores[player.name] || '';
-                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" /></td>`;
+                inputRow.innerHTML += `
+                    <td>
+                        <input
+                            type="number"
+                            placeholder="${player.name}"
+                            inputmode="numeric"
+                            value="${savedValue}"
+                            name="score-${index}"
+                            form="roundForm"
+                            enterkeyhint="next"
+                        />
+                    </td>`;
             });
             scoreBody.appendChild(inputRow);
 
@@ -1089,27 +1168,26 @@
             // Wire keyboard interactions for inputs (Enter to submit / move)
             const inputs = document.querySelectorAll("#scoreTable input[type='number']");
             inputs.forEach((input, index) => {
-                input.addEventListener('input', saveUnsubmittedScores);
+                input.addEventListener('input', function () {
+                    saveUnsubmittedScores();
+                    updateEnterKeyHints();
+                });
+                input.addEventListener('focus', updateEnterKeyHints);
+
+                // CHANGED: Only submit on Enter when all inputs are filled
                 input.addEventListener('keydown', function(event) {
                     if (event.key === 'Enter' || event.keyCode === 13) {
-                        event.preventDefault();
-                        const allFilled = allInputsFilled(inputs);
-                        if (allFilled) {
-                            addRoundScores();
-                            const refreshedInputs = document.querySelectorAll("#scoreTable input[type='number']");
-                            if (refreshedInputs[0]) refreshedInputs[0].focus();
-                        } else {
-                            if (index < inputs.length - 1) {
-                                inputs[index + 1].focus();
-                            } else {
-                                const firstEmpty = Array.from(inputs).findIndex(inp => inp.value.trim() === '');
-                                if (firstEmpty !== -1) inputs[firstEmpty].focus();
-                                else inputs[0].focus();
-                            }
-                        }
+                        const filled = allInputsFilled(inputs);
+                        if (filled) {
+                            event.preventDefault();
+                            submitRoundForm(); // triggers handleRoundFormSubmit
+                        } // else let browser handle "Next"
                     }
                 });
             });
+
+            // Initialize enter key hints after rendering
+            updateEnterKeyHints();
         }
 
         /* ---------------------------------------
