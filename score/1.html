@@ -691,8 +691,8 @@
             const container = getScoreContainer();
             if (!container) return;
             const inset = getKeyboardInset();
-            // Add a bit of extra space so the input is not flush with the keyboard
-            container.style.paddingBottom = inset > 0 ? (inset + 24) + 'px' : '';
+            // Add 24px extra when keyboard open; keep a 12px base pad when closed
+            container.style.paddingBottom = inset > 0 ? (inset + 24) + 'px' : '12px';
         }
         function ensureInputVisible(input) {
             const container = getScoreContainer();
@@ -713,6 +713,45 @@
                 container.scrollTop -= (topBound - inputRect.top);
             }
         }
+
+        // NEW: wait for the keyboard to fully hide, then make sure bottom input row is visible
+        function waitForKeyboardToHide(callback, timeout = 1000) {
+            if (!window.visualViewport) {
+                // No visualViewport → just delay a bit
+                return setTimeout(callback, 300);
+            }
+            const start = Date.now();
+            const poll = () => {
+                const inset = getKeyboardInset();
+                if (inset === 0 || Date.now() - start > timeout) {
+                    callback();
+                } else {
+                    setTimeout(poll, 50);
+                }
+            };
+            poll();
+        }
+        function ensureBottomInputRowVisible(pad = 12) {
+            const container = document.querySelector('.score-container');
+            const scoreBody = document.getElementById('scoreBody');
+            if (!container || !scoreBody) return;
+
+            const row = scoreBody.lastElementChild; // input row
+            if (!row) return;
+
+            const cRect = container.getBoundingClientRect();
+            const rRect = row.getBoundingClientRect();
+
+            const overshootBottom = rRect.bottom - (cRect.bottom - pad);
+            if (overshootBottom > 0) {
+                container.scrollTop += overshootBottom;
+            }
+            const overshootTop = (cRect.top + pad) - rRect.top;
+            if (overshootTop > 0) {
+                container.scrollTop -= overshootTop;
+            }
+        }
+
         function initKeyboardAssist() {
             updateKeyboardPadding();
             if (window.visualViewport) {
@@ -866,10 +905,12 @@
             updateUI();
             inputs.forEach(input => input.value = '');
 
-            // Scroll to the last row for convenience
-            const scoreBody = document.getElementById("scoreBody");
-            const lastRow = scoreBody.lastElementChild;
-            if (lastRow) lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            // After the keyboard is fully closed, ensure the bottom input row is fully visible
+            waitForKeyboardToHide(() => {
+                ensureBottomInputRowVisible();
+                setTimeout(ensureBottomInputRowVisible, 60);
+                setTimeout(ensureBottomInputRowVisible, 250);
+            });
         }
 
         // Update a single score (contenteditable cell), then recalc totals
