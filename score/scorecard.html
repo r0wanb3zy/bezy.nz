@@ -193,33 +193,17 @@ opacity: 0.8;
     font-size: inherit; /* table font-size is 20px */
 }
 
-/* Always let the placeholder follow the input’s metrics */
-table input::placeholder,
-table input[type="number"]::placeholder,
-table input::-webkit-input-placeholder,
-table input[type="number"]::-webkit-input-placeholder,
-table input::-moz-placeholder,
-table input[type="number"]::-moz-placeholder,
-table input:-ms-input-placeholder,
-table input[type="number"]:-ms-input-placeholder,
-table input::-ms-input-placeholder,
-table input[type="number"]::-ms-input-placeholder {
-  font: inherit;
-  line-height: inherit;   /* key: match input line-height (e.g., 40px or 32px) */
-  text-align: inherit;    /* centers since your inputs use text-align:center */
-  color: #6b7280;
-  opacity: 0.8;
-}
-
-/* Keep your lighter look in the sticky header if you want */
-.sticky-header #inputRow input[type="number"]::placeholder,
-.sticky-header #inputRow input[type="number"]::-webkit-input-placeholder,
-.sticky-header #inputRow input[type="number"]::-moz-placeholder,
-.sticky-header #inputRow input[type="number"]:-ms-input-placeholder,
-.sticky-header #inputRow input[type="number"]::-ms-input-placeholder {
-  color: rgba(107,114,128,0.5);
+/* Sticky header placeholders: larger but still “light” */
+.sticky-header #inputRow input[type="number"]::placeholder {
+  font-family: 'Economica', sans-serif;
+  color: rgba(107, 114, 128, 0.5);
   opacity: 0.5;
 }
+.sticky-header #inputRow input[type="number"]::-webkit-input-placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
+.sticky-header #inputRow input[type="number"]::-moz-placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
+.sticky-header #inputRow input[type="number"]:-ms-input-placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
+.sticky-header #inputRow input[type="number"]::-ms-input-placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
+
 
 /* ---------------------------------------
    Modals / Overlay
