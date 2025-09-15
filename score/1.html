@@ -59,7 +59,6 @@
     word-wrap: break-word;
     cursor: pointer;
     border-bottom: 1px solid rgba(200, 200, 200, 0.3);
-    vertical-align: middle; /* ensure content (including SVG) is vertically centered */
   }
 
   table th {
@@ -118,6 +117,27 @@
 
   #scoreBody tr td:not(:first-child) {
     font-weight: bold;
+  }
+
+  /* Perfect centering for zero (flame) icon without altering table layout */
+  #scoreBody tr td:not(:first-child) {
+    position: relative; /* keep table layout intact */
+  }
+  #scoreBody tr td:not(:first-child) .zero-score {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* allow editing through it */
+  }
+  #scoreBody tr td:not(:first-child):focus .zero-score {
+    display: none; /* show typed text when editing */
+  }
+  .zero-score-icon {
+    display: block;
+    width: 15px;
+    height: 15px;
   }
 
   /* --------------------------------------- Inputs --------------------------------------- */
@@ -681,32 +701,6 @@
     font-size: 18px;
     line-height: 1.1;
   }
-
-  /* ---------------------------------------
-     Added: zero icon and mobile row height overrides
-  --------------------------------------- */
-  /* Zero/flame icon as an inline element (centered with vertical-align) */
-  img.zero-icon {
-    width: 15px;
-    height: 15px;
-    display: inline-block;
-    vertical-align: middle;
-  }
-  /* Slightly smaller flame for 7–8 players */
-  #scoreTable.small-scores img.zero-icon {
-    width: 13px;
-    height: 13px;
-  }
-
-  /* On mobile with 7–8 players, use standard row height (no 5px clamp) */
-  @media (max-width: 480px) {
-    #scoreTable.small-scores #scoreBody tr:not(:last-child) td:not(:first-child) {
-      height: auto;
-      max-height: none;
-      line-height: normal;
-      overflow: visible;
-    }
-  }
 </style>
 </head>
 <body>
@@ -781,6 +775,9 @@
 
         // Prevent double-submit
         let isSubmittingRound = false;
+
+        // Use your original absolute icon path so it always loads correctly
+        const ZERO_ICON_SRC = 'https://r0wanb3zy.github.io/bezy.nz/score/assets/images/scorecard-icon-01.svg';
 
         /* ---------------------------------------
            Helpers (Keycap digits / Theme)
@@ -1246,9 +1243,9 @@
                 players.forEach((_, playerIndex) => {
                     const displayScore = round[playerIndex] !== undefined
                         ? (round[playerIndex] == 0
-                            ? '<img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/scorecard-icon-01.svg" class="zero-icon" alt="Zero Score">'
+                            ? `<span class="zero-score"><img class="zero-score-icon" src="${ZERO_ICON_SRC}" alt="0"></span>`
                             : round[playerIndex])
-                        : '<img src="/score/assets/images/scorecard-icon-01.svg" class="zero-icon" alt="Zero Score">';
+                        : `<span class="zero-score"><img class="zero-score-icon" src="${ZERO_ICON_SRC}" alt="0"></span>`;
 
                     row.innerHTML += `
                         <td contenteditable="true"
