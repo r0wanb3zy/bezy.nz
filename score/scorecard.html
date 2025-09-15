@@ -136,13 +136,14 @@ table input {
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Default placeholders: slightly larger */
 table input::placeholder {
-    font-family: 'Economica', sans-serif;
-    font-size: 16px;
-    text-align: center;
-    line-height: 16px;
-    color: #6b7280;
-    opacity: 0.8;
+  font-family: 'Economica', sans-serif;
+  font-size: 18px;   /* was 16px */
+  line-height: 18px; /* was 16px */
+  text-align: center;
+  color: #6b7280;
+  opacity: 0.8;
 }
 
 table input:focus {
@@ -176,11 +177,12 @@ table input[type="number"] {
 
 /* Number input placeholder metrics */
 table input[type="number"]::placeholder {
-    font: inherit;
-    line-height: inherit;
-    text-align: center;
-    color: #6b7280;
-    opacity: 0.8;
+font-family: 'Economica', sans-serif;
+font-size: 18px;
+line-height: 18px;
+text-align: center;
+color: #6b7280;
+opacity: 0.8;
 }
 
 /* Bottom input row: placeholders look lighter */
@@ -198,18 +200,19 @@ table input[type="number"]::placeholder {
     font-size: inherit; /* table font-size is 20px */
 }
 
-/* Sticky header placeholder: match old placeholder size + lighter tone */
+/* Sticky header placeholders: larger but still “light” */
 .sticky-header #inputRow input[type="number"]::placeholder {
-    font-family: 'Economica', sans-serif;
-    font-size: 16px;
-    line-height: 16px;
-    color: rgba(107, 114, 128, 0.5);
-    opacity: 0.5;
+  font-family: 'Economica', sans-serif;
+  font-size: 18px;   /* was 16px */
+  line-height: 18px; /* was 16px */
+  color: rgba(107, 114, 128, 0.5);
+  opacity: 0.5;
 }
 .sticky-header #inputRow input[type="number"]::-webkit-input-placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
 .sticky-header #inputRow input[type="number"]::-moz-placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
 .sticky-header #inputRow input[type="number"]:-ms-input-placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
 .sticky-header #inputRow input[type="number"]::-ms-input-placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
+
 
 /* ---------------------------------------
    Modals / Overlay
