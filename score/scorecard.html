@@ -89,26 +89,26 @@
             border-bottom: 1px solid #666;
         }
 
-        /* Header metrics (only the top player row) */
-        .sticky-header thead tr#playerRow th {
+        /* Header metrics */
+        .sticky-header th {
             height: 80px;
             font-family: 'Economica', sans-serif;
             font-size: 22px;
         }
 
-        .sticky-header thead tr#playerRow th span.score {
+        .sticky-header th span.score {
             font-size: 22px;
             font-family: 'Economica', sans-serif;
         }
 
-        .sticky-header thead tr#playerRow th small {
+        .sticky-header th small {
             font-size: 16px;
             font-family: 'Economica', sans-serif;
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Tight row height for scored rows (input row is now in header) */
-        #scoreBody tr td:not(:first-child) {
+        /* Tight row height for scored rows (not the input row) */
+        #scoreBody tr:not(:last-child) td:not(:first-child) {
             max-height: 5px;
             height: 5px;
             line-height: 5px;
@@ -183,12 +183,12 @@
             opacity: 0.8;
         }
 
-        /* Input row (sticky header) placeholders look lighter */
-        .sticky-header #inputRow input[type="number"]::placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
-        .sticky-header #inputRow input[type="number"]::-webkit-input-placeholder { opacity: 0.5; }
-        .sticky-header #inputRow input[type="number"]::-moz-placeholder { opacity: 0.5; }
-        .sticky-header #inputRow input[type="number"]:-ms-input-placeholder { opacity: 0.5; }
-        .sticky-header #inputRow input[type="number"]::-ms-input-placeholder { opacity: 0.5; }
+        /* Bottom input row: placeholders look lighter */
+        #scoreTable tbody tr:last-child input[type="number"]::placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
+        #scoreTable tbody tr:last-child input[type="number"]::-webkit-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::-moz-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]:-ms-input-placeholder { opacity: 0.5; }
+        #scoreTable tbody tr:last-child input[type="number"]::-ms-input-placeholder { opacity: 0.5; }
 
         /* ---------------------------------------
            Modals / Overlay
@@ -310,7 +310,7 @@
             background: #f8f9fa;
             border-radius: 6px;
             overflow: hidden;
-            border: 1px solid #262626;
+            border: 1px solid #262626; /* crisp border without seams */
             box-shadow: none;
             -webkit-background-clip: padding-box;
             background-clip: padding-box;
@@ -442,6 +442,7 @@
             background: rgba(0, 0, 0, 0.35);
             border-radius: 6px;
             pointer-events: none;
+            z-index: 1;
         }
         .emoji-grid .emoji-pick.selected::after {
             content: attr(data-order);
@@ -453,6 +454,7 @@
             color: #fff;
             text-shadow: 0 2px 8px rgba(0,0,0,0.7), 0 0 3px rgba(0,0,0,0.7);
             pointer-events: none;
+            z-index: 2;
         }
 
         /* Bulk actions (shown during emoji multi-select) */
@@ -486,13 +488,14 @@
             #scoreTable.small-scores thead th small { font-size: 12px; }
             #scoreTable.small-scores tbody td { font-size: 16px; }
 
-            .sticky-header.small-scores #inputRow input[type="number"] {
+            /* Smaller inputs in the bottom row on tiny screens */
+            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
                 font-size: 14px;
                 height: 32px;
                 line-height: 32px;
                 padding: 0 6px;
             }
-            .sticky-header.small-scores #inputRow input[type="number"]::placeholder {
+            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
                 font: inherit;
                 line-height: inherit;
             }
@@ -527,7 +530,7 @@
         }
         #roundManagementModal select#themeColorSelect::-ms-expand { display: none; }
         #roundManagementModal select#themeColorSelect option {
-            text-align: center;
+            text-align: center; /* fixed stray period */
         }
 
         /* Spacing tweaks inside player modal for bulk mode */
@@ -536,15 +539,16 @@
         #playerManagementModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
         #playerManagementModal .bulk-actions { margin-top: 0; }
 
-        /* Truncate long player names (header only) */
+        /* Truncate long player names (header only): no ellipsis, no half glyphs (JS clips) */
         #playerRow th .player-name {
             display: block;
             max-width: 100%;
             overflow: hidden;
             white-space: nowrap;
-            text-overflow: clip;
+            text-overflow: clip; /* no "..." */
         }
 
+        /* Only shrink player names when 7+ players (JS adds .small-scores on header/table) */
         .sticky-header.small-scores #playerRow th .player-name {
             font-size: 18px;
             line-height: 1.1;
