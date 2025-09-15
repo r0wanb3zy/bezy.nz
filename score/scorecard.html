@@ -185,13 +185,6 @@ color: #6b7280;
 opacity: 0.8;
 }
 
-/* Bottom input row: placeholders look lighter */
-#scoreTable tbody tr:last-child input[type="number"]::placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
-#scoreTable tbody tr:last-child input[type="number"]::-webkit-input-placeholder { opacity: 0.5; }
-#scoreTable tbody tr:last-child input[type="number"]::-moz-placeholder { opacity: 0.5; }
-#scoreTable tbody tr:last-child input[type="number"]:-ms-input-placeholder { opacity: 0.5; }
-#scoreTable tbody tr:last-child input[type="number"]::-ms-input-placeholder { opacity: 0.5; }
-
 /* Sticky header inputs: match old input metrics */
 .sticky-header #inputRow input[type="number"] {
     height: 40px;
@@ -511,18 +504,6 @@ th.drag-over { border-left: 2px solid #333; }
     #scoreTable.small-scores thead th span.score { font-size: 16px; line-height: 1.2; }
     #scoreTable.small-scores thead th small { font-size: 12px; }
     #scoreTable.small-scores tbody td { font-size: 16px; }
-
-    /* Smaller inputs in the bottom row on tiny screens */
-    #scoreTable.small-scores tbody tr:last-child input[type="number"] {
-        font-size: 14px;
-        height: 32px;
-        line-height: 32px;
-        padding: 0 6px;
-    }
-    #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
-        font: inherit;
-        line-height: inherit;
-    }
 
     /* Sticky header inputs compact (7–8 players) */
     .sticky-header.small-scores #inputRow input[type="number"] {
