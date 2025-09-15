@@ -1055,13 +1055,11 @@ th.drag-over { border-left: 2px solid #333; }
             const scoreTable = document.getElementById("scoreTable");
             const stickyHeader = document.querySelector(".sticky-header");
 
-            if (players.length >= 7) {
-                scoreTable.classList.add("small-scores");
-                stickyHeader.classList.add("small-scores");
-            } else {
-                scoreTable.classList.remove("small-scores");
-                stickyHeader.classList.remove("small-scores");
-            }
+if (players.length >= 7) {
+stickyHeader.classList.add("small-scores");
+} else {
+stickyHeader.classList.remove("small-scores");
+}
 
             playerRow.innerHTML = `<th onclick="event.stopPropagation(); createRoundManagementDialog()">☰</th>`;
 
