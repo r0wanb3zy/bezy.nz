@@ -190,20 +190,6 @@
         .sticky-header #inputRow input[type="number"]:-ms-input-placeholder { opacity: 0.5; }
         .sticky-header #inputRow input[type="number"]::-ms-input-placeholder { opacity: 0.5; }
 
-        /* Submit (+) button in the input row */
-        .plus-btn {
-            background: none;
-            border: none;
-            padding: 0;
-            margin: 0;
-            color: inherit;
-            font: inherit;
-            cursor: pointer;
-            width: 100%;
-            height: 40px;
-            line-height: 40px;
-        }
-
         /* ---------------------------------------
            Modals / Overlay
         --------------------------------------- */
@@ -456,7 +442,6 @@
             background: rgba(0, 0, 0, 0.35);
             border-radius: 6px;
             pointer-events: none;
-            z-index: 1;
         }
         .emoji-grid .emoji-pick.selected::after {
             content: attr(data-order);
@@ -468,7 +453,6 @@
             color: #fff;
             text-shadow: 0 2px 8px rgba(0,0,0,0.7), 0 0 3px rgba(0,0,0,0.7);
             pointer-events: none;
-            z-index: 2;
         }
 
         /* Bulk actions (shown during emoji multi-select) */
@@ -544,7 +528,7 @@
         }
         #roundManagementModal select#themeColorSelect::-ms-expand { display: none; }
         #roundManagementModal select#themeColorSelect option {
-            text-align: center; /* fixed stray period */
+            text-align: center;
         }
 
         /* Spacing tweaks inside player modal for bulk mode */
@@ -553,16 +537,15 @@
         #playerManagementModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
         #playerManagementModal .bulk-actions { margin-top: 0; }
 
-        /* Truncate long player names (header only): no ellipsis, no half glyphs (JS clips) */
+        /* Truncate long player names (header only) */
         #playerRow th .player-name {
             display: block;
             max-width: 100%;
             overflow: hidden;
             white-space: nowrap;
-            text-overflow: clip; /* no "..." */
+            text-overflow: clip;
         }
 
-        /* Only shrink player names when 7+ players (JS adds .small-scores on header/table) */
         .sticky-header.small-scores #playerRow th .player-name {
             font-size: 18px;
             line-height: 1.1;
@@ -570,7 +553,7 @@
     </style>
 </head>
 <body>
-    <!-- Hidden form used for mobile Go/Done to trigger submit -->
+    <!-- Hidden form (lets mobile "Go/Done" submit when all inputs filled) -->
     <form id="roundForm" onsubmit="handleRoundFormSubmit(event)" style="position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;">
         <button type="submit" tabindex="-1" aria-hidden="true"></button>
     </form>
@@ -610,11 +593,9 @@
         /* ---------------------------------------
            Globals / Bootstrapping
         --------------------------------------- */
-        // Explicit globals (pre-declared for clarity)
         let players = [];
         let rounds = [];
 
-        // On first load, set default players/rounds; otherwise load saved state
         if (!localStorage.getItem('initialized')) {
             players = [
                 { name: "P1", totalScore: 0, roundScores: [] },
@@ -631,19 +612,17 @@
             rounds = JSON.parse(localStorage.getItem('rounds')) || [];
         }
 
-        // User preferences / UI state
         let scoringMode = localStorage.getItem('scoringMode') || 'lowest';
         let unsubmittedScores = JSON.parse(localStorage.getItem('unsubmittedScores')) || {};
         let sortByRankEnabled = localStorage.getItem('sortByRankEnabled') === 'true';
         let emojiModeEnabled = localStorage.getItem('emojiModeEnabled') === 'true';
         let themeColor = localStorage.getItem('themeColor') || 'blue';
 
-        // Emoji bulk selection state
         let bulkEmojiMode = false;
         let bulkEmojiSelection = [];
         const bulkMaxPlayers = 8;
 
-        // Submission guard (prevent double submit via blur + submit)
+        // Prevent double-submit
         let isSubmittingRound = false;
 
         /* ---------------------------------------
@@ -665,7 +644,9 @@
             yellow: { h:  45, s: 90 },
             grey:   { h: 210, s:  0 }
         };
-        function getThemeHS() { return THEME_MAP[themeColor] || THEME_MAP.blue; }
+        function getThemeHS() {
+            return THEME_MAP[themeColor] || THEME_MAP.blue;
+        }
         function getThemeTextColor(key) {
             const t = THEME_MAP[key] || THEME_MAP.blue;
             const L = key === 'yellow' ? 32 : 34;
@@ -712,7 +693,9 @@
         --------------------------------------- */
         function dismissKeyboard() {
             const active = document.activeElement;
-            if (active && typeof active.blur === 'function') active.blur();
+            if (active && typeof active.blur === 'function') {
+                active.blur();
+            }
             document.querySelectorAll('#inputRow input').forEach(inp => {
                 if (typeof inp.blur === 'function') inp.blur();
             });
@@ -723,7 +706,7 @@
             if (!sc) return;
             try {
                 sc.scrollTo({ top: sc.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
-            } catch (e) {
+            } catch (_) {
                 sc.scrollTop = sc.scrollHeight;
             }
         }
@@ -815,7 +798,7 @@
            Rounds / Scores
         --------------------------------------- */
         function addRoundScores() {
-            // Dismiss keyboard on submission
+            // Always dismiss keyboard on submission
             dismissKeyboard();
 
             const scores = [];
@@ -831,13 +814,13 @@
             rounds.push(scores);
             saveData();
 
-            // Clear the inputs after submission
+            // Clear inputs after submission
             unsubmittedScores = {};
             localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
 
             updateUI();
 
-            // Scroll the scores container to the bottom
+            // Scroll to bottom
             requestAnimationFrame(() => scrollScoresToBottom(true));
         }
 
@@ -893,6 +876,10 @@
             return Array.from(inputs).every(input => input.value.trim() !== '');
         }
 
+        function firstEmptyInput(inputs) {
+            return Array.from(inputs).find(inp => inp.value.trim() === '');
+        }
+
         /* ---------------------------------------
            Sorting / Ranking / Theme shading
         --------------------------------------- */
@@ -932,14 +919,12 @@
 
         function updateRankings() {
             const playerRow = document.getElementById("playerRow");
-            const columns = Array.from(playerRow.children).slice(1); // skip first (#) col
+            const columns = Array.from(playerRow.children).slice(1);
 
-            // Clear previous bg
             columns.forEach((th) => { th.style.background = ''; });
 
             const { h: H, s: S } = getThemeHS();
 
-            // Single player: just color if there are rounds
             if (players.length === 1) {
                 if (rounds.length > 0) {
                     const Lmax = 82, range = 36;
@@ -1067,18 +1052,17 @@
                 `;
             });
 
-            // Build the input row: first cell is a submit button now
+            // Input row: revert ＋ to direct submit (zeros allowed)
             if (inputRow) {
-                inputRow.innerHTML = `<td><button type="submit" form="roundForm" class="plus-btn" aria-label="Submit round">＋</button></td>`;
+                inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
                 players.forEach((player, idx) => {
                     const savedValue = unsubmittedScores[player.name] || '';
-                    const hint = idx === players.length - 1 ? 'done' : 'next';
                     inputRow.innerHTML += `
                         <td>
                           <input type="number"
                                  placeholder="${player.name}"
                                  inputmode="numeric"
-                                 enterkeyhint="${hint}"
+                                 enterkeyhint="next"
                                  autocomplete="off"
                                  autocorrect="off"
                                  spellcheck="false"
@@ -1121,48 +1105,46 @@
 
             // Wire sticky header inputs
             const inputs = document.querySelectorAll("#inputRow input[type='number']");
-            inputs.forEach((input, index) => {
-                input.addEventListener('input', saveUnsubmittedScores);
 
-                // Fallback for Enter/Done on platforms that do fire key events
-                const trySubmitOnEnter = (event) => {
+            // When typing, save draft values
+            inputs.forEach(input => input.addEventListener('input', saveUnsubmittedScores));
+
+            // Android and some browsers: Enter key fallback
+            inputs.forEach((input) => {
+                input.addEventListener('keydown', function(event) {
                     if (event.key === 'Enter' || event.keyCode === 13) {
                         event.preventDefault();
-                        const allFilled = allInputsFilled(inputs);
-                        if (allFilled) {
+                        const inps = document.querySelectorAll("#inputRow input[type='number']");
+                        if (allInputsFilled(inps)) {
                             if (!isSubmittingRound) {
                                 isSubmittingRound = true;
                                 addRoundScores();
                                 setTimeout(() => { isSubmittingRound = false; }, 200);
                             }
                         } else {
-                            // Move to next or first empty
-                            if (index < inputs.length - 1) {
-                                inputs[index + 1].focus();
-                            } else {
-                                const firstEmpty = Array.from(inputs).find(inp => inp.value.trim() === '');
-                                if (firstEmpty) firstEmpty.focus();
-                            }
+                            const empty = firstEmptyInput(inps);
+                            if (empty) empty.focus({ preventScroll: true });
                         }
                     }
-                };
-                input.addEventListener('keydown', trySubmitOnEnter);
-                input.addEventListener('keyup', trySubmitOnEnter);
+                });
+            });
 
-                // Last input blur fallback (handles iOS "Done" that doesn't emit Enter reliably)
-                if (index === inputs.length - 1) {
-                    input.addEventListener('blur', () => {
-                        setTimeout(() => {
-                            const active = document.activeElement;
-                            const stillInHeader = active && active.closest && active.closest('#inputRow');
-                            if (!stillInHeader && allInputsFilled(inputs) && !isSubmittingRound) {
-                                isSubmittingRound = true;
-                                addRoundScores();
-                                setTimeout(() => { isSubmittingRound = false; }, 200);
-                            }
-                        }, 0);
-                    });
-                }
+            // iOS: Next/Done often doesn't fire key events; use blur to steer focus/submit
+            inputs.forEach((input) => {
+                input.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        if (isSubmittingRound) return;
+                        const inps = document.querySelectorAll("#inputRow input[type='number']");
+                        if (allInputsFilled(inps)) {
+                            isSubmittingRound = true;
+                            addRoundScores();
+                            setTimeout(() => { isSubmittingRound = false; }, 200);
+                        } else {
+                            const empty = firstEmptyInput(inps);
+                            if (empty) empty.focus({ preventScroll: true });
+                        }
+                    }, 0);
+                });
             });
         }
 
@@ -1267,7 +1249,6 @@
                 >
                 <div class="emoji-grid">${grid}</div>
 
-                <!-- Bulk multi-select toolbar (hidden until long-press) -->
                 <div id="bulkEmojiActions" class="bulk-actions">
                   <div class="row">
                     <button type="button" id="bulkCancelBtn" class="light">Cancel</button>
@@ -1681,7 +1662,7 @@
         }
 
         /* ---------------------------------------
-           Form submit handler
+           Form submit handler (mobile Done/Go)
         --------------------------------------- */
         function handleRoundFormSubmit(e) {
             e.preventDefault();
@@ -1693,15 +1674,25 @@
                 addRoundScores();
                 setTimeout(() => { isSubmittingRound = false; }, 200);
             } else {
-                // Focus next empty input
-                const empty = Array.from(inputs).find(inp => inp.value.trim() === '');
-                if (empty) empty.focus();
+                const empty = firstEmptyInput(inputs);
+                if (empty) empty.focus({ preventScroll: true });
             }
         }
 
         /* ---------------------------------------
            Init
         --------------------------------------- */
+        function applyThemeSelectColors() {
+            const select = document.querySelector('#roundManagementModal select#themeColorSelect');
+            if (!select) return;
+            select.style.color = getThemeTextColor(themeColor);
+            Array.from(select.options).forEach(opt => {
+                opt.style.color = getThemeTextColor(opt.value);
+            });
+        }
+
+        function createRoundManagementDialogWrapper() { createRoundManagementDialog(); }
+
         syncDefaultNamesToMode();
         updateUI();
 
