@@ -89,26 +89,26 @@
             border-bottom: 1px solid #666;
         }
 
-        /* Header metrics */
-        .sticky-header th {
+        /* Header metrics (only the top player row) */
+        .sticky-header thead tr#playerRow th {
             height: 80px;
             font-family: 'Economica', sans-serif;
             font-size: 22px;
         }
 
-        .sticky-header th span.score {
+        .sticky-header thead tr#playerRow th span.score {
             font-size: 22px;
             font-family: 'Economica', sans-serif;
         }
 
-        .sticky-header th small {
+        .sticky-header thead tr#playerRow th small {
             font-size: 16px;
             font-family: 'Economica', sans-serif;
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Tight row height for scored rows (not the input row) */
-        #scoreBody tr:not(:last-child) td:not(:first-child) {
+        /* Tight row height for scored rows (input row is now in header) */
+        #scoreBody tr td:not(:first-child) {
             max-height: 5px;
             height: 5px;
             line-height: 5px;
@@ -183,12 +183,12 @@
             opacity: 0.8;
         }
 
-        /* Bottom input row: placeholders look lighter */
-        #scoreTable tbody tr:last-child input[type="number"]::placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
-        #scoreTable tbody tr:last-child input[type="number"]::-webkit-input-placeholder { opacity: 0.5; }
-        #scoreTable tbody tr:last-child input[type="number"]::-moz-placeholder { opacity: 0.5; }
-        #scoreTable tbody tr:last-child input[type="number"]:-ms-input-placeholder { opacity: 0.5; }
-        #scoreTable tbody tr:last-child input[type="number"]::-ms-input-placeholder { opacity: 0.5; }
+        /* Input row (sticky header) placeholders look lighter */
+        .sticky-header #inputRow input[type="number"]::placeholder { opacity: 0.5; color: rgba(107, 114, 128, 0.5); }
+        .sticky-header #inputRow input[type="number"]::-webkit-input-placeholder { opacity: 0.5; }
+        .sticky-header #inputRow input[type="number"]::-moz-placeholder { opacity: 0.5; }
+        .sticky-header #inputRow input[type="number"]:-ms-input-placeholder { opacity: 0.5; }
+        .sticky-header #inputRow input[type="number"]::-ms-input-placeholder { opacity: 0.5; }
 
         /* ---------------------------------------
            Modals / Overlay
@@ -488,14 +488,14 @@
             #scoreTable.small-scores thead th small { font-size: 12px; }
             #scoreTable.small-scores tbody td { font-size: 16px; }
 
-            /* Smaller inputs in the bottom row on tiny screens */
-            #scoreTable.small-scores tbody tr:last-child input[type="number"] {
+            /* Smaller inputs in the input row on tiny screens */
+            .sticky-header.small-scores #inputRow input[type="number"] {
                 font-size: 14px;
                 height: 32px;
                 line-height: 32px;
                 padding: 0 6px;
             }
-            #scoreTable.small-scores tbody tr:last-child input[type="number"]::placeholder {
+            .sticky-header.small-scores #inputRow input[type="number"]::placeholder {
                 font: inherit;
                 line-height: inherit;
             }
@@ -556,7 +556,7 @@
     </style>
 </head>
 <body>
-    <!-- Sticky header with player names / totals -->
+    <!-- Sticky header with player names + input row -->
     <div class="sticky-header">
         <table>
             <thead>
@@ -564,6 +564,11 @@
                     <th>#</th>
                 </tr>
             </thead>
+            <tbody>
+                <tr id="inputRow">
+                    <td>＋</td>
+                </tr>
+            </tbody>
         </table>
     </div>
 
@@ -674,12 +679,35 @@
         }
 
         function saveUnsubmittedScores() {
-            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            const inputs = document.querySelectorAll("#inputRow input[type='number']");
             unsubmittedScores = {};
             inputs.forEach((input, index) => {
                 unsubmittedScores[players[index].name] = input.value;
             });
             localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
+        }
+
+        /* ---------------------------------------
+           Keyboard / Scroll helpers
+        --------------------------------------- */
+        function dismissKeyboard() {
+            const active = document.activeElement;
+            if (active && typeof active.blur === 'function') {
+                active.blur();
+            }
+            document.querySelectorAll('#inputRow input').forEach(inp => {
+                if (typeof inp.blur === 'function') inp.blur();
+            });
+        }
+
+        function scrollScoresToBottom(smooth = true) {
+            const sc = document.querySelector('.score-container');
+            if (!sc) return;
+            try {
+                sc.scrollTo({ top: sc.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+            } catch (e) {
+                sc.scrollTop = sc.scrollHeight;
+            }
         }
 
         /* ---------------------------------------
@@ -774,10 +802,13 @@
         /* ---------------------------------------
            Rounds / Scores
         --------------------------------------- */
-        // Add a round using values from the bottom input row
+        // Add a round using values from the sticky header input row
         function addRoundScores() {
+            // Always dismiss keyboard on submission (Next/Done or ＋)
+            dismissKeyboard();
+
             const scores = [];
-            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            const inputs = document.querySelectorAll("#inputRow input[type='number']");
 
             inputs.forEach((input, index) => {
                 const score = parseInt(input.value) || 0;
@@ -789,16 +820,14 @@
             rounds.push(scores);
             saveData();
 
-            // Clear the bottom inputs after submission
+            // Clear the inputs after submission
             unsubmittedScores = {};
             localStorage.setItem('unsubmittedScores', JSON.stringify(unsubmittedScores));
-            updateUI();
-            inputs.forEach(input => input.value = '');
 
-            // Scroll to the last row for convenience
-            const scoreBody = document.getElementById("scoreBody");
-            const lastRow = scoreBody.lastElementChild;
-            if (lastRow) lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            updateUI();
+
+            // Scroll the scores container to the bottom
+            requestAnimationFrame(() => scrollScoresToBottom(true));
         }
 
         // Update a single score (contenteditable cell), then recalc totals
@@ -853,7 +882,7 @@
             closePopup('deleteRoundModal');
         }
 
-        // Utility: check if all bottom-row inputs are filled
+        // Utility: check if all sticky-header inputs are filled
         function allInputsFilled(inputs) {
             return Array.from(inputs).every(input => input.value.trim() !== '');
         }
@@ -1012,6 +1041,7 @@
             }
 
             const playerRow = document.getElementById("playerRow");
+            const inputRow = document.getElementById("inputRow");
             const scoreTable = document.getElementById("scoreTable");
             const stickyHeader = document.querySelector(".sticky-header");
 
@@ -1044,7 +1074,17 @@
                 `;
             });
 
-            // Body: scored rounds + bottom input row
+            // Sticky input row under header (click + to submit)
+            if (inputRow) {
+                inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
+                players.forEach((player, idx) => {
+                    const savedValue = unsubmittedScores[player.name] || '';
+                    const hint = idx === players.length - 1 ? 'done' : 'next';
+                    inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" enterkeyhint="${hint}" autocomplete="off" autocorrect="off" spellcheck="false" value="${savedValue}" /></td>`;
+                });
+            }
+
+            // Body: scored rounds only (no input row at bottom anymore)
             const scoreBody = document.getElementById("scoreBody");
             scoreBody.innerHTML = "";
 
@@ -1071,23 +1111,14 @@
                 scoreBody.appendChild(row);
             });
 
-            // Bottom input row (click + to submit)
-            const inputRow = document.createElement('tr');
-            inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
-            players.forEach((player) => {
-                const savedValue = unsubmittedScores[player.name] || '';
-                inputRow.innerHTML += `<td><input type="number" placeholder="${player.name}" inputmode="numeric" value="${savedValue}" /></td>`;
-            });
-            scoreBody.appendChild(inputRow);
-
             // Apply rank shading
             updateRankings();
 
             // Fit player names to header cell width (no half glyphs, no ellipsis)
             clipPlayerNamesToCell();
 
-            // Wire keyboard interactions for inputs (Enter to submit / move)
-            const inputs = document.querySelectorAll("#scoreTable input[type='number']");
+            // Wire keyboard interactions for sticky header inputs (Enter/Next to submit / move)
+            const inputs = document.querySelectorAll("#inputRow input[type='number']");
             inputs.forEach((input, index) => {
                 input.addEventListener('input', saveUnsubmittedScores);
                 input.addEventListener('keydown', function(event) {
@@ -1095,10 +1126,9 @@
                         event.preventDefault();
                         const allFilled = allInputsFilled(inputs);
                         if (allFilled) {
-                            addRoundScores();
-                            const refreshedInputs = document.querySelectorAll("#scoreTable input[type='number']");
-                            if (refreshedInputs[0]) refreshedInputs[0].focus();
+                            addRoundScores(); // will dismiss keyboard + scroll
                         } else {
+                            // Move to next input or first empty one
                             if (index < inputs.length - 1) {
                                 inputs[index + 1].focus();
                             } else {
