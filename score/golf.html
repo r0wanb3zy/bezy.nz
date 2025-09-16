@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Disc Golf Scorecard</title>
-  <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
   <style>
@@ -36,10 +36,11 @@
     table, table th, table td { font-weight: bold; }
 
     /* Score table shell (match reference) */
-    #scoreTable {
-      height: 100vh;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
+#scoreTable {
+  height: 100vh;   /* legacy fallback */
+  height: 100dvh;  /* modern browsers use dynamic viewport height */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
 
     /* Orientation-specific scrolling (match reference) */
     @media screen and (orientation: portrait) {
@@ -377,6 +378,32 @@
   <div id="overlay"></div>
 
   <script>
+
+function setFullHeight() {
+  const table = document.getElementById('scoreTable');
+  if (table) table.style.height = `${window.innerHeight}px`;
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  buildTable();
+  loadFromStorage();
+  updateAllTotals();
+  updateRanks();
+  fitRowsToViewport();  // you already have this
+  setFullHeight();      // NEW: match Yahtzee behavior
+});
+
+// Keep it in sync on resize (like Yahtzee)
+window.addEventListener('resize', setFullHeight);
+
+// Also update on orientation change (and keep your row-fit behavior)
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    setFullHeight();
+    fitRowsToViewport();
+  }, 250);
+});
     /* ---------------- State / storage ---------------- */
     const LS = {
       holesCount: 'dg-holesCount',
