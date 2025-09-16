@@ -691,9 +691,9 @@
   -webkit-touch-callout: none;
   vertical-align: middle;
   padding: 0; /* Remove padding to prevent offset */
-  height: 40px; /* Fixed height for consistency */
-  min-height: 40px; /* Ensure consistent height */
-  line-height: 40px; /* Match height for text alignment */
+  height: 35px; /* Fixed height for consistency */
+  min-height: 35px; /* Ensure consistent height */
+  line-height: 35px; /* Match height for text alignment */
 }
 
   /* Perfect centering of score text/icon when not editing (no translate) */
@@ -1849,12 +1849,13 @@
                 input.autocorrect = 'off';
                 input.spellcheck = false;
 
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        applyInlineScoreEdit();
-                    }
-                });
+input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        // Close the keyboard by blurring; blur handler will apply the edit.
+        try { this.blur(); } catch (_) {}
+    }
+});
 
                 // Mirror typed digits into the centered display (keep display visible)
                 input.addEventListener('input', function() {
@@ -1888,26 +1889,29 @@
             }, 0);
         }
 
-        function applyInlineScoreEdit() {
-            if (!activeScoreEditCell || !activeScoreEditIndices) return;
+function applyInlineScoreEdit() {
+    if (!activeScoreEditCell || !activeScoreEditIndices) return;
 
-            const input = activeScoreEditCell.querySelector('input.inline-score-input');
-            const changed = input && input.dataset.changed === '1';
+    const input = activeScoreEditCell.querySelector('input.inline-score-input');
 
-            if (changed) {
-                const val = parseInt(input.value, 10);
-                const score = isNaN(val) ? 0 : val;
-                const { roundIndex, playerIndex } = activeScoreEditIndices;
+    // If still focused, blur first to close the keyboard
+    if (input && document.activeElement === input) {
+        try { input.blur(); } catch (_) {}
+    }
 
-                clearActiveScoreCellHighlight();
-                dismissKeyboard();
-                updateScore(roundIndex, playerIndex, score); // updateUI() is called inside
-            } else {
-                // No change: just restore visuals
-                clearActiveScoreCellHighlight();
-                dismissKeyboard();
-            }
+    const changed = input && input.dataset.changed === '1';
+    const val = input ? parseInt(input.value, 10) : NaN;
+    const score = isNaN(val) ? 0 : val;
+    const { roundIndex, playerIndex } = activeScoreEditIndices;
+
+    // Give the OS one tick to dismiss the keyboard before removing the input
+    setTimeout(() => {
+        clearActiveScoreCellHighlight(); // removes the inline input
+        if (changed) {
+            updateScore(roundIndex, playerIndex, score); // updateUI() runs inside
         }
+    }, 0);
+}
 
         function clearActiveScoreCellHighlight() {
             if (activeScoreEditCell) {
