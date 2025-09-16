@@ -107,13 +107,13 @@
     color: rgba(255, 255, 255, 0.8);
   }
 
-  /* Tight row height for scored rows (not the input row) */
-  #scoreBody tr:not(:last-child) td:not(:first-child) {
-    max-height: 5px;
-    height: 5px;
-    line-height: 5px;
-    overflow: hidden;
-  }
+#scoreBody tr td:not(:first-child) {
+max-height: 5px;
+height: 5px;
+line-height: 5px;
+overflow: hidden;
+vertical-align: middle; /* keep numbers/icons centered */
+}
 
   #scoreBody tr td:not(:first-child) {
     font-weight: bold;
