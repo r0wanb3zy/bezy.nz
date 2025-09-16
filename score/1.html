@@ -592,8 +592,8 @@
     /* Sticky header inputs compact (7–8 players) */
     .sticky-header.small-scores #inputRow input[type="number"] {
       font-size: 14px;
-      height: 32px;
-      line-height: 32px;
+      height: 40px;
+      line-height: 40px;
       padding: 0 6px;
     }
 
@@ -604,6 +604,12 @@
 
     .sticky-header.small-scores th small {
       font-size: 16px;
+    }
+
+    /* Smaller zero SVG for 7–8 players on mobile (stay centered) */
+    #scoreTable.small-scores tbody td .zero-icon {
+      width: 13px;
+      height: 13px;
     }
   }
 
@@ -691,7 +697,17 @@
     -webkit-touch-callout: none;
   }
   #scoreBody td.score-cell .score-display {
+    position: relative;
+    z-index: 1;
     display: inline-block;
+    vertical-align: middle;
+  }
+  /* Zero SVG base size + centering */
+  #scoreBody td.score-cell .zero-icon {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    vertical-align: middle;
   }
   #scoreBody td.score-cell.score-edit-selected {
     outline: 2px solid #000;
@@ -700,17 +716,18 @@
   #scoreBody td.score-cell .inline-score-input {
     position: absolute;
     inset: 0;
+    z-index: 2; /* sits above score-display; we hide display on first input */
     width: 100%;
     height: 100%;
     border: none;
     outline: none;
-    background: transparent; /* show cell bg, not the old value */
+    background: transparent; /* show display underneath until typing starts */
     font: inherit;
     text-align: center;
     padding: 0;
     margin: 0;
     color: inherit;
-    caret-color: transparent; /* hide the cursor */
+    caret-color: transparent; /* hide cursor */
     user-select: none;
     -webkit-user-select: none;
     -moz-appearance: textfield;
@@ -1261,11 +1278,10 @@
                 row.innerHTML = `<td onclick="createDeleteRoundDialog(${roundIndex})">${roundIndex + 1}</td>`;
 
                 players.forEach((_, playerIndex) => {
-                    const displayScore = round[playerIndex] !== undefined
-                        ? (round[playerIndex] == 0
-                            ? '<img src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">'
-                            : round[playerIndex])
-                        : '<img src="/score/assets/images/scorecard-icon-01.svg" style="width: 15px; height: 15px;" alt="Zero Score">';
+                    const isZero = round[playerIndex] === 0 || round[playerIndex] === undefined;
+                    const displayScore = isZero
+                        ? '<img class="zero-icon" src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/scorecard-icon-01.svg" alt="Zero Score">'
+                        : round[playerIndex];
 
                     row.innerHTML += `
                         <td class="score-cell"
@@ -1809,10 +1825,6 @@
             activeScoreEditIndices = { roundIndex, playerIndex };
             cell.classList.add('score-edit-selected');
 
-            // Hide the display while editing to avoid visual overlap
-            const display = cell.querySelector('.score-display');
-            if (display) display.style.visibility = 'hidden';
-
             let input = cell.querySelector('input.inline-score-input');
             if (!input) {
                 input = document.createElement('input');
@@ -1832,11 +1844,16 @@
                 });
 
                 input.addEventListener('input', function() {
+                    // First keystroke: hide the display so typed digits "overwrite" it
+                    if (this.dataset.changed !== '1') {
+                        const display = cell.querySelector('.score-display');
+                        if (display) display.style.visibility = 'hidden';
+                    }
                     this.dataset.changed = '1';
                 });
 
                 input.addEventListener('blur', function() {
-                    // Apply on blur as well (Done key on mobile or tapping away)
+                    // Apply on blur as well (Done key or tap away)
                     applyInlineScoreEdit();
                 });
 
@@ -1848,7 +1865,7 @@
                 cell.appendChild(input);
             }
 
-            // Start clean so first typed digit overwrites previous value
+            // Keep the score visible until typing starts; begin with empty input
             input.value = '';
             input.dataset.originalValue = String(current);
             input.dataset.changed = '0';
@@ -1863,7 +1880,6 @@
 
             const input = activeScoreEditCell.querySelector('input.inline-score-input');
             const changed = input && input.dataset.changed === '1';
-            const original = input ? parseInt(input.dataset.originalValue || '0', 10) : 0;
 
             if (changed) {
                 const val = parseInt(input.value, 10);
