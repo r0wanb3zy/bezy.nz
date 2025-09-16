@@ -682,22 +682,24 @@
   }
 
   /* --------------------------------------- Inline score edit visuals --------------------------------------- */
-  #scoreBody td.score-cell {
-    position: relative;
-    user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    -moz-user-select: none;
-    -webkit-touch-callout: none;
-    vertical-align: middle; /* fallback vertical centering */
-  }
+#scoreBody td.score-cell {
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -moz-user-select: none;
+  -webkit-touch-callout: none;
+  vertical-align: middle;
+  padding: 0; /* Remove padding to prevent offset */
+  height: 40px; /* Fixed height for consistency */
+  min-height: 40px; /* Ensure consistent height */
+  line-height: 40px; /* Match height for text alignment */
+}
 
-  /* Perfect centering of score text/icon when not editing */
+  /* Perfect centering of score text/icon when not editing (no translate) */
   #scoreBody td.score-cell .score-display {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: static;
+    transform: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -720,18 +722,19 @@
   #scoreBody td.score-cell .inline-score-input {
     position: absolute;
     inset: 0;
-    z-index: 2; /* sits above score-display; we hide display on first input */
+    z-index: 2; /* sits above score-display; we keep display visible and mirror into it */
     width: 100%;
     height: 100%;
     border: none;
     outline: none;
-    background: transparent; /* show display underneath until typing starts */
+    background: transparent; /* show display underneath */
     font: inherit;
     text-align: center;
     padding: 0;
     margin: 0;
-    color: inherit;
-    caret-color: transparent; /* hide cursor */
+    /* Hide input glyphs so only the perfectly-centered display is visible */
+    color: transparent;
+    caret-color: transparent;
     user-select: none;
     -webkit-user-select: none;
     -moz-appearance: textfield;
@@ -862,6 +865,11 @@
                 opt.style.color = getThemeTextColor(opt.value);
             });
         }
+
+        /* ---------------------------------------
+           Zero icon html (shared)
+        --------------------------------------- */
+        const ZERO_ICON_HTML = '<img class="zero-icon" src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/scorecard-icon-01.svg" alt="Zero Score">';
 
         /* ---------------------------------------
            Persistence
@@ -1285,7 +1293,7 @@
                 players.forEach((_, playerIndex) => {
                     const isZero = round[playerIndex] === 0 || round[playerIndex] === undefined;
                     const displayScore = isZero
-                        ? '<img class="zero-icon" src="https://r0wanb3zy.github.io/bezy.nz/score/assets/images/scorecard-icon-01.svg" alt="Zero Score">'
+                        ? ZERO_ICON_HTML
                         : round[playerIndex];
 
                     row.innerHTML += `
@@ -1848,13 +1856,13 @@
                     }
                 });
 
+                // Mirror typed digits into the centered display (keep display visible)
                 input.addEventListener('input', function() {
-                    // First keystroke: hide the display so typed digits "overwrite" it
-                    if (this.dataset.changed !== '1') {
-                        const display = cell.querySelector('.score-display');
-                        if (display) display.style.visibility = 'hidden';
-                    }
                     this.dataset.changed = '1';
+                    const display = cell.querySelector('.score-display');
+                    if (!display) return;
+                    const v = this.value.trim();
+                    display.innerHTML = v === '' ? '' : (v === '0' ? ZERO_ICON_HTML : v);
                 });
 
                 input.addEventListener('blur', function() {
@@ -1870,7 +1878,7 @@
                 cell.appendChild(input);
             }
 
-            // Keep the score visible until typing starts; begin with empty input
+            // Begin with empty input; show current score via display underneath
             input.value = '';
             input.dataset.originalValue = String(current);
             input.dataset.changed = '0';
@@ -1904,8 +1912,6 @@
         function clearActiveScoreCellHighlight() {
             if (activeScoreEditCell) {
                 activeScoreEditCell.classList.remove('score-edit-selected');
-                const display = activeScoreEditCell.querySelector('.score-display');
-                if (display) display.style.visibility = '';
                 const inlineInput = activeScoreEditCell.querySelector('input.inline-score-input');
                 if (inlineInput) inlineInput.remove();
             }
