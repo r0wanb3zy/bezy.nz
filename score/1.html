@@ -295,22 +295,7 @@
     background: #f8f9fa;
   }
 
-  /* NEW: number input style inside popup (for score edit) */
-  .popup-modal input[type="number"] {
-    font-size: 24px;
-    padding: 10px;
-    width: 100%;
-    box-sizing: border-box;
-    margin: 5px 0;
-    text-align: center;
-    font-family: 'Economica', sans-serif;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: #f8f9fa;
-  }
-
-  .popup-modal input[type="text"]:focus,
-  .popup-modal input[type="number"]:focus {
+  .popup-modal input[type="text"]:focus {
     outline: none;
     border: 1px solid #262626;
   }
@@ -696,18 +681,44 @@
     line-height: 1.1;
   }
 
-  /* --------------------------------------- Long-press score edit visuals --------------------------------------- */
+  /* --------------------------------------- Inline score edit visuals --------------------------------------- */
   #scoreBody td.score-cell {
+    position: relative;
     user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
     -moz-user-select: none;
     -webkit-touch-callout: none;
-    caret-color: transparent;
+  }
+  #scoreBody td.score-cell .score-display {
+    display: inline-block;
   }
   #scoreBody td.score-cell.score-edit-selected {
     outline: 2px solid #000;
     outline-offset: -2px;
+  }
+  #scoreBody td.score-cell .inline-score-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent; /* show cell bg, not the old value */
+    font: inherit;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    caret-color: transparent; /* hide the cursor */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-appearance: textfield;
+  }
+  #scoreBody td.score-cell .inline-score-input::-webkit-outer-spin-button,
+  #scoreBody td.score-cell .inline-score-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 </style>
 </head>
@@ -744,8 +755,6 @@
     <div id="playerManagementModal" class="popup-modal"></div>
     <div id="roundManagementModal" class="popup-modal"></div>
     <div id="deleteRoundModal" class="popup-modal"></div>
-    <!-- NEW: score edit modal -->
-    <div id="scoreEditModal" class="popup-modal"></div>
 
     <!-- Overlay -->
     <div id="overlay"></div>
@@ -786,7 +795,7 @@
         // Prevent double-submit
         let isSubmittingRound = false;
 
-        // Active score edit (long-press) state
+        // Inline score edit state
         let activeScoreEditCell = null;
         let activeScoreEditIndices = null;
 
@@ -1262,7 +1271,7 @@
                         <td class="score-cell"
                             data-round-index="${roundIndex}"
                             data-player-index="${playerIndex}">
-                            ${displayScore}
+                            <span class="score-display">${displayScore}</span>
                         </td>`;
                 });
 
@@ -1272,8 +1281,8 @@
             updateRankings();
             clipPlayerNamesToCell();
 
-            // Wire long-press handlers for score cells
-            attachScoreCellLongPressHandlers();
+            // Wire edit handlers (double tap)
+            attachScoreCellEditHandlers();
 
             // Wire sticky header inputs
             const inputs = document.querySelectorAll("#inputRow input[type='number']");
@@ -1748,67 +1757,47 @@
         }
 
         /* ---------------------------------------
-           Score Edit (long-press) Modal
+           Inline Score Edit (double tap)
         --------------------------------------- */
-        function attachScoreCellLongPressHandlers() {
+        function attachScoreCellEditHandlers() {
             const cells = document.querySelectorAll('#scoreBody td.score-cell');
             cells.forEach(cell => {
-                if (cell.dataset.lpBound === '1') return;
-                cell.dataset.lpBound = '1';
+                if (cell.dataset.tapBound === '1') return;
+                cell.dataset.tapBound = '1';
 
-                let pressTimer = null;
-                let startX = 0, startY = 0;
-                const tol = 10;
+                let lastTapTime = 0;
+                let lastX = 0, lastY = 0;
+                const tapGap = 300; // ms
+                const tol = 15;     // px
 
-                const start = (e) => {
-                    clearTimeout(pressTimer);
-                    const pt = (e.touches && e.touches[0]) ? e.touches[0] : (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : e;
-                    startX = pt.clientX || 0;
-                    startY = pt.clientY || 0;
-                    pressTimer = setTimeout(() => {
-                        openScoreEditForCell(cell);
-                    }, 1000);
-                };
-
-                const move = (e) => {
-                    if (!pressTimer) return;
-                    const pt = (e.touches && e.touches[0]) ? e.touches[0] : e;
-                    const dx = Math.abs((pt.clientX || 0) - startX);
-                    const dy = Math.abs((pt.clientY || 0) - startY);
-                    if (dx > tol || dy > tol) {
-                        cancel();
+                // Pointer-based double-tap detection (covers touch + pen + mouse)
+                cell.addEventListener('pointerup', (e) => {
+                    const now = e.timeStamp;
+                    const x = e.clientX || 0, y = e.clientY || 0;
+                    if (now - lastTapTime < tapGap && Math.abs(x - lastX) < tol && Math.abs(y - lastY) < tol) {
+                        e.preventDefault();
+                        if (!activeScoreEditCell) {
+                            openInlineScoreEditForCell(cell);
+                        }
+                        lastTapTime = 0;
+                    } else {
+                        lastTapTime = now;
+                        lastX = x; lastY = y;
                     }
-                };
+                }, { passive: false });
 
-                const cancel = () => {
-                    clearTimeout(pressTimer);
-                    pressTimer = null;
-                };
-
-                // Pointer events
-                cell.addEventListener('pointerdown', start);
-                cell.addEventListener('pointermove', move);
-                cell.addEventListener('pointerup', cancel);
-                cell.addEventListener('pointerleave', cancel);
-
-                // Touch events (Safari)
-                cell.addEventListener('touchstart', start, { passive: true });
-                cell.addEventListener('touchmove', move, { passive: true });
-                cell.addEventListener('touchend', cancel);
-                cell.addEventListener('touchcancel', cancel);
-
-                // Mouse fallback
-                cell.addEventListener('mousedown', start);
-                cell.addEventListener('mousemove', move);
-                cell.addEventListener('mouseup', cancel);
-                cell.addEventListener('mouseleave', cancel);
+                // Desktop fallback
+                cell.addEventListener('dblclick', (e) => {
+                    e.preventDefault();
+                    if (!activeScoreEditCell) {
+                        openInlineScoreEditForCell(cell);
+                    }
+                });
             });
         }
 
-        function openScoreEditForCell(cell) {
-            // Close any other popups and clear previous selection
-            closeAllPopups();
-            clearActiveScoreCellHighlight();
+        function openInlineScoreEditForCell(cell) {
+            closeAllPopups(); // just in case
 
             const roundIndex = parseInt(cell.getAttribute('data-round-index'), 10);
             const playerIndex = parseInt(cell.getAttribute('data-player-index'), 10);
@@ -1818,70 +1807,86 @@
 
             activeScoreEditCell = cell;
             activeScoreEditIndices = { roundIndex, playerIndex };
-            activeScoreEditCell.classList.add('score-edit-selected');
+            cell.classList.add('score-edit-selected');
 
-            createScoreEditDialog(current);
-        }
+            // Hide the display while editing to avoid visual overlap
+            const display = cell.querySelector('.score-display');
+            if (display) display.style.visibility = 'hidden';
 
-        function createScoreEditDialog(currentScore) {
-            const modal = document.getElementById('scoreEditModal');
-            modal.innerHTML = `
-                <h2>Edit Score</h2>
-                <span class="close-btn" onclick="closeScoreEditPopup()">×</span>
-                <form id="scoreEditForm">
-                    <input
-                        type="number"
-                        id="scoreEditInput"
-                        value="${currentScore}"
-                        inputmode="numeric"
-                        enterkeyhint="done"
-                        autocomplete="off"
-                        autocorrect="off"
-                        spellcheck="false"
-                    />
-                    <button type="submit" tabindex="-1" aria-hidden="true" style="position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;"></button>
-                </form>
-            `;
-            modal.style.display = 'block';
-            showOverlay();
+            let input = cell.querySelector('input.inline-score-input');
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'inline-score-input';
+                input.setAttribute('inputmode', 'numeric');
+                input.setAttribute('enterkeyhint', 'done');
+                input.autocomplete = 'off';
+                input.autocorrect = 'off';
+                input.spellcheck = false;
 
-            const input = modal.querySelector('#scoreEditInput');
-            const form = modal.querySelector('#scoreEditForm');
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyInlineScoreEdit();
+                    }
+                });
 
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                applyScoreEdit();
-            });
+                input.addEventListener('input', function() {
+                    this.dataset.changed = '1';
+                });
+
+                input.addEventListener('blur', function() {
+                    // Apply on blur as well (Done key on mobile or tapping away)
+                    applyInlineScoreEdit();
+                });
+
+                // Prevent events on input from re-triggering gestures
+                input.addEventListener('pointerdown', e => e.stopPropagation());
+                input.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+                input.addEventListener('mousedown', e => e.stopPropagation());
+
+                cell.appendChild(input);
+            }
+
+            // Start clean so first typed digit overwrites previous value
+            input.value = '';
+            input.dataset.originalValue = String(current);
+            input.dataset.changed = '0';
 
             setTimeout(() => {
                 try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-                try { input.select(); } catch (_) {}
             }, 0);
         }
 
-        function applyScoreEdit() {
-            if (!activeScoreEditIndices) { closeScoreEditPopup(); return; }
-            const input = document.getElementById('scoreEditInput');
-            const val = input ? parseInt(input.value, 10) : 0;
-            const score = isNaN(val) ? 0 : val;
+        function applyInlineScoreEdit() {
+            if (!activeScoreEditCell || !activeScoreEditIndices) return;
 
-            const { roundIndex, playerIndex } = activeScoreEditIndices;
+            const input = activeScoreEditCell.querySelector('input.inline-score-input');
+            const changed = input && input.dataset.changed === '1';
+            const original = input ? parseInt(input.dataset.originalValue || '0', 10) : 0;
 
-            // Remove highlight before DOM reload
-            clearActiveScoreCellHighlight();
+            if (changed) {
+                const val = parseInt(input.value, 10);
+                const score = isNaN(val) ? 0 : val;
+                const { roundIndex, playerIndex } = activeScoreEditIndices;
 
-            updateScore(roundIndex, playerIndex, score);
-            closeScoreEditPopup();
-        }
-
-        function closeScoreEditPopup() {
-            closePopup('scoreEditModal');
-            clearActiveScoreCellHighlight();
+                clearActiveScoreCellHighlight();
+                dismissKeyboard();
+                updateScore(roundIndex, playerIndex, score); // updateUI() is called inside
+            } else {
+                // No change: just restore visuals
+                clearActiveScoreCellHighlight();
+                dismissKeyboard();
+            }
         }
 
         function clearActiveScoreCellHighlight() {
             if (activeScoreEditCell) {
                 activeScoreEditCell.classList.remove('score-edit-selected');
+                const display = activeScoreEditCell.querySelector('.score-display');
+                if (display) display.style.visibility = '';
+                const inlineInput = activeScoreEditCell.querySelector('input.inline-score-input');
+                if (inlineInput) inlineInput.remove();
             }
             activeScoreEditCell = null;
             activeScoreEditIndices = null;
@@ -1902,7 +1907,6 @@
             document.getElementById('playerManagementModal').style.display = 'none';
             document.getElementById('roundManagementModal').style.display = 'none';
             document.getElementById('deleteRoundModal').style.display = 'none';
-            document.getElementById('scoreEditModal').style.display = 'none';
             hideOverlay();
             clearActiveScoreCellHighlight();
         }
