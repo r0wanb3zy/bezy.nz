@@ -107,16 +107,10 @@
     color: rgba(255, 255, 255, 0.8);
   }
 
-#scoreBody tr td:not(:first-child) {
-max-height: 0%px;
-height: 0px;
-line-height: 0px;
-overflow: hidden;
-vertical-align: middle; /* keep numbers/icons centered */
-}
-
+  /* Removed the zero-height, zero line-height rule that was collapsing cells and misaligning numbers */
   #scoreBody tr td:not(:first-child) {
     font-weight: bold;
+    vertical-align: middle; /* ensure cells align content vertically */
   }
 
   /* --------------------------------------- Inputs --------------------------------------- */
@@ -695,24 +689,34 @@ vertical-align: middle; /* keep numbers/icons centered */
     -ms-user-select: none;
     -moz-user-select: none;
     -webkit-touch-callout: none;
+    vertical-align: middle; /* fallback vertical centering */
   }
+
+  /* Perfect centering of score text/icon when not editing */
   #scoreBody td.score-cell .score-display {
-    position: relative;
-    z-index: 1;
-    display: inline-block;
-    vertical-align: middle;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    max-width: 100%;
   }
+
   /* Zero SVG base size + centering */
   #scoreBody td.score-cell .zero-icon {
-    display: inline-block;
+    display: block;
     width: 15px;
     height: 15px;
-    vertical-align: middle;
   }
+
   #scoreBody td.score-cell.score-edit-selected {
     outline: 2px solid #000;
     outline-offset: -2px;
   }
+
   #scoreBody td.score-cell .inline-score-input {
     position: absolute;
     inset: 0;
@@ -732,6 +736,7 @@ vertical-align: middle; /* keep numbers/icons centered */
     -webkit-user-select: none;
     -moz-appearance: textfield;
   }
+
   #scoreBody td.score-cell .inline-score-input::-webkit-outer-spin-button,
   #scoreBody td.score-cell .inline-score-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
