@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <title>Disc Golf Scorecard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
   <style>
-    /* Base: full-height, no scrolling */
-    html, body { height: 100%; margin: 0; overflow: hidden; touch-action: none; }
+    /* Base: full-height, no page scroll */
+    html, body { height: 100%; margin: 0; overflow: hidden; touch-action: manipulation; }
     body {
       font-family: 'Economica', sans-serif;
       font-size: 22px;
@@ -16,14 +16,14 @@
       margin-left: auto;
       margin-right: auto;
       min-height: 100vh;
-      background-size: cover;
       background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%) no-repeat;
+      background-size: cover;
     }
 
     :root {
-      --hole-w: 30px; /* narrow fixed */
-      --par-w: 30px;  /* narrow fixed */
-      --row-h: 34px;  /* JS will size this so all rows fit 100vh */
+      --hole-w: 30px;    /* narrow fixed */
+      --par-w: 30px;     /* narrow fixed */
+      --row-h: 34px;     /* JS will set this to fit rows to viewport */
     }
 
     table {
@@ -35,30 +35,26 @@
     }
     table, table th, table td { font-weight: bold; }
 
-    /* Score table shell (full viewport height) */
+    /* Full viewport height with dvh (mobile-safe) */
     #scoreTable {
-      height: 100vh;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      overflow: hidden; /* no scrolling */
+      height: 100dvh; /* modern mobile browsers */
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      overflow: hidden; /* no scroll */
     }
 
-    /* No sticky heading (header still styled) */
+    /* Header row (not sticky) */
     #scoreTable thead th {
       background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
       color: white;
       height: 80px;
       font-size: 22px;
-      border-bottom: none;
+      border-bottom: 1px solid #666; /* dark line to match reference */
       position: static;
       vertical-align: middle;
     }
-    #scoreTable thead th:first-child {
-      background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-      border-right: none;
-      border-bottom: 1px solid #666;
-    }
+    #scoreTable thead th:first-child { border-right: 1px solid #666; }
 
-    /* Cells */
+    /* Cells and dark borders */
     table th, table td {
       border: none;
       text-align: center;
@@ -67,13 +63,13 @@
       cursor: pointer;
       overflow: hidden;
       text-overflow: ellipsis;
-      border-bottom: 1px solid rgba(200, 200, 200, 0.3);
       vertical-align: middle;
+      border-bottom: 1px solid #666; /* dark lines */
     }
-    table td { border-right: 1px solid rgba(200, 200, 200, 0.3); }
+    table td { border-right: 1px solid #666; }
     table td:last-child { border-right: none; }
 
-    /* First two columns: fixed and narrow */
+    /* First two columns: fixed + narrow + dark background */
     th.hole-header, td.hole-cell {
       position: sticky; left: 0; z-index: 2;
       background: #3b3b3b; color: #fff;
@@ -87,7 +83,7 @@
       border-right: 1px solid #666; cursor: pointer;
     }
 
-    /* Force rows to fit viewport (JS sets --row-h) */
+    /* Fit rows to viewport (JS updates --row-h) */
     #scoreTable tbody td, #scoreTable tbody th {
       height: var(--row-h);
       line-height: var(--row-h);
@@ -95,27 +91,24 @@
       padding-bottom: 0;
     }
 
-    /* Summary rows (OUT/IN) */
+    /* Summary rows (OUT/IN) - dark like reference special rows */
     .summary-row td {
-      background: #f6f7f8;
-      font-weight: 700;
-    }
-    .summary-row td.hole-cell, .summary-row td.par-cell {
       background: #3b3b3b; color: white;
+      border-bottom: 1px solid #666; border-right: 1px solid #666;
     }
+    .summary-row td:last-child { border-right: none; }
 
-    /* Header player content (center emoji and text perfectly) */
+    /* Header player content: perfectly center emoji and text */
     #scoreTable thead th .player-name {
-      display: grid;
-      place-items: center;
-      justify-items: center;
+      display: flex;
       align-items: center;
+      justify-content: center;
       text-align: center;
       line-height: 1;
       max-width: 100%;
-      overflow: hidden;
       white-space: nowrap;
-      text-overflow: clip; /* JS clips properly */
+      overflow: hidden;
+      text-overflow: clip; /* JS clips cleanly */
     }
     #scoreTable thead th div[id^="total"] {
       font-size: 18px;
@@ -124,58 +117,45 @@
     #scoreTable thead th small {
       font-size: 16px;
       font-family: 'Economica', sans-serif;
-      color: rgba(255, 255, 255, 0.8);
+      color: rgba(255,255,255,0.8);
     }
     #scoreTable.small-scores thead th .player-name {
       font-size: 18px;
       line-height: 1.1;
     }
 
-    /* Gear button */
+    /* Gear button in first header cell */
     .gear {
       font-size: 20px; cursor: pointer; color: #fff; background: none; border: none;
     }
 
-    /* Popup (match reference) */
-    #popupModal {
-      display: none;
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: #ffffff; border: none; padding: 5px 20px 12px 20px;
-      z-index: 1000; font-family: 'Economica', sans-serif; text-align: center;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
-      width: 240px; max-width: 90%;
+    /* Inline cell editing visuals */
+    #scoreBody td.editing {
+      outline: 2px solid #000;
+      outline-offset: -2px;
     }
-    #popupModal h2 { margin: 15px 0; padding: 0; }
-
-    /* Close X matches reference (use <span>) */
-    .close-btn {
-      position: absolute; top: 0px; right: 0px;
-      font-size: 48px; color: #000000; cursor: pointer; background: none; border: none;
-      padding: 0; line-height: 1; width: 40px; height: 40px; text-align: center; transition: color 0.2s ease;
-    }
-
-    /* Popup numeric input */
-    #popupOptions { padding: 8px 0 0; }
-    #popupOptions input[type="number"] {
+    /* Inline number input fills the cell */
+    .inline-number {
+      position: absolute;
+      inset: 0;
       width: 100%;
-      box-sizing: border-box;
-      height: 44px;
-      line-height: 44px;
-      padding: 0 8px;
+      height: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
       text-align: center;
-      font-size: 22px;
-      font-family: 'Economica', sans-serif;
-      border: 1px solid #d0d7de;
-      border-radius: 6px;
-      background: #ffffff;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+      font: inherit;
+      color: inherit;
+      line-height: var(--row-h);
+      padding: 0;
+      margin: 0;
       -moz-appearance: textfield;
       appearance: textfield;
     }
-    #popupOptions input[type="number"]::-webkit-outer-spin-button,
-    #popupOptions input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .inline-number::-webkit-outer-spin-button,
+    .inline-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-    /* Round management (match reference) */
+    /* Round management modal (reference styling) */
     #roundManagementModal {
       display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: #ffffff; border: none; padding: 5px 20px 20px 20px; z-index: 1001;
@@ -196,19 +176,17 @@
       font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
       color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
     }
-    /* Sort button states */
     #roundManagementModal button#sortByRankBtn {
       background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
     }
     #roundManagementModal button#sortByRankBtn.active {
       background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); color: #ffffff; border: 1px solid #262626;
     }
-    /* Reset confirm turns red like reference */
     #roundManagementModal button#resetButton[data-confirm="true"] {
       background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
     }
 
-    /* Player Name Modal (match reference) */
+    /* Player Name Modal (reference styling) */
     #playerNameModal {
       display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: #ffffff; border: none; padding: 5px 20px 20px 20px; z-index: 1001;
@@ -222,8 +200,6 @@
       box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s ease;
     }
     #playerNameModal input[type="text"]:focus { outline: none; border: 1px solid #262626; }
-
-    /* Player modal buttons EXACT like reference */
     #playerNameModal button {
       font-size: 24px; padding: 10px 20px; margin: 5px 0; cursor: pointer;
       font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
@@ -236,7 +212,7 @@
       background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
     }
 
-    /* Segmented control (Name | Emoji) */
+    /* Segmented control */
     .segmented-control {
       display: flex; width: 100%; box-sizing: border-box; margin: 5px 0;
       background: #f8f9fa; border-radius: 6px; overflow: hidden; border: 1px solid #262626;
@@ -306,13 +282,6 @@
     </tbody>
   </table>
 
-  <!-- Numeric popup (same frame as reference) -->
-  <div id="popupModal">
-    <h2 id="popupTitle">Enter value</h2>
-    <span class="close-btn" onclick="closePopup()">×</span>
-    <div id="popupOptions"></div>
-  </div>
-
   <!-- Round Management -->
   <div id="roundManagementModal">
     <h2>Round</h2>
@@ -373,11 +342,6 @@
       grey:   { h: 210, s:  0 }
     };
     function getThemeHS(key) { return THEME_MAP[key] || THEME_MAP.blue; }
-    function getThemeTextColor(key) {
-      const t = THEME_MAP[key] || THEME_MAP.blue;
-      const L = key === 'yellow' ? 32 : 34;
-      return `hsl(${t.h}, ${t.s}%, ${L}%)`;
-    }
 
     const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
     function numberToKeycap(n) { return KEYCAP_DIGITS[n] || String(n); }
@@ -390,9 +354,7 @@
       let segments;
       if (typeof Intl !== 'undefined' && Intl.Segmenter) {
         segments = Array.from(new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(str), s => s.segment);
-      } else {
-        segments = Array.from(str);
-      }
+      } else { segments = Array.from(str); }
       const rePict = /\p{Extended_Pictographic}/u;
       const reRI = /[\u{1F1E6}-\u{1F1FF}]/u;
       const reKeycap = /[#*0-9]\uFE0F?\u20E3/u;
@@ -409,23 +371,18 @@
     let sortByRankEnabled = localStorage.getItem(LS.sort) === 'true';
     let emojiModeEnabled = localStorage.getItem(LS.emojiMode) === 'true';
 
-    // Popup context
-    let currentMode = null; // 'score' | 'par'
-    let currentCell = null;
-    let currentHole = null;
-    let currentPlayer = null;
-
-    // Bulk emoji
-    let bulkEmojiMode = false;
-    let bulkEmojiSelection = [];
-    const bulkMaxPlayers = 8;
+    // Inline edit state
+    let activeCell = null;
+    let activeInput = null;
+    let activeMode = null;  // 'score' | 'par'
 
     // Reset confirm state
     let resetConfirm = false;
 
     /* ---------------- Init ---------------- */
     function setFullHeight() {
-      const table = document.getElementById("scoreTable");
+      const table = document.getElementById('scoreTable');
+      // Fallback for browsers that don't support dvh
       if (table) table.style.height = `${window.innerHeight}px`;
       fitRowsToViewport();
     }
@@ -468,31 +425,27 @@
       const firstNine = Math.min(9, holesCount);
       for (let h = 1; h <= firstNine; h++) body.appendChild(makeHoleRow(h));
 
-      // OUT summary
+      // OUT summary (dark)
       const trOut = document.createElement('tr');
       trOut.className = 'summary-row';
       trOut.appendChild(makeStickyCell('hole-cell', 'OUT'));
       const outPar = document.createElement('td'); outPar.className = 'par-cell'; outPar.setAttribute('data-sum', 'out-par');
       trOut.appendChild(outPar);
       for (let p = 1; p <= playerCount; p++) {
-        const td = document.createElement('td');
-        td.setAttribute('data-sum', `out-P${p}`);
-        trOut.appendChild(td);
+        const td = document.createElement('td'); td.setAttribute('data-sum', `out-P${p}`); trOut.appendChild(td);
       }
       body.appendChild(trOut);
 
       if (holesCount > 9) {
         for (let h = 10; h <= holesCount; h++) body.appendChild(makeHoleRow(h));
-        // IN summary
+        // IN summary (dark)
         const trIn = document.createElement('tr');
         trIn.className = 'summary-row';
         trIn.appendChild(makeStickyCell('hole-cell', 'IN'));
         const inPar = document.createElement('td'); inPar.className = 'par-cell'; inPar.setAttribute('data-sum', 'in-par');
         trIn.appendChild(inPar);
         for (let p = 1; p <= playerCount; p++) {
-          const td = document.createElement('td');
-          td.setAttribute('data-sum', `in-P${p}`);
-          trIn.appendChild(td);
+          const td = document.createElement('td'); td.setAttribute('data-sum', `in-P${p}`); trIn.appendChild(td);
         }
         body.appendChild(trIn);
       }
@@ -517,7 +470,7 @@
       const tdPar = document.createElement('td');
       tdPar.className = 'par-cell';
       tdPar.setAttribute('data-hole', `H${h}`);
-      tdPar.addEventListener('click', () => openNumberModal('par', tdPar));
+      tdPar.addEventListener('click', () => startInlineEdit(tdPar, 'par'));
       tdPar.textContent = '3';
       tr.appendChild(tdPar);
 
@@ -526,7 +479,7 @@
         td.className = 'score-cell';
         td.setAttribute('data-player', `P${p}`);
         td.setAttribute('data-hole', `H${h}`);
-        td.addEventListener('click', () => openNumberModal('score', td));
+        td.addEventListener('click', () => startInlineEdit(td, 'score'));
         tr.appendChild(td);
       }
       return tr;
@@ -562,91 +515,123 @@
       fitRowsToViewport();
     }
 
-    /* ---------------- Popup: numeric input ---------------- */
-    function openNumberModal(mode, td) {
-      currentMode = mode;
-      currentCell = td;
-      currentHole = parseInt(td.getAttribute('data-hole')?.replace('H','') || '0', 10) || null;
-      currentPlayer = td.getAttribute('data-player') || null;
+    /* ---------------- Inline editing (no popup) ---------------- */
+    function startInlineEdit(td, mode) {
+      // Avoid multiple editors
+      endInlineEdit(true);
 
-      const modal = document.getElementById('popupModal');
-      const options = document.getElementById('popupOptions');
-      options.innerHTML = '';
+      activeCell = td;
+      activeMode = mode;
 
-      let title = '';
-      if (mode === 'score') {
-        const par = getPar(currentHole);
-        title = `Hole ${currentHole} • Par ${par}`;
-      } else {
-        title = `Set Par • Hole ${currentHole}`;
-      }
-      document.getElementById('popupTitle').textContent = title;
-
-      const currentVal = td.textContent.trim();
+      // Create input
       const input = document.createElement('input');
       input.type = 'number';
+      input.className = 'inline-number';
       input.inputMode = 'numeric';
       input.autocomplete = 'off';
       input.autocorrect = 'off';
       input.spellcheck = false;
-      input.value = currentVal;
+      input.value = td.textContent.trim();
       input.setAttribute('enterkeyhint', mode === 'score' ? 'next' : 'done');
 
-      input.addEventListener('keydown', function(e) {
+      // Clear cell text while editing
+      td.dataset.prev = td.textContent;
+      td.textContent = '';
+
+      // Positioning
+      td.style.position = 'relative';
+      td.classList.add('editing');
+      td.appendChild(input);
+
+      // Handlers
+      input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          applyNumberEdit(this.value);
+          applyInlineEdit(input.value, true); // true = advance for score
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          cancelInlineEdit();
         }
       });
-      input.addEventListener('blur', function() { applyNumberEdit(this.value); });
-      options.appendChild(input);
+      input.addEventListener('blur', () => applyInlineEdit(input.value, false));
 
-      modal.style.display = 'block';
-      showOverlay();
+      activeInput = input;
 
+      // Focus
       setTimeout(() => {
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-        try { input.select(); } catch (_) {}
+        input.select();
       }, 0);
     }
 
-    function applyNumberEdit(val) {
-      if (!currentCell || !currentMode) return;
+    function applyInlineEdit(val, advanceOnEnter) {
+      if (!activeCell || !activeInput) return;
 
-      const hole = currentHole;
-      const player = currentPlayer;
+      const td = activeCell;
+      const mode = activeMode;
+      const hole = parseInt(td.getAttribute('data-hole')?.replace('H','') || '0', 10) || null;
+      const player = td.getAttribute('data-player') || null;
       const trimmed = String(val ?? '').trim();
 
-      if (currentMode === 'score') {
+      if (mode === 'score') {
         if (trimmed === '') {
-          currentCell.textContent = '';
-          localStorage.removeItem(LS.score(player, hole));
+          td.textContent = '';
+          if (player && hole) localStorage.removeItem(LS.score(player, hole));
         } else {
           const n = Math.max(0, parseInt(trimmed, 10) || 0);
-          currentCell.textContent = String(n);
-          localStorage.setItem(LS.score(player, hole), String(n));
+          td.textContent = String(n);
+          if (player && hole) localStorage.setItem(LS.score(player, hole), String(n));
         }
-      } else if (currentMode === 'par') {
+      } else if (mode === 'par') {
         if (trimmed === '') {
-          currentCell.textContent = '3';
-          localStorage.setItem(LS.par(hole), '3');
+          td.textContent = '3';
+          if (hole) localStorage.setItem(LS.par(hole), '3');
         } else {
           const n = Math.max(1, parseInt(trimmed, 10) || 3);
-          currentCell.textContent = String(n);
-          localStorage.setItem(LS.par(hole), String(n));
+          td.textContent = String(n);
+          if (hole) localStorage.setItem(LS.par(hole), String(n));
         }
       }
 
-      closePopup();
+      endInlineEdit(false);
+
       updateAllTotals();
       if (sortByRankEnabled) applySortByRank(true);
       updateRanks();
+
+      if (advanceOnEnter && mode === 'score') {
+        // Move to next score cell in DOM order
+        advanceToNextScoreCell(td);
+      }
     }
 
-    function closePopup() {
-      document.getElementById('popupModal').style.display = 'none';
-      hideOverlay();
-      currentCell = null; currentHole = null; currentPlayer = null; currentMode = null;
+    function cancelInlineEdit() {
+      if (!activeCell) return;
+      // Restore previous display
+      if (activeCell.dataset.prev != null) activeCell.textContent = activeCell.dataset.prev;
+      endInlineEdit(false);
+    }
+
+    function endInlineEdit(clearOnly) {
+      if (activeCell) {
+        activeCell.classList.remove('editing');
+        activeCell.style.position = '';
+        delete activeCell.dataset.prev;
+      }
+      if (activeInput && activeInput.parentElement) activeInput.parentElement.removeChild(activeInput);
+      activeCell = null;
+      activeInput = null;
+      activeMode = null;
+      if (!clearOnly) fitRowsToViewport();
+    }
+
+    function advanceToNextScoreCell(currentTd) {
+      const cells = Array.from(document.querySelectorAll('#scoreBody td.score-cell'));
+      const idx = cells.indexOf(currentTd);
+      if (idx !== -1) {
+        const next = cells[idx + 1];
+        if (next) startInlineEdit(next, 'score');
+      }
     }
 
     /* ---------------- Round management ---------------- */
@@ -661,14 +646,11 @@
       themeSel.value = themeColor;
       sortBtn.classList.toggle('active', sortByRankEnabled);
 
-      themeSel.style.color = getThemeTextColor(themeColor);
-      Array.from(themeSel.options).forEach(opt => opt.style.color = getThemeTextColor(opt.value));
-
-      // Reset button back to "Reset" each time modal opens
-      resetButtonState();
-
       document.getElementById('roundManagementModal').style.display = 'block';
       showOverlay();
+
+      // Reset button state each open
+      resetButtonState();
     }
     function closeRoundManagement() {
       resetButtonState();
@@ -681,7 +663,7 @@
       if (!resetConfirm) {
         resetConfirm = true;
         btn.textContent = 'Confirm';
-        btn.setAttribute('data-confirm', 'true'); // turns red via CSS
+        btn.setAttribute('data-confirm', 'true');
       } else {
         resetScores();
         resetButtonState();
@@ -721,16 +703,11 @@
     function setThemeColor(value) {
       themeColor = value || 'blue';
       localStorage.setItem(LS.themeColor, themeColor);
-      const themeSel = document.getElementById('themeColorSelect');
-      if (themeSel) {
-        themeSel.style.color = getThemeTextColor(themeColor);
-        Array.from(themeSel.options).forEach(opt => opt.style.color = getThemeTextColor(opt.value));
-      }
       updateRanks();
     }
 
     function resetScores() {
-      // Clear ALL stored scores (up to 8 players × 18 holes), and reset all pars to 3
+      // Clear all score storage and set pars to 3
       for (let p = 1; p <= 8; p++) {
         for (let h = 1; h <= 18; h++) {
           localStorage.removeItem(LS.score(`P${p}`, h));
@@ -740,10 +717,10 @@
         localStorage.setItem(LS.par(h), '3');
       }
 
-      // Clear all visible score cells
+      // Clear visible scores
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
-      // Reset visible par cells to 3
-      document.querySelectorAll('#scoreBody .par-cell').forEach(td => td.textContent = '3');
+      // Reset visible pars to 3
+      document.querySelectorAll('#scoreBody .par-cell[data-hole]').forEach(td => td.textContent = '3');
 
       updateAllTotals();
       updateRanks();
@@ -788,10 +765,7 @@
         primed = true;
         e.preventDefault();
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-        requestAnimationFrame(() => {
-          try { input.select(); } catch (_) {}
-          try { input.setSelectionRange(0, input.value.length); } catch (_) {}
-        });
+        requestAnimationFrame(() => { try { input.select(); } catch (_) {} });
       };
       input.addEventListener('pointerdown', primeFocus, { passive: false });
       input.addEventListener('touchstart', primeFocus, { passive: false });
@@ -829,12 +803,14 @@
                inputmode="text" placeholder="Pick an emoji" enterkeyhint="done"
                autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false">
         <div class="emoji-grid">${grid}</div>
+
         <div id="bulkEmojiActions" class="bulk-actions">
           <div class="row">
             <button type="button" id="bulkCancelBtn" class="light">Cancel</button>
             <button type="button" id="bulkApplyBtn">Select</button>
           </div>
         </div>
+
         <div class="segmented-control">
           <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, window.currentPlayer)">
           <label for="playerMode-name">Name</label>
@@ -846,22 +822,14 @@
       modal.style.display = 'block';
       showOverlay();
 
-      bulkEmojiMode = false;
-      bulkEmojiSelection = [];
-      modal.classList.remove('bulk-mode');
-
-      const input = document.getElementById('emojiNameInput');
-
       let primed = false;
+      const input = document.getElementById('emojiNameInput');
       const primeFocus = (e) => {
         if (primed) return;
         primed = true;
         e.preventDefault();
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-        requestAnimationFrame(() => {
-          try { input.select(); } catch (_) {}
-          try { input.setSelectionRange(0, input.value.length); } catch (_) {}
-        });
+        requestAnimationFrame(() => { try { input.select(); } catch (_) {} });
       };
       input.addEventListener('pointerdown', primeFocus, { passive: false });
       input.addEventListener('touchstart', primeFocus, { passive: false });
@@ -873,14 +841,14 @@
       input.addEventListener('input', function () {
         const sanitized = extractEmojis(this.value);
         if (sanitized !== this.value) this.value = sanitized;
-        if (sanitized && !autoClosed && !bulkEmojiMode) {
+        if (sanitized && !autoClosed) {
           if (window.currentPlayer) applyPlayerName(window.currentPlayer, sanitized);
           autoClosed = true;
           closePlayerNameModal();
         }
       });
       input.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter' && !bulkEmojiMode) {
+        if (e.key === 'Enter') {
           const sanitized = extractEmojis((this.value || '').trim());
           if (sanitized && window.currentPlayer) applyPlayerName(window.currentPlayer, sanitized);
           closePlayerNameModal();
@@ -902,7 +870,7 @@
     function handleRemovePlayer(button) {
       if (button.dataset.state === 'initial') {
         button.textContent = 'Confirm';
-        button.dataset.state = 'confirm'; // turns red in player modal
+        button.dataset.state = 'confirm'; // turns red via CSS in modal
       } else {
         if (window.currentPlayer) {
           removePlayer(window.currentPlayer);
@@ -946,7 +914,6 @@
       if (!header) return;
       const totalDiv = header.querySelector('div[id^="total"]');
       const totalTxt = totalDiv ? totalDiv.textContent : '';
-      // Remove any existing ranks before rewriting
       header.querySelectorAll('small').forEach(s => s.remove());
       header.innerHTML = `<span class="player-name" data-full="${newName}" title="${newName}">${newName}</span><div id="total${pid}">${totalTxt}</div>`;
       header.setAttribute('data-player', pid);
@@ -969,48 +936,45 @@
       const bulkBar = modal.querySelector('#bulkEmojiActions');
       const seg = modal.querySelector('.segmented-control');
       const emojiInput = modal.querySelector('#emojiNameInput');
+      let bulkEmojiMode = false;
+      let bulkEmojiSelection = [];
+      const bulkMaxPlayers = 8;
 
-      const enterBulkEmojiMode = () => {
+      const enterBulk = () => {
         if (bulkEmojiMode) return;
-        bulkEmojiMode = true;
-        bulkEmojiSelection = [];
+        bulkEmojiMode = true; bulkEmojiSelection = [];
         if (bulkBar) bulkBar.style.display = 'block';
         if (seg) seg.style.display = 'none';
         if (emojiInput) emojiInput.style.display = 'none';
         buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
         modal.classList.add('bulk-mode');
       };
-      const exitBulkEmojiMode = () => {
-        bulkEmojiMode = false;
-        bulkEmojiSelection = [];
+      const exitBulk = () => {
+        bulkEmojiMode = false; bulkEmojiSelection = [];
         if (bulkBar) bulkBar.style.display = 'none';
         if (seg) seg.style.display = '';
         if (emojiInput) emojiInput.style.display = '';
         buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
         modal.classList.remove('bulk-mode');
       };
-      const renumberSelection = () => {
+      const renumber = () => {
         buttons.forEach(b => { if (b.classList.contains('selected')) b.setAttribute('data-order', ''); });
         bulkEmojiSelection.forEach((emoji, i) => {
           const b = buttons.find(btn => btn.getAttribute('data-emoji') === emoji);
           if (b) b.setAttribute('data-order', String(i + 1));
         });
       };
-      const toggleEmojiSelection = (btn) => {
+      const toggleSel = (btn) => {
         const emoji = btn.getAttribute('data-emoji');
         const idx = bulkEmojiSelection.indexOf(emoji);
-        if (idx !== -1) {
-          bulkEmojiSelection.splice(idx, 1);
-          btn.classList.remove('selected');
-          btn.removeAttribute('data-order');
-        } else {
+        if (idx !== -1) { bulkEmojiSelection.splice(idx, 1); btn.classList.remove('selected'); btn.removeAttribute('data-order'); }
+        else {
           if (bulkEmojiSelection.length >= bulkMaxPlayers) return;
-          bulkEmojiSelection.push(emoji);
-          btn.classList.add('selected');
+          bulkEmojiSelection.push(emoji); btn.classList.add('selected');
         }
-        renumberSelection();
+        renumber();
       };
-      const applyBulkEmojiPlayers = (selected) => {
+      const applyBulk = (selected) => {
         const targetCount = Math.min(bulkMaxPlayers, selected.length);
         if (targetCount < 1) return;
         emojiModeEnabled = true;
@@ -1018,23 +982,19 @@
         playerCount = targetCount;
         localStorage.setItem(LS.playerCount, String(playerCount));
         rebuildPreserving();
-        for (let i = 1; i <= targetCount; i++) {
-          applyPlayerName(`P${i}`, selected[i - 1]);
-        }
-        exitBulkEmojiMode();
+        for (let i = 1; i <= targetCount; i++) applyPlayerName(`P${i}`, selected[i - 1]);
+        exitBulk();
         closePlayerNameModal();
       };
 
       const cancelBtn = modal.querySelector('#bulkCancelBtn');
       const applyBtn = modal.querySelector('#bulkApplyBtn');
-      if (cancelBtn) cancelBtn.addEventListener('click', () => exitBulkEmojiMode());
-      if (applyBtn) applyBtn.addEventListener('click', () => {
-        if (bulkEmojiSelection.length > 0) applyBulkEmojiPlayers(bulkEmojiSelection);
-      });
+      if (cancelBtn) cancelBtn.addEventListener('click', () => exitBulk());
+      if (applyBtn) applyBtn.addEventListener('click', () => { if (bulkEmojiSelection.length > 0) applyBulk(bulkEmojiSelection); });
 
       buttons.forEach(btn => {
         btn.addEventListener('click', () => {
-          if (bulkEmojiMode) toggleEmojiSelection(btn);
+          if (bulkEmojiMode) toggleSel(btn);
           else {
             const emoji = btn.getAttribute('data-emoji');
             if (emoji && window.currentPlayer) {
@@ -1043,12 +1003,11 @@
             }
           }
         });
-        // Long-press to enter bulk (500ms)
         let pressTimer = null;
         const start = () => {
           if (bulkEmojiMode) return;
           clearTimeout(pressTimer);
-          pressTimer = setTimeout(() => enterBulkEmojiMode(), 500);
+          pressTimer = setTimeout(() => enterBulk(), 500);
         };
         const cancel = () => { clearTimeout(pressTimer); pressTimer = null; };
         btn.addEventListener('pointerdown', start);
@@ -1101,10 +1060,10 @@
       const header = table.querySelector('thead');
       const headerH = header ? header.getBoundingClientRect().height : 0;
       const rows = document.querySelectorAll('#scoreBody tr').length;
-      const viewportH = window.innerHeight;
+      const viewportH = Math.max(window.innerHeight, document.documentElement.clientHeight || 0);
       if (rows > 0) {
         const avail = Math.max(1, viewportH - headerH - 1);
-        const rowH = Math.max(20, Math.floor(avail / rows)); // min 20px for tight fit
+        const rowH = Math.max(20, Math.floor(avail / rows)); // min 20px
         document.documentElement.style.setProperty('--row-h', rowH + 'px');
       }
     }
@@ -1159,7 +1118,6 @@
             const tp = toPar === 0 ? 'E' : (toPar > 0 ? `+${toPar}` : `${toPar}`);
             totalDiv.textContent = `${playedStrokes} (${tp})`;
           } else {
-            // When any player has started, show others as 0 (E); otherwise blank.
             totalDiv.textContent = any ? '0 (E)' : '';
           }
         }
@@ -1174,13 +1132,13 @@
       if (count >= 7) table.classList.add('small-scores');
       else table.classList.remove('small-scores');
 
-      // Clear backgrounds and any existing rank tags to prevent duplicates
+      // Clear backgrounds and ranks
       headers.forEach(h => { h.style.background = ''; h.querySelectorAll('small').forEach(s => s.remove()); });
 
       const any = hasAnyEntry();
       if (!any) { clipPlayerNamesToCell(); return; }
 
-      // Build values for ranking: players with no scores rank last
+      // Compute ranks: players with no scores rank last
       const totals = headers.map(h => {
         const pid = h.getAttribute('data-player');
         let sum = 0, hasScore = false;
@@ -1188,14 +1146,14 @@
           const sc = getScore(pid, i);
           if (sc != null) { hasScore = true; sum += sc; }
         }
-        const rankValue = hasScore ? sum : Number.POSITIVE_INFINITY; // last if no score yet
+        const rankValue = hasScore ? sum : Number.POSITIVE_INFINITY;
         return { h, pid, sum, hasScore, rankValue };
       });
 
-      // Sort by lowest strokes (disc golf)
+      // Sort by lowest strokes
       const sorted = [...totals].sort((a, b) => a.rankValue - b.rankValue);
 
-      // Group ties by rankValue
+      // Color bands by tie groups
       const groups = [];
       for (const item of sorted) {
         const last = groups[groups.length - 1];
@@ -1203,7 +1161,6 @@
         else last.members.push(item.pid);
       }
 
-      // Theme gradient shading (best = darkest)
       const { h: H, s: S } = getThemeHS(themeColor);
       const Lmax = 82, minRange = 18, maxRange = 44;
       const effective = groups.length;
@@ -1212,7 +1169,7 @@
       const Lmin = Math.max(28, Lmax - range);
 
       groups.forEach((group, g) => {
-        const ratio = (effective === 1) ? 0 : g / (effective - 1); // best group -> darkest
+        const ratio = (effective === 1) ? 0 : g / (effective - 1);
         const L = Math.round(Lmin + (Lmax - Lmin) * ratio);
         const Ltop = Math.max(18, L - 10);
         const gradient = `linear-gradient(to bottom, hsl(${H}, ${S}%, ${Ltop}%) 0%, hsl(${H}, ${S}%, ${L}%) 100%)`;
@@ -1222,7 +1179,7 @@
         });
       });
 
-      // Rank labels: map each distinct rankValue to 1..n
+      // Rank labels
       const distinctAsc = Array.from(new Set(sorted.map(s => s.rankValue)));
       const rankByVal = new Map(distinctAsc.map((v, i) => [v, i + 1]));
       totals.forEach(({ h, rankValue }) => {
@@ -1376,7 +1333,7 @@
     document.getElementById('overlay').addEventListener('click', () => {
       closeRoundManagement();
       closePlayerNameModal();
-      closePopup();
+      endInlineEdit(true);
     });
   </script>
 </body>
