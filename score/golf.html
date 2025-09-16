@@ -104,9 +104,14 @@
       background: #3b3b3b; color: white;
     }
 
-    /* Header player content */
+    /* Header player content (center emoji and text perfectly) */
     #scoreTable thead th .player-name {
-      display: block;
+      display: grid;
+      place-items: center;
+      justify-items: center;
+      align-items: center;
+      text-align: center;
+      line-height: 1;
       max-width: 100%;
       overflow: hidden;
       white-space: nowrap;
@@ -191,11 +196,16 @@
       font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
       color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
     }
+    /* Sort button states */
     #roundManagementModal button#sortByRankBtn {
       background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
     }
     #roundManagementModal button#sortByRankBtn.active {
       background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); color: #ffffff; border: 1px solid #262626;
+    }
+    /* Reset confirm turns red like reference */
+    #roundManagementModal button#resetButton[data-confirm="true"] {
+      background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
     }
 
     /* Player Name Modal (match reference) */
@@ -331,7 +341,7 @@
       <option value="green">Green</option>
       <option value="grey">Grey</option>
     </select>
-    <button class="danger" onclick="resetScores()">Reset</button>
+    <button id="resetButton" onclick="handleResetClick()">Reset</button>
   </div>
 
   <!-- Player Name Modal -->
@@ -409,6 +419,9 @@
     let bulkEmojiMode = false;
     let bulkEmojiSelection = [];
     const bulkMaxPlayers = 8;
+
+    // Reset confirm state
+    let resetConfirm = false;
 
     /* ---------------- Init ---------------- */
     function setFullHeight() {
@@ -651,13 +664,38 @@
       themeSel.style.color = getThemeTextColor(themeColor);
       Array.from(themeSel.options).forEach(opt => opt.style.color = getThemeTextColor(opt.value));
 
+      // Reset button back to "Reset" each time modal opens
+      resetButtonState();
+
       document.getElementById('roundManagementModal').style.display = 'block';
       showOverlay();
     }
     function closeRoundManagement() {
+      resetButtonState();
       document.getElementById('roundManagementModal').style.display = 'none';
       hideOverlay();
     }
+
+    function handleResetClick() {
+      const btn = document.getElementById('resetButton');
+      if (!resetConfirm) {
+        resetConfirm = true;
+        btn.textContent = 'Confirm';
+        btn.setAttribute('data-confirm', 'true'); // turns red via CSS
+      } else {
+        resetScores();
+        resetButtonState();
+      }
+    }
+    function resetButtonState() {
+      resetConfirm = false;
+      const btn = document.getElementById('resetButton');
+      if (btn) {
+        btn.textContent = 'Reset';
+        btn.removeAttribute('data-confirm');
+      }
+    }
+
     function updatePlayerCount() {
       const val = parseInt(document.getElementById('playerCount').value, 10);
       playerCount = Math.min(8, Math.max(1, val));
@@ -690,19 +728,23 @@
       }
       updateRanks();
     }
+
     function resetScores() {
-      for (let p = 1; p <= playerCount; p++) {
-        for (let h = 1; h <= holesCount; h++) {
+      // Clear ALL stored scores (up to 8 players × 18 holes), and reset all pars to 3
+      for (let p = 1; p <= 8; p++) {
+        for (let h = 1; h <= 18; h++) {
           localStorage.removeItem(LS.score(`P${p}`, h));
-          const td = document.querySelector(`td.score-cell[data-player="P${p}"][data-hole="H${h}"]`);
-          if (td) td.textContent = '';
         }
       }
-      for (let h = 1; h <= holesCount; h++) {
+      for (let h = 1; h <= 18; h++) {
         localStorage.setItem(LS.par(h), '3');
-        const parCell = document.querySelector(`.par-cell[data-hole="H${h}"]`);
-        if (parCell) parCell.textContent = '3';
       }
+
+      // Clear all visible score cells
+      document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
+      // Reset visible par cells to 3
+      document.querySelectorAll('#scoreBody .par-cell').forEach(td => td.textContent = '3');
+
       updateAllTotals();
       updateRanks();
       closeRoundManagement();
@@ -860,7 +902,7 @@
     function handleRemovePlayer(button) {
       if (button.dataset.state === 'initial') {
         button.textContent = 'Confirm';
-        button.dataset.state = 'confirm';
+        button.dataset.state = 'confirm'; // turns red in player modal
       } else {
         if (window.currentPlayer) {
           removePlayer(window.currentPlayer);
@@ -904,9 +946,9 @@
       if (!header) return;
       const totalDiv = header.querySelector('div[id^="total"]');
       const totalTxt = totalDiv ? totalDiv.textContent : '';
-      const rankEl = header.querySelector('small');
-      const rankHTML = rankEl ? rankEl.outerHTML : '';
-      header.innerHTML = `<span class="player-name" data-full="${newName}" title="${newName}">${newName}</span><div id="total${pid}">${totalTxt}</div>${rankHTML}`;
+      // Remove any existing ranks before rewriting
+      header.querySelectorAll('small').forEach(s => s.remove());
+      header.innerHTML = `<span class="player-name" data-full="${newName}" title="${newName}">${newName}</span><div id="total${pid}">${totalTxt}</div>`;
       header.setAttribute('data-player', pid);
       localStorage.setItem(LS.name(pid), newName);
       clipPlayerNamesToCell();
@@ -915,7 +957,6 @@
 
     function closePlayerNameModal() {
       const modal = document.getElementById('playerNameModal');
-      // Reset remove button state
       const btn = modal.querySelector('button[onclick^="handleRemovePlayer"]');
       if (btn) { btn.textContent = 'Remove'; btn.dataset.state = 'initial'; }
       modal.style.display = 'none';
@@ -1009,7 +1050,7 @@
           clearTimeout(pressTimer);
           pressTimer = setTimeout(() => enterBulkEmojiMode(), 500);
         };
-        const cancel = () => { clearTimeout(presstimer); };
+        const cancel = () => { clearTimeout(pressTimer); pressTimer = null; };
         btn.addEventListener('pointerdown', start);
         btn.addEventListener('pointerup', cancel);
         btn.addEventListener('pointerleave', cancel);
@@ -1063,7 +1104,7 @@
       const viewportH = window.innerHeight;
       if (rows > 0) {
         const avail = Math.max(1, viewportH - headerH - 1);
-        const rowH = Math.max(24, Math.floor(avail / rows));
+        const rowH = Math.max(20, Math.floor(avail / rows)); // min 20px for tight fit
         document.documentElement.style.setProperty('--row-h', rowH + 'px');
       }
     }
@@ -1096,27 +1137,30 @@
       setSumCell('out-par', parOut);
       if (holesCount > 9) setSumCell('in-par', parIn);
 
+      const any = hasAnyEntry();
+
       for (let p = 1; p <= playerCount; p++) {
         const pid = `P${p}`;
         const sumOut = outRange.reduce((s, h) => s + (getScore(pid, h) ?? 0), 0);
         const sumIn  = inRange.reduce((s, h) => s + (getScore(pid, h) ?? 0), 0);
         const played = [...outRange, ...inRange];
-        let playedPar = 0, playedStrokes = 0;
+        let playedPar = 0, playedStrokes = 0, hasScore = false;
         for (const h of played) {
           const sc = getScore(pid, h);
-          if (sc != null) { playedStrokes += sc; playedPar += getPar(h); }
+          if (sc != null) { hasScore = true; playedStrokes += sc; playedPar += getPar(h); }
         }
         setSumCell(`out-${pid}`, sumOut);
         if (holesCount > 9) setSumCell(`in-${pid}`, sumIn);
 
         const totalDiv = document.getElementById(`total${pid}`);
         if (totalDiv) {
-          if (playedStrokes > 0) {
+          if (hasScore) {
             const toPar = (playedPar === 0) ? 0 : (playedStrokes - playedPar);
             const tp = toPar === 0 ? 'E' : (toPar > 0 ? `+${toPar}` : `${toPar}`);
             totalDiv.textContent = `${playedStrokes} (${tp})`;
           } else {
-            totalDiv.textContent = '';
+            // When any player has started, show others as 0 (E); otherwise blank.
+            totalDiv.textContent = any ? '0 (E)' : '';
           }
         }
       }
@@ -1130,39 +1174,36 @@
       if (count >= 7) table.classList.add('small-scores');
       else table.classList.remove('small-scores');
 
-      // Clear backgrounds and ranks
-      headers.forEach(h => { h.style.background = ''; });
-      headers.forEach(h => {
-        let next = h.querySelector('div[id^="total"]')?.nextSibling;
-        while (next && next.nodeName === 'SMALL') {
-          const rm = next; next = next.nextSibling; rm.parentElement.removeChild(rm);
-        }
-      });
+      // Clear backgrounds and any existing rank tags to prevent duplicates
+      headers.forEach(h => { h.style.background = ''; h.querySelectorAll('small').forEach(s => s.remove()); });
 
-      if (!hasAnyEntry()) { clipPlayerNamesToCell(); return; }
+      const any = hasAnyEntry();
+      if (!any) { clipPlayerNamesToCell(); return; }
 
-      if (sortByRankEnabled && count > 1) applySortByRank(true);
-
-      const hdrs = Array.from(table.querySelectorAll('thead th')).slice(2);
-      const totals = hdrs.map(h => {
+      // Build values for ranking: players with no scores rank last
+      const totals = headers.map(h => {
         const pid = h.getAttribute('data-player');
-        let played = 0;
+        let sum = 0, hasScore = false;
         for (let i = 1; i <= holesCount; i++) {
           const sc = getScore(pid, i);
-          if (sc != null) played += sc;
+          if (sc != null) { hasScore = true; sum += sc; }
         }
-        return { h, pid, played };
+        const rankValue = hasScore ? sum : Number.POSITIVE_INFINITY; // last if no score yet
+        return { h, pid, sum, hasScore, rankValue };
       });
 
-      // Lowest score = best
-      const sorted = [...totals].sort((a, b) => a.played - b.played);
+      // Sort by lowest strokes (disc golf)
+      const sorted = [...totals].sort((a, b) => a.rankValue - b.rankValue);
+
+      // Group ties by rankValue
       const groups = [];
       for (const item of sorted) {
         const last = groups[groups.length - 1];
-        if (!last || last.score !== item.played) groups.push({ score: item.played, members: [item.pid] });
+        if (!last || last.score !== item.rankValue) groups.push({ score: item.rankValue, members: [item.pid] });
         else last.members.push(item.pid);
       }
 
+      // Theme gradient shading (best = darkest)
       const { h: H, s: S } = getThemeHS(themeColor);
       const Lmax = 82, minRange = 18, maxRange = 44;
       const effective = groups.length;
@@ -1181,12 +1222,12 @@
         });
       });
 
-      // Rank labels
-      const uniqueScoresAsc = Array.from(new Set(sorted.map(s => s.played)));
-      const rankByScore = new Map(uniqueScoresAsc.map((score, i) => [score, i + 1]));
-      totals.forEach(({ h, played }) => {
+      // Rank labels: map each distinct rankValue to 1..n
+      const distinctAsc = Array.from(new Set(sorted.map(s => s.rankValue)));
+      const rankByVal = new Map(distinctAsc.map((v, i) => [v, i + 1]));
+      totals.forEach(({ h, rankValue }) => {
         const small = document.createElement('small');
-        small.textContent = ordinalSuffixOf(rankByScore.get(played) || 1);
+        small.textContent = ordinalSuffixOf(rankByVal.get(rankValue) || 1);
         h.appendChild(small);
       });
 
@@ -1234,15 +1275,16 @@
 
       const players = headers.map((th, idx) => {
         const pid = th.getAttribute('data-player');
-        let played = 0;
+        let sum = 0, hasScore = false;
         for (let h = 1; h <= holesCount; h++) {
           const sc = getScore(pid, h);
-          if (sc != null) played += sc;
+          if (sc != null) { hasScore = true; sum += sc; }
         }
-        return { idx, pid, played, th };
+        const rankValue = hasScore ? sum : Number.POSITIVE_INFINITY;
+        return { idx, pid, rankValue, th };
       });
 
-      const order = [...players].sort((a,b) => a.played - b.played || a.idx - b.idx).map(p => p.idx);
+      const order = [...players].sort((a,b) => a.rankValue - b.rankValue || a.idx - b.idx).map(p => p.idx);
       if (order.every((v, i) => v === i)) { if (!silent) updateRanks(); return; }
 
       // Reorder headers (keep first 2 fixed)
