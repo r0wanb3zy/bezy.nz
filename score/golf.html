@@ -62,12 +62,13 @@
       height: 80px;
       font-size: 22px;
     }
-    /* Make top-left settings header cell match solid dark bg and add divider to the right */
+
+    /* Top-left settings cell: solid dark bg + divider to Par */
     #scoreTable thead th:first-child {
       background: #3b3b3b;
       color: #fff;
-      border-right: 1px solid #666; /* ensure border between Settings and Par */
-      border-bottom: 1px solid #666; /* dark line like ref */
+      border-right: 1px solid #666; /* divider between settings and Par */
+      border-bottom: 1px solid #666;
     }
 
     /* Table cells (light borders for content like reference) */
@@ -85,27 +86,28 @@
     table td:last-child { border-right: none; }
     table tr:last-child td { border-bottom: none; }
 
-    /* First two columns: sticky + darker borders like reference special rows */
+    /* First two columns: sticky + darker borders */
     th.hole-header, td.hole-cell {
       position: sticky; left: 0; z-index: 2;
       background: #3b3b3b; color: #fff;
       width: var(--hole-w); min-width: var(--hole-w); max-width: var(--hole-w);
-      border-right: 1px solid #666;   /* divider to the Par column */
+      border-right: 1px solid #666;
       border-bottom: 1px solid #666;
+      cursor: default;
     }
     /* Make the entire top-left settings header clickable */
     th.hole-header { cursor: pointer; }
 
     th.par-header, td.par-cell {
       position: sticky;
-      left: calc(var(--hole-w) + 1px); /* include the hole-cell right border to avoid jump */
+      left: calc(var(--hole-w) + 1px);
       z-index: 2;
-      background: #3b3b3b; color: #fff; /* solid to match others; no gradient */
+      background: #3b3b3b; color: #fff; /* solid, no gradient */
       width: var(--par-w); min-width: var(--par-w); max-width: var(--par-w);
-      border-right: 1px solid #666;     /* keep body par-cell border */
+      border-right: 1px solid #666;
       border-bottom: 1px solid #666;
     }
-    /* Remove right border only on the TOP par header cell (not the whole column) */
+    /* Remove right border on TOP Par header only */
     th.par-header { border-right: none; }
 
     /* Make all body rows rock-solid height */
@@ -117,36 +119,38 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Summary rows (OUT/IN) darker like reference special rows */
+    /* Summary rows (OUT/IN) darker like reference */
     .summary-row td {
       background: #3b3b3b; color: white;
       border-bottom: 1px solid #666; border-right: 1px solid #666;
     }
     .summary-row td:last-child { border-right: none; }
 
-    /* Header player content */
+    /* Header player content — matched to Yahtzee spacing */
     #scoreTable thead th .player-name {
       display: block;
       max-width: 100%;
       overflow: hidden;
       white-space: nowrap;
-      text-overflow: clip; /* JS clips cleanly */
+      text-overflow: clip;
       text-align: center;
-      line-height: 1; /* keeps emoji centered optically */
+      line-height: normal; /* match Yahtzee */
+      margin: 0;
     }
     #scoreTable thead th div[id^="total"] {
-      font-size: 18px;
+      font-size: 22px; /* match Yahtzee */
       color: rgba(255, 255, 255, 0.9);
+      margin: 0;
     }
     #scoreTable thead th small {
-      font-size: 16px;
+      font-size: 16px; /* match Yahtzee */
       color: rgba(255, 255, 255, 0.8);
     }
     #scoreTable.small-scores thead th .player-name {
       font-size: 18px; line-height: 1.1;
     }
 
-    /* Gear icon */
+    /* Gear icon inherits pointer from header */
     .gear {
       font-size: 20px; cursor: inherit; color: #fff; background: none; border: none;
     }
@@ -156,7 +160,7 @@
       box-shadow: inset 0 0 0 2px #000;
     }
     #scoreBody td.score-cell.editing {
-      position: relative; /* only score cells need a positioning context for absolute input */
+      position: relative;
     }
     .inline-number {
       position: absolute;
@@ -178,7 +182,7 @@
     .inline-number::-webkit-outer-spin-button,
     .inline-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-    /* Reference popup styling (kept for parity and name/emoji/round modals) */
+    /* Reference popup styling (kept for parity) */
     #popupModal {
       display: none;
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -209,21 +213,20 @@
       -webkit-appearance: none; appearance: none; line-height: 1; outline: none;
     }
 
-    /* Close button (X) EXACTLY like reference */
+    /* Close button (X) */
     .close-btn {
       position: absolute; top: 0px; right: 0px;
       font-size: 48px; color: #000000; cursor: pointer; background: none; border: none;
       padding: 0; line-height: 1; width: 40px; height: 40px; text-align: center; transition: color 0.2s ease;
     }
 
-    /* Round management modal (reference) */
+    /* Round management modal */
     #roundManagementModal {
       display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: #ffffff; border: none; padding: 5px 20px 20px 20px; z-index: 1001;
       width: 200px; max-width: 90%; font-family: 'Economica', sans-serif;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px; text-align: center;
     }
-    #roundManagementModal h2 { margin: 15px 0; padding: 0; }
     #roundManagementModal select {
       font-size: 24px; padding: 10px; margin: 5px 0;
       font-family: 'Economica', sans-serif; border: 1px solid #333; border-radius: 6px;
@@ -247,7 +250,7 @@
       background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
     }
 
-    /* Player Name Modal (reference) */
+    /* Player Name Modal */
     #playerNameModal {
       display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: #ffffff; border: none; padding: 5px 20px 20px 20px; z-index: 1001;
@@ -273,7 +276,7 @@
       background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
     }
 
-    /* Segmented control (reference) */
+    /* Segmented control */
     .segmented-control {
       display: flex; width: 100%; box-sizing: border-box; margin: 5px 0;
       background: #f8f9fa; border-radius: 6px; overflow: hidden; border: 1px solid #262626;
@@ -295,7 +298,6 @@
       gap: var(--emoji-gap); padding: 0; margin: 5px 0; width: 100%; box-sizing: border-box;
       user-select: none; -webkit-user-select: none;
     }
-    /* Scope to modal to avoid inherited button styles and ensure perfect centering */
     #playerNameModal .emoji-grid .emoji-pick {
       background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
       color: #ffffff; border: none; border-radius: 6px;
@@ -308,7 +310,6 @@
       -webkit-appearance: none; appearance: none; outline: none;
     }
     #playerNameModal .emoji-grid .emoji-pick:active { transform: scale(0.95); filter: brightness(1.05); }
-    /* Multi-select visuals: dim overlay + numbered order (like reference) */
     .emoji-grid .emoji-pick.selected { box-shadow: 0 0 0 2px #262626 inset; }
     .emoji-grid .emoji-pick.selected::before {
       content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35);
@@ -322,7 +323,7 @@
     .bulk-actions { display: none; margin: 5px 0 0 0; width: 100%; }
     .bulk-actions .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center; width: 100%; }
 
-    /* Overlay (reference) */
+    /* Overlay */
     #overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); z-index: 999; cursor: pointer;
@@ -530,7 +531,7 @@
       const firstNine = Math.min(9, holesCount);
       for (let h = 1; h <= firstNine; h++) body.appendChild(makeHoleRow(h));
 
-      // OUT summary (dark)
+      // OUT summary
       const trOut = document.createElement('tr');
       trOut.className = 'summary-row';
       trOut.appendChild(makeStickyCell('hole-cell', 'OUT'));
@@ -543,7 +544,7 @@
 
       if (holesCount > 9) {
         for (let h = 10; h <= holesCount; h++) body.appendChild(makeHoleRow(h));
-        // IN summary (dark)
+        // IN summary
         const trIn = document.createElement('tr');
         trIn.className = 'summary-row';
         trIn.appendChild(makeStickyCell('hole-cell', 'IN'));
@@ -623,7 +624,7 @@
       const prevInput = activeInput;
 
       if (!preserveKeyboard) {
-        endInlineEdit(true); // clear any previous editor before creating a new one
+        endInlineEdit(true);
       }
 
       activeCell = td;
@@ -653,7 +654,6 @@
           cancelInlineEdit();
         }
       });
-      // Only submit on blur if this input is still the active one
       input.addEventListener('blur', () => {
         if (input !== activeInput) return;
         applyInlineEdit(input.value, false);
@@ -665,7 +665,6 @@
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
         input.select();
 
-        // After focusing the new input, clean up the previous one (to keep keyboard from closing)
         if (preserveKeyboard && prevInput && prevCell) {
           prevCell.classList.remove('editing');
           delete prevCell.dataset.prev;
@@ -719,7 +718,6 @@
       const nextCell = shouldAdvance ? getNextScoreCell(td) : null;
 
       if (nextCell) {
-        // Seamlessly move to next cell without closing the keyboard
         startInlineEdit(nextCell, 'score', { preserveKeyboard: true, prevDisplayText: displayText });
         updateAllTotals();
         if (sortByRankEnabled) applySortByRank(true);
@@ -728,7 +726,6 @@
         return;
       }
 
-      // Normal finalize (close keyboard)
       td.textContent = displayText;
       endInlineEdit(false);
       updateAllTotals();
@@ -754,7 +751,6 @@
     }
 
     /* ---------------- Outside tap handling ---------------- */
-    // Tap anywhere outside the current input: submit and close; if it was another score/par cell, suppress that click so no new cell is selected
     document.addEventListener('pointerdown', (e) => {
       if (activeInput && !activeInput.contains(e.target)) {
         const cellHit = e.target.closest('td.score-cell, td.par-cell');
@@ -820,7 +816,7 @@
       if (btn) { btn.textContent = 'Reset'; btn.removeAttribute('data-confirm'); }
     }
 
-    // UPDATED: Player add/remove to match reference app behavior (no full rebuild)
+    /* Add/remove players without full rebuild */
     function updatePlayerCount() {
       const val = parseInt(document.getElementById('playerCount').value, 10);
       const newCount = Math.min(8, Math.max(1, val));
@@ -829,27 +825,23 @@
       const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
       const existing = headerRow.children.length - 2; // exclude hole + par
 
-      // Remove extra players (from the end) + clean storage
+      // Remove extra players
       if (newCount < existing) {
         for (let i = existing; i > newCount; i--) {
           const pid = `P${i}`;
-          // Remove last header player cell
           if (headerRow.lastElementChild) headerRow.removeChild(headerRow.lastElementChild);
-          // Remove last cell for each row
           rows.forEach(tr => { if (tr.lastElementChild) tr.removeChild(tr.lastElementChild); });
-          // Clean LS for removed player
           localStorage.removeItem(LS.name(pid));
           for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(pid, h));
         }
       }
 
-      // Add new players
+      // Add players
       if (newCount > existing) {
         for (let i = existing + 1; i <= newCount; i++) {
           const pid = `P${i}`;
           const savedName = localStorage.getItem(LS.name(pid)) || (emojiModeEnabled && i <= 9 ? numberToKeycap(i) : pid);
 
-          // Header
           const th = document.createElement('th');
           th.setAttribute('data-player', pid);
           th.title = savedName;
@@ -857,23 +849,19 @@
           th.addEventListener('click', () => { window.currentPlayer = pid; openPlayerModalForHeader(pid); });
           headerRow.appendChild(th);
 
-          // Body rows
           rows.forEach(tr => {
             const first = tr.firstElementChild;
             const isSummary = tr.classList.contains('summary-row');
             const td = document.createElement('td');
             if (!isSummary) {
-              // Hole row
               const holeNo = parseInt(tr.querySelector('.hole-cell')?.textContent || '0', 10);
               td.className = 'score-cell';
               td.setAttribute('data-player', pid);
               td.setAttribute('data-hole', `H${holeNo}`);
               td.addEventListener('click', () => startInlineEdit(td, 'score'));
-              // Fill from LS if any
               const saved = localStorage.getItem(LS.score(pid, holeNo));
               if (saved != null) td.textContent = saved;
             } else {
-              // Summary row OUT/IN
               const label = first?.textContent?.trim() || '';
               if (label === 'OUT') td.setAttribute('data-sum', `out-${pid}`);
               if (label === 'IN') td.setAttribute('data-sum', `in-${pid}`);
@@ -893,7 +881,7 @@
       closeRoundManagement();
     }
 
-    // New: handle holes toggle via segmented control
+    // Segmented holes toggle
     function setHolesCount(val) {
       const n = parseInt(val, 10);
       holesCount = [9, 18].includes(n) ? n : 18;
@@ -1116,13 +1104,15 @@
       return true;
     }
 
+    // Preserve rank badge (small) when renaming (like Yahtzee)
     function applyPlayerName(pid, newName) {
       const header = document.querySelector(`#scoreTable thead th[data-player="${pid}"]`);
       if (!header) return;
       const totalDiv = header.querySelector('div[id^="total"]');
       const totalTxt = totalDiv ? totalDiv.textContent : '';
-      header.querySelectorAll('small').forEach(s => s.remove());
-      header.innerHTML = `<span class="player-name" data-full="${newName}" title="${newName}">${newName}</span><div id="total${pid}">${totalTxt}</div>`;
+      const rankEl = header.querySelector('small');
+      const rankHTML = rankEl ? rankEl.outerHTML : '';
+      header.innerHTML = `<span class="player-name" data-full="${newName}" title="${newName}">${newName}</span><div id="total${pid}">${totalTxt}</div>${rankHTML}`;
       header.setAttribute('data-player', pid);
       localStorage.setItem(LS.name(pid), newName);
       clipPlayerNamesToCell();
@@ -1187,7 +1177,6 @@
         emojiModeEnabled = true;
         localStorage.setItem(LS.emojiMode, 'true');
 
-        // Resize to selection length using same add/remove logic
         const pcSel = document.getElementById('playerCount');
         pcSel.value = String(targetCount);
         updatePlayerCount();
@@ -1297,7 +1286,7 @@
     // Color score numbers: par=black, over=grey, under=theme color
     function updateScoreColors() {
       const { h: H, s: S } = getThemeHS(themeColor);
-      const themeText = (l = 40) => `hsl(${H}, ${S}%, ${l}%)`; // readable theme color
+      const themeText = (l = 40) => `hsl(${H}, ${S}%, ${l}%)`;
       const grey = '#808080';
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => {
         const txt = td.textContent.trim();
@@ -1354,7 +1343,6 @@
         }
       }
 
-      // Apply score coloring after totals computed
       updateScoreColors();
     }
 
@@ -1366,6 +1354,7 @@
       if (count >= 7) table.classList.add('small-scores');
       else table.classList.remove('small-scores');
 
+      // Clear bg + old ranks
       headers.forEach(h => { h.style.background = ''; h.querySelectorAll('small').forEach(s => s.remove()); });
 
       const any = hasAnyEntry();
@@ -1409,12 +1398,15 @@
         });
       });
 
+      // Insert rank small immediately after the total div (match Yahtzee)
       const distinctAsc = Array.from(new Set(sorted.map(s => s.rankValue)));
       const rankByVal = new Map(distinctAsc.map((v, i) => [v, i + 1]));
       totals.forEach(({ h, rankValue }) => {
         const small = document.createElement('small');
         small.textContent = ordinalSuffixOf(rankByVal.get(rankValue) || 1);
-        h.appendChild(small);
+        const totalDiv = h.querySelector('div[id^="total"]');
+        if (totalDiv) totalDiv.insertAdjacentElement('afterend', small);
+        else h.appendChild(small);
       });
 
       clipPlayerNamesToCell();
@@ -1563,7 +1555,6 @@
     document.getElementById('overlay').addEventListener('click', () => {
       closeRoundManagement();
       closePlayerNameModal();
-      // Commit inline edit if open, then close without any cell selected
       if (activeInput) {
         applyInlineEdit(activeInput.value, false);
       } else {
