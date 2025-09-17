@@ -137,30 +137,29 @@
       line-height: 1; /* original look */
       margin: 0;
     }
-    /* Total line (block) so rank sits on its own line below */
+    /* Total line (block) — made slightly bigger */
     #scoreTable thead th div[id^="total"] {
       display: block;
-      font-size: 18px; /* original size */
-      color: rgba(255, 255, 255, 0.9);
+      font-size: 22px; /* was 18px */
+      color: rgba(255, 255, 255, 0.95);
       margin: 0;
     }
-    /* Small, rounded, gray to-par badge next to total */
+    /* Third line container for the pill */
+    #scoreTable thead th .to-par-line {
+      display: block;
+      line-height: 1;
+      margin-top: 4px;
+    }
+    /* White, slightly bigger pill; text color set by JS */
     #scoreTable thead th .to-par-badge {
       display: inline-block;
-      font-size: 12px;     /* smaller */
+      font-size: 14px;     /* was 12px */
       line-height: 1;
-      padding: 2px 6px;
+      padding: 4px 10px;   /* bigger paddings */
       border-radius: 9999px;
-      background: #9ca3af; /* gray bg */
-      color: #0f172a;      /* dark text */
+      background: #ffffff; /* white background */
+      color: #000000;      /* default (E) — JS overrides for +/- */
       vertical-align: middle;
-      margin-left: 6px;    /* spacing from strokes */
-    }
-    /* Rank on its own line (third line), original sizing */
-    #scoreTable thead th small {
-      display: block; /* force onto its own line */
-      font-size: 16px;
-      color: rgba(255, 255, 255, 0.8);
       margin: 0;
     }
 
@@ -539,6 +538,7 @@
         th.innerHTML = `
           <span class="player-name" data-full="${savedName}" title="${savedName}">${savedName}</span>
           <div id="total${pid}"></div>
+          <div class="to-par-line" id="toPar${pid}"></div>
         `;
         th.addEventListener('click', () => { window.currentPlayer = pid; openPlayerModalForHeader(pid); });
         headerRow.appendChild(th);
@@ -873,7 +873,11 @@
           const th = document.createElement('th');
           th.setAttribute('data-player', pid);
           th.title = savedName;
-          th.innerHTML = `<span class="player-name" data-full="${savedName}" title="${savedName}">${savedName}</span><div id="total${pid}"></div>`;
+          th.innerHTML = `
+            <span class="player-name" data-full="${savedName}" title="${savedName}">${savedName}</span>
+            <div id="total${pid}"></div>
+            <div class="to-par-line" id="toPar${pid}"></div>
+          `;
           th.addEventListener('click', () => { window.currentPlayer = pid; openPlayerModalForHeader(pid); });
           headerRow.appendChild(th);
 
@@ -933,7 +937,8 @@
     function setThemeColor(value) {
       themeColor = value || 'blue';
       localStorage.setItem(LS.themeColor, themeColor);
-      updateScoreColors(); // recolor under-par cells with new theme
+      updateScoreColors();        // recolor under-par cells with new theme
+      updateToParBadgeColors();   // recolor pill text
       updateRanks();
     }
 
@@ -1136,15 +1141,25 @@
       return true;
     }
 
-    // Preserve formatted total (with badge) and rank when renaming
+    // Update only the name to preserve total and pill lines
     function applyPlayerName(pid, newName) {
       const header = document.querySelector(`#scoreTable thead th[data-player="${pid}"]`);
       if (!header) return;
-      const totalDiv = header.querySelector('div[id^="total"]');
-      const totalHtml = totalDiv ? totalDiv.innerHTML : ''; // preserve badge markup
-      const rankEl = header.querySelector('small');
-      const rankHTML = rankEl ? rankEl.outerHTML : '';
-      header.innerHTML = `<span class="player-name" data-full="${newName}" title="${newName}">${newName}</span><div id="total${pid}">${totalHtml}</div>${rankHTML}`;
+
+      let nameEl = header.querySelector('.player-name');
+      if (nameEl) {
+        nameEl.textContent = newName;
+        nameEl.setAttribute('data-full', newName);
+        nameEl.setAttribute('title', newName);
+      } else {
+        // Fallback if structure changed unexpectedly
+        const totalDiv = header.querySelector(`div[id^="total"]`);
+        const toParDiv = header.querySelector('.to-par-line');
+        const totalHTML = totalDiv ? totalDiv.outerHTML : `<div id="total${pid}"></div>`;
+        const toParHTML = toParDiv ? toParDiv.outerHTML : `<div class="to-par-line" id="toPar${pid}"></div>`;
+        header.innerHTML = `<span class="player-name" data-full="${newName}" title="${newName}">${newName}</span>${totalHTML}${toParHTML}`;
+      }
+
       header.setAttribute('data-player', pid);
       localStorage.setItem(LS.name(pid), newName);
       clipPlayerNamesToCell();
@@ -1327,7 +1342,7 @@
         const score = parseInt(txt, 10);
         if (!Number.isFinite(score)) { td.style.color = ''; return; }
         const holeAttr = td.getAttribute('data-hole') || '';
-        const hole = parseInt(holeAttr.replace('H',''), 10);
+               const hole = parseInt(holeAttr.replace('H',''), 10);
         const par = Number.isFinite(hole) ? getPar(hole) : 3;
         if (score < par) td.style.color = themeText(40);
         else if (score > par) td.style.color = grey;
@@ -1365,23 +1380,51 @@
         if (holesCount > 9) setSumCell(`in-${pid}`, sumIn);
 
         const totalDiv = document.getElementById(`total${pid}`);
-        if (!totalDiv) continue;
+        const toParDiv = document.getElementById(`toPar${pid}`);
+        if (!totalDiv || !toParDiv) continue;
 
         if (hasScore) {
           const toPar = (playedPar === 0) ? 0 : (playedStrokes - playedPar);
           const tp = toPar === 0 ? 'E' : (toPar > 0 ? `+${toPar}` : `${toPar}`);
-          totalDiv.innerHTML = `<span class="strokes">${playedStrokes}</span><span class="to-par-badge">${tp}</span>`;
+
+          // Line 2: bigger total strokes
+          totalDiv.innerHTML = `<span class="strokes">${playedStrokes}</span>`;
+          // Line 3: white pill only
+          toParDiv.innerHTML = `<span class="to-par-badge" data-value="${toPar}">${tp}</span>`;
         } else {
           if (any) {
-            totalDiv.innerHTML = `<span class="strokes">0</span><span class="to-par-badge">E</span>`;
+            totalDiv.innerHTML = `<span class="strokes">0</span>`;
+            toParDiv.innerHTML = `<span class="to-par-badge" data-value="0">E</span>`;
           } else {
             totalDiv.innerHTML = '';
+            toParDiv.innerHTML = '';
           }
         }
       }
 
-      // Apply score coloring after totals computed
+      // Apply score coloring and pill text colors
       updateScoreColors();
+      updateToParBadgeColors();
+    }
+
+    // Set pill text color: black for E, grey for over par, theme color for under par
+    function updateToParBadgeColors() {
+      const { h: H, s: S } = getThemeHS(themeColor);
+      const themeText = `hsl(${H}, ${S}%, 40%)`; // under-par color (theme)
+      const grey = '#808080';                    // over-par color
+
+      document.querySelectorAll('#scoreTable thead th .to-par-badge').forEach(badge => {
+        const raw = badge.getAttribute('data-value');
+        const val = raw != null ? parseInt(raw, 10) : NaN;
+
+        if (!Number.isFinite(val) || val === 0) {
+          badge.style.color = '#000000'; // E (even)
+        } else if (val > 0) {
+          badge.style.color = grey; // over par
+        } else {
+          badge.style.color = themeText; // under par
+        }
+      });
     }
 
     function updateRanks() {
@@ -1392,7 +1435,11 @@
       if (count >= 7) table.classList.add('small-scores');
       else table.classList.remove('small-scores');
 
-      headers.forEach(h => { h.style.background = ''; h.querySelectorAll('small').forEach(s => s.remove()); });
+      // Clear background and remove any old rank <small> from older versions
+      headers.forEach(h => {
+        h.style.background = '';
+        h.querySelectorAll('small').forEach(s => s.remove());
+      });
 
       const any = hasAnyEntry();
       if (!any) { clipPlayerNamesToCell(); return; }
@@ -1417,6 +1464,7 @@
         else last.members.push(item.pid);
       }
 
+      // Gradient background by group
       const { h: H, s: S } = getThemeHS(themeColor);
       const Lmax = 82, minRange = 18, maxRange = 44;
       const effective = groups.length;
@@ -1435,17 +1483,7 @@
         });
       });
 
-      // Insert rank label AFTER total (third line) like original stack
-      const distinctAsc = Array.from(new Set(sorted.map(s => s.rankValue)));
-      const rankByVal = new Map(distinctAsc.map((v, i) => [v, i + 1]));
-      totals.forEach(({ h, rankValue }) => {
-        const small = document.createElement('small');
-        small.textContent = ordinalSuffixOf(rankByVal.get(rankValue) || 1);
-        const totalDiv = h.querySelector('div[id^="total"]');
-        if (totalDiv) totalDiv.insertAdjacentElement('afterend', small);
-        else h.appendChild(small);
-      });
-
+      // No rank text insertion anymore
       clipPlayerNamesToCell();
     }
 
