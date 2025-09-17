@@ -360,6 +360,26 @@
     #roundManagementModal select#themeColorSelect option { text-align: center; }
 
     * { -webkit-tap-highlight-color: transparent; }
+    /* 1) No bottom border under player header cells (name columns only) */
+#scoreTable thead th[data-player] {
+  border-bottom: none !important;
+}
+
+/* Keep bottom border on the left headers */
+#scoreTable thead th.hole-header,
+#scoreTable thead th.par-header {
+  border-bottom: 1px solid #666; /* already your style */
+}
+
+/* 2) Remove right border from par cells (hole rows only) */
+#scoreTable tbody tr:not(.summary-row) td.par-cell {
+  border-right: none !important;
+}
+
+/* Keep the OUT/IN summary par cell borders the same */
+#scoreTable tbody tr.summary-row td.par-cell {
+  border-right: 1px solid #666 !important;
+}
   </style>
 </head>
 <body>
