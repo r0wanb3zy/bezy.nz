@@ -133,10 +133,9 @@
       text-overflow: clip;
       text-align: center;
       font-size: 22px;
-      line-height: 22px; /* lock to prevent emoji/name baseline shift */
+      line-height: 22px;
       margin: 0;
-      /* Fix slight emoji clipping by giving a touch of breathing room */
-      padding-bottom: 2px;
+      padding-bottom: 2px; /* prevent tiny emoji clipping */
     }
     #scoreTable thead th div[id^="total"] {
       display: block;
@@ -147,37 +146,33 @@
     #scoreTable thead th .to-par-line {
       display: block;
       line-height: 1;
-      margin-top: 0; /* no extra spacing */
+      margin-top: 0;
     }
-    /* White pill; base 16px text */
-    #scoreTable thead th .to-par-badge {
+    .to-par-badge {
       display: inline-block;
       font-size: 16px;
       line-height: 1;
       padding: 4px 10px;
       border-radius: 9999px;
       background: #ffffff;
-      color: #000000; /* E default; JS will recolor + / - */
+      color: #000000;
       vertical-align: middle;
       margin: 0;
     }
-    /* 7–8 players: smaller pill text */
-    #scoreTable.small-scores thead th .to-par-badge { font-size: 12px; }
+    #scoreTable.small-scores thead th .to-par-badge { font-size: 14px; }
 
-    /* 7–8 players: shrink name but keep fixed line-height to avoid nudge */
     #scoreTable.small-scores thead th .player-name {
       font-size: 18px;
       line-height: 18px;
-      padding-bottom: 2px; /* also prevent tiny clipping when smaller */
+      padding-bottom: 2px;
     }
 
-    /* Settings icon */
     .gear {
       font-size: 20px; cursor: inherit; color: #fff; background: none; border: none;
       padding: 0; margin: 0; line-height: 1;
     }
 
-    /* Inline editing: black border only, no glow, no caret */
+    /* Inline editing */
     #scoreBody td.editing {
       outline: 2px solid #000;
       outline-offset: -2px;
@@ -196,23 +191,17 @@
       font: inherit;
       color: inherit;
       line-height: var(--row-h);
-      padding: 0;
-      margin: 0;
+      padding: 0; margin: 0;
       -moz-appearance: textfield;
       appearance: textfield;
-
-      /* Hide caret + prevent selection highlight */
       caret-color: transparent;
-      user-select: none;
-      -webkit-user-select: none;
+      user-select: none; -webkit-user-select: none;
       cursor: default;
     }
-    .inline-number::selection { background: transparent; }
-    .inline-number::-moz-selection { background: transparent; }
-    .inline-number::-webkit-outer-spin-button,
-    .inline-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .inline-number::selection, .inline-number::-moz-selection { background: transparent; }
+    .inline-number::-webkit-outer-spin-button, .inline-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-    /* Popup/modal styles (unchanged) */
+    /* Popup/modal */
     #popupModal {
       display: none;
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -358,8 +347,8 @@
       background: rgba(0,0,0,0.5); z-index: 999; cursor: pointer;
     }
 
-    /* Drag feedback (reorder players) */
-    th.dragging { opacity: 0.5; } /* No border or width change to avoid layout shift */
+    /* Drag feedback (clean: no hover divider; no layout shift) */
+    th.dragging { opacity: 0.5; }
 
     /* Round modal: theme-colored option text */
     #roundManagementModal select#themeColorSelect {
@@ -522,14 +511,12 @@
 
     /* ---------------- Init ---------------- */
     document.addEventListener('DOMContentLoaded', () => {
-      // Preload selects
       const pcSel = document.getElementById('playerCount');
       if (pcSel) pcSel.value = String(playerCount);
       const themeSel = document.getElementById('themeColorSelect');
       if (themeSel) themeSel.value = themeColor;
       applyThemeSelectColors();
 
-      // Set holes segmented toggle
       const holes9 = document.getElementById('holes9');
       const holes18 = document.getElementById('holes18');
       if (holes9 && holes18) {
@@ -544,7 +531,7 @@
       fitRowsToViewport();
       setFullHeight();
       clipPlayerNamesToCell();
-      attachDragListeners(); // enable drag-to-reorder
+      attachDragListeners(); // allow drag gestures; with Sort ON, drop is ignored
 
       const sortBtn = document.getElementById('sortByRankBtn');
       if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
@@ -702,7 +689,7 @@
       input.autocomplete = 'off';
       input.autocorrect = 'off';
       input.spellcheck = false;
-      input.value = prevText;     // show current value but no selection
+      input.value = prevText;
       input.setAttribute('enterkeyhint', mode === 'score' ? 'next' : 'done');
       input._edited = false;
       input._clearedOnFirstInsert = false;
@@ -712,14 +699,12 @@
       td.classList.add('editing');
       td.appendChild(input);
 
-      // Overwrite behavior: first insert clears current
       input.addEventListener('beforeinput', (e) => {
         if (!input._clearedOnFirstInsert && e.inputType && e.inputType.startsWith('insert')) {
           input.value = '';
           input._clearedOnFirstInsert = true;
         }
       });
-      // Fallback for platforms without beforeinput
       input.addEventListener('keydown', (e) => {
         if (!input._clearedOnFirstInsert && e.key && e.key.length === 1 && /[0-9]/.test(e.key)) {
           input.value = '';
@@ -740,11 +725,8 @@
       });
 
       activeInput = input;
-
-      // Focus immediately (no selection) to keep IME open
       try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
 
-      // If we’re advancing, remove previous input immediately and commit its display
       if (preserveKeyboard && prevInput && prevCell) {
         prevCell.classList.remove('editing');
         delete prevCell.dataset.prev;
@@ -803,7 +785,6 @@
       const nextCell = shouldAdvance ? getNextScoreCell(td) : null;
 
       if (nextCell) {
-        // Create next editor immediately; commit current display within startInlineEdit
         startInlineEdit(nextCell, 'score', { preserveKeyboard: true, prevDisplayText: displayText });
         updateAllTotals();
         if (sortByRankEnabled) applySortByRank(true);
@@ -812,7 +793,6 @@
         return;
       }
 
-      // Finalize current cell
       td.textContent = displayText;
       endInlineEdit(false);
       updateAllTotals();
@@ -911,7 +891,7 @@
       const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
       const existing = headerRow.children.length - 2; // exclude hole + par
 
-      // Remove extra players
+      // Remove extra players (trim from the end: safe)
       if (newCount < existing) {
         for (let i = existing; i > newCount; i--) {
           const pid = `P${i}`;
@@ -987,13 +967,14 @@
       if (btn) btn.classList.toggle('active', sortByRankEnabled);
       if (sortByRankEnabled) applySortByRank();
       updateRanks();
+      attachDragListeners(); // drag allowed; drop ignored when sorting is ON
     }
     function setThemeColor(value) {
       themeColor = value || 'blue';
       localStorage.setItem(LS.themeColor, themeColor);
       applyThemeSelectColors();
-      updateScoreColors();        // recolor under-par cells with new theme
-      updateToParBadgeColors();   // recolor pill text
+      updateScoreColors();
+      updateToParBadgeColors();
       updateRanks();
     }
 
@@ -1043,14 +1024,10 @@
       showOverlay();
 
       const input = document.getElementById('playerNameInput');
-
-      // Select all text on focus
       input.addEventListener('focus', function () {
         try { this.select(); } catch (_) {}
         try { this.setSelectionRange(0, this.value.length); } catch (_) {}
       });
-
-      // Focus + select after the tap (mobile-friendly)
       let primed = false;
       const primeFocus = (e) => {
         if (primed) return;
@@ -1119,13 +1096,10 @@
 
       let primed = false;
       const input = document.getElementById('emojiNameInput');
-
-      // Select text on focus
       input.addEventListener('focus', function () {
         try { this.select(); } catch (_) {}
         try { this.setSelectionRange(0, this.value.length); } catch (_) {}
       });
-
       const primeFocus = (e) => {
         if (primed) return;
         primed = true;
@@ -1184,35 +1158,84 @@
       }
     }
 
+    /* FIXED: robust reindex after delete */
     function removePlayer(pid) {
-      const idx = parseInt(pid.replace('P',''), 10) - 1;
+      const removedIdx = parseInt(pid.replace('P',''), 10) - 1; // 0-based index of removed column among players
       if (playerCount <= 1) { alert('At least one player must remain.'); return false; }
 
       const headerRow = document.getElementById('playerRow');
-      if (headerRow.children[idx + 2]) headerRow.removeChild(headerRow.children[idx + 2]);
+      const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
 
-      document.querySelectorAll('#scoreBody tr').forEach(row => {
-        if (row.children[idx + 2]) row.removeChild(row.children[idx + 2]);
-      });
+      // 1) Remove the header cell and its column in every row
+      if (headerRow.children[removedIdx + 2]) headerRow.removeChild(headerRow.children[removedIdx + 2]);
+      rows.forEach(row => { if (row.children[removedIdx + 2]) row.removeChild(row.children[removedIdx + 2]); });
 
-      // Reindex storage and DOM attributes for players to the right
-      for (let p = idx + 2; p <= playerCount; p++) {
+      // 2) Shift storage keys P(i+1) -> P(i) for all players to the right
+      for (let p = removedIdx + 2; p <= playerCount; p++) {
         const oldPid = `P${p}`, newPid = `P${p-1}`;
         const name = localStorage.getItem(LS.name(oldPid));
-        if (name != null) { localStorage.setItem(LS.name(newPid), name); localStorage.removeItem(LS.name(oldPid)); }
-        for (let h = 1; h <= holesCount; h++) {
-          const v = localStorage.getItem(LS.score(oldPid, h));
-          if (v != null) { localStorage.setItem(LS.score(newPid, h), v); localStorage.removeItem(LS.score(oldPid, h)); }
+        if (name != null) {
+          localStorage.setItem(LS.name(newPid), name);
+          localStorage.removeItem(LS.name(oldPid));
+        }
+        for (let h = 1; h <= 18; h++) {
+          const oldKey = LS.score(oldPid, h);
+          const val = localStorage.getItem(oldKey);
+          localStorage.removeItem(oldKey);
+          if (val != null) localStorage.setItem(LS.score(newPid, h), val);
         }
       }
-      localStorage.removeItem(LS.name(pid));
-      for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(pid, h));
+      // Clean trailing last player's storage
+      const trailingPid = `P${playerCount}`;
+      localStorage.removeItem(LS.name(trailingPid));
+      for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(trailingPid, h));
 
+      // 3) Update count + UI select
       playerCount -= 1;
       localStorage.setItem(LS.playerCount, String(playerCount));
+      const pcSel = document.getElementById('playerCount');
+      if (pcSel) pcSel.value = String(playerCount);
+
+      // 4) Reindex DOM attributes (headers + cells) left-to-right to P1..Pn
+      // Only columns at and to the right of removedIdx need reindexing
+      for (let i = removedIdx; i < playerCount; i++) {
+        const newPid = `P${i+1}`;
+
+        // Header cell rebind
+        const th = headerRow.children[i + 2];
+        if (th) {
+          const nm = localStorage.getItem(LS.name(newPid)) || newPid;
+          th.setAttribute('data-player', newPid);
+          th.innerHTML = `
+            <span class="player-name" data-full="${nm}" title="${nm}">${nm}</span>
+            <div id="total${newPid}"></div>
+            <div class="to-par-line" id="toPar${newPid}"></div>
+          `;
+          th.addEventListener('click', onHeaderClick);
+        }
+
+        // Body cells: set data-player; summary cells: fix data-sum keys
+        rows.forEach(row => {
+          const first = row.firstElementChild;
+          const label = first?.textContent?.trim() || '';
+          const cell = row.children[i + 2];
+          if (!cell) return;
+
+          if (row.classList.contains('summary-row')) {
+            if (label === 'OUT') cell.setAttribute('data-sum', `out-${newPid}`);
+            if (label === 'IN')  cell.setAttribute('data-sum', `in-${newPid}`);
+          } else {
+            cell.setAttribute('data-player', newPid);
+          }
+        });
+      }
+
+      // 5) Recalculate, resort (if enabled), and refresh visuals
       fitRowsToViewport();
       updateAllTotals();
+      if (sortByRankEnabled) applySortByRank(true);
       updateRanks();
+      clipPlayerNamesToCell();
       attachDragListeners();
       return true;
     }
@@ -1384,7 +1407,7 @@
       const rows = document.querySelectorAll('#scoreBody tr').length;
       const viewportH = Math.max(window.innerHeight, document.documentElement.clientHeight || 0);
       if (rows > 0) {
-        const approxBorders = rows; /* 1px per row bottom border */
+        const approxBorders = rows;
         const avail = Math.max(1, viewportH - headerH);
         const rowH = Math.max(20, Math.floor((avail - approxBorders) / rows));
         document.documentElement.style.setProperty('--row-h', rowH + 'px');
@@ -1405,7 +1428,6 @@
       return Array.from(document.querySelectorAll('.score-cell')).some(td => td.textContent.trim() !== '');
     }
 
-    // Color scores: par=black, over=grey, under=theme
     function updateScoreColors() {
       const { h: H, s: S } = getThemeHS(themeColor);
       const themeText = (l = 40) => `hsl(${H}, ${S}%, ${l}%)`;
@@ -1416,7 +1438,7 @@
         const score = parseInt(txt, 10);
         if (!Number.isFinite(score)) { td.style.color = ''; return; }
         const holeAttr = td.getAttribute('data-hole') || '';
-               const hole = parseInt(holeAttr.replace('H',''), 10);
+        const hole = parseInt(holeAttr.replace('H',''), 10);
         const par = Number.isFinite(hole) ? getPar(hole) : 3;
         if (score < par) td.style.color = themeText(40);
         else if (score > par) td.style.color = grey;
@@ -1488,11 +1510,11 @@
         const val = raw != null ? parseInt(raw, 10) : NaN;
 
         if (!Number.isFinite(val) || val === 0) {
-          badge.style.color = '#000000'; // E
+          badge.style.color = '#000000';
         } else if (val > 0) {
-          badge.style.color = grey; // over
+          badge.style.color = grey;
         } else {
-          badge.style.color = themeText; // under
+          badge.style.color = themeText;
         }
       });
     }
@@ -1593,7 +1615,6 @@
       const headers = Array.from(headerRow.children).slice(2);
       if (headers.length <= 1 || !hasAnyEntry()) return;
 
-      // Build totals by current pid
       const players = headers.map((th, idx) => {
         const pid = th.getAttribute('data-player');
         let sum = 0, hasScore = false;
@@ -1605,11 +1626,9 @@
         return { idx, pid, rankValue };
       });
 
-      // Ascending (lower total is better)
       const order = [...players].sort((a,b) => a.rankValue - b.rankValue || a.idx - b.idx).map(p => p.idx);
       if (order.every((v, i) => v === i)) { if (!silent) updateRanks(); return; }
 
-      // Collect player data from storage (names + all hole scores)
       const playerData = [];
       for (let i = 0; i < playerCount; i++) {
         const pid = `P${i+1}`;
@@ -1623,14 +1642,12 @@
         playerData.push({ name, scores });
       }
 
-      // Reorder header DOM (keep first 2 fixed)
       const fixed = Array.from(headerRow.children).slice(0,2);
       const moving = Array.from(headerRow.children).slice(2);
       headerRow.innerHTML = '';
       fixed.forEach(n => headerRow.appendChild(n));
       order.forEach(i => headerRow.appendChild(moving[i]));
 
-      // Reorder each body row
       rows.forEach(tr => {
         const cells = Array.from(tr.children);
         const fixed2 = cells.slice(0,2);
@@ -1640,10 +1657,8 @@
         order.forEach(i => tr.appendChild(movingCells[i]));
       });
 
-      // Reorder data to match new column order
       const newData = order.map(i => playerData[i]);
 
-      // Rewrite header + cell attributes and storage to new left->right P1..Pn
       for (let i = 0; i < playerCount; i++) {
         const newPid = `P${i+1}`;
         const th = headerRow.children[i + 2];
@@ -1671,7 +1686,6 @@
         });
       }
 
-      // Rewrite storage mapping
       for (let p = 1; p <= playerCount; p++) {
         const pid = `P${p}`;
         localStorage.removeItem(LS.name(pid));
@@ -1686,7 +1700,7 @@
         }
       }
 
-      attachDragListeners();
+      attachDragListeners(); // drag allowed; drop ignored if sorting
       updateAllTotals();
       if (!silent) updateRanks();
       fitRowsToViewport();
@@ -1756,10 +1770,10 @@
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
-      attachDragListeners(); // re-enable drag after rebuild
+      attachDragListeners();
     }
 
-    /* ---------------- Drag & Drop (clean: no hover divider, no layout shift) ---------------- */
+    /* ---------------- Drag & Drop (clean; drop ignored when sorting is ON) ---------------- */
     function attachDragListeners() {
       const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
       headers.forEach((header, index) => {
@@ -1799,6 +1813,12 @@
 
     function handleDrop(event, dropIndex) {
       event.preventDefault();
+
+      // If sorting is ON, ignore reordering (drag visual only)
+      if (sortByRankEnabled) {
+        draggedIndex = -1;
+        return;
+      }
 
       if (draggedIndex === -1 || draggedIndex === dropIndex) {
         draggedIndex = -1;
