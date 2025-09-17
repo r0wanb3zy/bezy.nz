@@ -359,8 +359,16 @@
     }
 
     /* Drag feedback (reorder players) */
-    th.dragging { opacity: 0.5; background: rgba(0, 0, 0, 0.2) !important; }
-    th.drag-over { border-left: 2px solid #333; }
+    th.dragging { opacity: 0.5; } /* No border or width change to avoid layout shift */
+
+    /* Round modal: theme-colored option text */
+    #roundManagementModal select#themeColorSelect {
+      text-align: center; text-align-last: center; -moz-text-align-last: center;
+      -webkit-appearance: none; -moz-appearance: none; appearance: none;
+      background-image: none !important; background-color: #f8f9fa; padding-right: 12px;
+    }
+    #roundManagementModal select#themeColorSelect::-ms-expand { display: none; }
+    #roundManagementModal select#themeColorSelect option { text-align: center; }
 
     * { -webkit-tap-highlight-color: transparent; }
   </style>
@@ -452,6 +460,17 @@
       grey:   { h: 210, s:  0 }
     };
     function getThemeHS(key) { return THEME_MAP[key] || THEME_MAP.blue; }
+    function getThemeTextColor(key) {
+      const t = THEME_MAP[key] || THEME_MAP.blue;
+      const L = key === 'yellow' ? 32 : 34;
+      return `hsl(${t.h}, ${t.s}%, ${L}%)`;
+    }
+    function applyThemeSelectColors() {
+      const select = document.querySelector('#roundManagementModal select#themeColorSelect');
+      if (!select) return;
+      select.style.color = getThemeTextColor(themeColor);
+      Array.from(select.options).forEach(opt => { opt.style.color = getThemeTextColor(opt.value); });
+    }
 
     const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
     function numberToKeycap(n) { return KEYCAP_DIGITS[n] || String(n); }
@@ -508,6 +527,7 @@
       if (pcSel) pcSel.value = String(playerCount);
       const themeSel = document.getElementById('themeColorSelect');
       if (themeSel) themeSel.value = themeColor;
+      applyThemeSelectColors();
 
       // Set holes segmented toggle
       const holes9 = document.getElementById('holes9');
@@ -538,6 +558,13 @@
       }, 250);
     });
 
+    function onHeaderClick(e) {
+      const th = e.currentTarget;
+      const pid = th.getAttribute('data-player');
+      window.currentPlayer = pid;
+      openPlayerModalForHeader(pid);
+    }
+
     /* ---------------- Build ---------------- */
     function buildTable() {
       const headerRow = document.getElementById('playerRow');
@@ -557,7 +584,7 @@
           <div id="total${pid}"></div>
           <div class="to-par-line" id="toPar${pid}"></div>
         `;
-        th.addEventListener('click', () => { window.currentPlayer = pid; openPlayerModalForHeader(pid); });
+        th.addEventListener('click', onHeaderClick);
         headerRow.appendChild(th);
       }
 
@@ -849,6 +876,7 @@
       }
 
       document.getElementById('roundManagementModal').style.display = 'block';
+      applyThemeSelectColors();
       showOverlay();
       resetButtonState();
     }
@@ -908,7 +936,7 @@
             <div id="total${pid}"></div>
             <div class="to-par-line" id="toPar${pid}"></div>
           `;
-          th.addEventListener('click', () => { window.currentPlayer = pid; openPlayerModalForHeader(pid); });
+          th.addEventListener('click', onHeaderClick);
           headerRow.appendChild(th);
 
           rows.forEach(tr => {
@@ -963,6 +991,7 @@
     function setThemeColor(value) {
       themeColor = value || 'blue';
       localStorage.setItem(LS.themeColor, themeColor);
+      applyThemeSelectColors();
       updateScoreColors();        // recolor under-par cells with new theme
       updateToParBadgeColors();   // recolor pill text
       updateRanks();
@@ -1021,7 +1050,7 @@
         try { this.setSelectionRange(0, this.value.length); } catch (_) {}
       });
 
-      // Keep keyboard closed until user taps; focus + select after the tap
+      // Focus + select after the tap (mobile-friendly)
       let primed = false;
       const primeFocus = (e) => {
         if (primed) return;
@@ -1091,7 +1120,7 @@
       let primed = false;
       const input = document.getElementById('emojiNameInput');
 
-      // Select text on focus (useful when an emoji is already there)
+      // Select text on focus
       input.addEventListener('focus', function () {
         try { this.select(); } catch (_) {}
         try { this.setSelectionRange(0, this.value.length); } catch (_) {}
@@ -1387,7 +1416,7 @@
         const score = parseInt(txt, 10);
         if (!Number.isFinite(score)) { td.style.color = ''; return; }
         const holeAttr = td.getAttribute('data-hole') || '';
-        const hole = parseInt(holeAttr.replace('H',''), 10);
+               const hole = parseInt(holeAttr.replace('H',''), 10);
         const par = Number.isFinite(hole) ? getPar(hole) : 3;
         if (score < par) td.style.color = themeText(40);
         else if (score > par) td.style.color = grey;
@@ -1557,13 +1586,14 @@
       });
     }
 
+    /* ---------------- Sort by rank (reindex left->right) ---------------- */
     function applySortByRank(silent = false) {
       const headerRow = document.getElementById('playerRow');
       const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
-
       const headers = Array.from(headerRow.children).slice(2);
       if (headers.length <= 1 || !hasAnyEntry()) return;
 
+      // Build totals by current pid
       const players = headers.map((th, idx) => {
         const pid = th.getAttribute('data-player');
         let sum = 0, hasScore = false;
@@ -1572,13 +1602,28 @@
           if (sc != null) { hasScore = true; sum += sc; }
         }
         const rankValue = hasScore ? sum : Number.POSITIVE_INFINITY;
-        return { idx, pid, rankValue, th };
+        return { idx, pid, rankValue };
       });
 
+      // Ascending (lower total is better)
       const order = [...players].sort((a,b) => a.rankValue - b.rankValue || a.idx - b.idx).map(p => p.idx);
       if (order.every((v, i) => v === i)) { if (!silent) updateRanks(); return; }
 
-      // Reorder headers (keep first 2 fixed)
+      // Collect player data from storage (names + all hole scores)
+      const playerData = [];
+      for (let i = 0; i < playerCount; i++) {
+        const pid = `P${i+1}`;
+        const name = localStorage.getItem(LS.name(pid)) ||
+          (document.querySelector(`#scoreTable thead th[data-player="${pid}"] .player-name`)?.textContent?.trim() || pid);
+        const scores = {};
+        for (let h = 1; h <= holesCount; h++) {
+          const v = localStorage.getItem(LS.score(pid, h));
+          scores[h] = (v != null) ? v : null;
+        }
+        playerData.push({ name, scores });
+      }
+
+      // Reorder header DOM (keep first 2 fixed)
       const fixed = Array.from(headerRow.children).slice(0,2);
       const moving = Array.from(headerRow.children).slice(2);
       headerRow.innerHTML = '';
@@ -1595,9 +1640,57 @@
         order.forEach(i => tr.appendChild(movingCells[i]));
       });
 
+      // Reorder data to match new column order
+      const newData = order.map(i => playerData[i]);
+
+      // Rewrite header + cell attributes and storage to new left->right P1..Pn
+      for (let i = 0; i < playerCount; i++) {
+        const newPid = `P${i+1}`;
+        const th = headerRow.children[i + 2];
+
+        const strokesText = th.querySelector('div[id^="total"]')?.textContent || '';
+        th.setAttribute('data-player', newPid);
+        th.innerHTML = `
+          <span class="player-name" data-full="${newData[i].name}" title="${newData[i].name}">${newData[i].name}</span>
+          <div id="total${newPid}">${strokesText}</div>
+          <div class="to-par-line" id="toPar${newPid}"></div>
+        `;
+        th.addEventListener('click', onHeaderClick);
+
+        rows.forEach(row => {
+          const first = row.firstElementChild;
+          const label = first?.textContent?.trim() || '';
+          const cell = row.children[i + 2];
+          if (!cell) return;
+          if (!row.classList.contains('summary-row')) {
+            cell.setAttribute('data-player', newPid);
+          } else {
+            if (label === 'OUT') cell.setAttribute('data-sum', `out-${newPid}`);
+            if (label === 'IN')  cell.setAttribute('data-sum', `in-${newPid}`);
+          }
+        });
+      }
+
+      // Rewrite storage mapping
+      for (let p = 1; p <= playerCount; p++) {
+        const pid = `P${p}`;
+        localStorage.removeItem(LS.name(pid));
+        for (let h = 1; h <= holesCount; h++) localStorage.removeItem(LS.score(pid, h));
+      }
+      for (let i = 0; i < playerCount; i++) {
+        const pid = `P${i+1}`;
+        localStorage.setItem(LS.name(pid), newData[i].name);
+        for (let h = 1; h <= holesCount; h++) {
+          const v = newData[i].scores[h];
+          if (v != null) localStorage.setItem(LS.score(pid, h), v);
+        }
+      }
+
+      attachDragListeners();
+      updateAllTotals();
       if (!silent) updateRanks();
       fitRowsToViewport();
-      attachDragListeners(); // re-enable drag after sort reorder
+      clipPlayerNamesToCell();
     }
 
     /* ---------------- Rebuild preserving (used for holes toggle) ---------------- */
@@ -1635,6 +1728,8 @@
           header.setAttribute('data-full', nm);
           header.setAttribute('title', nm);
         }
+        const th = document.querySelector(`#scoreTable thead th[data-player="${pid}"]`);
+        if (th) th.addEventListener('click', onHeaderClick);
       }
       for (let h = 1; h <= holesCount; h++) {
         const v = pars[h] ?? '3';
@@ -1664,7 +1759,7 @@
       attachDragListeners(); // re-enable drag after rebuild
     }
 
-    /* ---------------- Drag & Drop (reorder players) ---------------- */
+    /* ---------------- Drag & Drop (clean: no hover divider, no layout shift) ---------------- */
     function attachDragListeners() {
       const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
       headers.forEach((header, index) => {
@@ -1689,7 +1784,7 @@
 
     function handleDragStart(event, index) {
       draggedIndex = index;
-      event.target.classList.add('dragging');
+      event.currentTarget.classList.add('dragging');
       if (event.dataTransfer) {
         event.dataTransfer.effectAllowed = 'move';
         try { event.dataTransfer.setData('text/plain', ''); } catch (_) {}
@@ -1699,22 +1794,11 @@
     function handleDragOver(event) {
       event.preventDefault();
       if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-      const target = event.target.closest('th[data-player]');
-      document.querySelectorAll('#scoreTable thead th').forEach(th => th.classList.remove('drag-over'));
-      if (target) target.classList.add('drag-over');
+      // No hover styling to avoid divider line and layout shift
     }
 
     function handleDrop(event, dropIndex) {
       event.preventDefault();
-      document.querySelectorAll('#scoreTable thead th').forEach(th => th.classList.remove('drag-over'));
-
-      // If sorting is enabled, disable it so manual order persists
-      if (sortByRankEnabled) {
-        sortByRankEnabled = false;
-        localStorage.setItem(LS.sort, 'false');
-        const btn = document.getElementById('sortByRankBtn');
-        if (btn) btn.classList.remove('active');
-      }
 
       if (draggedIndex === -1 || draggedIndex === dropIndex) {
         draggedIndex = -1;
@@ -1722,18 +1806,32 @@
       }
 
       const headerRow = document.getElementById('playerRow');
-      const allHeaders = Array.from(headerRow.children);
-      const fixed = allHeaders.slice(0, 2);
-      const playerHeaders = allHeaders.slice(2);
+      const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
 
+      // Collect current data (names + scores) by current left->right P#
+      const playerData = [];
+      for (let i = 0; i < playerCount; i++) {
+        const pid = `P${i+1}`;
+        const name = localStorage.getItem(LS.name(pid)) ||
+          (document.querySelector(`#scoreTable thead th[data-player="${pid}"] .player-name`)?.textContent?.trim() || pid);
+        const scores = {};
+        for (let h = 1; h <= holesCount; h++) {
+          const v = localStorage.getItem(LS.score(pid, h));
+          scores[h] = (v != null) ? v : null;
+        }
+        playerData.push({ name, scores });
+      }
+
+      // Reorder header nodes (keeping first 2 fixed)
+      const fixed = Array.from(headerRow.children).slice(0,2);
+      const playerHeaders = Array.from(headerRow.children).slice(2);
       const [draggedHeader] = playerHeaders.splice(draggedIndex, 1);
       playerHeaders.splice(dropIndex, 0, draggedHeader);
-
       headerRow.innerHTML = '';
       fixed.forEach(h => headerRow.appendChild(h));
       playerHeaders.forEach(h => headerRow.appendChild(h));
 
-      const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
+      // Reorder each row's player cells
       rows.forEach(tr => {
         const cells = Array.from(tr.children);
         const fixedCells = cells.slice(0, 2);
@@ -1745,16 +1843,64 @@
         playerCells.forEach(c => tr.appendChild(c));
       });
 
+      // Reorder data
+      const [draggedData] = playerData.splice(draggedIndex, 1);
+      playerData.splice(dropIndex, 0, draggedData);
+
+      // Rewrite header + cell attributes and storage to new left->right P1..Pn
+      for (let i = 0; i < playerCount; i++) {
+        const newPid = `P${i+1}`;
+        const th = headerRow.children[i + 2];
+        const strokesText = th.querySelector('div[id^="total"]')?.textContent || '';
+
+        th.setAttribute('data-player', newPid);
+        const nm = playerData[i].name;
+        th.innerHTML = `
+          <span class="player-name" data-full="${nm}" title="${nm}">${nm}</span>
+          <div id="total${newPid}">${strokesText}</div>
+          <div class="to-par-line" id="toPar${newPid}"></div>
+        `;
+        th.addEventListener('click', onHeaderClick);
+
+        rows.forEach(row => {
+          const first = row.firstElementChild;
+          const label = first?.textContent?.trim() || '';
+          const cell = row.children[i + 2];
+          if (!cell) return;
+          if (!row.classList.contains('summary-row')) {
+            cell.setAttribute('data-player', newPid);
+          } else {
+            if (label === 'OUT') cell.setAttribute('data-sum', `out-${newPid}`);
+            if (label === 'IN')  cell.setAttribute('data-sum', `in-${newPid}`);
+          }
+        });
+      }
+
+      // Rewrite storage mapping
+      for (let p = 1; p <= playerCount; p++) {
+        const pid = `P${p}`;
+        localStorage.removeItem(LS.name(pid));
+        for (let h = 1; h <= holesCount; h++) localStorage.removeItem(LS.score(pid, h));
+      }
+      for (let i = 0; i < playerCount; i++) {
+        const pid = `P${i+1}`;
+        localStorage.setItem(LS.name(pid), playerData[i].name);
+        for (let h = 1; h <= holesCount; h++) {
+          const v = playerData[i].scores[h];
+          if (v != null) localStorage.setItem(LS.score(pid, h), v);
+        }
+      }
+
       draggedIndex = -1;
-      clipPlayerNamesToCell();
+      attachDragListeners();
+      updateAllTotals();
       updateRanks();
       fitRowsToViewport();
-      attachDragListeners(); // rebind after DOM moves
+      clipPlayerNamesToCell();
     }
 
     function handleDragEnd(event) {
-      event.target.classList.remove('dragging');
-      document.querySelectorAll('#scoreTable thead th').forEach(th => th.classList.remove('drag-over'));
+      event.currentTarget.classList.remove('dragging');
       draggedIndex = -1;
     }
 
