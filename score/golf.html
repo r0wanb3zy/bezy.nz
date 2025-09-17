@@ -126,7 +126,7 @@
     }
     .summary-row td:last-child { border-right: none; }
 
-    /* Header player content — THREE LINES with original-style spacing */
+    /* Header player content — THREE LINES matching Yahtzee app spacing */
     #scoreTable thead th .player-name {
       display: block;
       max-width: 100%;
@@ -134,28 +134,28 @@
       white-space: nowrap;
       text-overflow: clip;
       text-align: center;
-      line-height: 1; /* original look */
       margin: 0;
+      /* No line-height override to match Yahtzee spacing */
     }
-    /* Total line (block) — made slightly bigger */
+    /* Total line (block) — 22px like Yahtzee */
     #scoreTable thead th div[id^="total"] {
       display: block;
-      font-size: 22px; /* was 18px */
+      font-size: 22px;
       color: rgba(255, 255, 255, 0.95);
       margin: 0;
     }
-    /* Third line container for the pill */
+    /* Third line container for the pill (no extra spacing to match Yahtzee) */
     #scoreTable thead th .to-par-line {
       display: block;
       line-height: 1;
-      margin-top: 4px;
+      margin-top: 0;
     }
-    /* White, slightly bigger pill; text color set by JS */
+    /* White, slightly bigger pill; third line font-size = 16px like Yahtzee's rank line */
     #scoreTable thead th .to-par-badge {
       display: inline-block;
-      font-size: 14px;     /* was 12px */
+      font-size: 16px;     /* match Yahtzee third line size */
       line-height: 1;
-      padding: 4px 10px;   /* bigger paddings */
+      padding: 4px 10px;
       border-radius: 9999px;
       background: #ffffff; /* white background */
       color: #000000;      /* default (E) — JS overrides for +/- */
@@ -298,7 +298,6 @@
     .segmented-control {
       display: flex; width: 100%; box-sizing: border-box; margin: 5px 0;
       background: #f8f9fa; border-radius: 6px; overflow: hidden; border: 1px solid #262626;
-      -webkit-background-clip: padding-box; background-clip: padding-box;
     }
     .segmented-control input[type="radio"] { display: none; }
     .segmented-control label {
@@ -1387,9 +1386,9 @@
           const toPar = (playedPar === 0) ? 0 : (playedStrokes - playedPar);
           const tp = toPar === 0 ? 'E' : (toPar > 0 ? `+${toPar}` : `${toPar}`);
 
-          // Line 2: bigger total strokes
+          // Line 2: bigger total strokes (22px)
           totalDiv.innerHTML = `<span class="strokes">${playedStrokes}</span>`;
-          // Line 3: white pill only
+          // Line 3: white pill only (16px text)
           toParDiv.innerHTML = `<span class="to-par-badge" data-value="${toPar}">${tp}</span>`;
         } else {
           if (any) {
