@@ -135,6 +135,8 @@
       font-size: 22px;
       line-height: 22px; /* lock to prevent emoji/name baseline shift */
       margin: 0;
+      /* Fix slight emoji clipping by giving a touch of breathing room */
+      padding-bottom: 2px;
     }
     #scoreTable thead th div[id^="total"] {
       display: block;
@@ -166,6 +168,7 @@
     #scoreTable.small-scores thead th .player-name {
       font-size: 18px;
       line-height: 18px;
+      padding-bottom: 2px; /* also prevent tiny clipping when smaller */
     }
 
     /* Settings icon */
@@ -328,11 +331,12 @@
       color: #ffffff; border: none; border-radius: 6px;
       font-family: 'Economica', sans-serif; font-size: 22px;
       display: grid; place-items: center;
-      width: 100%; aspect-ratio: 1 / 1; padding: 0; margin: 0;
-      line-height: 1; cursor: pointer;
+      width: 100%; aspect-ratio: 1 / 1; padding: 0; margin: 0; line-height: 1; cursor: pointer;
       transition: transform 0.05s ease, filter 0.1s ease;
       box-sizing: border-box; position: relative;
       -webkit-appearance: none; appearance: none; outline: none;
+      /* Prevent bottom clipping of emoji glyphs */
+      padding-bottom: 2px;
     }
     #playerNameModal .emoji-grid .emoji-pick:active { transform: scale(0.95); filter: brightness(1.05); }
     .emoji-grid .emoji-pick.selected { box-shadow: 0 0 0 2px #262626 inset; }
@@ -353,6 +357,10 @@
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); z-index: 999; cursor: pointer;
     }
+
+    /* Drag feedback (reorder players) */
+    th.dragging { opacity: 0.5; background: rgba(0, 0, 0, 0.2) !important; }
+    th.drag-over { border-left: 2px solid #333; }
 
     * { -webkit-tap-highlight-color: transparent; }
   </style>
@@ -484,6 +492,9 @@
     let suppressClickTimeout = null;
     let isApplyingInline = false;
 
+    // Drag & drop state
+    let draggedIndex = -1;
+
     /* ---------------- Height sync ---------------- */
     function setFullHeight() {
       const table = document.getElementById('scoreTable');
@@ -513,6 +524,7 @@
       fitRowsToViewport();
       setFullHeight();
       clipPlayerNamesToCell();
+      attachDragListeners(); // enable drag-to-reorder
 
       const sortBtn = document.getElementById('sortByRankBtn');
       if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
@@ -928,6 +940,7 @@
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
+      attachDragListeners(); // re-enable drag after DOM changes
       closeRoundManagement();
     }
 
@@ -1001,12 +1014,24 @@
       showOverlay();
 
       const input = document.getElementById('playerNameInput');
+
+      // Select all text on focus
+      input.addEventListener('focus', function () {
+        try { this.select(); } catch (_) {}
+        try { this.setSelectionRange(0, this.value.length); } catch (_) {}
+      });
+
+      // Keep keyboard closed until user taps; focus + select after the tap
       let primed = false;
       const primeFocus = (e) => {
         if (primed) return;
         primed = true;
         e.preventDefault();
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+        requestAnimationFrame(() => {
+          try { input.select(); } catch (_) {}
+          try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+        });
       };
       input.addEventListener('pointerdown', primeFocus, { passive: false });
       input.addEventListener('touchstart', primeFocus, { passive: false });
@@ -1065,11 +1090,22 @@
 
       let primed = false;
       const input = document.getElementById('emojiNameInput');
+
+      // Select text on focus (useful when an emoji is already there)
+      input.addEventListener('focus', function () {
+        try { this.select(); } catch (_) {}
+        try { this.setSelectionRange(0, this.value.length); } catch (_) {}
+      });
+
       const primeFocus = (e) => {
         if (primed) return;
         primed = true;
         e.preventDefault();
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+        requestAnimationFrame(() => {
+          try { input.select(); } catch (_) {}
+          try { input.setSelectionRange(0, input.value.length); } catch (_) {}
+        });
       };
       input.addEventListener('pointerdown', primeFocus, { passive: false });
       input.addEventListener('touchstart', primeFocus, { passive: false });
@@ -1148,6 +1184,7 @@
       fitRowsToViewport();
       updateAllTotals();
       updateRanks();
+      attachDragListeners();
       return true;
     }
 
@@ -1560,6 +1597,7 @@
 
       if (!silent) updateRanks();
       fitRowsToViewport();
+      attachDragListeners(); // re-enable drag after sort reorder
     }
 
     /* ---------------- Rebuild preserving (used for holes toggle) ---------------- */
@@ -1623,6 +1661,101 @@
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
+      attachDragListeners(); // re-enable drag after rebuild
+    }
+
+    /* ---------------- Drag & Drop (reorder players) ---------------- */
+    function attachDragListeners() {
+      const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
+      headers.forEach((header, index) => {
+        header.draggable = true;
+
+        header.removeEventListener('dragstart', header._dragStartHandler);
+        header.removeEventListener('dragover', header._dragOverHandler);
+        header.removeEventListener('drop', header._dropHandler);
+        header.removeEventListener('dragend', header._dragEndHandler);
+
+        header._dragStartHandler = (event) => handleDragStart(event, index);
+        header._dragOverHandler = (event) => handleDragOver(event);
+        header._dropHandler = (event) => handleDrop(event, index);
+        header._dragEndHandler = (event) => handleDragEnd(event);
+
+        header.addEventListener('dragstart', header._dragStartHandler);
+        header.addEventListener('dragover', header._dragOverHandler);
+        header.addEventListener('drop', header._dropHandler);
+        header.addEventListener('dragend', header._dragEndHandler);
+      });
+    }
+
+    function handleDragStart(event, index) {
+      draggedIndex = index;
+      event.target.classList.add('dragging');
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+        try { event.dataTransfer.setData('text/plain', ''); } catch (_) {}
+      }
+    }
+
+    function handleDragOver(event) {
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+      const target = event.target.closest('th[data-player]');
+      document.querySelectorAll('#scoreTable thead th').forEach(th => th.classList.remove('drag-over'));
+      if (target) target.classList.add('drag-over');
+    }
+
+    function handleDrop(event, dropIndex) {
+      event.preventDefault();
+      document.querySelectorAll('#scoreTable thead th').forEach(th => th.classList.remove('drag-over'));
+
+      // If sorting is enabled, disable it so manual order persists
+      if (sortByRankEnabled) {
+        sortByRankEnabled = false;
+        localStorage.setItem(LS.sort, 'false');
+        const btn = document.getElementById('sortByRankBtn');
+        if (btn) btn.classList.remove('active');
+      }
+
+      if (draggedIndex === -1 || draggedIndex === dropIndex) {
+        draggedIndex = -1;
+        return;
+      }
+
+      const headerRow = document.getElementById('playerRow');
+      const allHeaders = Array.from(headerRow.children);
+      const fixed = allHeaders.slice(0, 2);
+      const playerHeaders = allHeaders.slice(2);
+
+      const [draggedHeader] = playerHeaders.splice(draggedIndex, 1);
+      playerHeaders.splice(dropIndex, 0, draggedHeader);
+
+      headerRow.innerHTML = '';
+      fixed.forEach(h => headerRow.appendChild(h));
+      playerHeaders.forEach(h => headerRow.appendChild(h));
+
+      const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
+      rows.forEach(tr => {
+        const cells = Array.from(tr.children);
+        const fixedCells = cells.slice(0, 2);
+        const playerCells = cells.slice(2);
+        const [draggedCell] = playerCells.splice(draggedIndex, 1);
+        playerCells.splice(dropIndex, 0, draggedCell);
+        tr.innerHTML = '';
+        fixedCells.forEach(c => tr.appendChild(c));
+        playerCells.forEach(c => tr.appendChild(c));
+      });
+
+      draggedIndex = -1;
+      clipPlayerNamesToCell();
+      updateRanks();
+      fitRowsToViewport();
+      attachDragListeners(); // rebind after DOM moves
+    }
+
+    function handleDragEnd(event) {
+      event.target.classList.remove('dragging');
+      document.querySelectorAll('#scoreTable thead th').forEach(th => th.classList.remove('drag-over'));
+      draggedIndex = -1;
     }
 
     /* ---------------- Overlay ---------------- */
