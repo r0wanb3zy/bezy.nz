@@ -36,11 +36,11 @@
     table, table th, table td { font-weight: bold; }
 
     /* Score table shell (match reference) */
-#scoreTable {
-  height: 100vh;   /* legacy fallback */
-  height: 100dvh;  /* modern browsers use dynamic viewport height */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
+    #scoreTable {
+      height: 100vh;   /* legacy fallback */
+      height: 100dvh;  /* modern browsers use dynamic viewport height */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
 
     /* Orientation-specific scrolling (match reference) */
     @media screen and (orientation: portrait) {
@@ -146,10 +146,12 @@
     }
 
     /* Inline cell editing (no popup for scores) */
+    /* FIX: Do not override sticky positioning on par/hole cells */
     #scoreBody td.editing {
-      /* Use box-shadow so layout doesn't shift */
       box-shadow: inset 0 0 0 2px #000;
-      position: relative;
+    }
+    #scoreBody td.score-cell.editing {
+      position: relative; /* only score cells need a positioning context for absolute input */
     }
     .inline-number {
       position: absolute;
@@ -288,14 +290,20 @@
       gap: var(--emoji-gap); padding: 0; margin: 5px 0; width: 100%; box-sizing: border-box;
       user-select: none; -webkit-user-select: none;
     }
-    .emoji-grid .emoji-pick {
+    /* Scope to modal to avoid inherited button styles and ensure perfect centering */
+    #playerNameModal .emoji-grid .emoji-pick {
       background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
       color: #ffffff; border: none; border-radius: 6px;
-      font-family: 'Economica', sans-serif; font-size: 22px; display: grid; place-items: center;
-      width: 100%; aspect-ratio: 1 / 1; padding: 0; margin: 0; line-height: 1; cursor: pointer;
-      transition: transform 0.05s ease, filter 0.1s ease; box-sizing: border-box; position: relative;
+      font-family: 'Economica', sans-serif; font-size: 22px;
+      display: grid; place-items: center;
+      width: 100%; aspect-ratio: 1 / 1; padding: 0; margin: 0;
+      line-height: 1; cursor: pointer;
+      transition: transform 0.05s ease, filter 0.1s ease;
+      box-sizing: border-box; position: relative;
+      -webkit-appearance: none; appearance: none; outline: none;
     }
-    .emoji-grid .emoji-pick:active { transform: scale(0.95); filter: brightness(1.05); }
+    #playerNameModal .emoji-grid .emoji-pick:active { transform: scale(0.95); filter: brightness(1.05); }
+    /* Multi-select visuals: dim overlay + numbered order (like reference) */
     .emoji-grid .emoji-pick.selected { box-shadow: 0 0 0 2px #262626 inset; }
     .emoji-grid .emoji-pick.selected::before {
       content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35);
@@ -378,32 +386,6 @@
   <div id="overlay"></div>
 
   <script>
-
-function setFullHeight() {
-  const table = document.getElementById('scoreTable');
-  if (table) table.style.height = `${window.innerHeight}px`;
-}
-
-// Init
-document.addEventListener('DOMContentLoaded', () => {
-  buildTable();
-  loadFromStorage();
-  updateAllTotals();
-  updateRanks();
-  fitRowsToViewport();  // you already have this
-  setFullHeight();      // NEW: match Yahtzee behavior
-});
-
-// Keep it in sync on resize (like Yahtzee)
-window.addEventListener('resize', setFullHeight);
-
-// Also update on orientation change (and keep your row-fit behavior)
-window.addEventListener('orientationchange', () => {
-  setTimeout(() => {
-    setFullHeight();
-    fitRowsToViewport();
-  }, 250);
-});
     /* ---------------- State / storage ---------------- */
     const LS = {
       holesCount: 'dg-holesCount',
@@ -461,17 +443,42 @@ window.addEventListener('orientationchange', () => {
     let activeMode = null; // 'score' | 'par'
     let resetConfirm = false;
 
+    /* ---------------- Height sync ---------------- */
+    function setFullHeight() {
+      const table = document.getElementById('scoreTable');
+      if (table) table.style.height = `${window.innerHeight}px`;
+    }
+
     /* ---------------- Init ---------------- */
     document.addEventListener('DOMContentLoaded', () => {
+      // Preload selects
+      const pcSel = document.getElementById('playerCount');
+      if (pcSel) pcSel.value = String(playerCount);
+      const holesSel = document.getElementById('holesCount');
+      if (holesSel) holesSel.value = String(holesCount);
+      const themeSel = document.getElementById('themeColorSelect');
+      if (themeSel) themeSel.value = themeColor;
+
       buildTable();
       loadFromStorage();
       updateAllTotals();
       updateRanks();
-      fitRowsToViewport(); // compute once
+      fitRowsToViewport();
+      setFullHeight();
+      clipPlayerNamesToCell();
+
+      const sortBtn = document.getElementById('sortByRankBtn');
+      if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
     });
 
-    // Only refit on orientation change (avoid keyboard-caused resizes)
-    window.addEventListener('orientationchange', () => setTimeout(fitRowsToViewport, 250));
+    // Keep in sync on resize/orientation like reference
+    window.addEventListener('resize', () => { setFullHeight(); clipPlayerNamesToCell(); fitRowsToViewport(); });
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        setFullHeight();
+        fitRowsToViewport();
+      }, 250);
+    });
 
     /* ---------------- Build ---------------- */
     function buildTable() {
@@ -730,13 +737,79 @@ window.addEventListener('orientationchange', () => {
       if (btn) { btn.textContent = 'Reset'; btn.removeAttribute('data-confirm'); }
     }
 
+    // UPDATED: Player add/remove to match reference app behavior (no full rebuild)
     function updatePlayerCount() {
       const val = parseInt(document.getElementById('playerCount').value, 10);
-      playerCount = Math.min(8, Math.max(1, val));
+      const newCount = Math.min(8, Math.max(1, val));
+
+      const headerRow = document.getElementById('playerRow');
+      const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
+      const existing = headerRow.children.length - 2; // exclude hole + par
+
+      // Remove extra players (from the end) + clean storage
+      if (newCount < existing) {
+        for (let i = existing; i > newCount; i--) {
+          const pid = `P${i}`;
+          // Remove last header player cell
+          if (headerRow.lastElementChild) headerRow.removeChild(headerRow.lastElementChild);
+          // Remove last cell for each row
+          rows.forEach(tr => { if (tr.lastElementChild) tr.removeChild(tr.lastElementChild); });
+          // Clean LS for removed player
+          localStorage.removeItem(LS.name(pid));
+          for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(pid, h));
+        }
+      }
+
+      // Add new players
+      if (newCount > existing) {
+        for (let i = existing + 1; i <= newCount; i++) {
+          const pid = `P${i}`;
+          const savedName = localStorage.getItem(LS.name(pid)) || (emojiModeEnabled && i <= 9 ? numberToKeycap(i) : pid);
+
+          // Header
+          const th = document.createElement('th');
+          th.setAttribute('data-player', pid);
+          th.title = savedName;
+          th.innerHTML = `<span class="player-name" data-full="${savedName}" title="${savedName}">${savedName}</span><div id="total${pid}"></div>`;
+          th.addEventListener('click', () => { window.currentPlayer = pid; openPlayerModalForHeader(pid); });
+          headerRow.appendChild(th);
+
+          // Body rows
+          rows.forEach(tr => {
+            const first = tr.firstElementChild;
+            const isSummary = tr.classList.contains('summary-row');
+            const td = document.createElement('td');
+            if (!isSummary) {
+              // Hole row
+              const holeNo = parseInt(tr.querySelector('.hole-cell')?.textContent || '0', 10);
+              td.className = 'score-cell';
+              td.setAttribute('data-player', pid);
+              td.setAttribute('data-hole', `H${holeNo}`);
+              td.addEventListener('click', () => startInlineEdit(td, 'score'));
+              // Fill from LS if any
+              const saved = localStorage.getItem(LS.score(pid, holeNo));
+              if (saved != null) td.textContent = saved;
+            } else {
+              // Summary row OUT/IN
+              const label = first?.textContent?.trim() || '';
+              if (label === 'OUT') td.setAttribute('data-sum', `out-${pid}`);
+              if (label === 'IN') td.setAttribute('data-sum', `in-${pid}`);
+            }
+            tr.appendChild(td);
+          });
+        }
+      }
+
+      playerCount = newCount;
       localStorage.setItem(LS.playerCount, String(playerCount));
-      rebuildPreserving();
+      updateAllTotals();
+      if (sortByRankEnabled) applySortByRank(true);
       updateRanks();
+      fitRowsToViewport();
+      clipPlayerNamesToCell();
+      closeRoundManagement();
     }
+
     function updateHolesCount() {
       const val = parseInt(document.getElementById('holesCount').value, 10);
       holesCount = [9,18].includes(val) ? val : 18;
@@ -834,7 +907,12 @@ window.addEventListener('orientationchange', () => {
 
     function openEmojiPlayerModal(currentName) {
       const modal = document.getElementById('playerNameModal');
-      const favEmojis = ["🍔","🩰","🌹","🌰","🔔","👑","🎣","🌻","🏏","🦈","🤸🏼‍♀️","🎁","🕊️","🧶","🛠️","🏃‍➡️"];
+      const favEmojis = [
+        "🍔","🩰","🌹","🌰","🔔",
+        "👑","🎣","🌻","🏏","🦈",
+        "🤸🏼‍♀️","🎁","🕊️","🧶","🛠️",
+        "🏃"
+      ];
       const grid = favEmojis.map(e => `<button type="button" class="emoji-pick" data-emoji="${e}">${e}</button>`).join('');
       modal.innerHTML = `
         <h2>Player</h2>
@@ -930,6 +1008,7 @@ window.addEventListener('orientationchange', () => {
         if (row.children[idx + 2]) row.removeChild(row.children[idx + 2]);
       });
 
+      // Reindex storage and DOM attributes for players to the right
       for (let p = idx + 2; p <= playerCount; p++) {
         const oldPid = `P${p}`, newPid = `P${p-1}`;
         const name = localStorage.getItem(LS.name(oldPid));
@@ -939,6 +1018,10 @@ window.addEventListener('orientationchange', () => {
           if (v != null) { localStorage.setItem(LS.score(newPid, h), v); localStorage.removeItem(LS.score(oldPid, h)); }
         }
       }
+      // Clean removed player's storage
+      localStorage.removeItem(LS.name(pid));
+      for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(pid, h));
+
       playerCount -= 1;
       localStorage.setItem(LS.playerCount, String(playerCount));
       fitRowsToViewport();
@@ -1017,9 +1100,12 @@ window.addEventListener('orientationchange', () => {
         if (targetCount < 1) return;
         emojiModeEnabled = true;
         localStorage.setItem(LS.emojiMode, 'true');
-        playerCount = targetCount;
-        localStorage.setItem(LS.playerCount, String(playerCount));
-        rebuildPreserving();
+
+        // Resize to selection length using same add/remove logic
+        const pcSel = document.getElementById('playerCount');
+        pcSel.value = String(targetCount);
+        updatePlayerCount();
+
         for (let i = 1; i <= targetCount; i++) applyPlayerName(`P${i}`, selected[i - 1]);
         exitBulk();
         closePlayerNameModal();
@@ -1041,6 +1127,7 @@ window.addEventListener('orientationchange', () => {
             }
           }
         });
+        // Long-press to enter bulk (500ms)
         let pressTimer = null;
         const start = () => {
           if (bulkEmojiMode) return;
@@ -1299,7 +1386,7 @@ window.addEventListener('orientationchange', () => {
       fitRowsToViewport();
     }
 
-    /* ---------------- Rebuild preserving ---------------- */
+    /* ---------------- Rebuild preserving (used for holes toggle) ---------------- */
     function rebuildPreserving() {
       const names = {};
       for (let p = 1; p <= 8; p++) {
@@ -1359,6 +1446,7 @@ window.addEventListener('orientationchange', () => {
       if (sortByRankEnabled) applySortByRank(true);
       updateRanks();
       fitRowsToViewport();
+      clipPlayerNamesToCell();
     }
 
     /* ---------------- Overlay ---------------- */
