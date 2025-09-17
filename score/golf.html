@@ -443,6 +443,11 @@
     let activeMode = null; // 'score' | 'par'
     let resetConfirm = false;
 
+    // New flags to manage seamless Next + outside tap
+    let suppressNextCellEditClick = false;
+    let suppressClickTimeout = null;
+    let isApplyingInline = false;
+
     /* ---------------- Height sync ---------------- */
     function setFullHeight() {
       const table = document.getElementById('scoreTable');
@@ -595,8 +600,14 @@
     }
 
     /* ---------------- Inline editing (no popup) ---------------- */
-    function startInlineEdit(td, mode) {
-      endInlineEdit(true); // remove any previous editor
+    function startInlineEdit(td, mode, options = {}) {
+      const preserveKeyboard = !!options.preserveKeyboard;
+      const prevCell = activeCell;
+      const prevInput = activeInput;
+
+      if (!preserveKeyboard) {
+        endInlineEdit(true); // clear any previous editor before creating a new one
+      }
 
       activeCell = td;
       activeMode = mode;
@@ -625,17 +636,40 @@
           cancelInlineEdit();
         }
       });
-      input.addEventListener('blur', () => applyInlineEdit(input.value, false));
+      // Only submit on blur if this input is still the active one
+      input.addEventListener('blur', () => {
+        if (input !== activeInput) return;
+        applyInlineEdit(input.value, false);
+      });
 
       activeInput = input;
+
       setTimeout(() => {
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
         input.select();
+
+        // After focusing the new input, clean up the previous one (to keep keyboard from closing)
+        if (preserveKeyboard && prevInput && prevCell) {
+          prevCell.classList.remove('editing');
+          delete prevCell.dataset.prev;
+          if (prevInput.parentElement) prevInput.parentElement.removeChild(prevInput);
+          if ('prevDisplayText' in options) prevCell.textContent = options.prevDisplayText;
+        }
       }, 0);
     }
 
+    function getNextScoreCell(currentTd) {
+      const cells = Array.from(document.querySelectorAll('#scoreBody td.score-cell'));
+      const idx = cells.indexOf(currentTd);
+      if (idx !== -1) {
+        return cells[idx + 1] || null;
+      }
+      return null;
+    }
+
     function applyInlineEdit(val, advanceOnEnter) {
-      if (!activeCell || !activeInput) return;
+      if (!activeCell || !activeInput || isApplyingInline) return;
+      isApplyingInline = true;
 
       const td = activeCell;
       const mode = activeMode;
@@ -643,34 +677,47 @@
       const player = td.getAttribute('data-player') || null;
       const trimmed = String(val ?? '').trim();
 
+      let displayText = '';
       if (mode === 'score') {
         if (trimmed === '') {
-          td.textContent = '';
+          displayText = '';
           if (player && hole) localStorage.removeItem(LS.score(player, hole));
         } else {
           const n = Math.max(0, parseInt(trimmed, 10) || 0);
-          td.textContent = String(n);
-          if (player && hole) localStorage.setItem(LS.score(player, hole), String(n));
+          displayText = String(n);
+          if (player && hole) localStorage.setItem(LS.score(player, hole), displayText);
         }
       } else if (mode === 'par') {
         if (trimmed === '') {
-          td.textContent = '3';
+          displayText = '3';
           if (hole) localStorage.setItem(LS.par(hole), '3');
         } else {
           const n = Math.max(1, parseInt(trimmed, 10) || 3);
-          td.textContent = String(n);
-          if (hole) localStorage.setItem(LS.par(hole), String(n));
+          displayText = String(n);
+          if (hole) localStorage.setItem(LS.par(hole), displayText);
         }
       }
 
+      const shouldAdvance = advanceOnEnter && mode === 'score';
+      const nextCell = shouldAdvance ? getNextScoreCell(td) : null;
+
+      if (nextCell) {
+        // Seamlessly move to next cell without closing the keyboard
+        startInlineEdit(nextCell, 'score', { preserveKeyboard: true, prevDisplayText: displayText });
+        updateAllTotals();
+        if (sortByRankEnabled) applySortByRank(true);
+        updateRanks();
+        isApplyingInline = false;
+        return;
+      }
+
+      // Normal finalize (close keyboard)
+      td.textContent = displayText;
       endInlineEdit(false);
       updateAllTotals();
       if (sortByRankEnabled) applySortByRank(true);
       updateRanks();
-
-      if (advanceOnEnter && mode === 'score') {
-        advanceToNextScoreCell(td);
-      }
+      isApplyingInline = false;
     }
 
     function cancelInlineEdit() {
@@ -689,6 +736,7 @@
       if (!clearOnly) fitRowsToViewport();
     }
 
+    // Kept (used elsewhere), but not used for Next navigation anymore
     function advanceToNextScoreCell(currentTd) {
       const cells = Array.from(document.querySelectorAll('#scoreBody td.score-cell'));
       const idx = cells.indexOf(currentTd);
@@ -697,6 +745,28 @@
         if (next) startInlineEdit(next, 'score');
       }
     }
+
+    /* ---------------- Outside tap handling ---------------- */
+    // Tap anywhere outside the current input: submit and close; if it was another score/par cell, suppress that click so no new cell is selected
+    document.addEventListener('pointerdown', (e) => {
+      if (activeInput && !activeInput.contains(e.target)) {
+        const cellHit = e.target.closest('td.score-cell, td.par-cell');
+        if (cellHit) {
+          suppressNextCellEditClick = true;
+          clearTimeout(suppressClickTimeout);
+          suppressClickTimeout = setTimeout(() => { suppressNextCellEditClick = false; }, 300);
+        }
+        applyInlineEdit(activeInput.value, false);
+      }
+    }, true);
+
+    document.addEventListener('click', (e) => {
+      if (suppressNextCellEditClick && e.target.closest('td.score-cell, td.par-cell')) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        suppressNextCellEditClick = false;
+      }
+    }, true);
 
     /* ---------------- Round Management ---------------- */
     function showRoundManagement() {
@@ -1455,7 +1525,12 @@
     document.getElementById('overlay').addEventListener('click', () => {
       closeRoundManagement();
       closePlayerNameModal();
-      endInlineEdit(true);
+      // Commit inline edit if open, then close without any cell selected
+      if (activeInput) {
+        applyInlineEdit(activeInput.value, false);
+      } else {
+        endInlineEdit(true);
+      }
     });
   </script>
 </body>
