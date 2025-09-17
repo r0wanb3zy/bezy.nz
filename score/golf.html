@@ -42,7 +42,7 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
 
-    /* Orientation-specific scrolling (match reference) */
+    /* Orientation-specific scrolling */
     @media screen and (orientation: portrait) {
       html, body { overflow: hidden; touch-action: none; }
       #scoreTable { overflow-y: hidden; }
@@ -71,7 +71,7 @@
       border-bottom: 1px solid #666;
     }
 
-    /* Table cells (light borders for content like reference) */
+    /* Table cells (light borders) */
     table th, table td {
       text-align: center;
       padding: 5px;
@@ -95,19 +95,17 @@
       border-bottom: 1px solid #666;
       cursor: default;
     }
-    /* Make the entire top-left settings header clickable */
     th.hole-header { cursor: pointer; }
 
     th.par-header, td.par-cell {
       position: sticky;
       left: calc(var(--hole-w) + 1px);
       z-index: 2;
-      background: #262626; color: #fff; /* solid, no gradient */
+      background: #262626; color: #fff;
       width: var(--par-w); min-width: var(--par-w); max-width: var(--par-w);
       border-right: 1px solid #666;
       border-bottom: 1px solid #666;
     }
-    /* Remove right border on TOP Par header only */
     th.par-header { border-right: none; }
 
     /* Make all body rows rock-solid height */
@@ -119,14 +117,14 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Summary rows (OUT/IN) darker like reference */
+    /* Summary rows (OUT/IN) dark */
     .summary-row td {
       background: #262626; color: white;
       border-bottom: 1px solid #666; border-right: 1px solid #666;
     }
     .summary-row td:last-child { border-right: none; }
 
-    /* Header player content — THREE LINES matching Yahtzee app spacing */
+    /* Header — THREE LINES (match Yahtzee sizes, stable line-height to avoid nudge) */
     #scoreTable thead th .player-name {
       display: block;
       max-width: 100%;
@@ -134,52 +132,55 @@
       white-space: nowrap;
       text-overflow: clip;
       text-align: center;
+      font-size: 22px;
+      line-height: 22px; /* lock to prevent emoji/name baseline shift */
       margin: 0;
-      /* No line-height override to match Yahtzee spacing */
     }
-    /* Total line (block) — 22px like Yahtzee */
     #scoreTable thead th div[id^="total"] {
       display: block;
       font-size: 22px;
       color: rgba(255, 255, 255, 0.95);
       margin: 0;
     }
-    /* Third line container for the pill (no extra spacing to match Yahtzee) */
     #scoreTable thead th .to-par-line {
       display: block;
       line-height: 1;
-      margin-top: 0;
+      margin-top: 0; /* no extra spacing */
     }
-    /* White, slightly bigger pill; third line font-size = 16px like Yahtzee's rank line */
+    /* White pill; base 16px text */
     #scoreTable thead th .to-par-badge {
       display: inline-block;
-      font-size: 16px;     /* match Yahtzee third line size */
+      font-size: 16px;
       line-height: 1;
       padding: 4px 10px;
       border-radius: 9999px;
-      background: #ffffff; /* white background */
-      color: #000000;      /* default (E) — JS overrides for +/- */
+      background: #ffffff;
+      color: #000000; /* E default; JS will recolor + / - */
       vertical-align: middle;
       margin: 0;
     }
+    /* 7–8 players: smaller pill text */
+    #scoreTable.small-scores thead th .to-par-badge { font-size: 14px; }
 
+    /* 7–8 players: shrink name but keep fixed line-height to avoid nudge */
     #scoreTable.small-scores thead th .player-name {
-      font-size: 18px; line-height: 1.1;
+      font-size: 18px;
+      line-height: 18px;
     }
 
-    /* Keep the ☰ icon as-is; whole cell remains clickable */
+    /* Settings icon */
     .gear {
       font-size: 20px; cursor: inherit; color: #fff; background: none; border: none;
       padding: 0; margin: 0; line-height: 1;
     }
 
-    /* Inline cell editing (no popup for scores) */
+    /* Inline editing: black border only, no glow, no caret */
     #scoreBody td.editing {
-      box-shadow: inset 0 0 0 2px #000;
+      outline: 2px solid #000;
+      outline-offset: -2px;
+      box-shadow: none;
     }
-    #scoreBody td.score-cell.editing {
-      position: relative;
-    }
+    #scoreBody td.score-cell.editing { position: relative; }
     .inline-number {
       position: absolute;
       inset: 0;
@@ -196,11 +197,19 @@
       margin: 0;
       -moz-appearance: textfield;
       appearance: textfield;
+
+      /* Hide caret + prevent selection highlight */
+      caret-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: default;
     }
+    .inline-number::selection { background: transparent; }
+    .inline-number::-moz-selection { background: transparent; }
     .inline-number::-webkit-outer-spin-button,
     .inline-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-    /* Reference popup styling (kept for parity) */
+    /* Popup/modal styles (unchanged) */
     #popupModal {
       display: none;
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -231,7 +240,6 @@
       -webkit-appearance: none; appearance: none; line-height: 1; outline: none;
     }
 
-    /* Close button (X) */
     .close-btn {
       position: absolute; top: 0px; right: 0px;
       font-size: 48px; color: #000000; cursor: pointer; background: none; border: none;
@@ -308,7 +316,7 @@
       background: linear-gradient(to bottom, #262626 0%, #262626 100%); color: #fff;
     }
 
-    /* Emoji grid (reference) */
+    /* Emoji grid */
     .emoji-grid {
       --emoji-gap: 8px;
       display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -364,7 +372,7 @@
     <tbody id="scoreBody"></tbody>
   </table>
 
-  <!-- Popup kept for parity (exact reference styling) -->
+  <!-- Popup kept for parity -->
   <div id="popupModal">
     <h2 id="popupTitle">Select</h2>
     <span class="close-btn" onclick="document.getElementById('popupModal').style.display='none'">×</span>
@@ -387,7 +395,6 @@
       <option value="8">8 Players</option>
     </select>
 
-    <!-- 9/18 Holes segmented control -->
     <div class="segmented-control" id="holesSegment">
       <input type="radio" id="holes9" name="holesCount" value="9" onchange="setHolesCount(9)">
       <label for="holes9">9 Holes</label>
@@ -472,7 +479,7 @@
     let activeMode = null; // 'score' | 'par'
     let resetConfirm = false;
 
-    // New flags to manage seamless Next + outside tap
+    // Outside tap management
     let suppressNextCellEditClick = false;
     let suppressClickTimeout = null;
     let isApplyingInline = false;
@@ -511,7 +518,6 @@
       if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
     });
 
-    // Keep in sync on resize/orientation like reference
     window.addEventListener('resize', () => { setFullHeight(); clipPlayerNamesToCell(); fitRowsToViewport(); });
     window.addEventListener('orientationchange', () => {
       setTimeout(() => {
@@ -549,7 +555,7 @@
       const firstNine = Math.min(9, holesCount);
       for (let h = 1; h <= firstNine; h++) body.appendChild(makeHoleRow(h));
 
-      // OUT summary (dark)
+      // OUT summary
       const trOut = document.createElement('tr');
       trOut.className = 'summary-row';
       trOut.appendChild(makeStickyCell('hole-cell', 'OUT'));
@@ -562,7 +568,7 @@
 
       if (holesCount > 9) {
         for (let h = 10; h <= holesCount; h++) body.appendChild(makeHoleRow(h));
-        // IN summary (dark)
+        // IN summary
         const trIn = document.createElement('tr');
         trIn.className = 'summary-row';
         trIn.appendChild(makeStickyCell('hole-cell', 'IN'));
@@ -640,11 +646,13 @@
       const preserveKeyboard = !!options.preserveKeyboard;
       const prevCell = activeCell;
       const prevInput = activeInput;
+      const prevDisplayText = options.prevDisplayText;
 
       if (!preserveKeyboard) {
         endInlineEdit(true); // clear any previous editor before creating a new one
       }
 
+      const prevText = td.textContent.trim();
       activeCell = td;
       activeMode = mode;
 
@@ -655,15 +663,29 @@
       input.autocomplete = 'off';
       input.autocorrect = 'off';
       input.spellcheck = false;
-      input.value = td.textContent.trim();
+      input.value = prevText;     // show current value but no selection
       input.setAttribute('enterkeyhint', mode === 'score' ? 'next' : 'done');
+      input._edited = false;
+      input._clearedOnFirstInsert = false;
 
-      td.dataset.prev = td.textContent;
+      td.dataset.prev = prevText;
       td.textContent = '';
       td.classList.add('editing');
       td.appendChild(input);
 
+      // Overwrite behavior: first insert clears current
+      input.addEventListener('beforeinput', (e) => {
+        if (!input._clearedOnFirstInsert && e.inputType && e.inputType.startsWith('insert')) {
+          input.value = '';
+          input._clearedOnFirstInsert = true;
+        }
+      });
+      // Fallback for platforms without beforeinput
       input.addEventListener('keydown', (e) => {
+        if (!input._clearedOnFirstInsert && e.key && e.key.length === 1 && /[0-9]/.test(e.key)) {
+          input.value = '';
+          input._clearedOnFirstInsert = true;
+        }
         if (e.key === 'Enter') {
           e.preventDefault();
           applyInlineEdit(input.value, true);
@@ -672,7 +694,7 @@
           cancelInlineEdit();
         }
       });
-      // Only submit on blur if this input is still the active one
+      input.addEventListener('input', () => { input._edited = true; });
       input.addEventListener('blur', () => {
         if (input !== activeInput) return;
         applyInlineEdit(input.value, false);
@@ -680,18 +702,16 @@
 
       activeInput = input;
 
-      setTimeout(() => {
-        try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-        input.select();
+      // Focus immediately (no selection) to keep IME open
+      try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
 
-        // After focusing the new input, clean up the previous one (to keep keyboard from closing)
-        if (preserveKeyboard && prevInput && prevCell) {
-          prevCell.classList.remove('editing');
-          delete prevCell.dataset.prev;
-          if (prevInput.parentElement) prevInput.parentElement.removeChild(prevInput);
-          if ('prevDisplayText' in options) prevCell.textContent = options.prevDisplayText;
-        }
-      }, 0);
+      // If we’re advancing, remove previous input immediately and commit its display
+      if (preserveKeyboard && prevInput && prevCell) {
+        prevCell.classList.remove('editing');
+        delete prevCell.dataset.prev;
+        if (prevInput.parentElement) prevInput.parentElement.removeChild(prevInput);
+        if (prevDisplayText !== undefined) prevCell.textContent = prevDisplayText;
+      }
     }
 
     function getNextScoreCell(currentTd) {
@@ -712,10 +732,14 @@
       const hole = parseInt(td.getAttribute('data-hole')?.replace('H','') || '0', 10) || null;
       const player = td.getAttribute('data-player') || null;
       const trimmed = String(val ?? '').trim();
+      const prevText = td.dataset.prev ?? '';
+      const userTyped = !!activeInput._edited;
 
-      let displayText = '';
+      let displayText = prevText;
       if (mode === 'score') {
-        if (trimmed === '') {
+        if (!userTyped && trimmed === '') {
+          displayText = prevText;
+        } else if (trimmed === '') {
           displayText = '';
           if (player && hole) localStorage.removeItem(LS.score(player, hole));
         } else {
@@ -724,7 +748,9 @@
           if (player && hole) localStorage.setItem(LS.score(player, hole), displayText);
         }
       } else if (mode === 'par') {
-        if (trimmed === '') {
+        if (!userTyped && trimmed === '') {
+          displayText = prevText || '3';
+        } else if (trimmed === '') {
           displayText = '3';
           if (hole) localStorage.setItem(LS.par(hole), '3');
         } else {
@@ -738,7 +764,7 @@
       const nextCell = shouldAdvance ? getNextScoreCell(td) : null;
 
       if (nextCell) {
-        // Seamlessly move to next cell without closing the keyboard
+        // Create next editor immediately; commit current display within startInlineEdit
         startInlineEdit(nextCell, 'score', { preserveKeyboard: true, prevDisplayText: displayText });
         updateAllTotals();
         if (sortByRankEnabled) applySortByRank(true);
@@ -747,7 +773,7 @@
         return;
       }
 
-      // Normal finalize (close keyboard)
+      // Finalize current cell
       td.textContent = displayText;
       endInlineEdit(false);
       updateAllTotals();
@@ -773,7 +799,6 @@
     }
 
     /* ---------------- Outside tap handling ---------------- */
-    // Tap anywhere outside the current input: submit and close; if it was another score/par cell, suppress that click so no new cell is selected
     document.addEventListener('pointerdown', (e) => {
       if (activeInput && !activeInput.contains(e.target)) {
         const cellHit = e.target.closest('td.score-cell, td.par-cell');
@@ -804,7 +829,6 @@
       themeSel.value = themeColor;
       sortBtn.classList.toggle('active', sortByRankEnabled);
 
-      // Sync holes segmented control
       const holes9 = document.getElementById('holes9');
       const holes18 = document.getElementById('holes18');
       if (holes9 && holes18) {
@@ -839,7 +863,6 @@
       if (btn) { btn.textContent = 'Reset'; btn.removeAttribute('data-confirm'); }
     }
 
-    // UPDATED: Player add/remove to match reference app behavior (no full rebuild)
     function updatePlayerCount() {
       const val = parseInt(document.getElementById('playerCount').value, 10);
       const newCount = Math.min(8, Math.max(1, val));
@@ -848,15 +871,12 @@
       const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
       const existing = headerRow.children.length - 2; // exclude hole + par
 
-      // Remove extra players (from the end) + clean storage
+      // Remove extra players
       if (newCount < existing) {
         for (let i = existing; i > newCount; i--) {
           const pid = `P${i}`;
-          // Remove last header player cell
           if (headerRow.lastElementChild) headerRow.removeChild(headerRow.lastElementChild);
-          // Remove last cell for each row
           rows.forEach(tr => { if (tr.lastElementChild) tr.removeChild(tr.lastElementChild); });
-          // Clean LS for removed player
           localStorage.removeItem(LS.name(pid));
           for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(pid, h));
         }
@@ -868,7 +888,6 @@
           const pid = `P${i}`;
           const savedName = localStorage.getItem(LS.name(pid)) || (emojiModeEnabled && i <= 9 ? numberToKeycap(i) : pid);
 
-          // Header
           const th = document.createElement('th');
           th.setAttribute('data-player', pid);
           th.title = savedName;
@@ -880,23 +899,19 @@
           th.addEventListener('click', () => { window.currentPlayer = pid; openPlayerModalForHeader(pid); });
           headerRow.appendChild(th);
 
-          // Body rows
           rows.forEach(tr => {
             const first = tr.firstElementChild;
             const isSummary = tr.classList.contains('summary-row');
             const td = document.createElement('td');
             if (!isSummary) {
-              // Hole row
               const holeNo = parseInt(tr.querySelector('.hole-cell')?.textContent || '0', 10);
               td.className = 'score-cell';
               td.setAttribute('data-player', pid);
               td.setAttribute('data-hole', `H${holeNo}`);
               td.addEventListener('click', () => startInlineEdit(td, 'score'));
-              // Fill from LS if any
               const saved = localStorage.getItem(LS.score(pid, holeNo));
               if (saved != null) td.textContent = saved;
             } else {
-              // Summary row OUT/IN
               const label = first?.textContent?.trim() || '';
               if (label === 'OUT') td.setAttribute('data-sum', `out-${pid}`);
               if (label === 'IN') td.setAttribute('data-sum', `in-${pid}`);
@@ -916,7 +931,6 @@
       closeRoundManagement();
     }
 
-    // New: handle holes toggle via segmented control
     function setHolesCount(val) {
       const n = parseInt(val, 10);
       holesCount = [9, 18].includes(n) ? n : 18;
@@ -993,7 +1007,6 @@
         primed = true;
         e.preventDefault();
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-        requestAnimationFrame(() => { try { input.select(); } catch (_) {} });
       };
       input.addEventListener('pointerdown', primeFocus, { passive: false });
       input.addEventListener('touchstart', primeFocus, { passive: false });
@@ -1057,7 +1070,6 @@
         primed = true;
         e.preventDefault();
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-        requestAnimationFrame(() => { try { input.select(); } catch (_) {} });
       };
       input.addEventListener('pointerdown', primeFocus, { passive: false });
       input.addEventListener('touchstart', primeFocus, { passive: false });
@@ -1128,7 +1140,6 @@
           if (v != null) { localStorage.setItem(LS.score(newPid, h), v); localStorage.removeItem(LS.score(oldPid, h)); }
         }
       }
-      // Clean removed player's storage
       localStorage.removeItem(LS.name(pid));
       for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(pid, h));
 
@@ -1151,7 +1162,6 @@
         nameEl.setAttribute('data-full', newName);
         nameEl.setAttribute('title', newName);
       } else {
-        // Fallback if structure changed unexpectedly
         const totalDiv = header.querySelector(`div[id^="total"]`);
         const toParDiv = header.querySelector('.to-par-line');
         const totalHTML = totalDiv ? totalDiv.outerHTML : `<div id="total${pid}"></div>`;
@@ -1223,7 +1233,6 @@
         emojiModeEnabled = true;
         localStorage.setItem(LS.emojiMode, 'true');
 
-        // Resize to selection length using same add/remove logic
         const pcSel = document.getElementById('playerCount');
         pcSel.value = String(targetCount);
         updatePlayerCount();
@@ -1330,7 +1339,7 @@
       return Array.from(document.querySelectorAll('.score-cell')).some(td => td.textContent.trim() !== '');
     }
 
-    // Color score numbers: par=black, over=grey, under=theme color
+    // Color scores: par=black, over=grey, under=theme
     function updateScoreColors() {
       const { h: H, s: S } = getThemeHS(themeColor);
       const themeText = (l = 40) => `hsl(${H}, ${S}%, ${l}%)`;
@@ -1341,7 +1350,7 @@
         const score = parseInt(txt, 10);
         if (!Number.isFinite(score)) { td.style.color = ''; return; }
         const holeAttr = td.getAttribute('data-hole') || '';
-               const hole = parseInt(holeAttr.replace('H',''), 10);
+        const hole = parseInt(holeAttr.replace('H',''), 10);
         const par = Number.isFinite(hole) ? getPar(hole) : 3;
         if (score < par) td.style.color = themeText(40);
         else if (score > par) td.style.color = grey;
@@ -1386,9 +1395,7 @@
           const toPar = (playedPar === 0) ? 0 : (playedStrokes - playedPar);
           const tp = toPar === 0 ? 'E' : (toPar > 0 ? `+${toPar}` : `${toPar}`);
 
-          // Line 2: bigger total strokes (22px)
           totalDiv.innerHTML = `<span class="strokes">${playedStrokes}</span>`;
-          // Line 3: white pill only (16px text)
           toParDiv.innerHTML = `<span class="to-par-badge" data-value="${toPar}">${tp}</span>`;
         } else {
           if (any) {
@@ -1401,27 +1408,25 @@
         }
       }
 
-      // Apply score coloring and pill text colors
       updateScoreColors();
       updateToParBadgeColors();
     }
 
-    // Set pill text color: black for E, grey for over par, theme color for under par
     function updateToParBadgeColors() {
       const { h: H, s: S } = getThemeHS(themeColor);
-      const themeText = `hsl(${H}, ${S}%, 40%)`; // under-par color (theme)
-      const grey = '#808080';                    // over-par color
+      const themeText = `hsl(${H}, ${S}%, 40%)`;
+      const grey = '#808080';
 
       document.querySelectorAll('#scoreTable thead th .to-par-badge').forEach(badge => {
         const raw = badge.getAttribute('data-value');
         const val = raw != null ? parseInt(raw, 10) : NaN;
 
         if (!Number.isFinite(val) || val === 0) {
-          badge.style.color = '#000000'; // E (even)
+          badge.style.color = '#000000'; // E
         } else if (val > 0) {
-          badge.style.color = grey; // over par
+          badge.style.color = grey; // over
         } else {
-          badge.style.color = themeText; // under par
+          badge.style.color = themeText; // under
         }
       });
     }
@@ -1434,7 +1439,6 @@
       if (count >= 7) table.classList.add('small-scores');
       else table.classList.remove('small-scores');
 
-      // Clear background and remove any old rank <small> from older versions
       headers.forEach(h => {
         h.style.background = '';
         h.querySelectorAll('small').forEach(s => s.remove());
@@ -1463,7 +1467,6 @@
         else last.members.push(item.pid);
       }
 
-      // Gradient background by group
       const { h: H, s: S } = getThemeHS(themeColor);
       const Lmax = 82, minRange = 18, maxRange = 44;
       const effective = groups.length;
@@ -1482,7 +1485,6 @@
         });
       });
 
-      // No rank text insertion anymore
       clipPlayerNamesToCell();
     }
 
@@ -1629,7 +1631,6 @@
     document.getElementById('overlay').addEventListener('click', () => {
       closeRoundManagement();
       closePlayerNameModal();
-      // Commit inline edit if open, then close without any cell selected
       if (activeInput) {
         applyInlineEdit(activeInput.value, false);
       } else {
