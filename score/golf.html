@@ -59,7 +59,7 @@
       border-bottom: none;
     }
     #scoreTable thead th {
-      height: 80px;       /* keep header height fixed */
+      height: 80px;
       font-size: 22px;
     }
 
@@ -126,7 +126,7 @@
     }
     .summary-row td:last-child { border-right: none; }
 
-    /* Header player content — FOUR LINES centered: Name, Score, Pill, Rank */
+    /* Header player content — THREE LINES with original-style spacing */
     #scoreTable thead th .player-name {
       display: block;
       max-width: 100%;
@@ -134,47 +134,41 @@
       white-space: nowrap;
       text-overflow: clip;
       text-align: center;
-      font-size: 20px;
-      line-height: 1;   /* compact to keep row height */
+      line-height: 1; /* original look */
       margin: 0;
     }
-    /* Score (strokes) on its own line */
+    /* Total line (block) so rank sits on its own line below */
     #scoreTable thead th div[id^="total"] {
       display: block;
-      font-size: 18px;
+      font-size: 18px; /* original size */
       color: rgba(255, 255, 255, 0.9);
       margin: 0;
-      line-height: 1;   /* compact */
     }
-    /* Pill on its own line */
-    #scoreTable thead th .to-par-wrap {
-      display: block;
-      margin: 0;
-      line-height: 1;   /* compact */
-    }
+    /* Small, rounded, gray to-par badge next to total */
     #scoreTable thead th .to-par-badge {
       display: inline-block;
-      font-size: 12px;        /* small pill text */
+      font-size: 12px;     /* smaller */
       line-height: 1;
       padding: 2px 6px;
-      border-radius: 9999px;  /* pill */
-      background: #ffffff;    /* white bg */
-      color: #000000;         /* text color set dynamically in JS */
+      border-radius: 9999px;
+      background: #9ca3af; /* gray bg */
+      color: #0f172a;      /* dark text */
+      vertical-align: middle;
+      margin-left: 6px;    /* spacing from strokes */
     }
-    /* Rank on its own line */
+    /* Rank on its own line (third line), original sizing */
     #scoreTable thead th small {
-      display: block;
+      display: block; /* force onto its own line */
       font-size: 16px;
       color: rgba(255, 255, 255, 0.8);
       margin: 0;
-      line-height: 1;   /* compact */
     }
 
     #scoreTable.small-scores thead th .player-name {
       font-size: 18px; line-height: 1.1;
     }
 
-    /* Gear icon inherits pointer from header */
+    /* Keep the ☰ icon as-is; whole cell remains clickable */
     .gear {
       font-size: 20px; cursor: inherit; color: #fff; background: none; border: none;
       padding: 0; margin: 0; line-height: 1;
@@ -445,10 +439,6 @@
       grey:   { h: 210, s:  0 }
     };
     function getThemeHS(key) { return THEME_MAP[key] || THEME_MAP.blue; }
-    function themeTextColor(l = 40) {
-      const { h, s } = getThemeHS(themeColor);
-      return `hsl(${h}, ${s}%, ${l}%)`;
-    }
 
     const KEYCAP_DIGITS = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
     function numberToKeycap(n) { return KEYCAP_DIGITS[n] || String(n); }
@@ -548,8 +538,7 @@
         th.title = savedName;
         th.innerHTML = `
           <span class="player-name" data-full="${savedName}" title="${savedName}">${savedName}</span>
-          <div id="total${pid}" class="strokes-line"></div>
-          <div class="to-par-wrap"><span class="to-par-badge"></span></div>
+          <div id="total${pid}"></div>
         `;
         th.addEventListener('click', () => { window.currentPlayer = pid; openPlayerModalForHeader(pid); });
         headerRow.appendChild(th);
@@ -654,7 +643,7 @@
       const prevInput = activeInput;
 
       if (!preserveKeyboard) {
-        endInlineEdit(true);
+        endInlineEdit(true); // clear any previous editor before creating a new one
       }
 
       activeCell = td;
@@ -684,6 +673,7 @@
           cancelInlineEdit();
         }
       });
+      // Only submit on blur if this input is still the active one
       input.addEventListener('blur', () => {
         if (input !== activeInput) return;
         applyInlineEdit(input.value, false);
@@ -695,6 +685,7 @@
         try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
         input.select();
 
+        // After focusing the new input, clean up the previous one (to keep keyboard from closing)
         if (preserveKeyboard && prevInput && prevCell) {
           prevCell.classList.remove('editing');
           delete prevCell.dataset.prev;
@@ -748,6 +739,7 @@
       const nextCell = shouldAdvance ? getNextScoreCell(td) : null;
 
       if (nextCell) {
+        // Seamlessly move to next cell without closing the keyboard
         startInlineEdit(nextCell, 'score', { preserveKeyboard: true, prevDisplayText: displayText });
         updateAllTotals();
         if (sortByRankEnabled) applySortByRank(true);
@@ -756,6 +748,7 @@
         return;
       }
 
+      // Normal finalize (close keyboard)
       td.textContent = displayText;
       endInlineEdit(false);
       updateAllTotals();
@@ -781,6 +774,7 @@
     }
 
     /* ---------------- Outside tap handling ---------------- */
+    // Tap anywhere outside the current input: submit and close; if it was another score/par cell, suppress that click so no new cell is selected
     document.addEventListener('pointerdown', (e) => {
       if (activeInput && !activeInput.contains(e.target)) {
         const cellHit = e.target.closest('td.score-cell, td.par-cell');
@@ -846,7 +840,7 @@
       if (btn) { btn.textContent = 'Reset'; btn.removeAttribute('data-confirm'); }
     }
 
-    /* Add/remove players without full rebuild */
+    // UPDATED: Player add/remove to match reference app behavior (no full rebuild)
     function updatePlayerCount() {
       const val = parseInt(document.getElementById('playerCount').value, 10);
       const newCount = Math.min(8, Math.max(1, val));
@@ -855,47 +849,51 @@
       const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
       const existing = headerRow.children.length - 2; // exclude hole + par
 
-      // Remove extra players
+      // Remove extra players (from the end) + clean storage
       if (newCount < existing) {
         for (let i = existing; i > newCount; i--) {
           const pid = `P${i}`;
+          // Remove last header player cell
           if (headerRow.lastElementChild) headerRow.removeChild(headerRow.lastElementChild);
+          // Remove last cell for each row
           rows.forEach(tr => { if (tr.lastElementChild) tr.removeChild(tr.lastElementChild); });
+          // Clean LS for removed player
           localStorage.removeItem(LS.name(pid));
           for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(pid, h));
         }
       }
 
-      // Add players
+      // Add new players
       if (newCount > existing) {
         for (let i = existing + 1; i <= newCount; i++) {
           const pid = `P${i}`;
           const savedName = localStorage.getItem(LS.name(pid)) || (emojiModeEnabled && i <= 9 ? numberToKeycap(i) : pid);
 
+          // Header
           const th = document.createElement('th');
           th.setAttribute('data-player', pid);
           th.title = savedName;
-          th.innerHTML = `
-            <span class="player-name" data-full="${savedName}" title="${savedName}">${savedName}</span>
-            <div id="total${pid}" class="strokes-line"></div>
-            <div class="to-par-wrap"><span class="to-par-badge"></span></div>
-          `;
+          th.innerHTML = `<span class="player-name" data-full="${savedName}" title="${savedName}">${savedName}</span><div id="total${pid}"></div>`;
           th.addEventListener('click', () => { window.currentPlayer = pid; openPlayerModalForHeader(pid); });
           headerRow.appendChild(th);
 
+          // Body rows
           rows.forEach(tr => {
             const first = tr.firstElementChild;
             const isSummary = tr.classList.contains('summary-row');
             const td = document.createElement('td');
             if (!isSummary) {
+              // Hole row
               const holeNo = parseInt(tr.querySelector('.hole-cell')?.textContent || '0', 10);
               td.className = 'score-cell';
               td.setAttribute('data-player', pid);
               td.setAttribute('data-hole', `H${holeNo}`);
               td.addEventListener('click', () => startInlineEdit(td, 'score'));
+              // Fill from LS if any
               const saved = localStorage.getItem(LS.score(pid, holeNo));
               if (saved != null) td.textContent = saved;
             } else {
+              // Summary row OUT/IN
               const label = first?.textContent?.trim() || '';
               if (label === 'OUT') td.setAttribute('data-sum', `out-${pid}`);
               if (label === 'IN') td.setAttribute('data-sum', `in-${pid}`);
@@ -915,7 +913,7 @@
       closeRoundManagement();
     }
 
-    // Segmented holes toggle
+    // New: handle holes toggle via segmented control
     function setHolesCount(val) {
       const n = parseInt(val, 10);
       holesCount = [9, 18].includes(n) ? n : 18;
@@ -935,7 +933,7 @@
     function setThemeColor(value) {
       themeColor = value || 'blue';
       localStorage.setItem(LS.themeColor, themeColor);
-      updateAllTotals();   // recolor header pills and keep totals
+      updateScoreColors(); // recolor under-par cells with new theme
       updateRanks();
     }
 
@@ -1138,22 +1136,15 @@
       return true;
     }
 
-    // Preserve formatted content when renaming (strokes + pill + rank)
+    // Preserve formatted total (with badge) and rank when renaming
     function applyPlayerName(pid, newName) {
       const header = document.querySelector(`#scoreTable thead th[data-player="${pid}"]`);
       if (!header) return;
       const totalDiv = header.querySelector('div[id^="total"]');
-      const strokesHtml = totalDiv ? totalDiv.innerHTML : '';
-      const pillWrap = header.querySelector('.to-par-wrap');
-      const pillHtml = pillWrap ? pillWrap.innerHTML : '<span class="to-par-badge"></span>';
+      const totalHtml = totalDiv ? totalDiv.innerHTML : ''; // preserve badge markup
       const rankEl = header.querySelector('small');
       const rankHTML = rankEl ? rankEl.outerHTML : '';
-      header.innerHTML = `
-        <span class="player-name" data-full="${newName}" title="${newName}">${newName}</span>
-        <div id="total${pid}" class="strokes-line">${strokesHtml}</div>
-        <div class="to-par-wrap">${pillHtml}</div>
-        ${rankHTML}
-      `;
+      header.innerHTML = `<span class="player-name" data-full="${newName}" title="${newName}">${newName}</span><div id="total${pid}">${totalHtml}</div>${rankHTML}`;
       header.setAttribute('data-player', pid);
       localStorage.setItem(LS.name(pid), newName);
       clipPlayerNamesToCell();
@@ -1218,6 +1209,7 @@
         emojiModeEnabled = true;
         localStorage.setItem(LS.emojiMode, 'true');
 
+        // Resize to selection length using same add/remove logic
         const pcSel = document.getElementById('playerCount');
         pcSel.value = String(targetCount);
         updatePlayerCount();
@@ -1293,7 +1285,6 @@
         }
       }
       clipPlayerNamesToCell();
-      updateRanks();
     }
 
     /* ---------------- Totals / ranks / layout ---------------- */
@@ -1327,6 +1318,8 @@
 
     // Color score numbers: par=black, over=grey, under=theme color
     function updateScoreColors() {
+      const { h: H, s: S } = getThemeHS(themeColor);
+      const themeText = (l = 40) => `hsl(${H}, ${S}%, ${l}%)`;
       const grey = '#808080';
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => {
         const txt = td.textContent.trim();
@@ -1336,7 +1329,7 @@
         const holeAttr = td.getAttribute('data-hole') || '';
         const hole = parseInt(holeAttr.replace('H',''), 10);
         const par = Number.isFinite(hole) ? getPar(hole) : 3;
-        if (score < par) td.style.color = themeTextColor(40);
+        if (score < par) td.style.color = themeText(40);
         else if (score > par) td.style.color = grey;
         else td.style.color = '#000000';
       });
@@ -1357,45 +1350,37 @@
       if (holesCount > 9) setSumCell('in-par', parIn);
 
       const any = hasAnyEntry();
-      const grey = '#808080';
 
       for (let p = 1; p <= playerCount; p++) {
         const pid = `P${p}`;
-        const playedHoles = [...outRange, ...inRange];
+        const sumOut = outRange.reduce((s, h) => s + (getScore(pid, h) ?? 0), 0);
+        const sumIn  = inRange.reduce((s, h) => s + (getScore(pid, h) ?? 0), 0);
+        const played = [...outRange, ...inRange];
         let playedPar = 0, playedStrokes = 0, hasScore = false;
-        for (const h of playedHoles) {
+        for (const h of played) {
           const sc = getScore(pid, h);
           if (sc != null) { hasScore = true; playedStrokes += sc; playedPar += getPar(h); }
         }
+        setSumCell(`out-${pid}`, sumOut);
+        if (holesCount > 9) setSumCell(`in-${pid}`, sumIn);
 
-        // Score line
         const totalDiv = document.getElementById(`total${pid}`);
-        if (totalDiv) {
-          if (hasScore) totalDiv.textContent = String(playedStrokes);
-          else totalDiv.textContent = any ? '0' : '';
-        }
+        if (!totalDiv) continue;
 
-        // Pill line
-        const pill = document.querySelector(`#scoreTable thead th[data-player="${pid}"] .to-par-badge`);
-        if (pill) {
-          if (hasScore || any) {
-            const delta = (playedPar === 0) ? 0 : (playedStrokes - playedPar);
-            const tpText = (delta === 0) ? 'E' : (delta > 0 ? `+${delta}` : `${delta}`);
-            pill.textContent = tpText;
-            pill.style.background = '#ffffff';
-            if (delta === 0) {
-              pill.style.color = '#000000';        // E -> black
-            } else if (delta > 0) {
-              pill.style.color = grey;            // over par -> grey
-            } else {
-              pill.style.color = themeTextColor(40); // under par -> theme color
-            }
+        if (hasScore) {
+          const toPar = (playedPar === 0) ? 0 : (playedStrokes - playedPar);
+          const tp = toPar === 0 ? 'E' : (toPar > 0 ? `+${toPar}` : `${toPar}`);
+          totalDiv.innerHTML = `<span class="strokes">${playedStrokes}</span><span class="to-par-badge">${tp}</span>`;
+        } else {
+          if (any) {
+            totalDiv.innerHTML = `<span class="strokes">0</span><span class="to-par-badge">E</span>`;
           } else {
-            pill.textContent = '';
+            totalDiv.innerHTML = '';
           }
         }
       }
 
+      // Apply score coloring after totals computed
       updateScoreColors();
     }
 
@@ -1407,7 +1392,6 @@
       if (count >= 7) table.classList.add('small-scores');
       else table.classList.remove('small-scores');
 
-      // Clear bg + old ranks
       headers.forEach(h => { h.style.background = ''; h.querySelectorAll('small').forEach(s => s.remove()); });
 
       const any = hasAnyEntry();
@@ -1451,19 +1435,15 @@
         });
       });
 
-      // Insert rank AFTER pill line (fourth line)
+      // Insert rank label AFTER total (third line) like original stack
       const distinctAsc = Array.from(new Set(sorted.map(s => s.rankValue)));
       const rankByVal = new Map(distinctAsc.map((v, i) => [v, i + 1]));
       totals.forEach(({ h, rankValue }) => {
         const small = document.createElement('small');
         small.textContent = ordinalSuffixOf(rankByVal.get(rankValue) || 1);
-        const pillWrap = h.querySelector('.to-par-wrap');
-        if (pillWrap) pillWrap.insertAdjacentElement('afterend', small);
-        else {
-          const totalDiv = h.querySelector('div[id^="total"]');
-          if (totalDiv) totalDiv.insertAdjacentElement('afterend', small);
-          else h.appendChild(small);
-        }
+        const totalDiv = h.querySelector('div[id^="total"]');
+        if (totalDiv) totalDiv.insertAdjacentElement('afterend', small);
+        else h.appendChild(small);
       });
 
       clipPlayerNamesToCell();
@@ -1612,6 +1592,7 @@
     document.getElementById('overlay').addEventListener('click', () => {
       closeRoundManagement();
       closePlayerNameModal();
+      // Commit inline edit if open, then close without any cell selected
       if (activeInput) {
         applyInlineEdit(activeInput.value, false);
       } else {
