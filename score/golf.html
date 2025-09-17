@@ -54,7 +54,7 @@
 
     /* Header row */
     table th {
-      background: linear-gradient(to bottom, #262626 0%, #262626 100%);
+      background: linear-gradient(to bottom, #3b3b3b 0%, #3b3b3b 100%);
       color: white;
       border-bottom: none;
     }
@@ -65,7 +65,7 @@
 
     /* Top-left settings cell: solid dark bg + divider to Par */
     #scoreTable thead th:first-child {
-      background: #262626;
+      background: #3b3b3b;
       color: #fff;
       border-right: 1px solid #666; /* divider between settings and Par */
       border-bottom: 1px solid #666;
@@ -89,7 +89,7 @@
     /* First two columns: sticky + darker borders */
     th.hole-header, td.hole-cell {
       position: sticky; left: 0; z-index: 2;
-      background: #262626; color: #fff;
+      background: #3b3b3b; color: #fff;
       width: var(--hole-w); min-width: var(--hole-w); max-width: var(--hole-w);
       border-right: 1px solid #666;
       border-bottom: 1px solid #666;
@@ -101,7 +101,7 @@
       position: sticky;
       left: calc(var(--hole-w) + 1px);
       z-index: 2;
-      background: #262626; color: #fff;
+      background: #3b3b3b; color: #fff;
       width: var(--par-w); min-width: var(--par-w); max-width: var(--par-w);
       border-right: 1px solid #666;
       border-bottom: 1px solid #666;
@@ -119,7 +119,7 @@
 
     /* Summary rows (OUT/IN) dark */
     .summary-row td {
-      background: #262626; color: white;
+      background: #3b3b3b; color: white;
       border-bottom: 1px solid #666; border-right: 1px solid #666;
     }
     .summary-row td:last-child { border-right: none; }
@@ -213,7 +213,7 @@
     #popupModal h2 { margin: 15px 0; padding: 0; }
     #popupModal button {
       font-size: 24px; padding: 10px 20px; margin: 2px; cursor: pointer;
-      font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #262626 100%);
+      font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #3b3b3b 0%, #3b3b3b 100%);
       color: white; border: none; border-radius: 6px; transition: background 0.2s;
     }
     #popupOptions {
@@ -227,7 +227,7 @@
       width: 40px; height: 40px; font-size: 24px; padding: 0; margin: 0; box-sizing: border-box;
       cursor: pointer; font-family: 'Economica', sans-serif, Arial; display: flex; justify-content: center; align-items: center;
       text-align: center; overflow: hidden; white-space: nowrap;
-      background: linear-gradient(to bottom, #262626 0%, #262626 100%);
+      background: linear-gradient(to bottom, #3b3b3b 0%, #3b3b3b 100%);
       color: white; border: none; border-radius: 6px; transition: background 0.2s ease;
       -webkit-appearance: none; appearance: none; line-height: 1; outline: none;
     }
@@ -255,14 +255,14 @@
     }
     #roundManagementModal button {
       font-size: 24px; padding: 10px 20px; margin: 5px 0; cursor: pointer;
-      font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #262626 100%);
+      font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #3b3b3b 0%, #3b3b3b 100%);
       color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
     }
     #roundManagementModal button#sortByRankBtn {
-      background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
+      background: #f8f9fa; color: #0f172a; border: 1px solid #3b3b3b;
     }
     #roundManagementModal button#sortByRankBtn.active {
-      background: linear-gradient(to bottom, #262626 0%, #262626 100%); color: #ffffff; border: 1px solid #262626;
+      background: linear-gradient(to bottom, #3b3b3b 0%, #3b3b3b 100%); color: #ffffff; border: 1px solid #3b3b3b;
     }
     #roundManagementModal button#resetButton[data-confirm="true"] {
       background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
@@ -281,23 +281,23 @@
       font-family: 'Economica', sans-serif; border: 1px solid #d0d7de; border-radius: 6px; background: #ffffff;
       box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s ease;
     }
-    #playerNameModal input[type="text"]:focus { outline: none; border: 1px solid #262626; }
+    #playerNameModal input[type="text"]:focus { outline: none; border: 1px solid #3b3b3b; }
     #playerNameModal button {
       font-size: 24px; padding: 10px 20px; margin: 5px 0; cursor: pointer;
-      font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #262626 100%);
+      font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #3b3b3b 0%, #3b3b3b 100%);
       color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
     }
     #playerNameModal button[data-state="confirm"] {
       background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
     }
     #playerNameModal button.light {
-      background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
+      background: #f8f9fa; color: #0f172a; border: 1px solid #3b3b3b;
     }
 
     /* Segmented control */
     .segmented-control {
       display: flex; width: 100%; box-sizing: border-box; margin: 5px 0;
-      background: #f8f9fa; border-radius: 6px; overflow: hidden; border: 1px solid #262626;
+      background: #f8f9fa; border-radius: 6px; overflow: hidden; border: 1px solid #3b3b3b;
     }
     .segmented-control input[type="radio"] { display: none; }
     .segmented-control label {
@@ -305,7 +305,7 @@
       cursor: pointer; user-select: none; background: #f8f9fa; margin: 0;
     }
     .segmented-control input[type="radio"]:checked + label {
-      background: linear-gradient(to bottom, #262626 0%, #262626 100%); color: #fff;
+      background: linear-gradient(to bottom, #3b3b3b 0%, #3b3b3b 100%); color: #fff;
     }
 
     /* Emoji grid */
@@ -316,7 +316,7 @@
       user-select: none; -webkit-user-select: none;
     }
     #playerNameModal .emoji-grid .emoji-pick {
-      background: linear-gradient(to bottom, #262626 0%, #262626 100%);
+      background: linear-gradient(to bottom, #3b3b3b 0%, #3b3b3b 100%);
       color: #ffffff; border: none; border-radius: 6px;
       font-family: 'Economica', sans-serif; font-size: 22px;
       display: grid; place-items: center;
@@ -328,7 +328,7 @@
       padding-bottom: 2px;
     }
     #playerNameModal .emoji-grid .emoji-pick:active { transform: scale(0.95); filter: brightness(1.05); }
-    .emoji-grid .emoji-pick.selected { box-shadow: 0 0 0 2px #262626 inset; }
+    .emoji-grid .emoji-pick.selected { box-shadow: 0 0 0 2px #3b3b3b inset; }
     .emoji-grid .emoji-pick.selected::before {
       content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35);
       border-radius: 6px; pointer-events: none; z-index: 1;
