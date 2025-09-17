@@ -62,9 +62,11 @@
       height: 80px;
       font-size: 22px;
     }
+    /* Make top-left settings header cell match solid dark bg and add divider to the right */
     #scoreTable thead th:first-child {
-      background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-      border-right: none;
+      background: #3b3b3b;
+      color: #fff;
+      border-right: 1px solid #666; /* ensure border between Settings and Par */
       border-bottom: 1px solid #666; /* dark line like ref */
     }
 
@@ -88,21 +90,23 @@
       position: sticky; left: 0; z-index: 2;
       background: #3b3b3b; color: #fff;
       width: var(--hole-w); min-width: var(--hole-w); max-width: var(--hole-w);
-      border-right: 1px solid #666;
+      border-right: 1px solid #666;   /* divider to the Par column */
       border-bottom: 1px solid #666;
-      cursor: default;
     }
+    /* Make the entire top-left settings header clickable */
+    th.hole-header { cursor: pointer; }
+
     th.par-header, td.par-cell {
       position: sticky;
       left: calc(var(--hole-w) + 1px); /* include the hole-cell right border to avoid jump */
       z-index: 2;
-      background: #3b3b3b; color: #fff; /* solid to match top-left; no gradient */
+      background: #3b3b3b; color: #fff; /* solid to match others; no gradient */
       width: var(--par-w); min-width: var(--par-w); max-width: var(--par-w);
-      border-right: 1px solid #666;
+      border-right: 1px solid #666;     /* keep body par-cell border */
       border-bottom: 1px solid #666;
     }
-    /* Remove the right border in the par cell only (not the header) */
-    td.par-cell { border-right: none !important; }
+    /* Remove right border only on the TOP par header cell (not the whole column) */
+    th.par-header { border-right: none; }
 
     /* Make all body rows rock-solid height */
     #scoreTable tbody td, #scoreTable tbody th {
@@ -142,13 +146,12 @@
       font-size: 18px; line-height: 1.1;
     }
 
-    /* Gear button */
+    /* Gear icon */
     .gear {
-      font-size: 20px; cursor: pointer; color: #fff; background: none; border: none;
+      font-size: 20px; cursor: inherit; color: #fff; background: none; border: none;
     }
 
     /* Inline cell editing (no popup for scores) */
-    /* FIX: Do not override sticky positioning on par/hole cells */
     #scoreBody td.editing {
       box-shadow: inset 0 0 0 2px #000;
     }
@@ -333,8 +336,8 @@
   <table id="scoreTable">
     <thead>
       <tr id="playerRow">
-        <th class="hole-header">
-          <button class="gear" title="Round settings" onclick="showRoundManagement()">☰</button>
+        <th class="hole-header" onclick="showRoundManagement()">
+          <button class="gear" title="Round settings">☰</button>
         </th>
         <th class="par-header">Par</th>
         <!-- Player headers injected -->
@@ -503,7 +506,7 @@
     function buildTable() {
       const headerRow = document.getElementById('playerRow');
       headerRow.innerHTML = `
-        <th class="hole-header"><button class="gear" title="Round settings" onclick="showRoundManagement()">☰</button></th>
+        <th class="hole-header" onclick="showRoundManagement()"><button class="gear" title="Round settings">☰</button></th>
         <th class="par-header">Par</th>
       `;
 
@@ -748,16 +751,6 @@
       if (activeInput && activeInput.parentElement) activeInput.parentElement.removeChild(activeInput);
       activeCell = null; activeInput = null; activeMode = null;
       if (!clearOnly) fitRowsToViewport();
-    }
-
-    // Kept (used elsewhere), but not used for Next navigation anymore
-    function advanceToNextScoreCell(currentTd) {
-      const cells = Array.from(document.querySelectorAll('#scoreBody td.score-cell'));
-      const idx = cells.indexOf(currentTd);
-      if (idx !== -1) {
-        const next = cells[idx + 1];
-        if (next) startInlineEdit(next, 'score');
-      }
     }
 
     /* ---------------- Outside tap handling ---------------- */
@@ -1301,7 +1294,7 @@
       return Array.from(document.querySelectorAll('.score-cell')).some(td => td.textContent.trim() !== '');
     }
 
-    // New: color the scores based on par relation
+    // Color score numbers: par=black, over=grey, under=theme color
     function updateScoreColors() {
       const { h: H, s: S } = getThemeHS(themeColor);
       const themeText = (l = 40) => `hsl(${H}, ${S}%, ${l}%)`; // readable theme color
