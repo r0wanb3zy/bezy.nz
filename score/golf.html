@@ -96,11 +96,13 @@
       position: sticky;
       left: calc(var(--hole-w) + 1px); /* include the hole-cell right border to avoid jump */
       z-index: 2;
-      background: #3b3b3b; color: #fff;
+      background: #3b3b3b; color: #fff; /* solid to match top-left; no gradient */
       width: var(--par-w); min-width: var(--par-w); max-width: var(--par-w);
       border-right: 1px solid #666;
       border-bottom: 1px solid #666;
     }
+    /* Remove the right border in the par cell only (not the header) */
+    td.par-cell { border-right: none !important; }
 
     /* Make all body rows rock-solid height */
     #scoreTable tbody td, #scoreTable tbody th {
@@ -352,6 +354,7 @@
   <div id="roundManagementModal">
     <h2>Round</h2>
     <span class="close-btn" onclick="closeRoundManagement()">×</span>
+
     <select id="playerCount" onchange="updatePlayerCount()">
       <option value="1">1 Players</option>
       <option value="2">2 Players</option>
@@ -362,10 +365,15 @@
       <option value="7">7 Players</option>
       <option value="8">8 Players</option>
     </select>
-    <select id="holesCount" onchange="updateHolesCount()">
-      <option value="9">9 Holes</option>
-      <option value="18">18 Holes</option>
-    </select>
+
+    <!-- 9/18 Holes segmented control -->
+    <div class="segmented-control" id="holesSegment">
+      <input type="radio" id="holes9" name="holesCount" value="9" onchange="setHolesCount(9)">
+      <label for="holes9">9 Holes</label>
+      <input type="radio" id="holes18" name="holesCount" value="18" onchange="setHolesCount(18)">
+      <label for="holes18">18 Holes</label>
+    </div>
+
     <button id="sortByRankBtn" onclick="toggleSortByRank()">Sort by Rank</button>
     <select id="themeColorSelect" onchange="setThemeColor(this.value)">
       <option value="blue">Blue</option>
@@ -459,10 +467,16 @@
       // Preload selects
       const pcSel = document.getElementById('playerCount');
       if (pcSel) pcSel.value = String(playerCount);
-      const holesSel = document.getElementById('holesCount');
-      if (holesSel) holesSel.value = String(holesCount);
       const themeSel = document.getElementById('themeColorSelect');
       if (themeSel) themeSel.value = themeColor;
+
+      // Set holes segmented toggle
+      const holes9 = document.getElementById('holes9');
+      const holes18 = document.getElementById('holes18');
+      if (holes9 && holes18) {
+        holes9.checked = holesCount === 9;
+        holes18.checked = holesCount === 18;
+      }
 
       buildTable();
       loadFromStorage();
@@ -771,14 +785,20 @@
     /* ---------------- Round Management ---------------- */
     function showRoundManagement() {
       const pcSel = document.getElementById('playerCount');
-      const holesSel = document.getElementById('holesCount');
       const themeSel = document.getElementById('themeColorSelect');
       const sortBtn = document.getElementById('sortByRankBtn');
 
       pcSel.value = String(playerCount);
-      holesSel.value = String(holesCount);
       themeSel.value = themeColor;
       sortBtn.classList.toggle('active', sortByRankEnabled);
+
+      // Sync holes segmented control
+      const holes9 = document.getElementById('holes9');
+      const holes18 = document.getElementById('holes18');
+      if (holes9 && holes18) {
+        holes9.checked = holesCount === 9;
+        holes18.checked = holesCount === 18;
+      }
 
       document.getElementById('roundManagementModal').style.display = 'block';
       showOverlay();
@@ -880,13 +900,15 @@
       closeRoundManagement();
     }
 
-    function updateHolesCount() {
-      const val = parseInt(document.getElementById('holesCount').value, 10);
-      holesCount = [9,18].includes(val) ? val : 18;
+    // New: handle holes toggle via segmented control
+    function setHolesCount(val) {
+      const n = parseInt(val, 10);
+      holesCount = [9, 18].includes(n) ? n : 18;
       localStorage.setItem(LS.holesCount, String(holesCount));
       rebuildPreserving();
       updateRanks();
     }
+
     function toggleSortByRank() {
       sortByRankEnabled = !sortByRankEnabled;
       localStorage.setItem(LS.sort, String(sortByRankEnabled));
@@ -898,6 +920,7 @@
     function setThemeColor(value) {
       themeColor = value || 'blue';
       localStorage.setItem(LS.themeColor, themeColor);
+      updateScoreColors(); // recolor under-par cells with new theme
       updateRanks();
     }
 
@@ -1278,6 +1301,25 @@
       return Array.from(document.querySelectorAll('.score-cell')).some(td => td.textContent.trim() !== '');
     }
 
+    // New: color the scores based on par relation
+    function updateScoreColors() {
+      const { h: H, s: S } = getThemeHS(themeColor);
+      const themeText = (l = 40) => `hsl(${H}, ${S}%, ${l}%)`; // readable theme color
+      const grey = '#808080';
+      document.querySelectorAll('#scoreBody td.score-cell').forEach(td => {
+        const txt = td.textContent.trim();
+        if (!txt) { td.style.color = ''; return; }
+        const score = parseInt(txt, 10);
+        if (!Number.isFinite(score)) { td.style.color = ''; return; }
+        const holeAttr = td.getAttribute('data-hole') || '';
+        const hole = parseInt(holeAttr.replace('H',''), 10);
+        const par = Number.isFinite(hole) ? getPar(hole) : 3;
+        if (score < par) td.style.color = themeText(40);
+        else if (score > par) td.style.color = grey;
+        else td.style.color = '#000000';
+      });
+    }
+
     function updateAllTotals() {
       const outRange = [...Array(Math.min(9, holesCount)).keys()].map(i => i + 1);
       const inRange  = (holesCount > 9) ? [...Array(holesCount - 9).keys()].map(i => i + 10) : [];
@@ -1318,6 +1360,9 @@
           }
         }
       }
+
+      // Apply score coloring after totals computed
+      updateScoreColors();
     }
 
     function updateRanks() {
