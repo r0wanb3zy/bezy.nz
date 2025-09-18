@@ -604,6 +604,9 @@
     let activeMode = null; // 'score' | 'par'
     let resetConfirm = false;
 
+    // NEW: remember if current lock was created by this click (to auto-unlock on no-edit)
+    let lockPrimedHole = null; // e.g., "H3"
+
     // One-hole-at-a-time scoring
     let lockedHole = null; // e.g., "H3"
     function setLockedHole(holeId) {
@@ -915,8 +918,14 @@
         // If locked and this isn't the locked row, ignore
         if (lockedHole && lockedHole !== holeId) return;
 
-        // Lock immediately on score click (and keep it locked even if you click away)
-        if (holeId) setLockedHole(holeId);
+        // Lock immediately on score click (and keep it locked unless mis-click)
+        if (!lockedHole && holeId) {
+          setLockedHole(holeId);
+          lockPrimedHole = holeId; // we just locked due to this click
+        } else {
+          // Already locked (same row) or no holeId
+          lockPrimedHole = null;
+        }
       } else if (mode === 'par') {
         // Prevent editing par of another row while locked
         if (lockedHole && lockedHole !== holeId) return;
@@ -1035,7 +1044,14 @@
           if (player && hole) localStorage.setItem(LS.score(player, hole), displayText);
         }
 
-        // Lock now happens on click; no auto-unlock when empty
+        // NEW: mis-click unlock — only if this click created the lock, no typing happened,
+        // and the hole is still empty (no scores for any player)
+        if (hole && lockPrimedHole === `H${hole}` && !userTyped) {
+          if (isHoleEmpty(hole)) {
+            clearLockedHole();
+          }
+          lockPrimedHole = null;
+        }
       } else if (mode === 'par') {
         if (!userTyped && trimmed === '') {
           displayText = prevText || '3';
@@ -1076,6 +1092,17 @@
 
     function cancelInlineEdit() {
       if (!activeCell) return;
+
+      // Apply same mis-click unlock logic on cancel (e.g., Escape)
+      if (activeMode === 'score') {
+        const holeId = activeCell.getAttribute('data-hole');
+        const h = parseInt(holeId?.replace('H','') || '0', 10);
+        if (lockPrimedHole === holeId && h && isHoleEmpty(h)) {
+          clearLockedHole();
+        }
+        lockPrimedHole = null;
+      }
+
       if (activeCell.dataset.prev != null) activeCell.textContent = activeCell.dataset.prev;
       endInlineEdit(false);
     }
@@ -1254,21 +1281,19 @@
     }
 
     // Only reset scores; do NOT reset pars
-function resetScores() {
-  for (let p = 1; p <= 8; p++) {
-    for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
-  }
+    function resetScores() {
+      for (let p = 1; p <= 8; p++) {
+        for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
+      }
+      document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
 
-  // Clear all score cells
-  document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
+      // NEW: also clear any active row lock and its placeholders
+      clearLockedHole();
 
-  // NEW: also clear any active row lock and its placeholders
-  clearLockedHole();
-
-  updateAllTotals();
-  updateRanks();
-  closeRoundManagement();
-}
+      updateAllTotals();
+      updateRanks();
+      closeRoundManagement();
+    }
 
     /* ---------------- Player naming ---------------- */
     function openPlayerModalForHeader(pid) {
