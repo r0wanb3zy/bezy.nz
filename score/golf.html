@@ -1,4 +1,7 @@
-<meta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
   <title>Golf Scorecard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css?family=Economica&amp;display=swap" rel="stylesheet">
@@ -20,6 +23,9 @@
       --hole-w: 30px;
       --par-w: 30px;
       --row-h: 34px; /* JS will set this so all rows fit exactly in the viewport */
+
+      /* NEW: unified, lighter placeholder color */
+      --ph-color: rgba(0, 0, 0, 0.24);
     }
 
     /* Table base */
@@ -394,27 +400,56 @@
     }
 
     /* Hole lock visuals */
-    /* NEW: Don't dim or disable other holes; only highlight the active hole's score cells */
+    /* Highlight the active hole's score cells */
     #scoreBody tr.active-hole td.score-cell {
       background: rgba(0, 0, 0, 0.03);
     }
-    /* No styling for inactive-hole anymore */
 
-    /* NEW: Show player name placeholders (light grey) on empty cells in the active hole row */
+    /* NEW: Make the clicked row (show-placeholders) match locked row highlight */
+    #scoreBody tr.show-placeholders td.score-cell {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    /* NEW: Show player name placeholders on empty cells in the active row */
     #scoreBody tr.show-placeholders td.score-cell:empty::before {
       content: attr(data-placeholder);
-      color: rgba(0,0,0,0.35);
+      color: var(--ph-color);
       font-weight: normal;
+      font-style: normal;
       pointer-events: none;
     }
-    /* NEW: Placeholder color for inline input */
-    .inline-number::placeholder {
-      color: rgba(0,0,0,0.35);
+
+    /* NEW: Placeholder color for inline input — unified and subtle */
+    .inline-number::-webkit-input-placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
     }
+    .inline-number::-moz-placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
+    }
+    .inline-number:-ms-input-placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
+    }
+    .inline-number::placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
+    }
+
     /* NEW: Make hole number tappable to manually lock/unlock a hole */
     #scoreBody tr:not(.summary-row) .hole-cell { cursor: pointer; }
   </style>
-
+</head>
+<body>
 
   <!-- Score Table -->
   <table id="scoreTable" style="height: 628px;">
@@ -562,12 +597,12 @@
     function setLockedHole(holeId) {
       lockedHole = holeId;
       updateHoleLockVisuals();
-      syncHolePlaceholderState(); // NEW: keep placeholders in sync with lock
+      syncHolePlaceholderState(); // keep placeholders in sync with lock
     }
     function clearLockedHole() {
       lockedHole = null;
       updateHoleLockVisuals();
-      syncHolePlaceholderState(); // NEW
+      syncHolePlaceholderState();
     }
     function updateHoleLockVisuals() {
       const rows = document.querySelectorAll('#scoreBody tr');
@@ -576,7 +611,7 @@
         if (!lockedHole) return;
         if (tr.classList.contains('summary-row')) return;
         const rowHole = tr.querySelector('td.par-cell')?.getAttribute('data-hole') || null;
-        if (rowHole === lockedHole) tr.classList.add('active-hole'); // NEW: no inactive-hole class
+        if (rowHole === lockedHole) tr.classList.add('active-hole');
       });
     }
     function getScoreCellsInHole(holeId) {
@@ -602,7 +637,7 @@
         clearLockedHole();
       }
     }
-    // NEW: unlock if the locked hole becomes empty again
+    // unlock if the locked hole becomes empty again
     function isHoleEmpty(h) {
       if (!h || h < 1 || h > holesCount) return false;
       for (let p = 1; p <= playerCount; p++) {
@@ -623,7 +658,7 @@
       } catch (_) {}
     }
 
-    // NEW: Placeholder helpers
+    // Placeholder helpers
     function getHoleRowEl(holeId) {
       const parCell = document.querySelector(`#scoreBody td.par-cell[data-hole="${holeId}"]`);
       return parCell ? parCell.parentElement : null;
@@ -696,7 +731,7 @@
 
       buildTable();
       loadFromStorage();
-      updateAllPlaceholders(); // NEW
+      updateAllPlaceholders();
       updateAllTotals();
       updateRanks();
       fitRowsToViewport();
@@ -779,7 +814,7 @@
 
       // Reset hole lock visuals on rebuild
       clearLockedHole();
-      updateAllPlaceholders(); // NEW
+      updateAllPlaceholders();
     }
     function makeStickyCell(cls, text) {
       const td = document.createElement('td');
@@ -793,7 +828,7 @@
       const tdHole = document.createElement('td');
       tdHole.className = 'hole-cell';
       tdHole.textContent = String(h);
-      // NEW: Allow manual lock/unlock by tapping the hole number
+      // Allow manual lock/unlock by tapping the hole number
       tdHole.addEventListener('click', () => {
         const holeId = `H${h}`;
         if (lockedHole === holeId) clearLockedHole();
@@ -846,7 +881,7 @@
           headerName.setAttribute('title', savedName);
         }
       }
-      updateAllPlaceholders(); // NEW
+      updateAllPlaceholders();
     }
 
     /* ---------------- Inline editing (no popup) ---------------- */
@@ -859,7 +894,7 @@
         }
       }
 
-      // NEW: Show placeholders for this hole whenever starting to edit in it
+      // Show placeholders for this hole whenever starting to edit in it
       const holeForRow = td.getAttribute('data-hole');
       if (holeForRow) showHolePlaceholders(holeForRow);
 
@@ -888,7 +923,7 @@
       input._edited = false;
       input._clearedOnFirstInsert = false;
 
-      // NEW: placeholder for the input itself = player name (score mode)
+      // Placeholder for the input itself = player name (score mode)
       if (mode === 'score') {
         const pid = td.getAttribute('data-player');
         if (pid) input.placeholder = getPlayerDisplayName(pid);
@@ -1003,7 +1038,7 @@
         updateAllTotals();
         if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
         updateRanks();
-        clearLockedHoleIfEmpty(hole);   // NEW
+        clearLockedHoleIfEmpty(hole);
         clearLockedHoleIfComplete(hole);
         isApplyingInline = false;
         return;
@@ -1014,7 +1049,7 @@
       updateAllTotals();
       if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
       updateRanks();
-      clearLockedHoleIfEmpty(hole);     // NEW
+      clearLockedHoleIfEmpty(hole);
       clearLockedHoleIfComplete(hole);
       isApplyingInline = false;
     }
@@ -1033,7 +1068,7 @@
       if (activeInput && activeInput.parentElement) activeInput.parentElement.removeChild(activeInput);
       activeCell = null; activeInput = null; activeMode = null;
       if (!clearOnly) fitRowsToViewport();
-      // NEW: Remove placeholders if no lock and no active edit
+      // Remove placeholders if no lock and no active edit
       syncHolePlaceholderState();
     }
 
@@ -1169,7 +1204,7 @@
       fitRowsToViewport();
       clipPlayerNamesToCell();
       attachDragListeners();
-      updateAllPlaceholders(); // NEW
+      updateAllPlaceholders();
       closeRoundManagement();
     }
 
@@ -1205,8 +1240,8 @@
         for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
       }
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
-      clearLockedHole(); // NEW: unlock any locked hole on full reset
-      clearHolePlaceholders(); // NEW
+      clearLockedHole();
+      clearHolePlaceholders();
 
       updateAllTotals();
       updateRanks();
@@ -1447,7 +1482,7 @@
       updateRanks();
       clipPlayerNamesToCell();
       attachDragListeners();
-      updateAllPlaceholders(); // NEW
+      updateAllPlaceholders();
       return true;
     }
 
@@ -1471,7 +1506,7 @@
       header.setAttribute('data-player', pid);
       localStorage.setItem(LS.name(pid), newName);
       clipPlayerNamesToCell();
-      updatePlaceholdersForPlayer(pid); // NEW: refresh placeholders for this player
+      updatePlaceholdersForPlayer(pid);
       updateRanks();
     }
 
@@ -1607,7 +1642,7 @@
         }
       }
       clipPlayerNamesToCell();
-      updateAllPlaceholders(); // NEW
+      updateAllPlaceholders();
     }
 
     /* ---------------- Totals / ranks / layout ---------------- */
@@ -1940,7 +1975,7 @@
       if (!silent) updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
-      updateAllPlaceholders(); // NEW
+      updateAllPlaceholders();
     }
 
     /* ---------------- Rebuild preserving (used for holes toggle) ---------------- */
@@ -2001,7 +2036,7 @@
         }
       }
 
-      updateAllPlaceholders(); // NEW
+      updateAllPlaceholders();
       updateAllTotals();
       applySortByRankIfHoleComplete(null, true);
       updateRanks();
@@ -2146,7 +2181,7 @@
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
-      updateAllPlaceholders(); // NEW
+      updateAllPlaceholders();
     }
 
     function handleDragEnd(event) {
@@ -2155,27 +2190,27 @@
     }
 
     /* ---------------- Pars popup ---------------- */
-function showParResetPopup() {
-  const modal = document.getElementById('popupModal');
-  const title = document.getElementById('popupTitle');
-  const options = document.getElementById('popupOptions');
+    function showParResetPopup() {
+      const modal = document.getElementById('popupModal');
+      const title = document.getElementById('popupTitle');
+      const options = document.getElementById('popupOptions');
 
-  title.textContent = 'Par';
-  options.innerHTML = `
-    <button id="resetParsBtn"
-            style="width: 100%; height: auto; padding: 10px 20px; font-size: 24px; grid-column: 1 / -1;">
-      Reset Pars
-    </button>
-  `;
+      title.textContent = 'Par';
+      options.innerHTML = `
+        <button id="resetParsBtn"
+                style="width: 100%; height: auto; padding: 10px 20px; font-size: 24px; grid-column: 1 / -1;">
+          Reset Pars
+        </button>
+      `;
 
-  document.getElementById('resetParsBtn').onclick = () => {
-    resetAllParsToThree();
-    closePopupModal();
-  };
+      document.getElementById('resetParsBtn').onclick = () => {
+        resetAllParsToThree();
+        closePopupModal();
+      };
 
-  modal.style.display = 'block';
-  showOverlay();
-}
+      modal.style.display = 'block';
+      showOverlay();
+    }
 
     function resetAllParsToThree() {
       for (let h = 1; h <= holesCount; h++) {
@@ -2207,3 +2242,4 @@ function showParResetPopup() {
     });
   </script>
 </body>
+</html>
