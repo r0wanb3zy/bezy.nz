@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Disc Golf Scorecard</title>
+  <title>Golf Scorecard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
@@ -218,7 +218,7 @@
       color: white; border: none; border-radius: 6px; transition: background 0.2s;
     }
 
-    /* Popup grid (used elsewhere; we override width via inline style in JS) */
+    /* Popup grid */
     #popupOptions {
       display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; justify-content: center;
       padding: 10px 0; box-sizing: border-box;
@@ -395,6 +395,13 @@
     #scoreTable tbody tr.summary-row td.par-cell {
       border-right: 1px solid #666 !important;
     }
+
+    /* Hole lock visuals */
+    /* NEW: Don't dim or disable other holes; only highlight the active hole's score cells */
+    #scoreBody tr.active-hole td.score-cell {
+      background: rgba(0, 0, 0, 0.03);
+    }
+    /* No styling for inactive-hole anymore */
   </style>
 </head>
 <body>
@@ -531,6 +538,70 @@
     let activeMode = null; // 'score' | 'par'
     let resetConfirm = false;
 
+    // One-hole-at-a-time scoring
+    let lockedHole = null; // e.g., "H3"
+    function setLockedHole(holeId) {
+      lockedHole = holeId;
+      updateHoleLockVisuals();
+    }
+    function clearLockedHole() {
+      lockedHole = null;
+      updateHoleLockVisuals();
+    }
+    function updateHoleLockVisuals() {
+      const rows = document.querySelectorAll('#scoreBody tr');
+      rows.forEach(tr => {
+        tr.classList.remove('active-hole','inactive-hole');
+        if (!lockedHole) return;
+        if (tr.classList.contains('summary-row')) return;
+        const rowHole = tr.querySelector('td.par-cell')?.getAttribute('data-hole') || null;
+        if (rowHole === lockedHole) tr.classList.add('active-hole'); // NEW: no inactive-hole class
+      });
+    }
+    function getScoreCellsInHole(holeId) {
+      return Array.from(document.querySelectorAll(`#scoreBody td.score-cell[data-hole="${holeId}"]`));
+    }
+    function getNextEmptyScoreCellInHole(currentTd, currentDisplayText) {
+      const holeId = lockedHole || currentTd.getAttribute('data-hole');
+      const cells = getScoreCellsInHole(holeId);
+      const idx = cells.indexOf(currentTd);
+
+      const treatCurrentAsEmpty = String(currentDisplayText ?? '').trim() === '';
+      const isEmpty = (td) => td.textContent.trim() === '';
+
+      const empties = cells.filter(td => td === currentTd ? treatCurrentAsEmpty : isEmpty(td));
+      if (empties.length === 0) return null;
+
+      const after = empties.find(td => cells.indexOf(td) > idx);
+      return after || empties[0];
+    }
+    function clearLockedHoleIfComplete(holeNum) {
+      if (!lockedHole || !holeNum) return;
+      if (`H${holeNum}` === lockedHole && isHoleComplete(holeNum)) {
+        clearLockedHole();
+      }
+    }
+    // NEW: unlock if the locked hole becomes empty again
+    function isHoleEmpty(h) {
+      if (!h || h < 1 || h > holesCount) return false;
+      for (let p = 1; p <= playerCount; p++) {
+        if (getScore(`P${p}`, h) != null) return false;
+      }
+      return true;
+    }
+    function clearLockedHoleIfEmpty(holeNum) {
+      if (!lockedHole || !holeNum) return;
+      if (`H${holeNum}` === lockedHole && isHoleEmpty(holeNum)) {
+        clearLockedHole();
+      }
+    }
+    function updateEnterKeyHintForInput(input, td) {
+      try {
+        const next = getNextEmptyScoreCellInHole(td, input.value);
+        input.setAttribute('enterkeyhint', next ? 'next' : 'done');
+      } catch (_) {}
+    }
+
     // Outside tap management
     let suppressNextCellEditClick = false;
     let suppressClickTimeout = null;
@@ -641,6 +712,9 @@
         }
         body.appendChild(trIn);
       }
+
+      // Reset hole lock visuals on rebuild
+      clearLockedHole();
     }
     function makeStickyCell(cls, text) {
       const td = document.createElement('td');
@@ -654,6 +728,7 @@
       const tdHole = document.createElement('td');
       tdHole.className = 'hole-cell';
       tdHole.textContent = String(h);
+      // Locking now happens only after entering a score (no tap-to-lock)
       tr.appendChild(tdHole);
 
       const tdPar = document.createElement('td');
@@ -705,6 +780,14 @@
 
     /* ---------------- Inline editing (no popup) ---------------- */
     function startInlineEdit(td, mode, options = {}) {
+      // Gate scoring only if a hole is already locked; do not lock on focus.
+      if (mode === 'score') {
+        const holeId = td.getAttribute('data-hole');
+        if (lockedHole && lockedHole !== holeId) {
+          return; // ignore clicks on other holes while locked
+        }
+      }
+
       const preserveKeyboard = !!options.preserveKeyboard;
       const prevCell = activeCell;
       const prevInput = activeInput;
@@ -754,7 +837,10 @@
           cancelInlineEdit();
         }
       });
-      input.addEventListener('input', () => { input._edited = true; });
+      input.addEventListener('input', () => {
+        input._edited = true;
+        updateEnterKeyHintForInput(input, td);
+      });
       input.addEventListener('blur', () => {
         if (input !== activeInput) return;
         applyInlineEdit(input.value, false);
@@ -762,6 +848,7 @@
 
       activeInput = input;
       try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+      updateEnterKeyHintForInput(input, td);
 
       if (preserveKeyboard && prevInput && prevCell) {
         prevCell.classList.remove('editing');
@@ -804,6 +891,13 @@
           displayText = String(n);
           if (player && hole) localStorage.setItem(LS.score(player, hole), displayText);
         }
+
+        // Lock the hole only after a score is actually entered into an empty cell
+        const wasEmpty = prevText.trim() === '';
+        const nowFilled = String(displayText).trim() !== '';
+        if (!lockedHole && hole && wasEmpty && nowFilled) {
+          setLockedHole(`H${hole}`);
+        }
       } else if (mode === 'par') {
         if (!userTyped && trimmed === '') {
           displayText = prevText || '3';
@@ -817,14 +911,19 @@
         }
       }
 
-      const shouldAdvance = advanceOnEnter && mode === 'score';
-      const nextCell = shouldAdvance ? getNextScoreCell(td) : null;
+      // Advance only within the current hole to the next empty score cell; else close keyboard
+      let nextCell = null;
+      if (advanceOnEnter && mode === 'score') {
+        nextCell = getNextEmptyScoreCellInHole(td, displayText);
+      }
 
       if (nextCell) {
         startInlineEdit(nextCell, 'score', { preserveKeyboard: true, prevDisplayText: displayText });
         updateAllTotals();
         if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
         updateRanks();
+        clearLockedHoleIfEmpty(hole);   // NEW
+        clearLockedHoleIfComplete(hole);
         isApplyingInline = false;
         return;
       }
@@ -834,6 +933,8 @@
       updateAllTotals();
       if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
       updateRanks();
+      clearLockedHoleIfEmpty(hole);     // NEW
+      clearLockedHoleIfComplete(hole);
       isApplyingInline = false;
     }
 
@@ -1014,12 +1115,13 @@
       updateRanks();
     }
 
-    // Updated: Only reset scores; do NOT reset pars
+    // Only reset scores; do NOT reset pars
     function resetScores() {
       for (let p = 1; p <= 8; p++) {
         for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
       }
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
+      clearLockedHole(); // NEW: unlock any locked hole on full reset
 
       updateAllTotals();
       updateRanks();
@@ -1665,7 +1767,7 @@
         let sum = 0, hasScore = false;
         for (let h = 1; h <= holesCount; h++) {
           const sc = getScore(pid, h);
-          if (sc != null) { hasScore = true; sum += sc; }
+        if (sc != null) { hasScore = true; sum += sc; }
         }
         const rankValue = hasScore ? sum : Number.POSITIVE_INFINITY;
         return { idx, pid, rankValue };
