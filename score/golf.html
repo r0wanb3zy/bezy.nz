@@ -1254,19 +1254,21 @@
     }
 
     // Only reset scores; do NOT reset pars
-    function resetScores() {
-      for (let p = 1; p <= 8; p++) {
-        for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
-      }
-      document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
-      // Keep current lock unless you want to explicitly clear it:
-      // clearLockedHole();
-      clearHolePlaceholders();
+function resetScores() {
+  for (let p = 1; p <= 8; p++) {
+    for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
+  }
 
-      updateAllTotals();
-      updateRanks();
-      closeRoundManagement();
-    }
+  // Clear all score cells
+  document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
+
+  // NEW: also clear any active row lock and its placeholders
+  clearLockedHole();
+
+  updateAllTotals();
+  updateRanks();
+  closeRoundManagement();
+}
 
     /* ---------------- Player naming ---------------- */
     function openPlayerModalForHeader(pid) {
