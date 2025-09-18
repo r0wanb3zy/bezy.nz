@@ -40,7 +40,7 @@
       height: 100vh;   /* legacy fallback */
       height: 100dvh;  /* modern browsers use dynamic viewport height */
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      overflow-y: auto; /* ensure scroll container exists for sticky header */
+      overflow-y: auto; /* scroll container for sticky header and editing */
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
     }
@@ -70,7 +70,7 @@
       font-size: 22px;
     }
 
-    /* Sticky header row (keep player names in view) */
+    /* Sticky header row (keep player names in view in normal scrolling) */
     #scoreTable thead th {
       position: sticky;
       top: 0;
@@ -386,7 +386,7 @@
     #playerNameModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
     #playerNameModal .bulk-actions { margin-top: 0; }
 
-    /* Overlay */
+    /* Overlay for modals */
     #overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); z-index: 999; cursor: pointer;
@@ -424,6 +424,39 @@
     #scoreTable tbody tr.summary-row td.par-cell {
       border-right: 1px solid #666 !important;
     }
+
+    /* Floating header overlay (visible only while editing to defeat keyboard scroll) */
+    #floatingHeader {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 998;          /* below modals/overlay (1000+) but above table */
+      pointer-events: none;  /* let taps pass through */
+      display: none;         /* toggled on during editing */
+    }
+    #floatingHeader table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+    #floatingHeader th {
+      background: linear-gradient(to bottom, #3b3b3b 0%, #3b3b3b 100%);
+      color: #fff;
+      height: 80px;
+      font-size: 22px;
+      border-bottom: none;
+    }
+    #floatingHeader th.hole-header {
+      width: var(--hole-w); min-width: var(--hole-w); max-width: var(--hole-w);
+      border-right: 1px solid #666;
+    }
+    #floatingHeader th.par-header {
+      width: var(--par-w); min-width: var(--par-w); max-width: var(--par-w);
+      border-right: none;
+      border-bottom: 1px solid #666;
+    }
+    #floatingHeader .player-name { display: block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: clip; font-size: 22px; line-height: 22px; padding-bottom: 2px; }
+    #floatingHeader div[id^="total"] { font-size: 22px; margin: 0; }
+    #floatingHeader .to-par-line { line-height: 1; margin-top: 0; }
   </style>
 </head>
 <body>
@@ -440,6 +473,9 @@
     </thead>
     <tbody id="scoreBody"></tbody>
   </table>
+
+  <!-- Floating header overlay (mirrors playerRow during editing) -->
+  <div id="floatingHeader" aria-hidden="true"></div>
 
   <!-- Popup kept for parity -->
   <div id="popupModal">
@@ -561,7 +597,7 @@
 
     // Outside tap management
     let suppressNextCellEditClick = false;
-       let suppressClickTimeout = null;
+    let suppressClickTimeout = null;
     let isApplyingInline = false;
 
     // Drag & drop state
@@ -609,7 +645,7 @@
       }, 250);
     });
 
-    // When the virtual keyboard resizes the visual viewport (mobile), keep active cell visible
+    // Keep active cell visible when the virtual keyboard changes viewport
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', () => {
         if (activeCell) scrollCellIntoViewIfNeeded(activeCell);
@@ -738,6 +774,33 @@
       }
     }
 
+    /* ---------------- Floating header overlay ---------------- */
+    function renderFloatingHeader() {
+      const src = document.getElementById('playerRow');
+      const wrap = document.getElementById('floatingHeader');
+      if (!src || !wrap) return;
+
+      const clone = src.cloneNode(true);
+      clone.removeAttribute('id'); // avoid duplicate id
+      // Remove all event handlers from clone (pointer-events: none on wrap prevents interaction anyway)
+      // Build a minimal table with this header row
+      const tbl = document.createElement('table');
+      const thd = document.createElement('thead');
+      thd.appendChild(clone);
+      tbl.appendChild(thd);
+      wrap.innerHTML = '';
+      wrap.appendChild(tbl);
+    }
+    function showFloatingHeader() {
+      renderFloatingHeader();
+      const wrap = document.getElementById('floatingHeader');
+      if (wrap) wrap.style.display = 'block';
+    }
+    function hideFloatingHeader() {
+      const wrap = document.getElementById('floatingHeader');
+      if (wrap) wrap.style.display = 'none';
+    }
+
     /* ---------------- Inline editing (no popup) ---------------- */
     function startInlineEdit(td, mode, options = {}) {
       const preserveKeyboard = !!options.preserveKeyboard;
@@ -798,8 +861,11 @@
       activeInput = input;
       try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
 
-      // Keep the edited cell visible below the sticky header
-      requestAnimationFrame(() => scrollCellIntoViewIfNeeded(td));
+      // Keep the edited cell visible and mirror the header at the top
+      requestAnimationFrame(() => {
+        scrollCellIntoViewIfNeeded(td);
+        showFloatingHeader();
+      });
 
       if (preserveKeyboard && prevInput && prevCell) {
         prevCell.classList.remove('editing');
@@ -888,10 +954,13 @@
       }
       if (activeInput && activeInput.parentElement) activeInput.parentElement.removeChild(activeInput);
       activeCell = null; activeInput = null; activeMode = null;
-      if (!clearOnly) fitRowsToViewport();
+      if (!clearOnly) {
+        fitRowsToViewport();
+        hideFloatingHeader(); // hide overlay header when editing fully ends
+      }
     }
 
-    /* Keep active cell visible under sticky header inside scroll container */
+    /* Keep active cell visible under sticky/floating header inside scroll container */
     function scrollCellIntoViewIfNeeded(td) {
       const container = document.getElementById('scoreTable');
       if (!container || !td) return;
@@ -1533,7 +1602,7 @@
         const score = parseInt(txt, 10);
         if (!Number.isFinite(score)) { td.style.color = ''; return; }
         const holeAttr = td.getAttribute('data-hole') || '';
-               const hole = parseInt(holeAttr.replace('H',''), 10);
+        const hole = parseInt(holeAttr.replace('H',''), 10);
         const par = Number.isFinite(hole) ? getPar(hole) : 3;
         if (score < par) td.style.color = themeText(40);
         else if (score > par) td.style.color = grey;
