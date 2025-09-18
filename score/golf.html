@@ -1,15 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-            <style>.lw {
-    font-size: 60px;
-}</style>
-        </head>
-        <body>
-            
-
-
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
   <title>Golf Scorecard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css?family=Economica&amp;display=swap" rel="stylesheet">
@@ -410,6 +399,20 @@
       background: rgba(0, 0, 0, 0.03);
     }
     /* No styling for inactive-hole anymore */
+
+    /* NEW: Show player name placeholders (light grey) on empty cells in the active hole row */
+    #scoreBody tr.show-placeholders td.score-cell:empty::before {
+      content: attr(data-placeholder);
+      color: rgba(0,0,0,0.35);
+      font-weight: normal;
+      pointer-events: none;
+    }
+    /* NEW: Placeholder color for inline input */
+    .inline-number::placeholder {
+      color: rgba(0,0,0,0.35);
+    }
+    /* NEW: Make hole number tappable to manually lock/unlock a hole */
+    #scoreBody tr:not(.summary-row) .hole-cell { cursor: pointer; }
   </style>
 
 
@@ -559,10 +562,12 @@
     function setLockedHole(holeId) {
       lockedHole = holeId;
       updateHoleLockVisuals();
+      syncHolePlaceholderState(); // NEW: keep placeholders in sync with lock
     }
     function clearLockedHole() {
       lockedHole = null;
       updateHoleLockVisuals();
+      syncHolePlaceholderState(); // NEW
     }
     function updateHoleLockVisuals() {
       const rows = document.querySelectorAll('#scoreBody tr');
@@ -618,6 +623,48 @@
       } catch (_) {}
     }
 
+    // NEW: Placeholder helpers
+    function getHoleRowEl(holeId) {
+      const parCell = document.querySelector(`#scoreBody td.par-cell[data-hole="${holeId}"]`);
+      return parCell ? parCell.parentElement : null;
+    }
+    function showHolePlaceholders(holeId) {
+      document.querySelectorAll('#scoreBody tr.show-placeholders')
+        .forEach(tr => tr.classList.remove('show-placeholders'));
+      const row = getHoleRowEl(holeId);
+      if (row) row.classList.add('show-placeholders');
+    }
+    function clearHolePlaceholders() {
+      document.querySelectorAll('#scoreBody tr.show-placeholders')
+        .forEach(tr => tr.classList.remove('show-placeholders'));
+    }
+    function syncHolePlaceholderState() {
+      if (lockedHole) {
+        showHolePlaceholders(lockedHole);
+      } else if (activeCell) {
+        const hid = activeCell.getAttribute('data-hole');
+        if (hid) showHolePlaceholders(hid);
+        else clearHolePlaceholders();
+      } else {
+        clearHolePlaceholders();
+      }
+    }
+    function getPlayerDisplayName(pid) {
+      const el = document.querySelector(`#scoreTable thead th[data-player="${pid}"] .player-name`);
+      return el?.getAttribute('data-full') || el?.textContent || pid;
+    }
+    function updatePlaceholdersForPlayer(pid) {
+      const nm = getPlayerDisplayName(pid);
+      document.querySelectorAll(`#scoreBody td.score-cell[data-player="${pid}"]`)
+        .forEach(td => td.setAttribute('data-placeholder', nm));
+      if (activeInput && activeMode === 'score' && activeCell?.getAttribute('data-player') === pid) {
+        activeInput.placeholder = nm;
+      }
+    }
+    function updateAllPlaceholders() {
+      for (let p = 1; p <= playerCount; p++) updatePlaceholdersForPlayer(`P${p}`);
+    }
+
     // Outside tap management
     let suppressNextCellEditClick = false;
     let suppressClickTimeout = null;
@@ -649,6 +696,7 @@
 
       buildTable();
       loadFromStorage();
+      updateAllPlaceholders(); // NEW
       updateAllTotals();
       updateRanks();
       fitRowsToViewport();
@@ -731,6 +779,7 @@
 
       // Reset hole lock visuals on rebuild
       clearLockedHole();
+      updateAllPlaceholders(); // NEW
     }
     function makeStickyCell(cls, text) {
       const td = document.createElement('td');
@@ -744,7 +793,12 @@
       const tdHole = document.createElement('td');
       tdHole.className = 'hole-cell';
       tdHole.textContent = String(h);
-      // Locking now happens only after entering a score (no tap-to-lock)
+      // NEW: Allow manual lock/unlock by tapping the hole number
+      tdHole.addEventListener('click', () => {
+        const holeId = `H${h}`;
+        if (lockedHole === holeId) clearLockedHole();
+        else setLockedHole(holeId);
+      });
       tr.appendChild(tdHole);
 
       const tdPar = document.createElement('td');
@@ -792,6 +846,7 @@
           headerName.setAttribute('title', savedName);
         }
       }
+      updateAllPlaceholders(); // NEW
     }
 
     /* ---------------- Inline editing (no popup) ---------------- */
@@ -803,6 +858,10 @@
           return; // ignore clicks on other holes while locked
         }
       }
+
+      // NEW: Show placeholders for this hole whenever starting to edit in it
+      const holeForRow = td.getAttribute('data-hole');
+      if (holeForRow) showHolePlaceholders(holeForRow);
 
       const preserveKeyboard = !!options.preserveKeyboard;
       const prevCell = activeCell;
@@ -828,6 +887,12 @@
       input.setAttribute('enterkeyhint', mode === 'score' ? 'next' : 'done');
       input._edited = false;
       input._clearedOnFirstInsert = false;
+
+      // NEW: placeholder for the input itself = player name (score mode)
+      if (mode === 'score') {
+        const pid = td.getAttribute('data-player');
+        if (pid) input.placeholder = getPlayerDisplayName(pid);
+      }
 
       td.dataset.prev = prevText;
       td.textContent = '';
@@ -968,6 +1033,8 @@
       if (activeInput && activeInput.parentElement) activeInput.parentElement.removeChild(activeInput);
       activeCell = null; activeInput = null; activeMode = null;
       if (!clearOnly) fitRowsToViewport();
+      // NEW: Remove placeholders if no lock and no active edit
+      syncHolePlaceholderState();
     }
 
     /* ---------------- Outside tap handling ---------------- */
@@ -1102,6 +1169,7 @@
       fitRowsToViewport();
       clipPlayerNamesToCell();
       attachDragListeners();
+      updateAllPlaceholders(); // NEW
       closeRoundManagement();
     }
 
@@ -1138,6 +1206,7 @@
       }
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
       clearLockedHole(); // NEW: unlock any locked hole on full reset
+      clearHolePlaceholders(); // NEW
 
       updateAllTotals();
       updateRanks();
@@ -1378,6 +1447,7 @@
       updateRanks();
       clipPlayerNamesToCell();
       attachDragListeners();
+      updateAllPlaceholders(); // NEW
       return true;
     }
 
@@ -1401,6 +1471,7 @@
       header.setAttribute('data-player', pid);
       localStorage.setItem(LS.name(pid), newName);
       clipPlayerNamesToCell();
+      updatePlaceholdersForPlayer(pid); // NEW: refresh placeholders for this player
       updateRanks();
     }
 
@@ -1536,6 +1607,7 @@
         }
       }
       clipPlayerNamesToCell();
+      updateAllPlaceholders(); // NEW
     }
 
     /* ---------------- Totals / ranks / layout ---------------- */
@@ -1868,6 +1940,7 @@
       if (!silent) updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
+      updateAllPlaceholders(); // NEW
     }
 
     /* ---------------- Rebuild preserving (used for holes toggle) ---------------- */
@@ -1928,6 +2001,7 @@
         }
       }
 
+      updateAllPlaceholders(); // NEW
       updateAllTotals();
       applySortByRankIfHoleComplete(null, true);
       updateRanks();
@@ -2072,6 +2146,7 @@
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
+      updateAllPlaceholders(); // NEW
     }
 
     function handleDragEnd(event) {
