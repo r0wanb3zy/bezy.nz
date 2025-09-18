@@ -24,7 +24,7 @@
       --par-w: 30px;
       --row-h: 34px; /* JS will set this so all rows fit exactly in the viewport */
 
-      /* NEW: unified, lighter placeholder color */
+      /* Unified, lighter placeholder color */
       --ph-color: rgba(0, 0, 0, 0.24);
     }
 
@@ -199,6 +199,11 @@
       caret-color: transparent;
       user-select: none; -webkit-user-select: none;
       cursor: default;
+
+      /* Keep placeholder/value single-line */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .inline-number::selection, .inline-number::-moz-selection { background: transparent; }
     .inline-number::-webkit-outer-spin-button, .inline-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -400,26 +405,33 @@
     }
 
     /* Hole lock visuals */
-    /* Highlight the active hole's score cells */
     #scoreBody tr.active-hole td.score-cell {
       background: rgba(0, 0, 0, 0.03);
     }
 
-    /* NEW: Make the clicked row (show-placeholders) match locked row highlight */
+    /* Make the clicked row (show-placeholders) match locked row highlight */
     #scoreBody tr.show-placeholders td.score-cell {
       background: rgba(0, 0, 0, 0.03);
     }
 
-    /* NEW: Show player name placeholders on empty cells in the active row */
+    /* Show player name placeholders on empty cells in the active row */
     #scoreBody tr.show-placeholders td.score-cell:empty::before {
       content: attr(data-placeholder);
       color: var(--ph-color);
       font-weight: normal;
       font-style: normal;
       pointer-events: none;
+
+      /* Keep single-line and centered visually */
+      display: block;
+      width: 100%;
+      line-height: var(--row-h);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    /* NEW: Placeholder color for inline input — unified and subtle */
+    /* Placeholder color for inline input — unified and subtle */
     .inline-number::-webkit-input-placeholder {
       color: var(--ph-color);
       font-weight: normal;
@@ -445,7 +457,7 @@
       opacity: 1;
     }
 
-    /* NEW: Make hole number tappable to manually lock/unlock a hole */
+    /* Make hole number tappable to manually lock/unlock a hole */
     #scoreBody tr:not(.summary-row) .hole-cell { cursor: pointer; }
   </style>
 </head>
@@ -597,7 +609,7 @@
     function setLockedHole(holeId) {
       lockedHole = holeId;
       updateHoleLockVisuals();
-      syncHolePlaceholderState(); // keep placeholders in sync with lock
+      syncHolePlaceholderState();
     }
     function clearLockedHole() {
       lockedHole = null;
@@ -637,19 +649,13 @@
         clearLockedHole();
       }
     }
-    // unlock if the locked hole becomes empty again
+    // Optional: unlock if hole becomes empty (not used now to keep lock on click)
     function isHoleEmpty(h) {
       if (!h || h < 1 || h > holesCount) return false;
       for (let p = 1; p <= playerCount; p++) {
         if (getScore(`P${p}`, h) != null) return false;
       }
       return true;
-    }
-    function clearLockedHoleIfEmpty(holeNum) {
-      if (!lockedHole || !holeNum) return;
-      if (`H${holeNum}` === lockedHole && isHoleEmpty(holeNum)) {
-        clearLockedHole();
-      }
     }
     function updateEnterKeyHintForInput(input, td) {
       try {
@@ -658,15 +664,16 @@
       } catch (_) {}
     }
 
-    // Placeholder helpers
+    /* -------- Placeholders (trimmed names) -------- */
     function getHoleRowEl(holeId) {
       const parCell = document.querySelector(`#scoreBody td.par-cell[data-hole="${holeId}"]`);
       return parCell ? parCell.parentElement : null;
     }
     function showHolePlaceholders(holeId) {
+      const target = lockedHole || holeId; // if locked, always show placeholders for the locked row
       document.querySelectorAll('#scoreBody tr.show-placeholders')
         .forEach(tr => tr.classList.remove('show-placeholders'));
-      const row = getHoleRowEl(holeId);
+      const row = getHoleRowEl(target);
       if (row) row.classList.add('show-placeholders');
     }
     function clearHolePlaceholders() {
@@ -688,8 +695,14 @@
       const el = document.querySelector(`#scoreTable thead th[data-player="${pid}"] .player-name`);
       return el?.getAttribute('data-full') || el?.textContent || pid;
     }
+    function getPlayerTrimmedName(pid) {
+      // Use whatever is currently visible in the header (already clipped to fit)
+      const el = document.querySelector(`#scoreTable thead th[data-player="${pid}"] .player-name`);
+      const trimmed = el?.textContent?.trim();
+      return trimmed || getPlayerDisplayName(pid);
+    }
     function updatePlaceholdersForPlayer(pid) {
-      const nm = getPlayerDisplayName(pid);
+      const nm = getPlayerTrimmedName(pid);
       document.querySelectorAll(`#scoreBody td.score-cell[data-player="${pid}"]`)
         .forEach(td => td.setAttribute('data-placeholder', nm));
       if (activeInput && activeMode === 'score' && activeCell?.getAttribute('data-player') === pid) {
@@ -731,22 +744,32 @@
 
       buildTable();
       loadFromStorage();
-      updateAllPlaceholders();
       updateAllTotals();
       updateRanks();
       fitRowsToViewport();
       setFullHeight();
+
+      // Important: clip headers first, then sync placeholders to the trimmed names
       clipPlayerNamesToCell();
-      attachDragListeners(); // allow drag gestures; with Sort ON, drop is ignored
+      updateAllPlaceholders();
+
+      attachDragListeners();
 
       const sortBtn = document.getElementById('sortByRankBtn');
       if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
     });
 
-    window.addEventListener('resize', () => { setFullHeight(); clipPlayerNamesToCell(); fitRowsToViewport(); });
+    window.addEventListener('resize', () => {
+      setFullHeight();
+      clipPlayerNamesToCell();
+      updateAllPlaceholders();
+      fitRowsToViewport();
+    });
     window.addEventListener('orientationchange', () => {
       setTimeout(() => {
         setFullHeight();
+        clipPlayerNamesToCell();
+        updateAllPlaceholders();
         fitRowsToViewport();
       }, 250);
     });
@@ -812,7 +835,6 @@
         body.appendChild(trIn);
       }
 
-      // Reset hole lock visuals on rebuild
       clearLockedHole();
       updateAllPlaceholders();
     }
@@ -828,11 +850,12 @@
       const tdHole = document.createElement('td');
       tdHole.className = 'hole-cell';
       tdHole.textContent = String(h);
-      // Allow manual lock/unlock by tapping the hole number
+      // Manual lock/unlock by tapping the hole number — ignore other rows while locked
       tdHole.addEventListener('click', () => {
         const holeId = `H${h}`;
-        if (lockedHole === holeId) clearLockedHole();
-        else setLockedHole(holeId);
+        if (!lockedHole) setLockedHole(holeId);
+        else if (lockedHole === holeId) clearLockedHole();
+        // else: ignore clicking other hole numbers while locked
       });
       tr.appendChild(tdHole);
 
@@ -886,17 +909,21 @@
 
     /* ---------------- Inline editing (no popup) ---------------- */
     function startInlineEdit(td, mode, options = {}) {
-      // Gate scoring only if a hole is already locked; do not lock on focus.
+      const holeId = td.getAttribute('data-hole');
+
       if (mode === 'score') {
-        const holeId = td.getAttribute('data-hole');
-        if (lockedHole && lockedHole !== holeId) {
-          return; // ignore clicks on other holes while locked
-        }
+        // If locked and this isn't the locked row, ignore
+        if (lockedHole && lockedHole !== holeId) return;
+
+        // Lock immediately on score click (and keep it locked even if you click away)
+        if (holeId) setLockedHole(holeId);
+      } else if (mode === 'par') {
+        // Prevent editing par of another row while locked
+        if (lockedHole && lockedHole !== holeId) return;
       }
 
-      // Show placeholders for this hole whenever starting to edit in it
-      const holeForRow = td.getAttribute('data-hole');
-      if (holeForRow) showHolePlaceholders(holeForRow);
+      // Show placeholders (respect locked row if any)
+      if (holeId) showHolePlaceholders(holeId);
 
       const preserveKeyboard = !!options.preserveKeyboard;
       const prevCell = activeCell;
@@ -923,10 +950,10 @@
       input._edited = false;
       input._clearedOnFirstInsert = false;
 
-      // Placeholder for the input itself = player name (score mode)
+      // Input placeholder uses the trimmed player name
       if (mode === 'score') {
         const pid = td.getAttribute('data-player');
-        if (pid) input.placeholder = getPlayerDisplayName(pid);
+        if (pid) input.placeholder = getPlayerTrimmedName(pid);
       }
 
       td.dataset.prev = prevText;
@@ -1008,12 +1035,7 @@
           if (player && hole) localStorage.setItem(LS.score(player, hole), displayText);
         }
 
-        // Lock the hole only after a score is actually entered into an empty cell
-        const wasEmpty = prevText.trim() === '';
-        const nowFilled = String(displayText).trim() !== '';
-        if (!lockedHole && hole && wasEmpty && nowFilled) {
-          setLockedHole(`H${hole}`);
-        }
+        // Lock now happens on click; no auto-unlock when empty
       } else if (mode === 'par') {
         if (!userTyped && trimmed === '') {
           displayText = prevText || '3';
@@ -1038,7 +1060,6 @@
         updateAllTotals();
         if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
         updateRanks();
-        clearLockedHoleIfEmpty(hole);
         clearLockedHoleIfComplete(hole);
         isApplyingInline = false;
         return;
@@ -1049,7 +1070,6 @@
       updateAllTotals();
       if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
       updateRanks();
-      clearLockedHoleIfEmpty(hole);
       clearLockedHoleIfComplete(hole);
       isApplyingInline = false;
     }
@@ -1068,7 +1088,6 @@
       if (activeInput && activeInput.parentElement) activeInput.parentElement.removeChild(activeInput);
       activeCell = null; activeInput = null; activeMode = null;
       if (!clearOnly) fitRowsToViewport();
-      // Remove placeholders if no lock and no active edit
       syncHolePlaceholderState();
     }
 
@@ -1203,8 +1222,8 @@
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
-      attachDragListeners();
       updateAllPlaceholders();
+      attachDragListeners();
       closeRoundManagement();
     }
 
@@ -1240,7 +1259,8 @@
         for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
       }
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
-      clearLockedHole();
+      // Keep current lock unless you want to explicitly clear it:
+      // clearLockedHole();
       clearHolePlaceholders();
 
       updateAllTotals();
@@ -1481,8 +1501,8 @@
       applySortByRankIfHoleComplete(null, true);
       updateRanks();
       clipPlayerNamesToCell();
-      attachDragListeners();
       updateAllPlaceholders();
+      attachDragListeners();
       return true;
     }
 
@@ -1505,8 +1525,8 @@
 
       header.setAttribute('data-player', pid);
       localStorage.setItem(LS.name(pid), newName);
-      clipPlayerNamesToCell();
-      updatePlaceholdersForPlayer(pid);
+      clipPlayerNamesToCell();        // trims header to fit
+      updatePlaceholdersForPlayer(pid); // placeholders follow trimmed name
       updateRanks();
     }
 
@@ -1840,17 +1860,22 @@
         el.setAttribute('data-full', full);
         el.textContent = full;
 
-        if (el.scrollWidth <= el.clientWidth) return;
-
-        const clusters = seg ? Array.from(seg.segment(full), s => s.segment) : Array.from(full);
-        let low = 0, high = clusters.length, best = 0;
-        while (low <= high) {
-          const mid = Math.floor((low + high) / 2);
-          el.textContent = clusters.slice(0, mid).join('');
-          if (el.scrollWidth <= el.clientWidth) { best = mid; low = mid + 1; }
-          else high = mid - 1;
+        if (el.scrollWidth > el.clientWidth) {
+          const clusters = seg ? Array.from(seg.segment(full), s => s.segment) : Array.from(full);
+          let low = 0, high = clusters.length, best = 0;
+          while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            el.textContent = clusters.slice(0, mid).join('');
+            if (el.scrollWidth <= el.clientWidth) { best = mid; low = mid + 1; }
+            else high = mid - 1;
+          }
+          el.textContent = clusters.slice(0, best).join('');
         }
-        el.textContent = clusters.slice(0, best).join('');
+
+        // Keep placeholders in sync with whatever is visible in the header
+        const th = el.closest('th[data-player]');
+        const pid = th?.getAttribute('data-player');
+        if (pid) updatePlaceholdersForPlayer(pid);
       });
     }
 
@@ -1890,7 +1915,7 @@
         let sum = 0, hasScore = false;
         for (let h = 1; h <= holesCount; h++) {
           const sc = getScore(pid, h);
-        if (sc != null) { hasScore = true; sum += sc; }
+          if (sc != null) { hasScore = true; sum += sc; }
         }
         const rankValue = hasScore ? sum : Number.POSITIVE_INFINITY;
         return { idx, pid, rankValue };
