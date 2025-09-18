@@ -57,6 +57,7 @@
       background: linear-gradient(to bottom, #3b3b3b 0%, #3b3b3b 100%);
       color: white;
       border-bottom: none;
+      cursor: pointer;
     }
     #scoreTable thead th {
       height: 80px;
@@ -76,7 +77,6 @@
       text-align: center;
       padding: 5px;
       word-wrap: break-word;
-      cursor: pointer;
       overflow: hidden;
       text-overflow: ellipsis;
       vertical-align: middle;
@@ -124,7 +124,7 @@
     }
     .summary-row td:last-child { border-right: none; }
 
-    /* Header — THREE LINES (match Yahtzee sizes, stable line-height to avoid nudge) */
+    /* Header — THREE LINES */
     #scoreTable thead th .player-name {
       display: block;
       max-width: 100%;
@@ -135,7 +135,7 @@
       font-size: 22px;
       line-height: 22px;
       margin: 0;
-      padding-bottom: 2px; /* prevent tiny emoji clipping */
+      padding-bottom: 2px;
     }
     #scoreTable thead th div[id^="total"] {
       display: block;
@@ -160,7 +160,6 @@
       margin: 0;
     }
     #scoreTable.small-scores thead th .to-par-badge { font-size: 12px; }
-
     #scoreTable.small-scores thead th .player-name {
       font-size: 18px;
       line-height: 18px;
@@ -210,7 +209,6 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
       font-family: 'Economica', sans-serif;
     }
-    /* Match Yahtzee: center headings + shared h2 spacing */
     #popupModal, #roundManagementModal { text-align: center; }
     #popupModal h2, #roundManagementModal h2, #playerNameModal h2 { margin: 15px 0; padding: 0; }
 
@@ -220,7 +218,7 @@
       color: white; border: none; border-radius: 6px; transition: background 0.2s;
     }
 
-    /* Popup grid */
+    /* Popup grid (used elsewhere; we override width via inline style in JS) */
     #popupOptions {
       display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; justify-content: center;
       padding: 10px 0; box-sizing: border-box;
@@ -258,7 +256,6 @@
       -webkit-appearance: none; -moz-appearance: none; appearance: none;
       background-image: none !important; padding-right: 12px;
     }
-    /* Center text + remove native arrow for Players dropdown */
     #roundManagementModal select#playerCount {
       text-align: center; text-align-last: center; -moz-text-align-last: center;
       -webkit-appearance: none; -moz-appearance: none; appearance: none;
@@ -338,7 +335,6 @@
       transition: transform 0.05s ease, filter 0.1s ease;
       box-sizing: border-box; position: relative;
       -webkit-appearance: none; appearance: none; outline: none;
-      /* Prevent bottom clipping of emoji glyphs */
       padding-bottom: 2px;
     }
     #playerNameModal .emoji-grid .emoji-pick:active { transform: scale(0.95); filter: brightness(1.05); }
@@ -353,7 +349,7 @@
       pointer-events: none; z-index: 2;
     }
 
-    /* Bulk toolbar spacing (match Yahtzee) */
+    /* Bulk toolbar spacing */
     .bulk-actions { display: none; margin: 5px 0 0 0; width: 100%; }
     .bulk-actions .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center; width: 100%; }
     #playerNameModal .segmented-control { margin-top: 5px; }
@@ -367,7 +363,7 @@
       background: rgba(0,0,0,0.5); z-index: 999; cursor: pointer;
     }
 
-    /* Drag feedback (clean: no hover divider; no layout shift) */
+    /* Drag feedback */
     th.dragging { opacity: 0.5; }
 
     /* Round modal: theme-colored option text */
@@ -409,17 +405,18 @@
         <th class="hole-header" onclick="showRoundManagement()">
           <button class="gear" title="Round settings">☰</button>
         </th>
-        <th class="par-header">Par</th>
+        <!-- Click anywhere on the Par header to open the Pars popup -->
+        <th class="par-header" onclick="showParResetPopup()">Par</th>
         <!-- Player headers injected -->
       </tr>
     </thead>
     <tbody id="scoreBody"></tbody>
   </table>
 
-  <!-- Popup kept for parity -->
+  <!-- Popup -->
   <div id="popupModal">
     <h2 id="popupTitle">Select</h2>
-    <span class="close-btn" onclick="document.getElementById('popupModal').style.display='none'">×</span>
+    <span class="close-btn" onclick="closePopupModal()">×</span>
     <div id="popupOptions"></div>
   </div>
 
@@ -596,7 +593,7 @@
       const headerRow = document.getElementById('playerRow');
       headerRow.innerHTML = `
         <th class="hole-header" onclick="showRoundManagement()"><button class="gear" title="Round settings">☰</button></th>
-        <th class="par-header">Par</th>
+        <th class="par-header" onclick="showParResetPopup()">Par</th>
       `;
 
       for (let p = 1; p <= playerCount; p++) {
@@ -714,7 +711,7 @@
       const prevDisplayText = options.prevDisplayText;
 
       if (!preserveKeyboard) {
-        endInlineEdit(true); // clear any previous editor before creating a new one
+        endInlineEdit(true);
       }
 
       const prevText = td.textContent.trim();
@@ -826,7 +823,6 @@
       if (nextCell) {
         startInlineEdit(nextCell, 'score', { preserveKeyboard: true, prevDisplayText: displayText });
         updateAllTotals();
-        // Only resort when the edited hole is complete
         if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
         updateRanks();
         isApplyingInline = false;
@@ -836,7 +832,6 @@
       td.textContent = displayText;
       endInlineEdit(false);
       updateAllTotals();
-      // Only resort when the edited hole is complete
       if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
       updateRanks();
       isApplyingInline = false;
@@ -932,7 +927,7 @@
       const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
       const existing = headerRow.children.length - 2; // exclude hole + par
 
-      // Remove extra players (trim from the end: safe)
+      // Remove extra players
       if (newCount < existing) {
         for (let i = existing; i > newCount; i--) {
           const pid = `P${i}`;
@@ -985,12 +980,11 @@
       playerCount = newCount;
       localStorage.setItem(LS.playerCount, String(playerCount));
       updateAllTotals();
-      // Only resort if at least one hole is complete
       applySortByRankIfHoleComplete(null, true);
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
-      attachDragListeners(); // re-enable drag after DOM changes
+      attachDragListeners();
       closeRoundManagement();
     }
 
@@ -1007,10 +1001,9 @@
       localStorage.setItem(LS.sort, String(sortByRankEnabled));
       const btn = document.getElementById('sortByRankBtn');
       if (btn) btn.classList.toggle('active', sortByRankEnabled);
-      // Only trigger a sort immediately if some hole is complete; otherwise wait
       if (sortByRankEnabled) applySortByRankIfHoleComplete(null, false);
       updateRanks();
-      attachDragListeners(); // drag allowed; drop ignored when sorting is ON
+      attachDragListeners();
     }
     function setThemeColor(value) {
       themeColor = value || 'blue';
@@ -1021,14 +1014,12 @@
       updateRanks();
     }
 
+    // Updated: Only reset scores; do NOT reset pars
     function resetScores() {
       for (let p = 1; p <= 8; p++) {
         for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
       }
-      for (let h = 1; h <= 18; h++) localStorage.setItem(LS.par(h), '3');
-
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
-      document.querySelectorAll('#scoreBody .par-cell[data-hole]').forEach(td => td.textContent = '3');
 
       updateAllTotals();
       updateRanks();
@@ -1201,19 +1192,16 @@
       }
     }
 
-    /* FIXED: robust reindex after delete */
     function removePlayer(pid) {
-      const removedIdx = parseInt(pid.replace('P',''), 10) - 1; // 0-based index of removed column among players
+      const removedIdx = parseInt(pid.replace('P',''), 10) - 1;
       if (playerCount <= 1) { alert('At least one player must remain.'); return false; }
 
       const headerRow = document.getElementById('playerRow');
       const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
 
-      // 1) Remove the header cell and its column in every row
       if (headerRow.children[removedIdx + 2]) headerRow.removeChild(headerRow.children[removedIdx + 2]);
       rows.forEach(row => { if (row.children[removedIdx + 2]) row.removeChild(row.children[removedIdx + 2]); });
 
-      // 2) Shift storage keys P(i+1) -> P(i) for all players to the right
       for (let p = removedIdx + 2; p <= playerCount; p++) {
         const oldPid = `P${p}`, newPid = `P${p-1}`;
         const name = localStorage.getItem(LS.name(oldPid));
@@ -1228,23 +1216,17 @@
           if (val != null) localStorage.setItem(LS.score(newPid, h), val);
         }
       }
-      // Clean trailing last player's storage
       const trailingPid = `P${playerCount}`;
       localStorage.removeItem(LS.name(trailingPid));
       for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(trailingPid, h));
 
-      // 3) Update count + UI select
       playerCount -= 1;
       localStorage.setItem(LS.playerCount, String(playerCount));
       const pcSel = document.getElementById('playerCount');
       if (pcSel) pcSel.value = String(playerCount);
 
-      // 4) Reindex DOM attributes (headers + cells) left-to-right to P1..Pn
-      // Only columns at and to the right of removedIdx need reindexing
       for (let i = removedIdx; i < playerCount; i++) {
         const newPid = `P${i+1}`;
-
-        // Header cell rebind
         const th = headerRow.children[i + 2];
         if (th) {
           const nm = localStorage.getItem(LS.name(newPid)) || newPid;
@@ -1257,7 +1239,6 @@
           th.addEventListener('click', onHeaderClick);
         }
 
-        // Body cells: set data-player; summary cells: fix data-sum keys
         rows.forEach(row => {
           const first = row.firstElementChild;
           const label = first?.textContent?.trim() || '';
@@ -1273,10 +1254,8 @@
         });
       }
 
-      // 5) Recalculate, resort (if enabled), and refresh visuals
       fitRowsToViewport();
       updateAllTotals();
-      // Only resort if some hole is complete
       applySortByRankIfHoleComplete(null, true);
       updateRanks();
       clipPlayerNamesToCell();
@@ -1284,7 +1263,6 @@
       return true;
     }
 
-    // Update only the name to preserve total and pill lines
     function applyPlayerName(pid, newName) {
       const header = document.querySelector(`#scoreTable thead th[data-player="${pid}"]`);
       if (!header) return;
@@ -1391,7 +1369,6 @@
             }
           }
         });
-        // Long-press to enter bulk (500ms)
         let pressTimer = null;
         const start = () => {
           if (bulkEmojiMode) return;
@@ -1768,7 +1745,7 @@
         }
       }
 
-      attachDragListeners(); // drag allowed; drop ignored if sorting
+      attachDragListeners();
       updateAllTotals();
       if (!silent) updateRanks();
       fitRowsToViewport();
@@ -1834,7 +1811,6 @@
       }
 
       updateAllTotals();
-      // Only resort if at least one hole is complete
       applySortByRankIfHoleComplete(null, true);
       updateRanks();
       fitRowsToViewport();
@@ -1842,7 +1818,7 @@
       attachDragListeners();
     }
 
-    /* ---------------- Drag & Drop (clean; drop ignored when sorting is ON) ---------------- */
+    /* ---------------- Drag & Drop ---------------- */
     function attachDragListeners() {
       const headers = document.querySelectorAll('#scoreTable thead th[data-player]');
       headers.forEach((header, index) => {
@@ -1877,13 +1853,11 @@
     function handleDragOver(event) {
       event.preventDefault();
       if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-      // No hover styling to avoid divider line and layout shift
     }
 
     function handleDrop(event, dropIndex) {
       event.preventDefault();
 
-      // If sorting is ON, ignore reordering (drag visual only)
       if (sortByRankEnabled) {
         draggedIndex = -1;
         return;
@@ -1897,7 +1871,6 @@
       const headerRow = document.getElementById('playerRow');
       const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
 
-      // Collect current data (names + scores) by current left->right P#
       const playerData = [];
       for (let i = 0; i < playerCount; i++) {
         const pid = `P${i+1}`;
@@ -1911,7 +1884,6 @@
         playerData.push({ name, scores });
       }
 
-      // Reorder header nodes (keeping first 2 fixed)
       const fixed = Array.from(headerRow.children).slice(0,2);
       const playerHeaders = Array.from(headerRow.children).slice(2);
       const [draggedHeader] = playerHeaders.splice(draggedIndex, 1);
@@ -1920,7 +1892,6 @@
       fixed.forEach(h => headerRow.appendChild(h));
       playerHeaders.forEach(h => headerRow.appendChild(h));
 
-      // Reorder each row's player cells
       rows.forEach(tr => {
         const cells = Array.from(tr.children);
         const fixedCells = cells.slice(0, 2);
@@ -1932,11 +1903,9 @@
         playerCells.forEach(c => tr.appendChild(c));
       });
 
-      // Reorder data
       const [draggedData] = playerData.splice(draggedIndex, 1);
       playerData.splice(dropIndex, 0, draggedData);
 
-      // Rewrite header + cell attributes and storage to new left->right P1..Pn
       for (let i = 0; i < playerCount; i++) {
         const newPid = `P${i+1}`;
         const th = headerRow.children[i + 2];
@@ -1965,7 +1934,6 @@
         });
       }
 
-      // Rewrite storage mapping
       for (let p = 1; p <= playerCount; p++) {
         const pid = `P${p}`;
         localStorage.removeItem(LS.name(pid));
@@ -1993,12 +1961,51 @@
       draggedIndex = -1;
     }
 
+    /* ---------------- Pars popup ---------------- */
+function showParResetPopup() {
+  const modal = document.getElementById('popupModal');
+  const title = document.getElementById('popupTitle');
+  const options = document.getElementById('popupOptions');
+
+  title.textContent = 'Par';
+  options.innerHTML = `
+    <button id="resetParsBtn"
+            style="width: 100%; height: auto; padding: 10px 20px; font-size: 24px; grid-column: 1 / -1;">
+      Reset Pars
+    </button>
+  `;
+
+  document.getElementById('resetParsBtn').onclick = () => {
+    resetAllParsToThree();
+    closePopupModal();
+  };
+
+  modal.style.display = 'block';
+  showOverlay();
+}
+
+    function resetAllParsToThree() {
+      for (let h = 1; h <= holesCount; h++) {
+        localStorage.setItem(LS.par(h), '3');
+        const cell = document.querySelector(`.par-cell[data-hole="H${h}"]`);
+        if (cell) cell.textContent = '3';
+      }
+      updateAllTotals();
+    }
+
+    function closePopupModal() {
+      const modal = document.getElementById('popupModal');
+      modal.style.display = 'none';
+      hideOverlay();
+    }
+
     /* ---------------- Overlay ---------------- */
     function showOverlay() { document.getElementById('overlay').style.display = 'block'; }
     function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
     document.getElementById('overlay').addEventListener('click', () => {
       closeRoundManagement();
       closePlayerNameModal();
+      closePopupModal();
       if (activeInput) {
         applyInlineEdit(activeInput.value, false);
       } else {
