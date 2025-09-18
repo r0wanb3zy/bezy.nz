@@ -826,7 +826,8 @@
       if (nextCell) {
         startInlineEdit(nextCell, 'score', { preserveKeyboard: true, prevDisplayText: displayText });
         updateAllTotals();
-        if (sortByRankEnabled) applySortByRank(true);
+        // Only resort when the edited hole is complete
+        if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
         updateRanks();
         isApplyingInline = false;
         return;
@@ -835,7 +836,8 @@
       td.textContent = displayText;
       endInlineEdit(false);
       updateAllTotals();
-      if (sortByRankEnabled) applySortByRank(true);
+      // Only resort when the edited hole is complete
+      if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
       updateRanks();
       isApplyingInline = false;
     }
@@ -983,7 +985,8 @@
       playerCount = newCount;
       localStorage.setItem(LS.playerCount, String(playerCount));
       updateAllTotals();
-      if (sortByRankEnabled) applySortByRank(true);
+      // Only resort if at least one hole is complete
+      applySortByRankIfHoleComplete(null, true);
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
@@ -1004,7 +1007,8 @@
       localStorage.setItem(LS.sort, String(sortByRankEnabled));
       const btn = document.getElementById('sortByRankBtn');
       if (btn) btn.classList.toggle('active', sortByRankEnabled);
-      if (sortByRankEnabled) applySortByRank();
+      // Only trigger a sort immediately if some hole is complete; otherwise wait
+      if (sortByRankEnabled) applySortByRankIfHoleComplete(null, false);
       updateRanks();
       attachDragListeners(); // drag allowed; drop ignored when sorting is ON
     }
@@ -1272,7 +1276,8 @@
       // 5) Recalculate, resort (if enabled), and refresh visuals
       fitRowsToViewport();
       updateAllTotals();
-      if (sortByRankEnabled) applySortByRank(true);
+      // Only resort if some hole is complete
+      applySortByRankIfHoleComplete(null, true);
       updateRanks();
       clipPlayerNamesToCell();
       attachDragListeners();
@@ -1647,6 +1652,30 @@
       });
     }
 
+    /* ---------------- Resort gating: only after a hole is complete ---------------- */
+    function isHoleComplete(h) {
+      if (!h || h < 1 || h > holesCount) return false;
+      for (let p = 1; p <= playerCount; p++) {
+        if (getScore(`P${p}`, h) == null) return false;
+      }
+      return true;
+    }
+    function isAnyHoleComplete() {
+      for (let h = 1; h <= holesCount; h++) {
+        if (isHoleComplete(h)) return true;
+      }
+      return false;
+    }
+    function applySortByRankIfHoleComplete(targetHole = null, silent = true) {
+      if (!sortByRankEnabled) return;
+      if (targetHole != null) {
+        if (!isHoleComplete(targetHole)) return;
+      } else {
+        if (!isAnyHoleComplete()) return;
+      }
+      applySortByRank(silent);
+    }
+
     /* ---------------- Sort by rank (reindex left->right) ---------------- */
     function applySortByRank(silent = false) {
       const headerRow = document.getElementById('playerRow');
@@ -1805,7 +1834,8 @@
       }
 
       updateAllTotals();
-      if (sortByRankEnabled) applySortByRank(true);
+      // Only resort if at least one hole is complete
+      applySortByRankIfHoleComplete(null, true);
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
