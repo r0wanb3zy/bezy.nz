@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Golf Scorecard</title>
+  <title>Disc Golf Scorecard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
@@ -45,7 +45,8 @@
     /* Orientation-specific scrolling */
     @media screen and (orientation: portrait) {
       html, body { overflow: hidden; touch-action: none; }
-      #scoreTable { overflow-y: hidden; }
+      /* NEW: allow the table to scroll so sticky header can work */
+      #scoreTable { overflow-y: auto; }
     }
     @media screen and (orientation: landscape) {
       html, body { overflow: auto; touch-action: auto; }
@@ -62,6 +63,12 @@
     #scoreTable thead th {
       height: 80px;
       font-size: 22px;
+    }
+    /* NEW: keep the entire header row visible (sticky) */
+    #scoreTable thead th {
+      position: sticky;
+      top: 0;
+      z-index: 4; /* above body cells */
     }
 
     /* Top-left settings cell: solid dark bg + divider to Par */
@@ -107,6 +114,13 @@
       border-bottom: 1px solid #666;
     }
     th.par-header { border-right: none; }
+
+    /* NEW: ensure the sticky left header cells also stay under the sticky top */
+    #scoreTable thead th.hole-header,
+    #scoreTable thead th.par-header {
+      top: 0;
+      z-index: 6; /* above other sticky headers */
+    }
 
     /* Make all body rows rock-solid height */
     #scoreTable tbody td, #scoreTable tbody th {
@@ -218,7 +232,7 @@
       color: white; border: none; border-radius: 6px; transition: background 0.2s;
     }
 
-    /* Popup grid */
+    /* Popup grid (used elsewhere; we override width via inline style in JS) */
     #popupOptions {
       display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; justify-content: center;
       padding: 10px 0; box-sizing: border-box;
@@ -397,11 +411,12 @@
     }
 
     /* Hole lock visuals */
-    /* NEW: Don't dim or disable other holes; only highlight the active hole's score cells */
+    /* Keep left 'Hole' and 'Par' cells dark; only tint the active hole's score cells */
     #scoreBody tr.active-hole td.score-cell {
       background: rgba(0, 0, 0, 0.03);
     }
-    /* No styling for inactive-hole anymore */
+    /* No dimming for other holes */
+
   </style>
 </head>
 <body>
@@ -555,7 +570,7 @@
         if (!lockedHole) return;
         if (tr.classList.contains('summary-row')) return;
         const rowHole = tr.querySelector('td.par-cell')?.getAttribute('data-hole') || null;
-        if (rowHole === lockedHole) tr.classList.add('active-hole'); // NEW: no inactive-hole class
+        if (rowHole === lockedHole) tr.classList.add('active-hole');
       });
     }
     function getScoreCellsInHole(holeId) {
@@ -581,7 +596,7 @@
         clearLockedHole();
       }
     }
-    // NEW: unlock if the locked hole becomes empty again
+    // Unlock if the locked hole becomes empty again
     function isHoleEmpty(h) {
       if (!h || h < 1 || h > holesCount) return false;
       for (let p = 1; p <= playerCount; p++) {
@@ -779,6 +794,16 @@
     }
 
     /* ---------------- Inline editing (no popup) ---------------- */
+    function scrollScoreCellIntoView(td) {
+      const container = document.getElementById('scoreTable');
+      if (!container || !td) return;
+      try {
+        td.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' }); // NEW
+      } catch (_) {
+        td.scrollIntoView(true);
+      }
+    }
+
     function startInlineEdit(td, mode, options = {}) {
       // Gate scoring only if a hole is already locked; do not lock on focus.
       if (mode === 'score') {
@@ -848,6 +873,10 @@
 
       activeInput = input;
       try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+
+      // NEW: make sure the edited cell is visible (centered) underneath the sticky header
+      scrollScoreCellIntoView(td);
+
       updateEnterKeyHintForInput(input, td);
 
       if (preserveKeyboard && prevInput && prevCell) {
@@ -922,7 +951,7 @@
         updateAllTotals();
         if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
         updateRanks();
-        clearLockedHoleIfEmpty(hole);   // NEW
+        clearLockedHoleIfEmpty(hole);
         clearLockedHoleIfComplete(hole);
         isApplyingInline = false;
         return;
@@ -933,7 +962,7 @@
       updateAllTotals();
       if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
       updateRanks();
-      clearLockedHoleIfEmpty(hole);     // NEW
+      clearLockedHoleIfEmpty(hole);
       clearLockedHoleIfComplete(hole);
       isApplyingInline = false;
     }
@@ -1121,7 +1150,7 @@
         for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
       }
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
-      clearLockedHole(); // NEW: unlock any locked hole on full reset
+      clearLockedHole(); // unlock any locked hole on full reset
 
       updateAllTotals();
       updateRanks();
@@ -1561,7 +1590,7 @@
         const score = parseInt(txt, 10);
         if (!Number.isFinite(score)) { td.style.color = ''; return; }
         const holeAttr = td.getAttribute('data-hole') || '';
-        const hole = parseInt(holeAttr.replace('H',''), 10);
+               const hole = parseInt(holeAttr.replace('H',''), 10);
         const par = Number.isFinite(hole) ? getPar(hole) : 3;
         if (score < par) td.style.color = themeText(40);
         else if (score > par) td.style.color = grey;
@@ -1767,7 +1796,7 @@
         let sum = 0, hasScore = false;
         for (let h = 1; h <= holesCount; h++) {
           const sc = getScore(pid, h);
-        if (sc != null) { hasScore = true; sum += sc; }
+          if (sc != null) { hasScore = true; sum += sc; }
         }
         const rankValue = hasScore ? sum : Number.POSITIVE_INFINITY;
         return { idx, pid, rankValue };
