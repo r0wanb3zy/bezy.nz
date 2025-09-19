@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Disc Golf Scorecard</title>
+  <meta charset="UTF-8">
+  <title>Golf Scorecard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Economica&amp;display=swap" rel="stylesheet">
 
   <style>
     /* Base (match reference app) */
@@ -23,6 +23,9 @@
       --hole-w: 30px;
       --par-w: 30px;
       --row-h: 34px; /* JS will set this so all rows fit exactly in the viewport */
+
+      /* Unified, lighter placeholder color */
+      --ph-color: rgba(0, 0, 0, 0.24);
     }
 
     /* Table base */
@@ -35,10 +38,10 @@
     }
     table, table th, table td { font-weight: bold; }
 
-    /* Score table shell (match reference) */
+    /* Score table shell — use stable viewport height so the keyboard doesn’t shrink it */
     #scoreTable {
-      height: 100vh;   /* legacy fallback */
-      height: 100dvh;  /* modern browsers use dynamic viewport height */
+      height: 100vh;   /* fallback */
+      height: 100lvh;  /* stable large viewport height (ignores keyboard/UI chrome) */
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
 
@@ -196,6 +199,11 @@
       caret-color: transparent;
       user-select: none; -webkit-user-select: none;
       cursor: default;
+
+      /* Keep placeholder/value single-line */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .inline-number::selection, .inline-number::-moz-selection { background: transparent; }
     .inline-number::-webkit-outer-spin-button, .inline-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -218,7 +226,7 @@
       color: white; border: none; border-radius: 6px; transition: background 0.2s;
     }
 
-    /* Popup grid (used elsewhere; we override width via inline style in JS) */
+    /* Popup grid */
     #popupOptions {
       display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; justify-content: center;
       padding: 10px 0; box-sizing: border-box;
@@ -396,31 +404,86 @@
       border-right: 1px solid #666 !important;
     }
 
-    /* Hole lock visuals
-       - Keep left 'Hole' and 'Par' cells dark; only tint the score cells */
-    #scoreBody tr.inactive-hole td.score-cell {
-      pointer-events: none;
-      opacity: 0.35;
-    }
+    /* Hole lock visuals */
     #scoreBody tr.active-hole td.score-cell {
       background: rgba(0, 0, 0, 0.03);
     }
+
+    /* Make the clicked row (show-placeholders) match locked row highlight */
+    #scoreBody tr.show-placeholders td.score-cell {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    /* Show player name placeholders on empty cells in the active row */
+    #scoreBody tr.show-placeholders td.score-cell:empty::before {
+      content: attr(data-placeholder);
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      pointer-events: none;
+
+      /* Keep single-line and centered visually */
+      display: block;
+      width: 100%;
+      line-height: var(--row-h);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Placeholder color for inline input — unified and subtle */
+    .inline-number::-webkit-input-placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
+    }
+    .inline-number::-moz-placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
+    }
+    .inline-number:-ms-input-placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
+    }
+    .inline-number::placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
+    }
+
+    /* Make hole number tappable to manually lock/unlock a hole */
+    #scoreBody tr:not(.summary-row) .hole-cell { cursor: pointer; }
   </style>
 </head>
 <body>
+
   <!-- Score Table -->
   <table id="scoreTable">
     <thead>
       <tr id="playerRow">
-        <th class="hole-header" onclick="showRoundManagement()">
-          <button class="gear" title="Round settings">☰</button>
-        </th>
-        <!-- Click anywhere on the Par header to open the Pars popup -->
+        <th class="hole-header" onclick="showRoundManagement()"><button class="gear" title="Round settings">☰</button></th>
         <th class="par-header" onclick="showParResetPopup()">Par</th>
-        <!-- Player headers injected -->
-      </tr>
+      <th data-player="P1" title="🩰" draggable="true">
+          <span class="player-name" data-full="🩰" title="🩰">🩰</span>
+          <div id="totalP1"></div>
+          <div class="to-par-line" id="toParP1"></div>
+        </th><th data-player="P2" title="🌹" draggable="true">
+          <span class="player-name" data-full="🌹" title="🌹">🌹</span>
+          <div id="totalP2"></div>
+          <div class="to-par-line" id="toParP2"></div>
+        </th><th data-player="P3" title="3️⃣" draggable="true">
+          <span class="player-name" data-full="3️⃣" title="3️⃣">3️⃣</span>
+          <div id="totalP3"></div>
+          <div class="to-par-line" id="toParP3"></div>
+        </th></tr>
     </thead>
-    <tbody id="scoreBody"></tbody>
+    <tbody id="scoreBody"><tr><td class="hole-cell">1</td><td class="par-cell" data-hole="H1">3</td><td class="score-cell" data-player="P1" data-hole="H1"></td><td class="score-cell" data-player="P2" data-hole="H1"></td><td class="score-cell" data-player="P3" data-hole="H1"></td></tr><tr><td class="hole-cell">2</td><td class="par-cell" data-hole="H2">3</td><td class="score-cell" data-player="P1" data-hole="H2"></td><td class="score-cell" data-player="P2" data-hole="H2"></td><td class="score-cell" data-player="P3" data-hole="H2"></td></tr><tr><td class="hole-cell">3</td><td class="par-cell" data-hole="H3">3</td><td class="score-cell" data-player="P1" data-hole="H3"></td><td class="score-cell" data-player="P2" data-hole="H3"></td><td class="score-cell" data-player="P3" data-hole="H3"></td></tr><tr><td class="hole-cell">4</td><td class="par-cell" data-hole="H4">3</td><td class="score-cell" data-player="P1" data-hole="H4"></td><td class="score-cell" data-player="P2" data-hole="H4"></td><td class="score-cell" data-player="P3" data-hole="H4"></td></tr><tr><td class="hole-cell">5</td><td class="par-cell" data-hole="H5">3</td><td class="score-cell" data-player="P1" data-hole="H5"></td><td class="score-cell" data-player="P2" data-hole="H5"></td><td class="score-cell" data-player="P3" data-hole="H5"></td></tr><tr><td class="hole-cell">6</td><td class="par-cell" data-hole="H6">3</td><td class="score-cell" data-player="P1" data-hole="H6"></td><td class="score-cell" data-player="P2" data-hole="H6"></td><td class="score-cell" data-player="P3" data-hole="H6"></td></tr><tr><td class="hole-cell">7</td><td class="par-cell" data-hole="H7">3</td><td class="score-cell" data-player="P1" data-hole="H7"></td><td class="score-cell" data-player="P2" data-hole="H7"></td><td class="score-cell" data-player="P3" data-hole="H7"></td></tr><tr><td class="hole-cell">8</td><td class="par-cell" data-hole="H8">3</td><td class="score-cell" data-player="P1" data-hole="H8"></td><td class="score-cell" data-player="P2" data-hole="H8"></td><td class="score-cell" data-player="P3" data-hole="H8"></td></tr><tr><td class="hole-cell">9</td><td class="par-cell" data-hole="H9">3</td><td class="score-cell" data-player="P1" data-hole="H9"></td><td class="score-cell" data-player="P2" data-hole="H9"></td><td class="score-cell" data-player="P3" data-hole="H9"></td></tr><tr class="summary-row"><td class="hole-cell">OUT</td><td class="par-cell" data-sum="out-par">27</td><td data-sum="out-P1">0</td><td data-sum="out-P2">0</td><td data-sum="out-P3">0</td></tr><tr><td class="hole-cell">10</td><td class="par-cell" data-hole="H10">3</td><td class="score-cell" data-player="P1" data-hole="H10"></td><td class="score-cell" data-player="P2" data-hole="H10"></td><td class="score-cell" data-player="P3" data-hole="H10"></td></tr><tr><td class="hole-cell">11</td><td class="par-cell" data-hole="H11">3</td><td class="score-cell" data-player="P1" data-hole="H11"></td><td class="score-cell" data-player="P2" data-hole="H11"></td><td class="score-cell" data-player="P3" data-hole="H11"></td></tr><tr><td class="hole-cell">12</td><td class="par-cell" data-hole="H12">3</td><td class="score-cell" data-player="P1" data-hole="H12"></td><td class="score-cell" data-player="P2" data-hole="H12"></td><td class="score-cell" data-player="P3" data-hole="H12"></td></tr><tr><td class="hole-cell">13</td><td class="par-cell" data-hole="H13">3</td><td class="score-cell" data-player="P1" data-hole="H13"></td><td class="score-cell" data-player="P2" data-hole="H13"></td><td class="score-cell" data-player="P3" data-hole="H13"></td></tr><tr><td class="hole-cell">14</td><td class="par-cell" data-hole="H14">3</td><td class="score-cell" data-player="P1" data-hole="H14"></td><td class="score-cell" data-player="P2" data-hole="H14"></td><td class="score-cell" data-player="P3" data-hole="H14"></td></tr><tr><td class="hole-cell">15</td><td class="par-cell" data-hole="H15">3</td><td class="score-cell" data-player="P1" data-hole="H15"></td><td class="score-cell" data-player="P2" data-hole="H15"></td><td class="score-cell" data-player="P3" data-hole="H15"></td></tr><tr><td class="hole-cell">16</td><td class="par-cell" data-hole="H16">3</td><td class="score-cell" data-player="P1" data-hole="H16"></td><td class="score-cell" data-player="P2" data-hole="H16"></td><td class="score-cell" data-player="P3" data-hole="H16"></td></tr><tr><td class="hole-cell">17</td><td class="par-cell" data-hole="H17">3</td><td class="score-cell" data-player="P1" data-hole="H17"></td><td class="score-cell" data-player="P2" data-hole="H17"></td><td class="score-cell" data-player="P3" data-hole="H17"></td></tr><tr><td class="hole-cell">18</td><td class="par-cell" data-hole="H18">3</td><td class="score-cell" data-player="P1" data-hole="H18"></td><td class="score-cell" data-player="P2" data-hole="H18"></td><td class="score-cell" data-player="P3" data-hole="H18"></td></tr><tr class="summary-row"><td class="hole-cell">IN</td><td class="par-cell" data-sum="in-par">27</td><td data-sum="in-P1">0</td><td data-sum="in-P2">0</td><td data-sum="in-P3">0</td></tr></tbody>
   </table>
 
   <!-- Popup -->
@@ -454,14 +517,14 @@
     </div>
 
     <button id="sortByRankBtn" onclick="toggleSortByRank()">Sort by Rank</button>
-    <select id="themeColorSelect" onchange="setThemeColor(this.value)">
-      <option value="blue">Blue</option>
-      <option value="purple">Purple</option>
-      <option value="pink">Pink</option>
-      <option value="red">Red</option>
-      <option value="yellow">Yellow</option>
-      <option value="green">Green</option>
-      <option value="grey">Grey</option>
+    <select id="themeColorSelect" onchange="setThemeColor(this.value)" style="color: rgb(13, 87, 160);">
+      <option value="blue" style="color: rgb(13, 87, 160);">Blue</option>
+      <option value="purple" style="color: rgb(83, 26, 147);">Purple</option>
+      <option value="pink" style="color: rgb(147, 26, 87);">Pink</option>
+      <option value="red" style="color: rgb(154, 19, 19);">Red</option>
+      <option value="yellow" style="color: rgb(155, 118, 8);">Yellow</option>
+      <option value="green" style="color: rgb(43, 130, 43);">Green</option>
+      <option value="grey" style="color: rgb(87, 87, 87);">Grey</option>
     </select>
     <button id="resetButton" onclick="handleResetClick()">Reset</button>
   </div>
@@ -541,15 +604,20 @@
     let activeMode = null; // 'score' | 'par'
     let resetConfirm = false;
 
+    // NEW: remember if current lock was created by this click (to auto-unlock on no-edit)
+    let lockPrimedHole = null; // e.g., "H3"
+
     // One-hole-at-a-time scoring
     let lockedHole = null; // e.g., "H3"
     function setLockedHole(holeId) {
       lockedHole = holeId;
       updateHoleLockVisuals();
+      syncHolePlaceholderState();
     }
     function clearLockedHole() {
       lockedHole = null;
       updateHoleLockVisuals();
+      syncHolePlaceholderState();
     }
     function updateHoleLockVisuals() {
       const rows = document.querySelectorAll('#scoreBody tr');
@@ -559,7 +627,6 @@
         if (tr.classList.contains('summary-row')) return;
         const rowHole = tr.querySelector('td.par-cell')?.getAttribute('data-hole') || null;
         if (rowHole === lockedHole) tr.classList.add('active-hole');
-        else tr.classList.add('inactive-hole');
       });
     }
     function getScoreCellsInHole(holeId) {
@@ -585,11 +652,68 @@
         clearLockedHole();
       }
     }
+    // Optional: unlock if hole becomes empty (not used now to keep lock on click)
+    function isHoleEmpty(h) {
+      if (!h || h < 1 || h > holesCount) return false;
+      for (let p = 1; p <= playerCount; p++) {
+        if (getScore(`P${p}`, h) != null) return false;
+      }
+      return true;
+    }
     function updateEnterKeyHintForInput(input, td) {
       try {
         const next = getNextEmptyScoreCellInHole(td, input.value);
         input.setAttribute('enterkeyhint', next ? 'next' : 'done');
       } catch (_) {}
+    }
+
+    /* -------- Placeholders (trimmed names) -------- */
+    function getHoleRowEl(holeId) {
+      const parCell = document.querySelector(`#scoreBody td.par-cell[data-hole="${holeId}"]`);
+      return parCell ? parCell.parentElement : null;
+    }
+    function showHolePlaceholders(holeId) {
+      const target = lockedHole || holeId; // if locked, always show placeholders for the locked row
+      document.querySelectorAll('#scoreBody tr.show-placeholders')
+        .forEach(tr => tr.classList.remove('show-placeholders'));
+      const row = getHoleRowEl(target);
+      if (row) row.classList.add('show-placeholders');
+    }
+    function clearHolePlaceholders() {
+      document.querySelectorAll('#scoreBody tr.show-placeholders')
+        .forEach(tr => tr.classList.remove('show-placeholders'));
+    }
+    function syncHolePlaceholderState() {
+      if (lockedHole) {
+        showHolePlaceholders(lockedHole);
+      } else if (activeCell) {
+        const hid = activeCell.getAttribute('data-hole');
+        if (hid) showHolePlaceholders(hid);
+        else clearHolePlaceholders();
+      } else {
+        clearHolePlaceholders();
+      }
+    }
+    function getPlayerDisplayName(pid) {
+      const el = document.querySelector(`#scoreTable thead th[data-player="${pid}"] .player-name`);
+      return el?.getAttribute('data-full') || el?.textContent || pid;
+    }
+    function getPlayerTrimmedName(pid) {
+      // Use whatever is currently visible in the header (already clipped to fit)
+      const el = document.querySelector(`#scoreTable thead th[data-player="${pid}"] .player-name`);
+      const trimmed = el?.textContent?.trim();
+      return trimmed || getPlayerDisplayName(pid);
+    }
+    function updatePlaceholdersForPlayer(pid) {
+      const nm = getPlayerTrimmedName(pid);
+      document.querySelectorAll(`#scoreBody td.score-cell[data-player="${pid}"]`)
+        .forEach(td => td.setAttribute('data-placeholder', nm));
+      if (activeInput && activeMode === 'score' && activeCell?.getAttribute('data-player') === pid) {
+        activeInput.placeholder = nm;
+      }
+    }
+    function updateAllPlaceholders() {
+      for (let p = 1; p <= playerCount; p++) updatePlaceholdersForPlayer(`P${p}`);
     }
 
     // Outside tap management
@@ -602,8 +726,9 @@
 
     /* ---------------- Height sync ---------------- */
     function setFullHeight() {
+      // Let CSS control height (100lvh). Clear any inline height.
       const table = document.getElementById('scoreTable');
-      if (table) table.style.height = `${window.innerHeight}px`;
+      if (table) table.style.height = '';
     }
 
     /* ---------------- Init ---------------- */
@@ -626,18 +751,28 @@
       updateAllTotals();
       updateRanks();
       fitRowsToViewport();
-      setFullHeight();
+      setFullHeight(); // clears inline height if any
+
+      // Important: clip headers first, then sync placeholders to the trimmed names
       clipPlayerNamesToCell();
-      attachDragListeners(); // allow drag gestures; with Sort ON, drop is ignored
+      updateAllPlaceholders();
+
+      attachDragListeners();
 
       const sortBtn = document.getElementById('sortByRankBtn');
       if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
     });
 
-    window.addEventListener('resize', () => { setFullHeight(); clipPlayerNamesToCell(); fitRowsToViewport(); });
+    window.addEventListener('resize', () => {
+      // No need to force height; CSS lvh keeps it stable through keyboard
+      clipPlayerNamesToCell();
+      updateAllPlaceholders();
+      fitRowsToViewport();
+    });
     window.addEventListener('orientationchange', () => {
       setTimeout(() => {
-        setFullHeight();
+        clipPlayerNamesToCell();
+        updateAllPlaceholders();
         fitRowsToViewport();
       }, 250);
     });
@@ -703,8 +838,8 @@
         body.appendChild(trIn);
       }
 
-      // Reset hole lock visuals on rebuild
       clearLockedHole();
+      updateAllPlaceholders();
     }
     function makeStickyCell(cls, text) {
       const td = document.createElement('td');
@@ -718,7 +853,13 @@
       const tdHole = document.createElement('td');
       tdHole.className = 'hole-cell';
       tdHole.textContent = String(h);
-      // Removed: tap-to-lock. Locking now happens only after entering a score.
+      // Manual lock/unlock by tapping the hole number — ignore other rows while locked
+      tdHole.addEventListener('click', () => {
+        const holeId = `H${h}`;
+        if (!lockedHole) setLockedHole(holeId);
+        else if (lockedHole === holeId) clearLockedHole();
+        // else: ignore clicking other hole numbers while locked
+      });
       tr.appendChild(tdHole);
 
       const tdPar = document.createElement('td');
@@ -766,17 +907,32 @@
           headerName.setAttribute('title', savedName);
         }
       }
+      updateAllPlaceholders();
     }
 
     /* ---------------- Inline editing (no popup) ---------------- */
     function startInlineEdit(td, mode, options = {}) {
-      // Gate scoring only if a hole is already locked; do not lock here.
+      const holeId = td.getAttribute('data-hole');
+
       if (mode === 'score') {
-        const holeId = td.getAttribute('data-hole');
-        if (lockedHole && lockedHole !== holeId) {
-          return; // ignore clicks on other holes while locked
+        // If locked and this isn't the locked row, ignore
+        if (lockedHole && lockedHole !== holeId) return;
+
+        // Lock immediately on score click (and keep it locked unless mis-click)
+        if (!lockedHole && holeId) {
+          setLockedHole(holeId);
+          lockPrimedHole = holeId; // we just locked due to this click
+        } else {
+          // Already locked (same row) or no holeId
+          lockPrimedHole = null;
         }
+      } else if (mode === 'par') {
+        // Prevent editing par of another row while locked
+        if (lockedHole && lockedHole !== holeId) return;
       }
+
+      // Show placeholders (respect locked row if any)
+      if (holeId) showHolePlaceholders(holeId);
 
       const preserveKeyboard = !!options.preserveKeyboard;
       const prevCell = activeCell;
@@ -802,6 +958,12 @@
       input.setAttribute('enterkeyhint', mode === 'score' ? 'next' : 'done');
       input._edited = false;
       input._clearedOnFirstInsert = false;
+
+      // Input placeholder uses the trimmed player name
+      if (mode === 'score') {
+        const pid = td.getAttribute('data-player');
+        if (pid) input.placeholder = getPlayerTrimmedName(pid);
+      }
 
       td.dataset.prev = prevText;
       td.textContent = '';
@@ -882,11 +1044,13 @@
           if (player && hole) localStorage.setItem(LS.score(player, hole), displayText);
         }
 
-        // NEW: Lock the hole only after a score is actually entered into an empty cell
-        const wasEmpty = prevText.trim() === '';
-        const nowFilled = String(displayText).trim() !== '';
-        if (!lockedHole && hole && wasEmpty && nowFilled) {
-          setLockedHole(`H${hole}`);
+        // NEW: mis-click unlock — only if this click created the lock, no typing happened,
+        // and the hole is still empty (no scores for any player)
+        if (hole && lockPrimedHole === `H${hole}` && !userTyped) {
+          if (isHoleEmpty(hole)) {
+            clearLockedHole();
+          }
+          lockPrimedHole = null;
         }
       } else if (mode === 'par') {
         if (!userTyped && trimmed === '') {
@@ -928,6 +1092,17 @@
 
     function cancelInlineEdit() {
       if (!activeCell) return;
+
+      // Apply same mis-click unlock logic on cancel (e.g., Escape)
+      if (activeMode === 'score') {
+        const holeId = activeCell.getAttribute('data-hole');
+        const h = parseInt(holeId?.replace('H','') || '0', 10);
+        if (lockPrimedHole === holeId && h && isHoleEmpty(h)) {
+          clearLockedHole();
+        }
+        lockPrimedHole = null;
+      }
+
       if (activeCell.dataset.prev != null) activeCell.textContent = activeCell.dataset.prev;
       endInlineEdit(false);
     }
@@ -940,6 +1115,7 @@
       if (activeInput && activeInput.parentElement) activeInput.parentElement.removeChild(activeInput);
       activeCell = null; activeInput = null; activeMode = null;
       if (!clearOnly) fitRowsToViewport();
+      syncHolePlaceholderState();
     }
 
     /* ---------------- Outside tap handling ---------------- */
@@ -1073,6 +1249,7 @@
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
+      updateAllPlaceholders();
       attachDragListeners();
       closeRoundManagement();
     }
@@ -1103,12 +1280,15 @@
       updateRanks();
     }
 
-    // Updated: Only reset scores; do NOT reset pars
+    // Only reset scores; do NOT reset pars
     function resetScores() {
       for (let p = 1; p <= 8; p++) {
         for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
       }
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
+
+      // NEW: also clear any active row lock and its placeholders
+      clearLockedHole();
 
       updateAllTotals();
       updateRanks();
@@ -1348,6 +1528,7 @@
       applySortByRankIfHoleComplete(null, true);
       updateRanks();
       clipPlayerNamesToCell();
+      updateAllPlaceholders();
       attachDragListeners();
       return true;
     }
@@ -1371,7 +1552,8 @@
 
       header.setAttribute('data-player', pid);
       localStorage.setItem(LS.name(pid), newName);
-      clipPlayerNamesToCell();
+      clipPlayerNamesToCell();        // trims header to fit
+      updatePlaceholdersForPlayer(pid); // placeholders follow trimmed name
       updateRanks();
     }
 
@@ -1464,7 +1646,7 @@
           clearTimeout(pressTimer);
           pressTimer = setTimeout(() => enterBulk(), 500);
         };
-        const cancel = () => { clearTimeout(pressTimer); pressTimer = null; };
+        const cancel = () => { clearTimeout(pressTimer); pressTimer = null; }
         btn.addEventListener('pointerdown', start);
         btn.addEventListener('pointerup', cancel);
         btn.addEventListener('pointerleave', cancel);
@@ -1507,19 +1689,20 @@
         }
       }
       clipPlayerNamesToCell();
+      updateAllPlaceholders();
     }
 
     /* ---------------- Totals / ranks / layout ---------------- */
     function fitRowsToViewport() {
       const table = document.getElementById('scoreTable');
+      if (!table) return;
       const header = table.querySelector('thead');
       const headerH = header ? header.getBoundingClientRect().height : 0;
       const rows = document.querySelectorAll('#scoreBody tr').length;
-      const viewportH = Math.max(window.innerHeight, document.documentElement.clientHeight || 0);
-      if (rows > 0) {
-        const approxBorders = rows;
-        const avail = Math.max(1, viewportH - headerH);
-        const rowH = Math.max(20, Math.floor((avail - approxBorders) / rows));
+      const tableH = table.clientHeight;
+      if (rows > 0 && tableH > 0) {
+        const avail = Math.max(1, tableH - headerH);
+        const rowH = Math.max(20, Math.floor(avail / rows));
         document.documentElement.style.setProperty('--row-h', rowH + 'px');
       }
     }
@@ -1704,17 +1887,22 @@
         el.setAttribute('data-full', full);
         el.textContent = full;
 
-        if (el.scrollWidth <= el.clientWidth) return;
-
-        const clusters = seg ? Array.from(seg.segment(full), s => s.segment) : Array.from(full);
-        let low = 0, high = clusters.length, best = 0;
-        while (low <= high) {
-          const mid = Math.floor((low + high) / 2);
-          el.textContent = clusters.slice(0, mid).join('');
-          if (el.scrollWidth <= el.clientWidth) { best = mid; low = mid + 1; }
-          else high = mid - 1;
+        if (el.scrollWidth > el.clientWidth) {
+          const clusters = seg ? Array.from(seg.segment(full), s => s.segment) : Array.from(full);
+          let low = 0, high = clusters.length, best = 0;
+          while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            el.textContent = clusters.slice(0, mid).join('');
+            if (el.scrollWidth <= el.clientWidth) { best = mid; low = mid + 1; }
+            else high = mid - 1;
+          }
+          el.textContent = clusters.slice(0, best).join('');
         }
-        el.textContent = clusters.slice(0, best).join('');
+
+        // Keep placeholders in sync with whatever is visible in the header
+        const th = el.closest('th[data-player]');
+        const pid = th?.getAttribute('data-player');
+        if (pid) updatePlaceholdersForPlayer(pid);
       });
     }
 
@@ -1754,7 +1942,7 @@
         let sum = 0, hasScore = false;
         for (let h = 1; h <= holesCount; h++) {
           const sc = getScore(pid, h);
-        if (sc != null) { hasScore = true; sum += sc; }
+          if (sc != null) { hasScore = true; sum += sc; }
         }
         const rankValue = hasScore ? sum : Number.POSITIVE_INFINITY;
         return { idx, pid, rankValue };
@@ -1839,6 +2027,7 @@
       if (!silent) updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
+      updateAllPlaceholders();
     }
 
     /* ---------------- Rebuild preserving (used for holes toggle) ---------------- */
@@ -1899,6 +2088,7 @@
         }
       }
 
+      updateAllPlaceholders();
       updateAllTotals();
       applySortByRankIfHoleComplete(null, true);
       updateRanks();
@@ -2043,6 +2233,7 @@
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
+      updateAllPlaceholders();
     }
 
     function handleDragEnd(event) {
@@ -2051,27 +2242,27 @@
     }
 
     /* ---------------- Pars popup ---------------- */
-function showParResetPopup() {
-  const modal = document.getElementById('popupModal');
-  const title = document.getElementById('popupTitle');
-  const options = document.getElementById('popupOptions');
+    function showParResetPopup() {
+      const modal = document.getElementById('popupModal');
+      const title = document.getElementById('popupTitle');
+      const options = document.getElementById('popupOptions');
 
-  title.textContent = 'Par';
-  options.innerHTML = `
-    <button id="resetParsBtn"
-            style="width: 100%; height: auto; padding: 10px 20px; font-size: 24px; grid-column: 1 / -1;">
-      Reset Pars
-    </button>
-  `;
+      title.textContent = 'Par';
+      options.innerHTML = `
+        <button id="resetParsBtn"
+                style="width: 100%; height: auto; padding: 10px 20px; font-size: 24px; grid-column: 1 / -1;">
+          Reset Pars
+        </button>
+      `;
 
-  document.getElementById('resetParsBtn').onclick = () => {
-    resetAllParsToThree();
-    closePopupModal();
-  };
+      document.getElementById('resetParsBtn').onclick = () => {
+        resetAllParsToThree();
+        closePopupModal();
+      };
 
-  modal.style.display = 'block';
-  showOverlay();
-}
+      modal.style.display = 'block';
+      showOverlay();
+    }
 
     function resetAllParsToThree() {
       for (let h = 1; h <= holesCount; h++) {
