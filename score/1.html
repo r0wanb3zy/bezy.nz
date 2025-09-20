@@ -38,11 +38,11 @@
     }
     table, table th, table td { font-weight: bold; }
 
-    /* Score table shell (match reference) */
+    /* Score table shell */
     #scoreTable {
       height: 100vh;   /* fallback */
-      height: 100svh;  /* stable with URL bars */
-      height: 100lvh;  /* ignore virtual keyboard shrink */
+      height: 100svh;  /* small viewport height (safe if browser UI is visible) */
+      height: 100dvh;  /* dynamic/visible viewport height (prevents content under toolbars) */
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
 
@@ -214,7 +214,7 @@
       text-overflow: ellipsis;
     }
     .inline-number::selection, .inline-number::-moz-selection { background: transparent; }
-    .inline-number::-webkit-outer-spin-button, . .inline-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .inline-number::-webkit-outer-spin-button, .inline-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
     /* Popup/modal */
     #popupModal {
@@ -429,8 +429,6 @@
       font-weight: normal;
       font-style: normal;
       pointer-events: none;
-
-      /* Keep single-line and centered visually */
       display: block;
       width: 100%;
       line-height: var(--row-h);
@@ -440,30 +438,10 @@
     }
 
     /* Placeholder color for inline input — unified and subtle */
-    .inline-number::-webkit-input-placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
-    .inline-number::-moz-placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
-    .inline-number:-ms-input-placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
-    .inline-number::placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
+    .inline-number::-webkit-input-placeholder { color: var(--ph-color); font-weight: normal; font-style: normal; opacity: 1; }
+    .inline-number::-moz-placeholder { color: var(--ph-color); font-weight: normal; font-style: normal; opacity: 1; }
+    .inline-number:-ms-input-placeholder { color: var(--ph-color); font-weight: normal; font-style: normal; opacity: 1; }
+    .inline-number::placeholder { color: var(--ph-color); font-weight: normal; font-style: normal; opacity: 1; }
 
     /* Make hole number tappable to manually lock/unlock a hole */
     #scoreBody tr:not(.summary-row) .hole-cell { cursor: pointer; }
@@ -732,6 +710,19 @@
     // Drag & drop state
     let draggedIndex = -1;
 
+    /* ---------------- Viewport sizing helpers ---------------- */
+    function sizeTableWithFallback() {
+      const table = document.getElementById('scoreTable');
+      if (!table) return;
+      const supports = typeof CSS !== 'undefined' && CSS.supports && (CSS.supports('height: 100dvh') || CSS.supports('height: 100svh'));
+      if (!supports) {
+        const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        table.style.height = vh + 'px';
+      } else {
+        table.style.height = ''; // let CSS 100svh/100dvh control height
+      }
+    }
+
     /* ---------------- Init ---------------- */
     document.addEventListener('DOMContentLoaded', () => {
       const pcSel = document.getElementById('playerCount');
@@ -751,6 +742,8 @@
       loadFromStorage();
       updateAllTotals();
       updateRanks();
+
+      sizeTableWithFallback();
       fitRowsToViewport();
 
       // Important: clip headers first, then sync placeholders to the trimmed names
@@ -763,25 +756,23 @@
       if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
     });
 
-    // Keyboard-safe resize gating: ignore height-only resizes
-    let lastWidth = window.innerWidth;
-
-    window.addEventListener('resize', () => {
-      if (window.innerWidth === lastWidth) return; // ignore keyboard height changes
-      lastWidth = window.innerWidth;
+    /* ---------------- Recompute on any viewport change ---------------- */
+    const onViewportChange = () => {
+      sizeTableWithFallback();
       clipPlayerNamesToCell();
       updateAllPlaceholders();
       fitRowsToViewport();
-    });
+    };
 
-    window.addEventListener('orientationchange', () => {
-      setTimeout(() => {
-        lastWidth = window.innerWidth;
-        clipPlayerNamesToCell();
-        updateAllPlaceholders();
-        fitRowsToViewport();
-      }, 250);
-    });
+    window.addEventListener('resize', onViewportChange);
+    window.addEventListener('orientationchange', () => setTimeout(onViewportChange, 250));
+    if (window.visualViewport) {
+      let vvTimer = null;
+      window.visualViewport.addEventListener('resize', () => {
+        clearTimeout(vvTimer);
+        vvTimer = setTimeout(onViewportChange, 50);
+      });
+    }
 
     function onHeaderClick(e) {
       const th = e.currentTarget;
@@ -1708,7 +1699,7 @@
       const rows = document.querySelectorAll('#scoreBody tr').length;
       if (!rows) return;
 
-      // Use the element’s own height (which uses 100lvh), not window.innerHeight
+      // Element’s height uses 100dvh/100svh or JS fallback, so it matches the visible viewport
       const viewportH = table.getBoundingClientRect().height;
       const approxBorders = rows;
       const avail = Math.max(1, viewportH - headerH);
@@ -1740,7 +1731,7 @@
         const score = parseInt(txt, 10);
         if (!Number.isFinite(score)) { td.style.color = ''; return; }
         const holeAttr = td.getAttribute('data-hole') || '';
-        const hole = parseInt(holeAttr.replace('H',''), 10);
+               const hole = parseInt(holeAttr.replace('H',''), 10);
         const par = Number.isFinite(hole) ? getPar(hole) : 3;
         if (score < par) td.style.color = themeText(40);
         else if (score > par) td.style.color = grey;
