@@ -26,6 +26,18 @@
       --ph-color: rgba(0, 0, 0, 0.24);
     }
 
+    /* Viewport container (safe-area aware) — the only scroll container */
+    #appViewport {
+      position: fixed;
+      top: env(safe-area-inset-top);
+      bottom: env(safe-area-inset-bottom);
+      left: env(safe-area-inset-left);
+      right: env(safe-area-inset-right);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      background: transparent;
+    }
+
     /* Table base */
     table {
       width: 100%;
@@ -36,16 +48,10 @@
     }
     table, table th, table td { font-weight: bold; }
 
-    /* Score table: full-screen, safe-area aware */
+    /* Score table (no fixed/scroll here; #appViewport handles it) */
     #scoreTable {
-      position: fixed;
-      top: env(safe-area-inset-top);
-      bottom: env(safe-area-inset-bottom);
-      left: env(safe-area-inset-left);
-      right: env(safe-area-inset-right);
-      height: auto;           /* the insets define height */
-      min-height: 0;
-      overflow-y: auto;
+      width: 100%;
+      height: auto;
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
       background: transparent;
     }
@@ -66,7 +72,7 @@
     #scoreTable thead th:first-child {
       background: #3b3b3b;
       color: #fff;
-      border-right: 1px solid #666; /* divider between settings and Par */
+      border-right: 1px solid #666;
       border-bottom: 1px solid #666;
     }
 
@@ -170,31 +176,16 @@
     }
 
     /* Remove bottom border under player header cells (name columns only) */
-    #scoreTable thead th[data-player] {
-      border-bottom: none !important;
-    }
-    /* Keep bottom border on the left headers */
-    #scoreTable thead th.hole-header,
-    #scoreTable thead th.par-header {
-      border-bottom: 1px solid #666;
-    }
+    #scoreTable thead th[data-player] { border-bottom: none !important; }
+    #scoreTable thead th.hole-header, #scoreTable thead th.par-header { border-bottom: 1px solid #666; }
 
     /* Remove right border from par cells (hole rows only) */
-    #scoreTable tbody tr:not(.summary-row) td.par-cell {
-      border-right: none !important;
-    }
-    /* Keep the OUT/IN summary par cell borders the same */
-    #scoreTable tbody tr.summary-row td.par-cell {
-      border-right: 1px solid #666 !important;
-    }
+    #scoreTable tbody tr:not(.summary-row) td.par-cell { border-right: none !important; }
+    #scoreTable tbody tr.summary-row td.par-cell { border-right: 1px solid #666 !important; }
 
     /* Hole lock visuals */
-    #scoreBody tr.active-hole td.score-cell {
-      background: rgba(0, 0, 0, 0.03);
-    }
-    #scoreBody tr.show-placeholders td.score-cell {
-      background: rgba(0, 0, 0, 0.03);
-    }
+    #scoreBody tr.active-hole td.score-cell { background: rgba(0,0,0,0.03); }
+    #scoreBody tr.show-placeholders td.score-cell { background: rgba(0,0,0,0.03); }
     #scoreBody tr.show-placeholders td.score-cell:empty::before {
       content: attr(data-placeholder);
       color: var(--ph-color);
@@ -237,9 +228,7 @@
       display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; justify-content: center;
       padding: 10px 0; box-sizing: border-box;
     }
-    #popupOptions .popup-spacer {
-      width: 40px; height: 40px; visibility: hidden; pointer-events: none;
-    }
+    #popupOptions .popup-spacer { width: 40px; height: 40px; visibility: hidden; pointer-events: none; }
     #popupOptions button {
       width: 40px; height: 40px; font-size: 24px; padding: 0; margin: 0; box-sizing: border-box;
       cursor: pointer; font-family: 'Economica', sans-serif, Arial; display: flex; justify-content: center; align-items: center;
@@ -311,12 +300,8 @@
       font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
       color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
     }
-    #playerNameModal button[data-state="confirm"] {
-      background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
-    }
-    #playerNameModal button.light {
-      background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
-    }
+    #playerNameModal button[data-state="confirm"] { background: linear-gradient(to bottom, #e63946 0%, #c62835 100%); }
+    #playerNameModal button.light { background: #f8f9fa; color: #0f172a; border: 1px solid #262626; }
 
     /* Segmented control */
     .segmented-control {
@@ -426,17 +411,20 @@
 </head>
 <body>
 
-  <!-- Score Table -->
-  <table id="scoreTable">
-    <thead>
-      <tr id="playerRow">
-        <th class="hole-header" onclick="showRoundManagement()"><button class="gear" title="Round settings">☰</button></th>
-        <th class="par-header" onclick="showParResetPopup()">Par</th>
-        <!-- Player headers are generated dynamically -->
-      </tr>
-    </thead>
-    <tbody id="scoreBody"></tbody>
-  </table>
+  <!-- Viewport container -->
+  <div id="appViewport">
+    <!-- Score Table -->
+    <table id="scoreTable">
+      <thead>
+        <tr id="playerRow">
+          <th class="hole-header" onclick="showRoundManagement()"><button class="gear" title="Round settings">☰</button></th>
+          <th class="par-header" onclick="showParResetPopup()">Par</th>
+          <!-- Player headers are generated dynamically -->
+        </tr>
+      </thead>
+      <tbody id="scoreBody"></tbody>
+    </table>
+  </div>
 
   <!-- Par popup -->
   <div id="popupModal">
@@ -567,27 +555,12 @@
     let emojiModeEnabled = localStorage.getItem(LS.emojiMode) === 'true';
 
     // Score pad state
-    let padState = {
-      mode: 'score', // 'score' | 'par'
-      hole: null,    // number
-      holeId: null,  // "H#"
-      player: null,  // "P#"
-      td: null,      // active cell td
-      value: null    // number|null
-    };
+    let padState = { mode: 'score', hole: null, holeId: null, player: null, td: null, value: null };
 
     // One-hole-at-a-time scoring
-    let lockedHole = null; // e.g., "H3"
-    function setLockedHole(holeId) {
-      lockedHole = holeId;
-      updateHoleLockVisuals();
-      syncHolePlaceholderState();
-    }
-    function clearLockedHole() {
-      lockedHole = null;
-      updateHoleLockVisuals();
-      syncHolePlaceholderState();
-    }
+    let lockedHole = null;
+    function setLockedHole(holeId) { lockedHole = holeId; updateHoleLockVisuals(); syncHolePlaceholderState(); }
+    function clearLockedHole() { lockedHole = null; updateHoleLockVisuals(); syncHolePlaceholderState(); }
     function updateHoleLockVisuals() {
       const rows = document.querySelectorAll('#scoreBody tr');
       rows.forEach(tr => {
@@ -649,11 +622,9 @@
       document.querySelectorAll(`#scoreBody td.score-cell[data-player="${pid}"]`)
         .forEach(td => td.setAttribute('data-placeholder', nm));
     }
-    function updateAllPlaceholders() {
-      for (let p = 1; p <= playerCount; p++) updatePlaceholdersForPlayer(`P${p}`);
-    }
+    function updateAllPlaceholders() { for (let p = 1; p <= playerCount; p++) updatePlaceholdersForPlayer(`P${p}`); }
 
-    // Drag & drop state
+    // Drag & drop
     let draggedIndex = -1;
 
     /* ---------------- Init ---------------- */
@@ -700,6 +671,9 @@
         fitRowsToViewport();
       }, 250);
     });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fitRowsToViewport);
+    }
 
     function onHeaderClick(e) {
       const th = e.currentTarget;
@@ -765,12 +739,7 @@
       clearLockedHole();
       updateAllPlaceholders();
     }
-    function makeStickyCell(cls, text) {
-      const td = document.createElement('td');
-      td.className = cls;
-      td.textContent = text;
-      return td;
-    }
+    function makeStickyCell(cls, text) { const td = document.createElement('td'); td.className = cls; td.textContent = text; return td; }
     function makeHoleRow(h) {
       const tr = document.createElement('tr');
 
@@ -866,7 +835,6 @@
       const holeId = td.getAttribute('data-hole'); // e.g. "H3"
       if (lockedHole && lockedHole !== holeId) return;
 
-      // Lock this hole on first tap
       if (!lockedHole) setLockedHole(holeId);
 
       const hole = parseInt(holeId.replace('H',''), 10);
@@ -874,7 +842,6 @@
       const playerName = getPlayerTrimmedName(pid);
       const par = getPar(hole);
 
-      // If empty, auto-fill with par
       if (td.textContent.trim() === '') {
         td.textContent = String(par);
         localStorage.setItem(LS.score(pid, hole), String(par));
@@ -942,7 +909,6 @@
     function updatePadUI() {
       const valEl = document.getElementById('padValue');
       valEl.textContent = padState.value == null ? '—' : String(padState.value);
-      // Persist immediately
       if (padState.mode === 'score' && padState.player && padState.hole) {
         setScore(padState.player, padState.hole, padState.value, true);
       } else if (padState.mode === 'par' && padState.hole) {
@@ -967,7 +933,6 @@
       const nextTd = cells[nextIdx];
       if (!nextTd) { closeScorePad(); return; }
 
-      // If the next cell is empty, auto-fill with par
       const hole = padState.hole;
       const nextPid = nextTd.getAttribute('data-player');
       if (nextTd.textContent.trim() === '') {
@@ -1571,16 +1536,21 @@
 
     /* ---------------- Totals / ranks / layout ---------------- */
     function fitRowsToViewport() {
+      const viewport = document.getElementById('appViewport');
       const table = document.getElementById('scoreTable');
-      if (!table) return;
+      if (!viewport || !table) return;
+
       const header = table.querySelector('thead');
       const headerH = header ? header.getBoundingClientRect().height : 0;
       const rows = document.querySelectorAll('#scoreBody tr').length;
 
-      const containerH = table.getBoundingClientRect().height; // actual visible height (safe-area aware)
+      const visH = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : window.innerHeight;
+      const top = viewport.getBoundingClientRect().top;
+      const containerVisibleH = Math.max(1, visH - top); // portion actually visible above bottom toolbar
+
       if (rows > 0) {
         const approxBorders = rows;
-        const avail = Math.max(1, containerH - headerH);
+        const avail = Math.max(1, containerVisibleH - headerH);
         const rowH = Math.max(20, Math.floor((avail - approxBorders) / rows));
         document.documentElement.style.setProperty('--row-h', rowH + 'px');
       }
@@ -1998,12 +1968,10 @@
         try { event.dataTransfer.setData('text/plain', ''); } catch (_) {}
       }
     }
-
     function handleDragOver(event) {
       event.preventDefault();
       if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     }
-
     function handleDrop(event, dropIndex) {
       event.preventDefault();
 
