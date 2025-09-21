@@ -350,6 +350,20 @@
       pointer-events: none; z-index: 2;
     }
 
+    /* Bulk emoji multi-select actions */
+    .bulk-actions {
+      display: none;
+      margin: 5px 0 0 0;
+      width: 100%;
+    }
+    .bulk-actions .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+    }
+
     /* Overlay */
     #overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -388,6 +402,27 @@
     #scoreTable tbody tr.summary-row td.par-cell {
       border-right: 1px solid #666 !important;
     }
+
+/* Match scoring app spacing inside the player popup */
+#playerNameModal .emoji-grid {
+  margin: 5px 0 10px !important;  /* default (non-bulk) spacing */
+}
+#playerNameModal .segmented-control {
+  margin-top: 5px !important; /* this is the gap above the Name/Emoji toggle */
+}
+/* Bulk mode spacing (when multi-select is active) */
+#playerNameModal.bulk-mode .emoji-grid {
+  margin-bottom: 5px !important;
+}
+#playerNameModal .bulk-actions {
+  margin-top: 0 !important;
+}
+#playerNameModal .bulk-actions { 
+  margin-top: 0 !important;
+}
+#playerNameModal.bulk-mode .emoji-grid {
+  margin-bottom: 5px !important;  /* reduced gap in bulk mode */
+}
   </style>
 </head>
 <body>
@@ -527,6 +562,11 @@
     let playerCount = Math.min(8, Math.max(1, parseInt(localStorage.getItem(LS.playerCount) || '4', 10)));
     let sortByRankEnabled = localStorage.getItem(LS.sort) === 'true';
     let emojiModeEnabled = localStorage.getItem(LS.emojiMode) === 'true';
+
+    // Bulk emoji selection state
+    let bulkEmojiMode = false;
+    let bulkEmojiSelection = [];
+    const bulkMaxPlayers = 8;
 
     // Drag & drop state
     let draggedIndex = -1;
@@ -1196,6 +1236,13 @@ function updateConfirmKeyLabel() {
                autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false">
         <div class="emoji-grid">${grid}</div>
 
+        <div id="bulkEmojiActions" class="bulk-actions">
+          <div class="row">
+            <button type="button" id="bulkCancelBtn" class="light">Cancel</button>
+            <button type="button" id="bulkApplyBtn">Select</button>
+          </div>
+        </div>
+
         <div class="segmented-control">
           <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, window.currentPlayer)">
           <label for="playerMode-name">Name</label>
@@ -1233,29 +1280,140 @@ function updateConfirmKeyLabel() {
       input.addEventListener('input', function () {
         const sanitized = extractEmojis(this.value);
         if (sanitized !== this.value) this.value = sanitized;
-        if (sanitized && !autoClosed) {
+        if (sanitized && !autoClosed && !bulkEmojiMode) {
           if (window.currentPlayer) applyPlayerName(window.currentPlayer, sanitized);
           autoClosed = true;
           closePlayerNameModal();
         }
       });
       input.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !bulkEmojiMode) {
           const sanitized = extractEmojis((this.value || '').trim());
           if (sanitized && window.currentPlayer) applyPlayerName(window.currentPlayer, sanitized);
           closePlayerNameModal();
         }
       });
 
-      // Emoji picks
-      Array.from(modal.querySelectorAll('.emoji-pick')).forEach(btn => {
+      // Multi-select behavior
+      bulkEmojiMode = false;
+      bulkEmojiSelection = [];
+
+const buttons   = Array.from(modal.querySelectorAll('.emoji-pick'));
+const bulkBar   = modal.querySelector('#bulkEmojiActions');
+const seg       = modal.querySelector('.segmented-control');
+const emojiInput= modal.querySelector('#emojiNameInput');
+
+const enterBulkEmojiMode = () => {
+  if (bulkEmojiMode) return;
+  bulkEmojiMode = true;
+  bulkEmojiSelection = [];
+  if (bulkBar)   bulkBar.style.display = 'block';
+  if (seg)       seg.style.display = 'none';
+  if (emojiInput)emojiInput.style.display = 'none';
+  buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
+  modal.classList.add('bulk-mode');    // important for spacing
+};
+
+const exitBulkEmojiMode = () => {
+  bulkEmojiMode = false;
+  bulkEmojiSelection = [];
+  if (bulkBar)   bulkBar.style.display = 'none';
+  if (seg)       seg.style.display = '';
+  if (emojiInput)emojiInput.style.display = '';
+  buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
+  modal.classList.remove('bulk-mode'); // important for spacing
+};
+
+      const renumberSelection = () => {
+        // clear numbers first
+        buttons.forEach(b => { if (b.classList.contains('selected')) b.setAttribute('data-order', ''); });
+        bulkEmojiSelection.forEach((emoji, i) => {
+          const b = buttons.find(btn => btn.getAttribute('data-emoji') === emoji);
+          if (b) b.setAttribute('data-order', String(i + 1));
+        });
+      };
+
+      const toggleEmojiSelection = (btn) => {
+        const emoji = btn.getAttribute('data-emoji');
+        const idx = bulkEmojiSelection.indexOf(emoji);
+        if (idx !== -1) {
+          bulkEmojiSelection.splice(idx, 1);
+          btn.classList.remove('selected');
+          btn.removeAttribute('data-order');
+        } else {
+          if (bulkEmojiSelection.length >= bulkMaxPlayers) return;
+          bulkEmojiSelection.push(emoji);
+          btn.classList.add('selected');
+        }
+        renumberSelection();
+      };
+
+      const applyBulkEmojiPlayers = (selected) => {
+        const targetCount = Math.min(bulkMaxPlayers, selected.length);
+        if (targetCount < 1) return;
+
+        // Force emoji mode
+        emojiModeEnabled = true;
+        localStorage.setItem(LS.emojiMode, 'true');
+
+        // If selection size differs, update player count to match
+        if (targetCount !== playerCount) {
+          const pcSel = document.getElementById('playerCount');
+          if (pcSel) pcSel.value = String(targetCount);
+          updatePlayerCount(); // rebuilds UI
+        }
+
+        // Apply names left-to-right
+        for (let i = 1; i <= targetCount; i++) {
+          applyPlayerName(`P${i}`, selected[i - 1]);
+        }
+        updateRanks();
+      };
+
+      const cancelBtn = modal.querySelector('#bulkCancelBtn');
+      const applyBtn = modal.querySelector('#bulkApplyBtn');
+      if (cancelBtn) cancelBtn.addEventListener('click', () => { exitBulkEmojiMode(); });
+      if (applyBtn) applyBtn.addEventListener('click', () => {
+        if (bulkEmojiSelection.length > 0) applyBulkEmojiPlayers(bulkEmojiSelection);
+        exitBulkEmojiMode();
+        closePlayerNameModal();
+      });
+
+      buttons.forEach(btn => {
+        // Click = single select or toggle (in bulk)
         btn.addEventListener('click', () => {
           const emoji = btn.getAttribute('data-emoji');
-          if (emoji && window.currentPlayer) {
-            applyPlayerName(window.currentPlayer, emoji);
+          if (!emoji) return;
+
+          if (bulkEmojiMode) {
+            toggleEmojiSelection(btn);
+          } else {
+            if (window.currentPlayer) applyPlayerName(window.currentPlayer, emoji);
             closePlayerNameModal();
           }
         });
+
+        // Long-press (500ms) to enter bulk mode
+        let pressTimer = null;
+        const start = () => {
+          if (bulkEmojiMode) return;
+          clearTimeout(pressTimer);
+          pressTimer = setTimeout(() => enterBulkEmojiMode(), 500);
+        };
+        const cancel = () => {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        };
+
+        btn.addEventListener('pointerdown', start);
+        btn.addEventListener('pointerup', cancel);
+        btn.addEventListener('pointerleave', cancel);
+        btn.addEventListener('touchstart', start, { passive: true });
+        btn.addEventListener('touchend', cancel);
+        btn.addEventListener('touchcancel', cancel);
+        btn.addEventListener('mousedown', start);
+        btn.addEventListener('mouseup', cancel);
+        btn.addEventListener('mouseleave', cancel);
       });
     }
 
