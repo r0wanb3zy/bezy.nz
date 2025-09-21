@@ -745,6 +745,66 @@
     -webkit-appearance: none;
     margin: 0;
   }
+
+  /* --------------------------------------- Popup Keypad --------------------------------------- */
+  #popupModal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ffffff;
+    border: none;
+    padding: 5px 20px 12px 20px;
+    z-index: 1002;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    font-family: 'Economica', sans-serif;
+    width: 220px;
+    max-width: 90%;
+  }
+
+  #popupModal h2 { margin: 15px 0; padding: 0; }
+
+  #popupOptions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0;
+    margin: 5px 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  #popupOptions .keypad-input {
+    font-size: 24px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    font-family: 'Economica', sans-serif;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    background: #ffffff;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    grid-column: 1 / -1;
+  }
+  #popupOptions .key-btn {
+    display: grid; place-items: center;
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    font-size: 22px;
+    line-height: 1;
+    padding: 0; margin: 0;
+    color: #ffffff;
+    background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+    border: none; border-radius: 6px;
+    cursor: pointer; user-select: none;
+    transition: transform 0.05s ease, filter 0.1s ease;
+    -webkit-appearance: none; appearance: none; outline: none;
+    font-family: 'Economica', sans-serif;
+  }
+  #popupOptions .key-btn:active { transform: scale(0.95); filter: brightness(1.05); }
 </style>
 </head>
 <body>
@@ -780,6 +840,14 @@
     <div id="playerManagementModal" class="popup-modal"></div>
     <div id="roundManagementModal" class="popup-modal"></div>
     <div id="deleteRoundModal" class="popup-modal"></div>
+
+    <!-- Popup Keypad -->
+    <div id="popupModal" class="popup-modal">
+      <h2 id="popupTitle">Round</h2>
+      <span class="close-btn" onclick="onPopupCloseClick()">×</span>
+      <div id="keypadDisplay" style="display:none;"></div>
+      <div id="popupOptions"></div>
+    </div>
 
     <!-- Overlay -->
     <div id="overlay"></div>
@@ -820,9 +888,13 @@
         // Prevent double-submit
         let isSubmittingRound = false;
 
-        // Inline score edit state
+        // Inline score edit state (deprecated by keypad; kept for safety)
         let activeScoreEditCell = null;
         let activeScoreEditIndices = null;
+
+        // Popup keypad state
+        let keypadCtx = null; // { mode:'new'|'edit', roundIndex?, playerIndex, value, edited }
+        let suppressSortDuringKeypad = false;
 
         /* ---------------------------------------
            Helpers (Keycap digits / Theme)
@@ -1228,7 +1300,8 @@
         }
 
         function updateUI() {
-            if (sortByRankEnabled && players.length > 1 && rounds.length > 0) {
+            // Don't re-order while keypad is open to keep navigation predictable
+            if (sortByRankEnabled && players.length > 1 && rounds.length > 0 && !suppressSortDuringKeypad) {
                 applySortByRank(true);
             }
 
@@ -1263,10 +1336,10 @@
                 `;
             });
 
-            // Input row: ＋ submits immediately (zeros allowed)
+            // Input row: click inputs to use keypad; ＋ still submits when all filled
             if (inputRow) {
                 inputRow.innerHTML = `<td onclick="addRoundScores()">＋</td>`;
-                players.forEach((player) => {
+                players.forEach((player, index) => {
                     const savedValue = unsubmittedScores[player.name] || '';
                     inputRow.innerHTML += `
                         <td>
@@ -1278,6 +1351,8 @@
                                  autocorrect="off"
                                  spellcheck="false"
                                  value="${savedValue}"
+                                 readonly
+                                 onclick="openKeypadForNewRound(${index}); return false;"
                                  form="roundForm" />
                         </td>`;
                 });
@@ -1310,39 +1385,8 @@
             updateRankings();
             clipPlayerNamesToCell();
 
-            // Wire edit handlers (double tap)
-            attachScoreCellEditHandlers();
-
-            // Wire sticky header inputs
-            const inputs = document.querySelectorAll("#inputRow input[type='number']");
-
-            inputs.forEach(input => {
-                input.addEventListener('input', () => {
-                    saveUnsubmittedScores();
-                    updateEnterKeyHints();
-                });
-            });
-
-            // Enter/Go: submit if all filled; else focus first empty
-            inputs.forEach(() => {
-                document.addEventListener('keydown', function onKey(e) {
-                    if (e.key === 'Enter' || e.keyCode === 13) {
-                        const inps = document.querySelectorAll("#inputRow input[type='number']");
-                        if (inps.length === 0) return;
-                        e.preventDefault();
-                        if (allInputsFilled(inps)) {
-                            if (!isSubmittingRound) {
-                                isSubmittingRound = true;
-                                addRoundScores();
-                                setTimeout(() => { isSubmittingRound = false; }, 200);
-                            }
-                        } else {
-                            const empty = firstEmptyInput(inps);
-                            if (empty) empty.focus({ preventScroll: true });
-                        }
-                    }
-                }, { once: true });
-            });
+            // Wire keypad edit handlers (single tap)
+            attachScoreCellKeypadHandlers();
 
             // Update the action key label
             updateEnterKeyHints();
@@ -1786,141 +1830,318 @@
         }
 
         /* ---------------------------------------
-           Inline Score Edit (double tap)
+           Popup Keypad for scores (new round + edit)
         --------------------------------------- */
-        function attachScoreCellEditHandlers() {
-            const cells = document.querySelectorAll('#scoreBody td.score-cell');
-            cells.forEach(cell => {
-                if (cell.dataset.tapBound === '1') return;
-                cell.dataset.tapBound = '1';
-
-                let lastTapTime = 0;
-                let lastX = 0, lastY = 0;
-                const tapGap = 300; // ms
-                const tol = 15;     // px
-
-                // Pointer-based double-tap detection (covers touch + pen + mouse)
-                cell.addEventListener('pointerup', (e) => {
-                    const now = e.timeStamp;
-                    const x = e.clientX || 0, y = e.clientY || 0;
-                    if (now - lastTapTime < tapGap && Math.abs(x - lastX) < tol && Math.abs(y - lastY) < tol) {
-                        e.preventDefault();
-                        if (!activeScoreEditCell) {
-                            openInlineScoreEditForCell(cell);
-                        }
-                        lastTapTime = 0;
-                    } else {
-                        lastTapTime = now;
-                        lastX = x; lastY = y;
-                    }
-                }, { passive: false });
-
-                // Desktop fallback
-                cell.addEventListener('dblclick', (e) => {
-                    e.preventDefault();
-                    if (!activeScoreEditCell) {
-                        openInlineScoreEditForCell(cell);
-                    }
-                });
-            });
+        function getHeaderInputs() {
+            return Array.from(document.querySelectorAll("#inputRow input[type='number']"));
+        }
+        function getHeaderInputEl(playerIndex) {
+            const inputs = getHeaderInputs();
+            return inputs[playerIndex] || null;
+        }
+        function getScoreCellEl(roundIndex, playerIndex) {
+            return document.querySelector(`#scoreBody td.score-cell[data-round-index="${roundIndex}"][data-player-index="${playerIndex}"]`);
+        }
+        function getNextPlayerIndex(current) {
+            return current < players.length - 1 ? current + 1 : null;
+        }
+        function getHeaderEmptyIndices(considerKeypad = true) {
+            const inputs = getHeaderInputs();
+            const empties = [];
+            for (let i = 0; i < inputs.length; i++) {
+                let v = inputs[i].value;
+                if (considerKeypad && keypadCtx && keypadCtx.mode === 'new' && i === keypadCtx.playerIndex) {
+                    const kpin = kpGetInputEl();
+                    if (kpin) v = kpin.value;
+                }
+                if ((v ?? '').toString().trim() === '') empties.push(i);
+            }
+            return empties;
         }
 
-        function openInlineScoreEditForCell(cell) {
-            closeAllPopups(); // just in case
+        function openKeypadForNewRound(playerIndex = 0) {
+            const inp = getHeaderInputEl(playerIndex);
+            const prev = (inp ? inp.value : '') || '';
+            keypadCtx = {
+                mode: 'new',
+                playerIndex,
+                value: prev,
+                edited: false
+            };
+            openKeypadModal();
+        }
 
+        function startKeypadEditForCell(cell) {
             const roundIndex = parseInt(cell.getAttribute('data-round-index'), 10);
             const playerIndex = parseInt(cell.getAttribute('data-player-index'), 10);
             const current = (rounds[roundIndex] && rounds[roundIndex][playerIndex] !== undefined)
                 ? rounds[roundIndex][playerIndex]
                 : 0;
 
-            activeScoreEditCell = cell;
-            activeScoreEditIndices = { roundIndex, playerIndex };
-            cell.classList.add('score-edit-selected');
-
-            let input = cell.querySelector('input.inline-score-input');
-            if (!input) {
-                input = document.createElement('input');
-                input.type = 'number';
-                input.className = 'inline-score-input';
-                input.setAttribute('inputmode', 'numeric');
-                input.setAttribute('enterkeyhint', 'done');
-                input.autocomplete = 'off';
-                input.autocorrect = 'off';
-                input.spellcheck = false;
-
-input.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        // Close the keyboard by blurring; blur handler will apply the edit.
-        try { this.blur(); } catch (_) {}
-    }
-});
-
-                // Mirror typed digits into the centered display (keep display visible)
-                input.addEventListener('input', function() {
-                    this.dataset.changed = '1';
-                    const display = cell.querySelector('.score-display');
-                    if (!display) return;
-                    const v = this.value.trim();
-                    display.innerHTML = v === '' ? '' : (v === '0' ? ZERO_ICON_HTML : v);
-                });
-
-                input.addEventListener('blur', function() {
-                    // Apply on blur as well (Done key or tap away)
-                    applyInlineScoreEdit();
-                });
-
-                // Prevent events on input from re-triggering gestures
-                input.addEventListener('pointerdown', e => e.stopPropagation());
-                input.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
-                input.addEventListener('mousedown', e => e.stopPropagation());
-
-                cell.appendChild(input);
-            }
-
-            // Begin with empty input; show current score via display underneath
-            input.value = '';
-            input.dataset.originalValue = String(current);
-            input.dataset.changed = '0';
-
-            setTimeout(() => {
-                try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-            }, 0);
+            keypadCtx = {
+                mode: 'edit',
+                roundIndex,
+                playerIndex,
+                value: String(current ?? ''),
+                edited: false
+            };
+            openKeypadModal();
         }
 
-function applyInlineScoreEdit() {
-    if (!activeScoreEditCell || !activeScoreEditIndices) return;
-
-    const input = activeScoreEditCell.querySelector('input.inline-score-input');
-
-    // If still focused, blur first to close the keyboard
-    if (input && document.activeElement === input) {
-        try { input.blur(); } catch (_) {}
-    }
-
-    const changed = input && input.dataset.changed === '1';
-    const val = input ? parseInt(input.value, 10) : NaN;
-    const score = isNaN(val) ? 0 : val;
-    const { roundIndex, playerIndex } = activeScoreEditIndices;
-
-    // Give the OS one tick to dismiss the keyboard before removing the input
-    setTimeout(() => {
-        clearActiveScoreCellHighlight(); // removes the inline input
-        if (changed) {
-            updateScore(roundIndex, playerIndex, score); // updateUI() runs inside
+        function openKeypadModal() {
+            suppressSortDuringKeypad = true;
+            renderKeypadForContext();
+            const modal = document.getElementById('popupModal');
+            modal.style.display = 'block';
+            showOverlay();
         }
-    }, 0);
-}
 
-        function clearActiveScoreCellHighlight() {
-            if (activeScoreEditCell) {
-                activeScoreEditCell.classList.remove('score-edit-selected');
-                const inlineInput = activeScoreEditCell.querySelector('input.inline-score-input');
-                if (inlineInput) inlineInput.remove();
+        function onPopupCloseClick() {
+            if (keypadCtx) {
+                // Commit current value but DO NOT submit; then close
+                commitKeypadValue(false, true);
             }
-            activeScoreEditCell = null;
-            activeScoreEditIndices = null;
+            closePopupModal();
+        }
+
+        function closePopupModal() {
+            const modal = document.getElementById('popupModal');
+            modal.style.display = 'none';
+            hideOverlay();
+            keypadCtx = null;
+            suppressSortDuringKeypad = false;
+        }
+
+        function kpGetInputEl() {
+            return document.getElementById('keypadInput');
+        }
+        function kpNormalizedInput() {
+            const el = kpGetInputEl();
+            if (!el) return '';
+            let raw = (el.value || '').toString();
+            raw = raw.replace(/\D/g, '');
+            if (raw.length > 3) raw = raw.slice(0, 3);
+            return raw;
+        }
+        function kpSetInputValue(v) {
+            const el = kpGetInputEl();
+            if (!el || !keypadCtx) return;
+            const cleaned = (v || '').toString().replace(/\D/g, '').slice(0, 3);
+            el.value = cleaned;
+            keypadCtx.value = cleaned;
+            keypadCtx.edited = true;
+
+            // Live mirror into UI
+            if (keypadCtx.mode === 'new') {
+                const inp = getHeaderInputEl(keypadCtx.playerIndex);
+                if (inp) inp.value = cleaned;
+                // persist draft
+                saveUnsubmittedScores();
+                updateEnterKeyHints();
+            } else if (keypadCtx.mode === 'edit') {
+                const cell = getScoreCellEl(keypadCtx.roundIndex, keypadCtx.playerIndex);
+                const display = cell ? cell.querySelector('.score-display') : null;
+                if (display) {
+                    const v2 = cleaned.trim();
+                    display.innerHTML = v2 === '' ? ZERO_ICON_HTML : v2;
+                }
+            }
+            updateConfirmKeyLabel();
+        }
+        function kpAppendDigit(d) {
+            if (!/^\d$/.test(d)) return;
+            const el = kpGetInputEl();
+            if (!el) return;
+
+            // Overwrite on first digit in EDIT mode
+            if (keypadCtx && keypadCtx.mode === 'edit' && !keypadCtx.edited) {
+                kpSetInputValue(d);
+                return;
+            }
+
+            let v = (el.value || '').toString();
+            if (v.length >= 3) return;
+            v = (v === '0') ? d : (v + d);
+            kpSetInputValue(v);
+        }
+        function kpBackspace() {
+            const el = kpGetInputEl();
+            if (!el) return;
+            const v = (el.value || '').toString();
+            if (!v) return;
+            kpSetInputValue(v.slice(0, -1));
+        }
+
+        function renderKeypadForContext() {
+            const modal = document.getElementById('popupModal');
+            const title = document.getElementById('popupTitle');
+            const options = document.getElementById('popupOptions');
+            if (!keypadCtx || !modal || !title || !options) return;
+
+            const roundTitle = keypadCtx.mode === 'edit'
+                ? (keypadCtx.roundIndex + 1)
+                : (rounds.length + 1);
+            title.textContent = `Round ${roundTitle}`;
+
+            options.innerHTML = '';
+
+            // ReadOnly input to suppress native keyboard
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.id = 'keypadInput';
+            input.className = 'keypad-input';
+            input.inputMode = 'numeric';
+            input.readOnly = true;
+            input.autocomplete = 'off';
+            input.autocapitalize = 'off';
+            input.autocorrect = 'off';
+            input.spellcheck = false;
+            input.enterKeyHint = 'done';
+
+            const playerName = players[keypadCtx.playerIndex]?.name || 'Player';
+            input.placeholder = playerName;
+            input.value = keypadCtx.value || '';
+
+            input.addEventListener('input', () => { keypadCtx.edited = true; updateConfirmKeyLabel(); });
+            options.appendChild(input);
+
+            const mkKey = (label, type, val = null, id = null) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'key-btn';
+                b.textContent = label;
+                b.dataset.type = type;
+                if (val != null) b.dataset.val = val;
+                if (id) b.id = id;
+                b.addEventListener('click', onKeypadButtonClick);
+                return b;
+            };
+
+            // 1..9
+            [1,2,3,4,5,6,7,8,9].forEach(d => options.appendChild(mkKey(String(d), 'digit', String(d))));
+            // ⌫, 0, ➔/✓
+            options.appendChild(mkKey('⌫', 'back'));
+            options.appendChild(mkKey('0', 'digit', '0'));
+            options.appendChild(mkKey('➔', 'confirm', null, 'keypadConfirmKey'));
+
+            updateConfirmKeyLabel();
+        }
+
+        function updateConfirmKeyLabel() {
+            const btn = document.getElementById('keypadConfirmKey');
+            if (!btn || !keypadCtx) return;
+
+            if (keypadCtx.mode === 'new') {
+                const empties = getHeaderEmptyIndices(true);
+                const noneLeft = empties.length === 0;
+                btn.textContent = noneLeft ? '✓' : '➔';
+                btn.dataset.action = noneLeft ? 'done' : 'next';
+            } else if (keypadCtx.mode === 'edit') {
+                // After any edit, always show tick (submit and close)
+                if (keypadCtx.edited) {
+                    btn.textContent = '✓';
+                    btn.dataset.action = 'done';
+                } else {
+                    const last = getNextPlayerIndex(keypadCtx.playerIndex) === null;
+                    btn.textContent = last ? '✓' : '➔';
+                    btn.dataset.action = last ? 'done' : 'next';
+                }
+            }
+        }
+
+        function onKeypadButtonClick(e) {
+            const btn = e.currentTarget;
+            const type = btn.dataset.type;
+            if (!keypadCtx) return;
+
+            if (type === 'digit') {
+                kpAppendDigit(btn.dataset.val || '');
+            } else if (type === 'back') {
+                kpBackspace();
+            } else if (type === 'confirm') {
+                const advance = (btn.dataset.action === 'next');
+                commitKeypadValue(advance);
+            }
+        }
+
+        function commitKeypadValue(advanceWithinRow, suppressSubmit = false) {
+            if (!keypadCtx) return;
+
+            if (keypadCtx.mode === 'new') {
+                // Commit current keypad value to header input
+                const val = kpNormalizedInput();
+                const inp = getHeaderInputEl(keypadCtx.playerIndex);
+                if (inp) inp.value = val;
+                saveUnsubmittedScores();
+                updateEnterKeyHints();
+
+                // Recompute empties after commit
+                const empties = getHeaderEmptyIndices(false);
+
+                if (empties.length > 0) {
+                    if (advanceWithinRow) {
+                        // Cycle to next empty (wrap)
+                        const curr = keypadCtx.playerIndex;
+                        let next = empties.find(i => i > curr);
+                        if (next == null) next = empties[0];
+
+                        keypadCtx = {
+                            mode: 'new',
+                            playerIndex: next,
+                            value: getHeaderInputEl(next)?.value || '',
+                            edited: false
+                        };
+                        renderKeypadForContext();
+                        return;
+                    } else {
+                        // Stay where we are (used when clicking outside or X; caller closes)
+                        updateConfirmKeyLabel();
+                        return;
+                    }
+                } else {
+                    // All filled now
+                    if (advanceWithinRow) {
+                        // Show tick (caller sees it), require explicit tick to submit
+                        updateConfirmKeyLabel();
+                        return;
+                    } else {
+                        // Tick press (done action) submits
+                        if (!suppressSubmit) {
+                            if (!isSubmittingRound) {
+                                isSubmittingRound = true;
+                                addRoundScores();
+                                setTimeout(() => { isSubmittingRound = false; }, 200);
+                            }
+                        }
+                        closePopupModal();
+                        return;
+                    }
+                }
+            } else if (keypadCtx.mode === 'edit') {
+                const roundIndex = keypadCtx.roundIndex;
+                const playerIndex = keypadCtx.playerIndex;
+                const n = kpNormalizedInput() === '' ? 0 : Math.max(0, parseInt(kpNormalizedInput(), 10) || 0);
+
+                updateScore(roundIndex, playerIndex, n);
+
+                if (advanceWithinRow && !keypadCtx.edited) {
+                    // Only advance automatically if not edited (pure navigate)
+                    const nextIdx = getNextPlayerIndex(playerIndex);
+                    if (nextIdx !== null) {
+                        keypadCtx = {
+                            mode: 'edit',
+                            roundIndex,
+                            playerIndex: nextIdx,
+                            value: String(rounds[roundIndex]?.[nextIdx] ?? ''),
+                            edited: false
+                        };
+                        setTimeout(() => renderKeypadForContext(), 0);
+                        return;
+                    }
+                }
+                // After edit or no advance: close
+                closePopupModal();
+            }
         }
 
         /* ---------------------------------------
@@ -1938,11 +2159,21 @@ function applyInlineScoreEdit() {
             document.getElementById('playerManagementModal').style.display = 'none';
             document.getElementById('roundManagementModal').style.display = 'none';
             document.getElementById('deleteRoundModal').style.display = 'none';
+            const kp = document.getElementById('popupModal');
+            if (kp) kp.style.display = 'none';
             hideOverlay();
             clearActiveScoreCellHighlight();
+            keypadCtx = null;
+            suppressSortDuringKeypad = false;
         }
 
-        document.getElementById('overlay').addEventListener('click', closeAllPopups);
+        // Overlay: commit current keypad value, close without submitting
+        document.getElementById('overlay').addEventListener('click', () => {
+            if (keypadCtx) {
+                commitKeypadValue(false, true); // commit, no submit
+            }
+            closeAllPopups(); // ensure it's closed
+        });
 
         function handleRemovePlayer(button, index) {
             if (button.dataset.state === 'initial') {
@@ -2016,6 +2247,32 @@ function applyInlineScoreEdit() {
                 const empty = firstEmptyInput(inputs);
                 if (empty) empty.focus({ preventScroll: true });
             }
+        }
+
+        /* ---------------------------------------
+           Score cell keypad handlers
+        --------------------------------------- */
+        function attachScoreCellKeypadHandlers() {
+            const cells = document.querySelectorAll('#scoreBody td.score-cell');
+            cells.forEach(cell => {
+                if (cell.dataset.keypadBound === '1') return;
+                cell.dataset.keypadBound = '1';
+                cell.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    startKeypadEditForCell(cell);
+                }, { passive: false });
+            });
+        }
+
+        function clearActiveScoreCellHighlight() {
+            if (activeScoreEditCell) {
+                activeScoreEditCell.classList.remove('score-edit-selected');
+                const inlineInput = activeScoreEditCell.querySelector('input.inline-score-input');
+                if (inlineInput) inlineInput.remove();
+            }
+            activeScoreEditCell = null;
+            activeScoreEditIndices = null;
         }
 
         /* ---------------------------------------
