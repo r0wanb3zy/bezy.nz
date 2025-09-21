@@ -2064,85 +2064,84 @@
             }
         }
 
-        function commitKeypadValue(advanceWithinRow, suppressSubmit = false) {
-            if (!keypadCtx) return;
+function commitKeypadValue(advanceWithinRow, suppressSubmit = false) {
+  if (!keypadCtx) return;
 
-            if (keypadCtx.mode === 'new') {
-                // Commit current keypad value to header input
-                const val = kpNormalizedInput();
-                const inp = getHeaderInputEl(keypadCtx.playerIndex);
-                if (inp) inp.value = val;
-                saveUnsubmittedScores();
-                updateEnterKeyHints();
+  if (keypadCtx.mode === 'new') {
+    // Commit current keypad value to header input
+    const val = kpNormalizedInput();
+    const inp = getHeaderInputEl(keypadCtx.playerIndex);
+    if (inp) inp.value = val;
+    saveUnsubmittedScores();
+    updateEnterKeyHints();
 
-                // Recompute empties after commit
-                const empties = getHeaderEmptyIndices(false);
+    // Recompute empties after commit
+    const empties = getHeaderEmptyIndices(false);
 
-                if (empties.length > 0) {
-                    if (advanceWithinRow) {
-                        // Cycle to next empty (wrap)
-                        const curr = keypadCtx.playerIndex;
-                        let next = empties.find(i => i > curr);
-                        if (next == null) next = empties[0];
+    if (empties.length > 0) {
+      if (advanceWithinRow) {
+        // Cycle to next empty (wrap)
+        const curr = keypadCtx.playerIndex;
+        let next = empties.find(i => i > curr);
+        if (next == null) next = empties[0];
 
-                        keypadCtx = {
-                            mode: 'new',
-                            playerIndex: next,
-                            value: getHeaderInputEl(next)?.value || '',
-                            edited: false
-                        };
-                        renderKeypadForContext();
-                        return;
-                    } else {
-                        // Stay where we are (used when clicking outside or X; caller closes)
-                        updateConfirmKeyLabel();
-                        return;
-                    }
-                } else {
-                    // All filled now
-                    if (advanceWithinRow) {
-                        // Show tick (caller sees it), require explicit tick to submit
-                        updateConfirmKeyLabel();
-                        return;
-                    } else {
-                        // Tick press (done action) submits
-                        if (!suppressSubmit) {
-                            if (!isSubmittingRound) {
-                                isSubmittingRound = true;
-                                addRoundScores();
-                                setTimeout(() => { isSubmittingRound = false; }, 200);
-                            }
-                        }
-                        closePopupModal();
-                        return;
-                    }
-                }
-            } else if (keypadCtx.mode === 'edit') {
-                const roundIndex = keypadCtx.roundIndex;
-                const playerIndex = keypadCtx.playerIndex;
-                const n = kpNormalizedInput() === '' ? 0 : Math.max(0, parseInt(kpNormalizedInput(), 10) || 0);
-
-                updateScore(roundIndex, playerIndex, n);
-
-                if (advanceWithinRow && !keypadCtx.edited) {
-                    // Only advance automatically if not edited (pure navigate)
-                    const nextIdx = getNextPlayerIndex(playerIndex);
-                    if (nextIdx !== null) {
-                        keypadCtx = {
-                            mode: 'edit',
-                            roundIndex,
-                            playerIndex: nextIdx,
-                            value: String(rounds[roundIndex]?.[nextIdx] ?? ''),
-                            edited: false
-                        };
-                        setTimeout(() => renderKeypadForContext(), 0);
-                        return;
-                    }
-                }
-                // After edit or no advance: close
-                closePopupModal();
-            }
+        keypadCtx = {
+          mode: 'new',
+          playerIndex: next,
+          value: getHeaderInputEl(next)?.value || '',
+          edited: false
+        };
+        renderKeypadForContext();
+        return;
+      } else {
+        // Stay put (outside tap or X); caller closes the popup
+        updateConfirmKeyLabel();
+        return;
+      }
+    } else {
+      // All filled now
+      if (advanceWithinRow) {
+        // Show tick (requires explicit press)
+        updateConfirmKeyLabel();
+        return;
+      } else {
+        // IMPORTANT: close keypad first so sorting suppression is removed
+        closePopupModal();
+        if (!suppressSubmit) {
+          if (!isSubmittingRound) {
+            isSubmittingRound = true;
+            addRoundScores(); // updateUI will now sort since suppression is off
+            setTimeout(() => { isSubmittingRound = false; }, 200);
+          }
         }
+        return;
+      }
+    }
+  } else if (keypadCtx.mode === 'edit') {
+    const roundIndex = keypadCtx.roundIndex;
+    const playerIndex = keypadCtx.playerIndex;
+    const n = kpNormalizedInput() === '' ? 0 : Math.max(0, parseInt(kpNormalizedInput(), 10) || 0);
+
+    updateScore(roundIndex, playerIndex, n);
+
+    if (advanceWithinRow && !keypadCtx.edited) {
+      // Only advance automatically if not edited
+      const nextIdx = getNextPlayerIndex(playerIndex);
+      if (nextIdx !== null) {
+        keypadCtx = {
+          mode: 'edit',
+          roundIndex,
+          playerIndex: nextIdx,
+          value: String(rounds[roundIndex]?.[nextIdx] ?? ''),
+          edited: false
+        };
+        setTimeout(() => renderKeypadForContext(), 0);
+        return;
+      }
+    }
+    closePopupModal();
+  }
+}
 
         /* ---------------------------------------
            Modal / Overlay helpers
