@@ -832,24 +832,27 @@
       updateConfirmKeyLabel();
     }
 
-    function updateConfirmKeyLabel() {
-      const btn = document.getElementById('keypadConfirmKey');
-      if (!btn || !keypadCtx) return;
+function updateConfirmKeyLabel() {
+  const btn = document.getElementById('keypadConfirmKey');
+  if (!btn || !keypadCtx) return;
 
-      let label = '✓';
-      let action = 'done';
+  let label = '✓';
+  let action = 'done';
 
-      if (keypadCtx.mode === 'score') {
-        const candidate = kpNormalizedInput();
-        const nextCell = getNextEmptyScoreCellInHole(keypadCtx.td, candidate);
-        if (nextCell && nextCell !== keypadCtx.td) {
-          label = '➔';
-          action = 'next';
-        }
-      }
-      btn.textContent = label;
-      btn.dataset.action = action;
+  if (keypadCtx.mode === 'score') {
+    const candidate = kpNormalizedInput();
+    const nextCell = getNextEmptyScoreCellInHole(keypadCtx.td, candidate);
+
+    // Only show ✓ when the user has entered a value AND there are no empty cells left
+    if (candidate === '' || (nextCell && nextCell !== keypadCtx.td)) {
+      label = '➔';
+      action = 'next';
     }
+  }
+
+  btn.textContent = label;
+  btn.dataset.action = action;
+}
 
     function onKeypadButtonClick(e) {
       const btn = e.currentTarget;
