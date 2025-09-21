@@ -23,9 +23,7 @@
       --hole-w: 30px;
       --par-w: 30px;
       --row-h: 34px; /* JS will set this so all rows fit exactly in the viewport */
-
-      /* Unified, lighter placeholder color */
-      --ph-color: rgba(0, 0, 0, 0.24);
+      --emoji-gap: 8px;
     }
 
     /* Table base */
@@ -67,7 +65,7 @@
       font-size: 22px;
     }
 
-    /* Top-left settings cell: solid dark bg + divider to Par */
+    /* Top-left settings cell */
     #scoreTable thead th:first-child {
       background: #3b3b3b;
       color: #fff;
@@ -174,40 +172,6 @@
       padding: 0; margin: 0; line-height: 1;
     }
 
-    /* Inline editing */
-    #scoreBody td.editing {
-      outline: 2px solid #000;
-      outline-offset: -2px;
-      box-shadow: none;
-    }
-    #scoreBody td.score-cell.editing { position: relative; }
-    .inline-number {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-      outline: none;
-      background: transparent;
-      text-align: center;
-      font: inherit;
-      color: inherit;
-      line-height: var(--row-h);
-      padding: 0; margin: 0;
-      -moz-appearance: textfield;
-      appearance: textfield;
-      caret-color: transparent;
-      user-select: none; -webkit-user-select: none;
-      cursor: default;
-
-      /* Keep placeholder/value single-line */
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .inline-number::selection, .inline-number::-moz-selection { background: transparent; }
-    .inline-number::-webkit-outer-spin-button, .inline-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
     /* Popup/modal */
     #popupModal {
       display: none;
@@ -216,32 +180,66 @@
       z-index: 1000; text-align: center;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
       font-family: 'Economica', sans-serif;
+      width: 200px; max-width: 90%;
     }
     #popupModal, #roundManagementModal { text-align: center; }
     #popupModal h2, #roundManagementModal h2, #playerNameModal h2 { margin: 15px 0; padding: 0; }
 
-    #popupModal button {
-      font-size: 24px; padding: 10px 20px; margin: 2px; cursor: pointer;
-      font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-      color: white; border: none; border-radius: 6px; transition: background 0.2s;
-    }
-
-    /* Popup grid */
+    /* Popup keypad layout (3 columns) */
     #popupOptions {
-      display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; justify-content: center;
-      padding: 10px 0; box-sizing: border-box;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--emoji-gap);
+      padding: 0;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
     }
-    #popupOptions .popup-spacer {
-      width: 40px; height: 40px; visibility: hidden; pointer-events: none;
+    #popupOptions .keypad-input {
+      font-size: 24px;
+      padding: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      font-family: 'Economica', sans-serif;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      background: #ffffff;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+      grid-column: 1 / -1;
     }
-    #popupOptions button {
-      width: 40px; height: 40px; font-size: 24px; padding: 0; margin: 0; box-sizing: border-box;
-      cursor: pointer; font-family: 'Economica', sans-serif, Arial; display: flex; justify-content: center; align-items: center;
-      text-align: center; overflow: hidden; white-space: nowrap;
+    #popupOptions .key-btn {
+      display: grid; place-items: center;
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      font-size: 22px;
+      line-height: 1;
+      padding: 0; margin: 0;
+      color: #ffffff; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+      border: none; border-radius: 6px;
+      cursor: pointer; user-select: none;
+      transition: transform 0.05s ease, filter 0.1s ease;
+      -webkit-appearance: none; appearance: none; outline: none;
+      font-family: 'Economica', sans-serif; /* ensure keypad buttons use main font */
+    }
+    #popupOptions .key-btn:active { transform: scale(0.95); filter: brightness(1.05); }
+
+    /* Action button inside popup (e.g., Reset Pars) */
+    #popupOptions .action-btn {
+      grid-column: 1 / -1;
+      width: 100%;
+      height: auto;
+      padding: 10px 20px;
+      font-size: 24px;
+      font-family: 'Economica', sans-serif;
       background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-      color: white; border: none; border-radius: 6px; transition: background 0.2s ease;
-      -webkit-appearance: none; appearance: none; line-height: 1; outline: none;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s ease, filter 0.1s ease, transform 0.05s ease;
     }
+    #popupOptions .action-btn:active { transform: scale(0.98); filter: brightness(1.05); }
 
     .close-btn {
       position: absolute; top: 0px; right: 0px;
@@ -263,11 +261,6 @@
       text-align: center; text-align-last: center; -moz-text-align-last: center;
       -webkit-appearance: none; -moz-appearance: none; appearance: none;
       background-image: none !important; padding-right: 12px;
-    }
-    #roundManagementModal select#playerCount {
-      text-align: center; text-align-last: center; -moz-text-align-last: center;
-      -webkit-appearance: none; -moz-appearance: none; appearance: none;
-      background-image: none !important; background-color: #f8f9fa; padding-right: 12px;
     }
     #roundManagementModal select#playerCount::-ms-expand { display: none; }
     #roundManagementModal select#playerCount option { text-align: center; }
@@ -357,14 +350,6 @@
       pointer-events: none; z-index: 2;
     }
 
-    /* Bulk toolbar spacing */
-    .bulk-actions { display: none; margin: 5px 0 0 0; width: 100%; }
-    .bulk-actions .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center; width: 100%; }
-    #playerNameModal .segmented-control { margin-top: 5px; }
-    #playerNameModal .emoji-grid { margin: 5px 0 10px; }
-    #playerNameModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
-    #playerNameModal .bulk-actions { margin-top: 0; }
-
     /* Overlay */
     #overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -403,62 +388,6 @@
     #scoreTable tbody tr.summary-row td.par-cell {
       border-right: 1px solid #666 !important;
     }
-
-    /* Hole lock visuals */
-    #scoreBody tr.active-hole td.score-cell {
-      background: rgba(0, 0, 0, 0.03);
-    }
-
-    /* Make the clicked row (show-placeholders) match locked row highlight */
-    #scoreBody tr.show-placeholders td.score-cell {
-      background: rgba(0, 0, 0, 0.03);
-    }
-
-    /* Show player name placeholders on empty cells in the active row */
-    #scoreBody tr.show-placeholders td.score-cell:empty::before {
-      content: attr(data-placeholder);
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      pointer-events: none;
-
-      /* Keep single-line and centered visually */
-      display: block;
-      width: 100%;
-      line-height: var(--row-h);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Placeholder color for inline input — unified and subtle */
-    .inline-number::-webkit-input-placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
-    .inline-number::-moz-placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
-    .inline-number:-ms-input-placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
-    .inline-number::placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
-
-    /* Make hole number tappable to manually lock/unlock a hole */
-    #scoreBody tr:not(.summary-row) .hole-cell { cursor: pointer; }
   </style>
 </head>
 <body>
@@ -489,7 +418,8 @@
   <!-- Popup -->
   <div id="popupModal">
     <h2 id="popupTitle">Select</h2>
-    <span class="close-btn" onclick="closePopupModal()">×</span>
+    <span class="close-btn" onclick="onPopupCloseClick()">×</span>
+    <div id="keypadDisplay" style="display:none;"></div>
     <div id="popupOptions"></div>
   </div>
 
@@ -598,129 +528,6 @@
     let sortByRankEnabled = localStorage.getItem(LS.sort) === 'true';
     let emojiModeEnabled = localStorage.getItem(LS.emojiMode) === 'true';
 
-    // Inline edit state
-    let activeCell = null;
-    let activeInput = null;
-    let activeMode = null; // 'score' | 'par'
-    let resetConfirm = false;
-
-    // NEW: remember if current lock was created by this click (to auto-unlock on no-edit)
-    let lockPrimedHole = null; // e.g., "H3"
-
-    // One-hole-at-a-time scoring
-    let lockedHole = null; // e.g., "H3"
-    function setLockedHole(holeId) {
-      lockedHole = holeId;
-      updateHoleLockVisuals();
-      syncHolePlaceholderState();
-    }
-    function clearLockedHole() {
-      lockedHole = null;
-      updateHoleLockVisuals();
-      syncHolePlaceholderState();
-    }
-    function updateHoleLockVisuals() {
-      const rows = document.querySelectorAll('#scoreBody tr');
-      rows.forEach(tr => {
-        tr.classList.remove('active-hole','inactive-hole');
-        if (!lockedHole) return;
-        if (tr.classList.contains('summary-row')) return;
-        const rowHole = tr.querySelector('td.par-cell')?.getAttribute('data-hole') || null;
-        if (rowHole === lockedHole) tr.classList.add('active-hole');
-      });
-    }
-    function getScoreCellsInHole(holeId) {
-      return Array.from(document.querySelectorAll(`#scoreBody td.score-cell[data-hole="${holeId}"]`));
-    }
-    function getNextEmptyScoreCellInHole(currentTd, currentDisplayText) {
-      const holeId = lockedHole || currentTd.getAttribute('data-hole');
-      const cells = getScoreCellsInHole(holeId);
-      const idx = cells.indexOf(currentTd);
-
-      const treatCurrentAsEmpty = String(currentDisplayText ?? '').trim() === '';
-      const isEmpty = (td) => td.textContent.trim() === '';
-
-      const empties = cells.filter(td => td === currentTd ? treatCurrentAsEmpty : isEmpty(td));
-      if (empties.length === 0) return null;
-
-      const after = empties.find(td => cells.indexOf(td) > idx);
-      return after || empties[0];
-    }
-    function clearLockedHoleIfComplete(holeNum) {
-      if (!lockedHole || !holeNum) return;
-      if (`H${holeNum}` === lockedHole && isHoleComplete(holeNum)) {
-        clearLockedHole();
-      }
-    }
-    // Optional: unlock if hole becomes empty (not used now to keep lock on click)
-    function isHoleEmpty(h) {
-      if (!h || h < 1 || h > holesCount) return false;
-      for (let p = 1; p <= playerCount; p++) {
-        if (getScore(`P${p}`, h) != null) return false;
-      }
-      return true;
-    }
-    function updateEnterKeyHintForInput(input, td) {
-      try {
-        const next = getNextEmptyScoreCellInHole(td, input.value);
-        input.setAttribute('enterkeyhint', next ? 'next' : 'done');
-      } catch (_) {}
-    }
-
-    /* -------- Placeholders (trimmed names) -------- */
-    function getHoleRowEl(holeId) {
-      const parCell = document.querySelector(`#scoreBody td.par-cell[data-hole="${holeId}"]`);
-      return parCell ? parCell.parentElement : null;
-    }
-    function showHolePlaceholders(holeId) {
-      const target = lockedHole || holeId; // if locked, always show placeholders for the locked row
-      document.querySelectorAll('#scoreBody tr.show-placeholders')
-        .forEach(tr => tr.classList.remove('show-placeholders'));
-      const row = getHoleRowEl(target);
-      if (row) row.classList.add('show-placeholders');
-    }
-    function clearHolePlaceholders() {
-      document.querySelectorAll('#scoreBody tr.show-placeholders')
-        .forEach(tr => tr.classList.remove('show-placeholders'));
-    }
-    function syncHolePlaceholderState() {
-      if (lockedHole) {
-        showHolePlaceholders(lockedHole);
-      } else if (activeCell) {
-        const hid = activeCell.getAttribute('data-hole');
-        if (hid) showHolePlaceholders(hid);
-        else clearHolePlaceholders();
-      } else {
-        clearHolePlaceholders();
-      }
-    }
-    function getPlayerDisplayName(pid) {
-      const el = document.querySelector(`#scoreTable thead th[data-player="${pid}"] .player-name`);
-      return el?.getAttribute('data-full') || el?.textContent || pid;
-    }
-    function getPlayerTrimmedName(pid) {
-      // Use whatever is currently visible in the header (already clipped to fit)
-      const el = document.querySelector(`#scoreTable thead th[data-player="${pid}"] .player-name`);
-      const trimmed = el?.textContent?.trim();
-      return trimmed || getPlayerDisplayName(pid);
-    }
-    function updatePlaceholdersForPlayer(pid) {
-      const nm = getPlayerTrimmedName(pid);
-      document.querySelectorAll(`#scoreBody td.score-cell[data-player="${pid}"]`)
-        .forEach(td => td.setAttribute('data-placeholder', nm));
-      if (activeInput && activeMode === 'score' && activeCell?.getAttribute('data-player') === pid) {
-        activeInput.placeholder = nm;
-      }
-    }
-    function updateAllPlaceholders() {
-      for (let p = 1; p <= playerCount; p++) updatePlaceholdersForPlayer(`P${p}`);
-    }
-
-    // Outside tap management
-    let suppressNextCellEditClick = false;
-    let suppressClickTimeout = null;
-    let isApplyingInline = false;
-
     // Drag & drop state
     let draggedIndex = -1;
 
@@ -752,10 +559,7 @@
       fitRowsToViewport();
       setFullHeight();
 
-      // Important: clip headers first, then sync placeholders to the trimmed names
       clipPlayerNamesToCell();
-      updateAllPlaceholders();
-
       attachDragListeners();
 
       const sortBtn = document.getElementById('sortByRankBtn');
@@ -765,14 +569,12 @@
     window.addEventListener('resize', () => {
       setFullHeight();
       clipPlayerNamesToCell();
-      updateAllPlaceholders();
       fitRowsToViewport();
     });
     window.addEventListener('orientationchange', () => {
       setTimeout(() => {
         setFullHeight();
         clipPlayerNamesToCell();
-        updateAllPlaceholders();
         fitRowsToViewport();
       }, 250);
     });
@@ -837,9 +639,6 @@
         }
         body.appendChild(trIn);
       }
-
-      clearLockedHole();
-      updateAllPlaceholders();
     }
     function makeStickyCell(cls, text) {
       const td = document.createElement('td');
@@ -853,19 +652,12 @@
       const tdHole = document.createElement('td');
       tdHole.className = 'hole-cell';
       tdHole.textContent = String(h);
-      // Manual lock/unlock by tapping the hole number — ignore other rows while locked
-      tdHole.addEventListener('click', () => {
-        const holeId = `H${h}`;
-        if (!lockedHole) setLockedHole(holeId);
-        else if (lockedHole === holeId) clearLockedHole();
-        // else: ignore clicking other hole numbers while locked
-      });
       tr.appendChild(tdHole);
 
       const tdPar = document.createElement('td');
       tdPar.className = 'par-cell';
       tdPar.setAttribute('data-hole', `H${h}`);
-      tdPar.addEventListener('click', () => startInlineEdit(tdPar, 'par'));
+      tdPar.addEventListener('click', () => startKeypadEdit(tdPar, 'par'));
       tdPar.textContent = '3';
       tr.appendChild(tdPar);
 
@@ -874,7 +666,7 @@
         td.className = 'score-cell';
         td.setAttribute('data-player', `P${p}`);
         td.setAttribute('data-hole', `H${h}`);
-        td.addEventListener('click', () => startInlineEdit(td, 'score'));
+        td.addEventListener('click', () => startKeypadEdit(td, 'score'));
         tr.appendChild(td);
       }
       return tr;
@@ -907,237 +699,263 @@
           headerName.setAttribute('title', savedName);
         }
       }
-      updateAllPlaceholders();
     }
 
-    /* ---------------- Inline editing (no popup) ---------------- */
-    function startInlineEdit(td, mode, options = {}) {
+    /* ---------------- Popup Keypad ---------------- */
+    let keypadCtx = null; // { td, mode, holeId, player, prev, value, edited }
+
+    function startKeypadEdit(td, mode) {
       const holeId = td.getAttribute('data-hole');
 
-      if (mode === 'score') {
-        // If locked and this isn't the locked row, ignore
-        if (lockedHole && lockedHole !== holeId) return;
+      keypadCtx = {
+        td,
+        mode,
+        holeId,
+        player: td.getAttribute('data-player') || null,
+        prev: td.textContent.trim(),
+        value: td.textContent.trim(),
+        edited: false
+      };
+      openKeypadModal();
+    }
 
-        // Lock immediately on score click (and keep it locked unless mis-click)
-        if (!lockedHole && holeId) {
-          setLockedHole(holeId);
-          lockPrimedHole = holeId; // we just locked due to this click
-        } else {
-          // Already locked (same row) or no holeId
-          lockPrimedHole = null;
-        }
-      } else if (mode === 'par') {
-        // Prevent editing par of another row while locked
-        if (lockedHole && lockedHole !== holeId) return;
-      }
+    function openKeypadModal() {
+      renderKeypadForContext();
+      const modal = document.getElementById('popupModal');
+      modal.style.display = 'block';
+      showOverlay();
+    }
 
-      // Show placeholders (respect locked row if any)
-      if (holeId) showHolePlaceholders(holeId);
+    function kpGetInputEl() {
+      return document.getElementById('keypadInput');
+    }
+    function kpNormalizedInput() {
+      const el = kpGetInputEl();
+      if (!el) return '';
+      let raw = (el.value || '').toString();
+      raw = raw.replace(/\D/g, '');
+      if (raw.length > 2) raw = raw.slice(0, 2);
+      return raw;
+    }
+    function kpSetInputValue(v) {
+      const el = kpGetInputEl();
+      if (!el) return;
+      const cleaned = (v || '').toString().replace(/\D/g, '').slice(0, 2);
+      el.value = cleaned;
+      keypadCtx.value = cleaned;
+      keypadCtx.edited = true;
+      updateConfirmKeyLabel();
+    }
+    function kpAppendDigit(d) {
+      if (!/^\d$/.test(d)) return;
+      const el = kpGetInputEl();
+      if (!el) return;
+      let v = (el.value || '').toString();
+      if (v.length >= 2) return;
+      v = (v === '0') ? d : (v + d);
+      kpSetInputValue(v);
+    }
+    function kpBackspace() {
+      const el = kpGetInputEl();
+      if (!el) return;
+      const v = (el.value || '').toString();
+      if (!v) return;
+      kpSetInputValue(v.slice(0, -1));
+    }
 
-      const preserveKeyboard = !!options.preserveKeyboard;
-      const prevCell = activeCell;
-      const prevInput = activeInput;
-      const prevDisplayText = options.prevDisplayText;
+    function renderKeypadForContext() {
+      const modal = document.getElementById('popupModal');
+      const title = document.getElementById('popupTitle');
+      const options = document.getElementById('popupOptions');
+      if (!keypadCtx || !modal || !title || !options) return;
 
-      if (!preserveKeyboard) {
-        endInlineEdit(true);
-      }
+      const hnum = parseInt((keypadCtx.holeId || '').replace('H','') || '0', 10) || '';
+      title.textContent = `Hole ${hnum}`;
 
-      const prevText = td.textContent.trim();
-      activeCell = td;
-      activeMode = mode;
+      options.innerHTML = '';
 
+      // Input top (readOnly to prevent native keyboard)
       const input = document.createElement('input');
-      input.type = 'number';
-      input.className = 'inline-number';
+      input.type = 'text';
+      input.id = 'keypadInput';
+      input.className = 'keypad-input';
       input.inputMode = 'numeric';
       input.autocomplete = 'off';
+      input.autocapitalize = 'off';
       input.autocorrect = 'off';
       input.spellcheck = false;
-      input.value = prevText;
-      input.setAttribute('enterkeyhint', mode === 'score' ? 'next' : 'done');
-      input._edited = false;
-      input._clearedOnFirstInsert = false;
+      input.enterKeyHint = 'done';
+      input.readOnly = true;
 
-      // Input placeholder uses the trimmed player name
-      if (mode === 'score') {
-        const pid = td.getAttribute('data-player');
-        if (pid) input.placeholder = getPlayerTrimmedName(pid);
+      // Placeholder: player's name for score; "Par" for par
+      if (keypadCtx.mode === 'score') {
+        const nameEl = keypadCtx.player
+          ? document.querySelector(`#scoreTable thead th[data-player="${keypadCtx.player}"] .player-name`)
+          : null;
+        const pname = (nameEl?.getAttribute('data-full') || nameEl?.textContent || keypadCtx.player || 'Player').toString();
+        input.placeholder = pname;
+      } else {
+        input.placeholder = 'Par';
       }
 
-      td.dataset.prev = prevText;
-      td.textContent = '';
-      td.classList.add('editing');
-      td.appendChild(input);
+      // Initial value: for par editing, start blank so first tap replaces; otherwise keep current
+      const initialValue = keypadCtx.mode === 'par' ? '' : (keypadCtx.value || '');
+      input.value = initialValue;
 
-      input.addEventListener('beforeinput', (e) => {
-        if (!input._clearedOnFirstInsert && e.inputType && e.inputType.startsWith('insert')) {
-          input.value = '';
-          input._clearedOnFirstInsert = true;
-        }
-      });
-      input.addEventListener('keydown', (e) => {
-        if (!input._clearedOnFirstInsert && e.key && e.key.length === 1 && /[0-9]/.test(e.key)) {
-          input.value = '';
-          input._clearedOnFirstInsert = true;
-        }
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          applyInlineEdit(input.value, true);
-        } else if (e.key === 'Escape') {
-          e.preventDefault();
-          cancelInlineEdit();
-        }
-      });
-      input.addEventListener('input', () => {
-        input._edited = true;
-        updateEnterKeyHintForInput(input, td);
-      });
-      input.addEventListener('blur', () => {
-        if (input !== activeInput) return;
-        applyInlineEdit(input.value, false);
-      });
+      input.addEventListener('input', () => { keypadCtx.edited = true; updateConfirmKeyLabel(); });
+      options.appendChild(input);
 
-      activeInput = input;
-      try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
-      updateEnterKeyHintForInput(input, td);
+      const mkKey = (label, type, val = null, id = null) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'key-btn';
+        b.textContent = label;
+        b.dataset.type = type;
+        if (val != null) b.dataset.val = val;
+        if (id) b.id = id;
+        b.addEventListener('click', onKeypadButtonClick);
+        return b;
+      };
 
-      if (preserveKeyboard && prevInput && prevCell) {
-        prevCell.classList.remove('editing');
-        delete prevCell.dataset.prev;
-        if (prevInput.parentElement) prevInput.parentElement.removeChild(prevInput);
-        if (prevDisplayText !== undefined) prevCell.textContent = prevDisplayText;
+      // 1,2,3
+      [1,2,3].forEach(d => options.appendChild(mkKey(String(d), 'digit', String(d))));
+      // 4,5,6
+      [4,5,6].forEach(d => options.appendChild(mkKey(String(d), 'digit', String(d))));
+      // 7,8,9
+      [7,8,9].forEach(d => options.appendChild(mkKey(String(d), 'digit', String(d))));
+      // ⌫, 0, ➔/✓
+      options.appendChild(mkKey('⌫', 'back'));
+      options.appendChild(mkKey('0', 'digit', '0'));
+      options.appendChild(mkKey('➔', 'confirm', null, 'keypadConfirmKey'));
+
+      // Initial label for confirm key
+      updateConfirmKeyLabel();
+    }
+
+    function updateConfirmKeyLabel() {
+      const btn = document.getElementById('keypadConfirmKey');
+      if (!btn || !keypadCtx) return;
+
+      let label = '✓';
+      let action = 'done';
+
+      if (keypadCtx.mode === 'score') {
+        const candidate = kpNormalizedInput();
+        const nextCell = getNextEmptyScoreCellInHole(keypadCtx.td, candidate);
+        if (nextCell && nextCell !== keypadCtx.td) {
+          label = '➔';
+          action = 'next';
+        }
+      }
+      btn.textContent = label;
+      btn.dataset.action = action;
+    }
+
+    function onKeypadButtonClick(e) {
+      const btn = e.currentTarget;
+      const type = btn.dataset.type;
+      if (!keypadCtx) return;
+
+      if (type === 'digit') {
+        kpAppendDigit(btn.dataset.val || '');
+      } else if (type === 'back') {
+        kpBackspace();
+      } else if (type === 'confirm') {
+        const advance = (btn.dataset.action === 'next');
+        commitKeypadValue(advance);
       }
     }
 
-    function getNextScoreCell(currentTd) {
-      const cells = Array.from(document.querySelectorAll('#scoreBody td.score-cell'));
+    function getScoreCellsInHole(holeId) {
+      return Array.from(document.querySelectorAll(`#scoreBody td.score-cell[data-hole="${holeId}"]`));
+    }
+    function getNextEmptyScoreCellInHole(currentTd, currentDisplayText) {
+      const holeId = currentTd.getAttribute('data-hole');
+      const cells = getScoreCellsInHole(holeId);
       const idx = cells.indexOf(currentTd);
-      if (idx !== -1) {
-        return cells[idx + 1] || null;
-      }
-      return null;
+
+      const treatCurrentAsEmpty = String(currentDisplayText ?? '').trim() === '';
+      const isEmpty = (td) => td.textContent.trim() === '';
+
+      const empties = cells.filter(td => td === currentTd ? treatCurrentAsEmpty : isEmpty(td));
+      if (empties.length === 0) return null;
+
+      const after = empties.find(td => cells.indexOf(td) > idx);
+      return after || empties[0];
     }
 
-    function applyInlineEdit(val, advanceOnEnter) {
-      if (!activeCell || !activeInput || isApplyingInline) return;
-      isApplyingInline = true;
-
-      const td = activeCell;
-      const mode = activeMode;
-      const hole = parseInt(td.getAttribute('data-hole')?.replace('H','') || '0', 10) || null;
-      const player = td.getAttribute('data-player') || null;
-      const trimmed = String(val ?? '').trim();
-      const prevText = td.dataset.prev ?? '';
-      const userTyped = !!activeInput._edited;
+    function commitKeypadValue(advanceWithinHole) {
+      if (!keypadCtx) return;
+      const td = keypadCtx.td;
+      const holeNum = parseInt((keypadCtx.holeId || '').replace('H','') || '0', 10) || null;
+      const player = keypadCtx.player;
+      const inputEl = kpGetInputEl();
+      const trimmed = (inputEl ? inputEl.value : '').trim();
+      const prevText = keypadCtx.prev ?? '';
+      const userTyped = !!keypadCtx.edited;
 
       let displayText = prevText;
-      if (mode === 'score') {
+      if (keypadCtx.mode === 'score') {
         if (!userTyped && trimmed === '') {
           displayText = prevText;
         } else if (trimmed === '') {
           displayText = '';
-          if (player && hole) localStorage.removeItem(LS.score(player, hole));
+          if (player && holeNum) localStorage.removeItem(LS.score(player, holeNum));
         } else {
           const n = Math.max(0, parseInt(trimmed, 10) || 0);
           displayText = String(n);
-          if (player && hole) localStorage.setItem(LS.score(player, hole), displayText);
+          if (player && holeNum) localStorage.setItem(LS.score(player, holeNum), displayText);
         }
-
-        // NEW: mis-click unlock — only if this click created the lock, no typing happened,
-        // and the hole is still empty (no scores for any player)
-        if (hole && lockPrimedHole === `H${hole}` && !userTyped) {
-          if (isHoleEmpty(hole)) {
-            clearLockedHole();
-          }
-          lockPrimedHole = null;
-        }
-      } else if (mode === 'par') {
+      } else if (keypadCtx.mode === 'par') {
         if (!userTyped && trimmed === '') {
           displayText = prevText || '3';
         } else if (trimmed === '') {
           displayText = '3';
-          if (hole) localStorage.setItem(LS.par(hole), '3');
+          if (holeNum) localStorage.setItem(LS.par(holeNum), '3');
         } else {
           const n = Math.max(1, parseInt(trimmed, 10) || 3);
           displayText = String(n);
-          if (hole) localStorage.setItem(LS.par(hole), displayText);
+          if (holeNum) localStorage.setItem(LS.par(holeNum), displayText);
         }
-      }
-
-      // Advance only within the current hole to the next empty score cell; else close keyboard
-      let nextCell = null;
-      if (advanceOnEnter && mode === 'score') {
-        nextCell = getNextEmptyScoreCellInHole(td, displayText);
-      }
-
-      if (nextCell) {
-        startInlineEdit(nextCell, 'score', { preserveKeyboard: true, prevDisplayText: displayText });
-        updateAllTotals();
-        if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
-        updateRanks();
-        clearLockedHoleIfComplete(hole);
-        isApplyingInline = false;
-        return;
       }
 
       td.textContent = displayText;
-      endInlineEdit(false);
+
       updateAllTotals();
-      if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
+      if (sortByRankEnabled && keypadCtx.mode === 'score' && holeNum) {
+        applySortByRankIfHoleComplete(holeNum, true);
+      }
       updateRanks();
-      clearLockedHoleIfComplete(hole);
-      isApplyingInline = false;
-    }
 
-    function cancelInlineEdit() {
-      if (!activeCell) return;
-
-      // Apply same mis-click unlock logic on cancel (e.g., Escape)
-      if (activeMode === 'score') {
-        const holeId = activeCell.getAttribute('data-hole');
-        const h = parseInt(holeId?.replace('H','') || '0', 10);
-        if (lockPrimedHole === holeId && h && isHoleEmpty(h)) {
-          clearLockedHole();
+      // Advance within the current hole to the next empty score cell
+      if (advanceWithinHole && keypadCtx.mode === 'score') {
+        const nextCell = getNextEmptyScoreCellInHole(td, displayText);
+        if (nextCell) {
+          // Retarget keypad to next cell, keep keypad open
+          keypadCtx = {
+            td: nextCell,
+            mode: 'score',
+            holeId: nextCell.getAttribute('data-hole'),
+            player: nextCell.getAttribute('data-player') || null,
+            prev: nextCell.textContent.trim(),
+            value: nextCell.textContent.trim(),
+            edited: false
+          };
+          renderKeypadForContext();
+          return;
         }
-        lockPrimedHole = null;
       }
 
-      if (activeCell.dataset.prev != null) activeCell.textContent = activeCell.dataset.prev;
-      endInlineEdit(false);
+      // Close keypad after commit
+      keypadCtx = null;
+      closePopupModal();
     }
 
-    function endInlineEdit(clearOnly) {
-      if (activeCell) {
-        activeCell.classList.remove('editing');
-        delete activeCell.dataset.prev;
-      }
-      if (activeInput && activeInput.parentElement) activeInput.parentElement.removeChild(activeInput);
-      activeCell = null; activeInput = null; activeMode = null;
-      if (!clearOnly) fitRowsToViewport();
-      syncHolePlaceholderState();
+    function onPopupCloseClick() {
+      // Close “X” commits current value (same as tapping outside)
+      if (keypadCtx) commitKeypadValue(false);
+      else closePopupModal();
     }
-
-    /* ---------------- Outside tap handling ---------------- */
-    document.addEventListener('pointerdown', (e) => {
-      if (activeInput && !activeInput.contains(e.target)) {
-        const cellHit = e.target.closest('td.score-cell, td.par-cell');
-        if (cellHit) {
-          suppressNextCellEditClick = true;
-          clearTimeout(suppressClickTimeout);
-          suppressClickTimeout = setTimeout(() => { suppressNextCellEditClick = false; }, 300);
-        }
-        applyInlineEdit(activeInput.value, false);
-      }
-    }, true);
-
-    document.addEventListener('click', (e) => {
-      if (suppressNextCellEditClick && e.target.closest('td.score-cell, td.par-cell')) {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        suppressNextCellEditClick = false;
-      }
-    }, true);
 
     /* ---------------- Round Management ---------------- */
     function showRoundManagement() {
@@ -1167,6 +985,7 @@
       hideOverlay();
     }
 
+    let resetConfirm = false;
     function handleResetClick() {
       const btn = document.getElementById('resetButton');
       if (!resetConfirm) {
@@ -1229,7 +1048,7 @@
               td.className = 'score-cell';
               td.setAttribute('data-player', pid);
               td.setAttribute('data-hole', `H${holeNo}`);
-              td.addEventListener('click', () => startInlineEdit(td, 'score'));
+              td.addEventListener('click', () => startKeypadEdit(td, 'score'));
               const saved = localStorage.getItem(LS.score(pid, holeNo));
               if (saved != null) td.textContent = saved;
             } else {
@@ -1249,7 +1068,6 @@
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
-      updateAllPlaceholders();
       attachDragListeners();
       closeRoundManagement();
     }
@@ -1286,10 +1104,6 @@
         for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
       }
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
-
-      // NEW: also clear any active row lock and its placeholders
-      clearLockedHole();
-
       updateAllTotals();
       updateRanks();
       closeRoundManagement();
@@ -1379,13 +1193,6 @@
                autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false">
         <div class="emoji-grid">${grid}</div>
 
-        <div id="bulkEmojiActions" class="bulk-actions">
-          <div class="row">
-            <button type="button" id="bulkCancelBtn" class="light">Cancel</button>
-            <button type="button" id="bulkApplyBtn">Select</button>
-          </div>
-        </div>
-
         <div class="segmented-control">
           <input type="radio" id="playerMode-name" name="playerModeSwitch" value="name" ${!emojiModeEnabled ? 'checked' : ''} onchange="setEmojiMode(false, window.currentPlayer)">
           <label for="playerMode-name">Name</label>
@@ -1437,7 +1244,16 @@
         }
       });
 
-      attachEmojiGridInteractions();
+      // Emoji picks
+      Array.from(modal.querySelectorAll('.emoji-pick')).forEach(btn => {
+        btn.addEventListener('click', () => {
+          const emoji = btn.getAttribute('data-emoji');
+          if (emoji && window.currentPlayer) {
+            applyPlayerName(window.currentPlayer, emoji);
+            closePlayerNameModal();
+          }
+        });
+      });
     }
 
     function setEmojiMode(enabled, reopenForPlayerId = null) {
@@ -1528,7 +1344,6 @@
       applySortByRankIfHoleComplete(null, true);
       updateRanks();
       clipPlayerNamesToCell();
-      updateAllPlaceholders();
       attachDragListeners();
       return true;
     }
@@ -1552,8 +1367,7 @@
 
       header.setAttribute('data-player', pid);
       localStorage.setItem(LS.name(pid), newName);
-      clipPlayerNamesToCell();        // trims header to fit
-      updatePlaceholdersForPlayer(pid); // placeholders follow trimmed name
+      clipPlayerNamesToCell();
       updateRanks();
     }
 
@@ -1563,100 +1377,6 @@
       if (btn) { btn.textContent = 'Remove'; btn.dataset.state = 'initial'; }
       modal.style.display = 'none';
       hideOverlay();
-    }
-
-    function attachEmojiGridInteractions() {
-      const modal = document.getElementById('playerNameModal');
-      const buttons = Array.from(modal.querySelectorAll('.emoji-pick'));
-      const bulkBar = modal.querySelector('#bulkEmojiActions');
-      const seg = modal.querySelector('.segmented-control');
-      const emojiInput = modal.querySelector('#emojiNameInput');
-      let bulkEmojiMode = false;
-      let bulkEmojiSelection = [];
-      const bulkMaxPlayers = 8;
-
-      const enterBulk = () => {
-        if (bulkEmojiMode) return;
-        bulkEmojiMode = true; bulkEmojiSelection = [];
-        if (bulkBar) bulkBar.style.display = 'block';
-        if (seg) seg.style.display = 'none';
-        if (emojiInput) emojiInput.style.display = 'none';
-        buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
-        modal.classList.add('bulk-mode');
-      };
-      const exitBulk = () => {
-        bulkEmojiMode = false; bulkEmojiSelection = [];
-        if (bulkBar) bulkBar.style.display = 'none';
-        if (seg) seg.style.display = '';
-        if (emojiInput) emojiInput.style.display = '';
-        buttons.forEach(b => { b.classList.remove('selected'); b.removeAttribute('data-order'); });
-        modal.classList.remove('bulk-mode');
-      };
-      const renumber = () => {
-        buttons.forEach(b => { if (b.classList.contains('selected')) b.setAttribute('data-order', ''); });
-        bulkEmojiSelection.forEach((emoji, i) => {
-          const b = buttons.find(btn => btn.getAttribute('data-emoji') === emoji);
-          if (b) b.setAttribute('data-order', String(i + 1));
-        });
-      };
-      const toggleSel = (btn) => {
-        const emoji = btn.getAttribute('data-emoji');
-        const idx = bulkEmojiSelection.indexOf(emoji);
-        if (idx !== -1) { bulkEmojiSelection.splice(idx, 1); btn.classList.remove('selected'); btn.removeAttribute('data-order'); }
-        else {
-          if (bulkEmojiSelection.length >= bulkMaxPlayers) return;
-          bulkEmojiSelection.push(emoji); btn.classList.add('selected');
-        }
-        renumber();
-      };
-      const applyBulk = (selected) => {
-        const targetCount = Math.min(bulkMaxPlayers, selected.length);
-        if (targetCount < 1) return;
-        emojiModeEnabled = true;
-        localStorage.setItem(LS.emojiMode, 'true');
-
-        const pcSel = document.getElementById('playerCount');
-        pcSel.value = String(targetCount);
-        updatePlayerCount();
-
-        for (let i = 1; i <= targetCount; i++) applyPlayerName(`P${i}`, selected[i - 1]);
-        exitBulk();
-        closePlayerNameModal();
-      };
-
-      const cancelBtn = modal.querySelector('#bulkCancelBtn');
-      const applyBtn = modal.querySelector('#bulkApplyBtn');
-      if (cancelBtn) cancelBtn.addEventListener('click', () => exitBulk());
-      if (applyBtn) applyBtn.addEventListener('click', () => { if (bulkEmojiSelection.length > 0) applyBulk(bulkEmojiSelection); });
-
-      buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (bulkEmojiMode) toggleSel(btn);
-          else {
-            const emoji = btn.getAttribute('data-emoji');
-            if (emoji && window.currentPlayer) {
-              applyPlayerName(window.currentPlayer, emoji);
-              closePlayerNameModal();
-            }
-          }
-        });
-        let pressTimer = null;
-        const start = () => {
-          if (bulkEmojiMode) return;
-          clearTimeout(pressTimer);
-          pressTimer = setTimeout(() => enterBulk(), 500);
-        };
-        const cancel = () => { clearTimeout(pressTimer); pressTimer = null; };
-        btn.addEventListener('pointerdown', start);
-        btn.addEventListener('pointerup', cancel);
-        btn.addEventListener('pointerleave', cancel);
-        btn.addEventListener('touchstart', start, { passive: true });
-        btn.addEventListener('touchend', cancel);
-        btn.addEventListener('touchcancel', cancel);
-        btn.addEventListener('mousedown', start);
-        btn.addEventListener('mouseup', cancel);
-        btn.addEventListener('mouseleave', cancel);
-      });
     }
 
     function syncDefaultNamesToMode() {
@@ -1689,7 +1409,6 @@
         }
       }
       clipPlayerNamesToCell();
-      updateAllPlaceholders();
     }
 
     /* ---------------- Totals / ranks / layout ---------------- */
@@ -1898,11 +1617,6 @@
           }
           el.textContent = clusters.slice(0, best).join('');
         }
-
-        // Keep placeholders in sync with whatever is visible in the header
-        const th = el.closest('th[data-player]');
-        const pid = th?.getAttribute('data-player');
-        if (pid) updatePlaceholdersForPlayer(pid);
       });
     }
 
@@ -2027,7 +1741,6 @@
       if (!silent) updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
-      updateAllPlaceholders();
     }
 
     /* ---------------- Rebuild preserving (used for holes toggle) ---------------- */
@@ -2088,7 +1801,6 @@
         }
       }
 
-      updateAllPlaceholders();
       updateAllTotals();
       applySortByRankIfHoleComplete(null, true);
       updateRanks();
@@ -2233,7 +1945,6 @@
       updateRanks();
       fitRowsToViewport();
       clipPlayerNamesToCell();
-      updateAllPlaceholders();
     }
 
     function handleDragEnd(event) {
@@ -2249,10 +1960,7 @@
 
       title.textContent = 'Par';
       options.innerHTML = `
-        <button id="resetParsBtn"
-                style="width: 100%; height: auto; padding: 10px 20px; font-size: 24px; grid-column: 1 / -1;">
-          Reset Pars
-        </button>
+        <button id="resetParsBtn" class="action-btn">Reset Pars</button>
       `;
 
       document.getElementById('resetParsBtn').onclick = () => {
@@ -2283,13 +1991,13 @@
     function showOverlay() { document.getElementById('overlay').style.display = 'block'; }
     function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
     document.getElementById('overlay').addEventListener('click', () => {
+      // clicking outside: commit if keypad is open
       closeRoundManagement();
       closePlayerNameModal();
-      closePopupModal();
-      if (activeInput) {
-        applyInlineEdit(activeInput.value, false);
+      if (keypadCtx) {
+        commitKeypadValue(false);
       } else {
-        endInlineEdit(true);
+        closePopupModal();
       }
     });
   </script>
