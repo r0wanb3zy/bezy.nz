@@ -226,6 +226,10 @@
 #popupOptions .key-btn[data-type="digit"] {
 font-weight: 700;
 }
+/* Optional: make the typed value at the top bold too */
+#popupOptions .keypad-input {
+font-weight: 700;
+}
     #popupOptions .key-btn:active { transform: scale(0.95); filter: brightness(1.05); }
 
     /* Action button inside popup (e.g., Reset Pars) */
@@ -787,17 +791,23 @@ font-weight: 700;
 function kpAppendDigit(d) {
   if (!/^\d$/.test(d)) return;
   const el = kpGetInputEl();
-  if (!el) return;
+  if (!el || !keypadCtx) return;
 
-  // Block '0' as the first digit for score entry
-  if (keypadCtx && keypadCtx.mode === 'score') {
-    const cur = (el.value || '').toString();
-    if (cur.length === 0 && d === '0') return; // do nothing on first 0
+  // First typed digit in SCORE edit mode should overwrite existing value
+  if (keypadCtx.mode === 'score' && !keypadCtx.edited) {
+    if (d === '0') return;     // still block 0 as the first stroke
+    kpSetInputValue(d);
+    return;
   }
 
+  // Normal append (keep your 2-digit cap)
   let v = (el.value || '').toString();
-  if (v.length >= 2) return;                // keep your 2-digit limit
-  v = (v === '0') ? d : (v + d);            // replace leading '0' if present
+
+  // Still block leading 0 for scores
+  if (keypadCtx.mode === 'score' && v.length === 0 && d === '0') return;
+
+  if (v.length >= 2) return;
+  v = (v === '0') ? d : (v + d);
   kpSetInputValue(v);
 }
     function kpBackspace() {
@@ -885,13 +895,18 @@ function updateConfirmKeyLabel() {
   let action = 'done';
 
   if (keypadCtx.mode === 'score') {
-    const candidate = kpNormalizedInput();
+    const candidate = kpNormalizedInput(); // what the user has typed so far
     const nextCell = getNextEmptyScoreCellInHole(keypadCtx.td, candidate);
 
-    // Only show ✓ when the user has entered a value AND there are no empty cells left
+    // Show ➔ while:
+    // - nothing typed yet, OR
+    // - there is another empty score cell in this hole after applying the candidate
     if (candidate === '' || (nextCell && nextCell !== keypadCtx.td)) {
       label = '➔';
       action = 'next';
+    } else {
+      label = '✓';
+      action = 'done';
     }
   }
 
