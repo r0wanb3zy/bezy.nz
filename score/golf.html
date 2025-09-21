@@ -780,15 +780,22 @@
       keypadCtx.edited = true;
       updateConfirmKeyLabel();
     }
-    function kpAppendDigit(d) {
-      if (!/^\d$/.test(d)) return;
-      const el = kpGetInputEl();
-      if (!el) return;
-      let v = (el.value || '').toString();
-      if (v.length >= 2) return;
-      v = (v === '0') ? d : (v + d);
-      kpSetInputValue(v);
-    }
+function kpAppendDigit(d) {
+  if (!/^\d$/.test(d)) return;
+  const el = kpGetInputEl();
+  if (!el) return;
+
+  // Block '0' as the first digit for score entry
+  if (keypadCtx && keypadCtx.mode === 'score') {
+    const cur = (el.value || '').toString();
+    if (cur.length === 0 && d === '0') return; // do nothing on first 0
+  }
+
+  let v = (el.value || '').toString();
+  if (v.length >= 2) return;                // keep your 2-digit limit
+  v = (v === '0') ? d : (v + d);            // replace leading '0' if present
+  kpSetInputValue(v);
+}
     function kpBackspace() {
       const el = kpGetInputEl();
       if (!el) return;
