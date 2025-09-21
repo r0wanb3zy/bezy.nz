@@ -804,10 +804,22 @@
     -webkit-appearance: none; appearance: none; outline: none;
     font-family: 'Economica', sans-serif;
   }
-  /* Make only the digit buttons bold */
+/* Buttons stay bold */
 #popupOptions .key-btn[data-type="digit"] {
-font-weight: 700;
+  font-weight: 700;
 }
+
+/* Input bold... */
+#popupOptions .keypad-input {
+  font-weight: 700;
+}
+
+/* ...but placeholder not bold */
+#popupOptions .keypad-input::placeholder { font-weight: 400; opacity: 0.8; }
+#popupOptions .keypad-input::-webkit-input-placeholder { font-weight: 400; opacity: 0.8; }
+#popupOptions .keypad-input::-moz-placeholder { font-weight: 400; opacity: 1; }
+#popupOptions .keypad-input:-ms-input-placeholder { font-weight: 400; opacity: 1; }
+#popupOptions .keypad-input::-ms-input-placeholder { font-weight: 400; opacity: 1; }
   #popupOptions .key-btn:active { transform: scale(0.95); filter: brightness(1.05); }
 </style>
 </head>
