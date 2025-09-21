@@ -895,6 +895,7 @@
         // Popup keypad state
         let keypadCtx = null; // { mode:'new'|'edit', roundIndex?, playerIndex, value, edited }
         let suppressSortDuringKeypad = false;
+        const MAX_SCORE_DIGITS = 4;
 
         /* ---------------------------------------
            Helpers (Keycap digits / Theme)
@@ -1915,21 +1916,21 @@
         function kpGetInputEl() {
             return document.getElementById('keypadInput');
         }
-        function kpNormalizedInput() {
-            const el = kpGetInputEl();
-            if (!el) return '';
-            let raw = (el.value || '').toString();
-            raw = raw.replace(/\D/g, '');
-            if (raw.length > 3) raw = raw.slice(0, 3);
-            return raw;
-        }
-        function kpSetInputValue(v) {
-            const el = kpGetInputEl();
-            if (!el || !keypadCtx) return;
-            const cleaned = (v || '').toString().replace(/\D/g, '').slice(0, 3);
-            el.value = cleaned;
-            keypadCtx.value = cleaned;
-            keypadCtx.edited = true;
+function kpNormalizedInput() {
+  const el = kpGetInputEl();
+  if (!el) return '';
+  let raw = (el.value || '').toString();
+  raw = raw.replace(/\D/g, '');
+  if (raw.length > MAX_SCORE_DIGITS) raw = raw.slice(0, MAX_SCORE_DIGITS); // was 3
+  return raw;
+}
+function kpSetInputValue(v) {
+  const el = kpGetInputEl();
+  if (!el || !keypadCtx) return;
+  const cleaned = (v || '').toString().replace(/\D/g, '').slice(0, MAX_SCORE_DIGITS); // was 3
+  el.value = cleaned;
+  keypadCtx.value = cleaned;
+  keypadCtx.edited = true;
 
             // Live mirror into UI
             if (keypadCtx.mode === 'new') {
@@ -1948,22 +1949,21 @@
             }
             updateConfirmKeyLabel();
         }
-        function kpAppendDigit(d) {
-            if (!/^\d$/.test(d)) return;
-            const el = kpGetInputEl();
-            if (!el) return;
+function kpAppendDigit(d) {
+  if (!/^\d$/.test(d)) return;
+  const el = kpGetInputEl();
+  if (!el) return;
 
-            // Overwrite on first digit in EDIT mode
-            if (keypadCtx && keypadCtx.mode === 'edit' && !keypadCtx.edited) {
-                kpSetInputValue(d);
-                return;
-            }
+  if (keypadCtx && keypadCtx.mode === 'edit' && !keypadCtx.edited) {
+    kpSetInputValue(d);
+    return;
+  }
 
-            let v = (el.value || '').toString();
-            if (v.length >= 3) return;
-            v = (v === '0') ? d : (v + d);
-            kpSetInputValue(v);
-        }
+  let v = (el.value || '').toString();
+  if (v.length >= MAX_SCORE_DIGITS) return; // was >= 3
+  v = (v === '0') ? d : (v + d);
+  kpSetInputValue(v);
+}
         function kpBackspace() {
             const el = kpGetInputEl();
             if (!el) return;
