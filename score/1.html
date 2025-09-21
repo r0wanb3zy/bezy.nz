@@ -26,6 +26,9 @@
 
       /* Unified, lighter placeholder color */
       --ph-color: rgba(0, 0, 0, 0.24);
+
+      /* For consistent spacing with emoji grid */
+      --emoji-gap: 8px;
     }
 
     /* Table base */
@@ -215,39 +218,68 @@
       z-index: 1000; text-align: center;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
       font-family: 'Economica', sans-serif;
+      width: 200px; max-width: 90%;
     }
     #popupModal, #roundManagementModal { text-align: center; }
     #popupModal h2, #roundManagementModal h2, #playerNameModal h2 { margin: 15px 0; padding: 0; }
 
-    /* Keypad display line */
-    #keypadDisplay {
-      font-size: 32px;
-      line-height: 1;
-      margin: 4px 0 6px;
-      min-height: 36px;
-    }
-
+    /* Keep default modal button look consistent */
     #popupModal button {
-      font-size: 24px; padding: 10px 20px; margin: 2px; cursor: pointer;
+      font-size: 24px; padding: 10px 20px; margin: 5px 0; cursor: pointer;
       font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
       color: white; border: none; border-radius: 6px; transition: background 0.2s;
     }
 
-    /* Popup grid */
+    /* Keypad layout (matches emoji grid sizing and spacing) */
     #popupOptions {
-      display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; justify-content: center;
-      padding: 10px 0; box-sizing: border-box;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--emoji-gap);
+      padding: 0;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
     }
-    #popupOptions .popup-spacer {
-      width: 40px; height: 40px; visibility: hidden; pointer-events: none;
+    #popupOptions .keypad-input {
+      font-size: 24px;
+      padding: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      font-family: 'Economica', sans-serif;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      background: #ffffff;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+      transition: border-color 0.2s ease;
+      grid-column: 1 / -1;
     }
-    #popupOptions button {
-      width: 40px; height: 40px; font-size: 24px; padding: 0; margin: 0; box-sizing: border-box;
-      cursor: pointer; font-family: 'Economica', sans-serif, Arial; display: flex; justify-content: center; align-items: center;
-      text-align: center; overflow: hidden; white-space: nowrap;
-      background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-      color: white; border: none; border-radius: 6px; transition: background 0.2s ease;
-      -webkit-appearance: none; appearance: none; line-height: 1; outline: none;
+    #popupOptions .keypad-input:focus { outline: none; border: 1px solid #262626; }
+
+    #popupOptions .keypad-grid {
+      display: contents; /* let the buttons fill the main grid's 4 columns */
+    }
+    #popupOptions .key-btn {
+      display: grid; place-items: center;
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      font-size: 22px;
+      line-height: 1;
+      padding: 0; margin: 0;
+      color: #ffffff; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+      border: none; border-radius: 6px;
+      cursor: pointer; user-select: none;
+      transition: transform 0.05s ease, filter 0.1s ease;
+      -webkit-appearance: none; appearance: none; outline: none;
+    }
+    #popupOptions .key-btn:active { transform: scale(0.95); filter: brightness(1.05); }
+
+    #keypadConfirmBtn {
+      width: 100%;
+      height: auto;
+      padding: 10px 20px;
+      font-size: 24px;
+      grid-column: 1 / -1;
     }
 
     .close-btn {
@@ -933,49 +965,128 @@
       showOverlay();
     }
 
+    function kpGetInputEl() {
+      return document.getElementById('keypadInput');
+    }
+    function kpNormalizedInput() {
+      const el = kpGetInputEl();
+      if (!el) return '';
+      let raw = (el.value || '').toString();
+      raw = raw.replace(/\D/g, '');
+      if (raw.length > 2) raw = raw.slice(0, 2);
+      return raw;
+    }
+    function kpSetInputValue(v) {
+      const el = kpGetInputEl();
+      if (!el) return;
+      const cleaned = (v || '').toString().replace(/\D/g, '').slice(0, 2);
+      el.value = cleaned;
+      keypadCtx.value = cleaned;
+      keypadCtx.edited = true;
+      updateConfirmButtonLabel();
+    }
+    function kpAppendDigit(d) {
+      if (!/^\d$/.test(d)) return;
+      const el = kpGetInputEl();
+      if (!el) return;
+      let v = (el.value || '').toString();
+      if (v.length >= 2) return;
+      v = (v === '0') ? d : (v + d);
+      kpSetInputValue(v);
+    }
+    function kpBackspace() {
+      const el = kpGetInputEl();
+      if (!el) return;
+      const v = (el.value || '').toString();
+      if (!v) return;
+      kpSetInputValue(v.slice(0, -1));
+    }
+    function kpClear() {
+      kpSetInputValue('');
+    }
+
     function renderKeypadForContext() {
       const modal = document.getElementById('popupModal');
       const title = document.getElementById('popupTitle');
-      const disp = document.getElementById('keypadDisplay');
       const options = document.getElementById('popupOptions');
-      if (!keypadCtx || !modal || !title || !disp || !options) return;
+      if (!keypadCtx || !modal || !title || !options) return;
 
       const hnum = parseInt((keypadCtx.holeId || '').replace('H','') || '0', 10) || '';
-      if (keypadCtx.mode === 'score') {
-        const nm = keypadCtx.player ? getPlayerTrimmedName(keypadCtx.player) : 'Score';
-        title.textContent = `${nm} — ${hnum}`;
-      } else {
-        title.textContent = `Par — ${hnum}`;
-      }
+      title.textContent = `Hole ${hnum}`;
 
-      disp.style.display = 'block';
-      disp.textContent = (keypadCtx.value || '—');
+      // Build keypad content
+      options.innerHTML = '';
 
-      // Build keypad
-      const mkBtn = (text, data = {}, full = false) => {
+      // Input with placeholder (player name or 'Par')
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = 'keypadInput';
+      input.className = 'keypad-input';
+      input.inputMode = 'numeric';
+      input.autocomplete = 'off';
+      input.autocapitalize = 'off';
+      input.autocorrect = 'off';
+      input.spellcheck = false;
+      input.enterKeyHint = 'done';
+      input.readOnly = true; // prevent native keyboard
+      input.placeholder = keypadCtx.mode === 'score'
+        ? (keypadCtx.player ? getPlayerTrimmedName(keypadCtx.player) : 'Score')
+        : 'Par';
+      input.value = keypadCtx.value || '';
+      input.addEventListener('input', () => { keypadCtx.edited = true; updateConfirmButtonLabel(); });
+      options.appendChild(input);
+
+      // Key grid (4 columns)
+      const grid = document.createElement('div');
+      grid.className = 'keypad-grid';
+      const mkKey = (label, type, val = null) => {
         const b = document.createElement('button');
-        b.textContent = text;
-        Object.entries(data).forEach(([k, v]) => b.dataset[k] = v);
-        if (full) {
-          b.style.width = '100%';
-          b.style.height = 'auto';
-          b.style.padding = '10px 20px';
-          b.style.fontSize = '24px';
-          b.style.gridColumn = '1 / -1';
-        }
+        b.type = 'button';
+        b.className = 'key-btn';
+        b.textContent = label;
+        b.dataset.type = type;
+        if (val != null) b.dataset.val = val;
         b.addEventListener('click', onKeypadButtonClick);
         return b;
       };
 
-      options.innerHTML = '';
-      [1,2,3,4,5,6,7,8,9,0].forEach(d => options.appendChild(mkBtn(String(d), { type: 'digit', val: String(d) })));
-      options.appendChild(mkBtn('⌫', { type: 'back' }));
-      options.appendChild(mkBtn('—', { type: 'blank' }));
+      [1,2,3,4].forEach(d => grid.appendChild(mkKey(String(d), 'digit', String(d))));
+      [5,6,7,8].forEach(d => grid.appendChild(mkKey(String(d), 'digit', String(d))));
+      grid.appendChild(mkKey('9', 'digit', '9'));
+      grid.appendChild(mkKey('0', 'digit', '0'));
+      grid.appendChild(mkKey('⌫', 'back'));
+      grid.appendChild(mkKey('C', 'clear'));
+
+      options.appendChild(grid);
+
+      // Confirm button (Next/Done)
+      const confirmBtn = document.createElement('button');
+      confirmBtn.id = 'keypadConfirmBtn';
+      confirmBtn.dataset.type = 'confirm';
+      confirmBtn.addEventListener('click', onKeypadButtonClick);
+      options.appendChild(confirmBtn);
+
+      // Initial label
+      updateConfirmButtonLabel();
+    }
+
+    function updateConfirmButtonLabel() {
+      const btn = document.getElementById('keypadConfirmBtn');
+      if (!btn || !keypadCtx) return;
+
+      let label = 'Done';
+      let action = 'done';
 
       if (keypadCtx.mode === 'score') {
-        options.appendChild(mkBtn('Next', { type: 'next' }, true));
+        const candidate = kpNormalizedInput();
+        const nextCell = getNextEmptyScoreCellInHole(keypadCtx.td, candidate);
+        if (nextCell && nextCell !== keypadCtx.td) {
+          label = 'Next';
+          action = 'next';
+        }
       }
-      options.appendChild(mkBtn('Done', { type: 'done' }, true));
+      btn.textContent = label;
+      btn.dataset.action = action;
     }
 
     function onKeypadButtonClick(e) {
@@ -987,38 +1098,12 @@
         kpAppendDigit(btn.dataset.val || '');
       } else if (type === 'back') {
         kpBackspace();
-      } else if (type === 'blank') {
+      } else if (type === 'clear') {
         kpClear();
-      } else if (type === 'next') {
-        commitKeypadValue(true);
-      } else if (type === 'done') {
-        commitKeypadValue(false);
+      } else if (type === 'confirm') {
+        const advance = (btn.dataset.action === 'next');
+        commitKeypadValue(advance);
       }
-    }
-
-    function kpAppendDigit(d) {
-      if (!/^\d$/.test(d)) return;
-      keypadCtx.edited = true;
-      const v = keypadCtx.value || '';
-      if (v.length >= 2) return; // limit to 2 digits
-      keypadCtx.value = (v === '0') ? d : (v + d);
-      kpUpdateDisplay();
-    }
-    function kpBackspace() {
-      const v = keypadCtx.value || '';
-      if (!v) return;
-      keypadCtx.edited = true;
-      keypadCtx.value = v.slice(0, -1);
-      kpUpdateDisplay();
-    }
-    function kpClear() {
-      keypadCtx.edited = true;
-      keypadCtx.value = '';
-      kpUpdateDisplay();
-    }
-    function kpUpdateDisplay() {
-      const disp = document.getElementById('keypadDisplay');
-      if (disp) disp.textContent = keypadCtx.value || '—';
     }
 
     function commitKeypadValue(advanceWithinHole) {
@@ -1026,7 +1111,8 @@
       const td = keypadCtx.td;
       const holeNum = parseInt((keypadCtx.holeId || '').replace('H','') || '0', 10) || null;
       const player = keypadCtx.player;
-      const trimmed = String(keypadCtx.value ?? '').trim();
+      const inputEl = kpGetInputEl();
+      const trimmed = (inputEl ? inputEl.value : '').trim();
       const prevText = keypadCtx.prev ?? '';
       const userTyped = !!keypadCtx.edited;
 
@@ -2226,13 +2312,10 @@
       const modal = document.getElementById('popupModal');
       const title = document.getElementById('popupTitle');
       const options = document.getElementById('popupOptions');
-      const disp = document.getElementById('keypadDisplay');
 
       title.textContent = 'Par';
-      if (disp) { disp.style.display = 'none'; disp.textContent = ''; }
       options.innerHTML = `
-        <button id="resetParsBtn"
-                style="width: 100%; height: auto; padding: 10px 20px; font-size: 24px; grid-column: 1 / -1;">
+        <button id="resetParsBtn" style="width: 100%; height: auto; padding: 10px 20px; font-size: 24px; grid-column: 1 / -1;">
           Reset Pars
         </button>
       `;
@@ -2257,8 +2340,6 @@
 
     function closePopupModal() {
       const modal = document.getElementById('popupModal');
-      const disp = document.getElementById('keypadDisplay');
-      if (disp) { disp.style.display = 'none'; disp.textContent = ''; }
       modal.style.display = 'none';
       hideOverlay();
     }
