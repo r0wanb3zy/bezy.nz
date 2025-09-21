@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Golf Scorecard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-  <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css?family=Economica&amp;display=swap" rel="stylesheet">
 
   <style>
-    /* Base */
-    html, body { height: 100%; margin: 0; overflow: hidden; }
+    /* Base (match reference app) */
+    html, body { height: 100%; margin: 0; }
     body {
       font-family: 'Economica', sans-serif;
       font-size: 22px;
@@ -22,20 +22,10 @@
     :root {
       --hole-w: 30px;
       --par-w: 30px;
-      --row-h: 34px; /* JS sets so rows fit exactly in the visible table area */
-      --ph-color: rgba(0, 0, 0, 0.24);
-    }
+      --row-h: 34px; /* JS will set this so all rows fit exactly in the viewport */
 
-    /* Viewport container (safe-area aware) — the only scroll container */
-    #appViewport {
-      position: fixed;
-      top: env(safe-area-inset-top);
-      bottom: env(safe-area-inset-bottom);
-      left: env(safe-area-inset-left);
-      right: env(safe-area-inset-right);
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
-      background: transparent;
+      /* Unified, lighter placeholder color */
+      --ph-color: rgba(0, 0, 0, 0.24);
     }
 
     /* Table base */
@@ -48,12 +38,21 @@
     }
     table, table th, table td { font-weight: bold; }
 
-    /* Score table (no fixed/scroll here; #appViewport handles it) */
+    /* Score table shell (match reference) */
     #scoreTable {
-      width: 100%;
-      height: auto;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      background: transparent;
+      height: 100vh;   /* legacy fallback */
+      height: 100dvh;  /* modern browsers use dynamic viewport height */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Orientation-specific scrolling */
+    @media screen and (orientation: portrait) {
+      html, body { overflow: hidden; touch-action: none; }
+      #scoreTable { overflow-y: hidden; }
+    }
+    @media screen and (orientation: landscape) {
+      html, body { overflow: auto; touch-action: auto; }
+      #scoreTable { overflow-y: auto; }
     }
 
     /* Header row */
@@ -68,15 +67,15 @@
       font-size: 22px;
     }
 
-    /* Top-left settings cell */
+    /* Top-left settings cell: solid dark bg + divider to Par */
     #scoreTable thead th:first-child {
       background: #3b3b3b;
       color: #fff;
-      border-right: 1px solid #666;
+      border-right: 1px solid #666; /* divider between settings and Par */
       border-bottom: 1px solid #666;
     }
 
-    /* Table cells */
+    /* Table cells (light borders) */
     table th, table td {
       text-align: center;
       padding: 5px;
@@ -175,37 +174,41 @@
       padding: 0; margin: 0; line-height: 1;
     }
 
-    /* Remove bottom border under player header cells (name columns only) */
-    #scoreTable thead th[data-player] { border-bottom: none !important; }
-    #scoreTable thead th.hole-header, #scoreTable thead th.par-header { border-bottom: 1px solid #666; }
-
-    /* Remove right border from par cells (hole rows only) */
-    #scoreTable tbody tr:not(.summary-row) td.par-cell { border-right: none !important; }
-    #scoreTable tbody tr.summary-row td.par-cell { border-right: 1px solid #666 !important; }
-
-    /* Hole lock visuals */
-    #scoreBody tr.active-hole td.score-cell { background: rgba(0,0,0,0.03); }
-    #scoreBody tr.show-placeholders td.score-cell { background: rgba(0,0,0,0.03); }
-    #scoreBody tr.show-placeholders td.score-cell:empty::before {
-      content: attr(data-placeholder);
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      pointer-events: none;
-      display: block;
+    /* Inline editing */
+    #scoreBody td.editing {
+      outline: 2px solid #000;
+      outline-offset: -2px;
+      box-shadow: none;
+    }
+    #scoreBody td.score-cell.editing { position: relative; }
+    .inline-number {
+      position: absolute;
+      inset: 0;
       width: 100%;
+      height: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      text-align: center;
+      font: inherit;
+      color: inherit;
       line-height: var(--row-h);
+      padding: 0; margin: 0;
+      -moz-appearance: textfield;
+      appearance: textfield;
+      caret-color: transparent;
+      user-select: none; -webkit-user-select: none;
+      cursor: default;
+
+      /* Keep placeholder/value single-line */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .inline-number::selection, .inline-number::-moz-selection { background: transparent; }
+    .inline-number::-webkit-outer-spin-button, .inline-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-    /* Make hole number tappable to lock/unlock */
-    #scoreBody tr:not(.summary-row) .hole-cell { cursor: pointer; }
-
-    * { -webkit-tap-highlight-color: transparent; }
-
-    /* Popup/modal: Par reset (kept) */
+    /* Popup/modal */
     #popupModal {
       display: none;
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -214,8 +217,8 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
       font-family: 'Economica', sans-serif;
     }
-    #popupModal, #roundManagementModal, #playerNameModal, #scorePad { text-align: center; }
-    #popupModal h2, #roundManagementModal h2, #playerNameModal h2, #scorePad h2 { margin: 15px 0; padding: 0; }
+    #popupModal, #roundManagementModal { text-align: center; }
+    #popupModal h2, #roundManagementModal h2, #playerNameModal h2 { margin: 15px 0; padding: 0; }
 
     #popupModal button {
       font-size: 24px; padding: 10px 20px; margin: 2px; cursor: pointer;
@@ -223,12 +226,14 @@
       color: white; border: none; border-radius: 6px; transition: background 0.2s;
     }
 
-    /* Popup grid (Par reset) */
+    /* Popup grid */
     #popupOptions {
       display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; justify-content: center;
       padding: 10px 0; box-sizing: border-box;
     }
-    #popupOptions .popup-spacer { width: 40px; height: 40px; visibility: hidden; pointer-events: none; }
+    #popupOptions .popup-spacer {
+      width: 40px; height: 40px; visibility: hidden; pointer-events: none;
+    }
     #popupOptions button {
       width: 40px; height: 40px; font-size: 24px; padding: 0; margin: 0; box-sizing: border-box;
       cursor: pointer; font-family: 'Economica', sans-serif, Arial; display: flex; justify-content: center; align-items: center;
@@ -260,7 +265,8 @@
       background-image: none !important; padding-right: 12px;
     }
     #roundManagementModal select#playerCount {
-      text-align: center; text-align-last: center; -webkit-appearance: none; -moz-appearance: none; appearance: none;
+      text-align: center; text-align-last: center; -moz-text-align-last: center;
+      -webkit-appearance: none; -moz-appearance: none; appearance: none;
       background-image: none !important; background-color: #f8f9fa; padding-right: 12px;
     }
     #roundManagementModal select#playerCount::-ms-expand { display: none; }
@@ -300,8 +306,12 @@
       font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
       color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
     }
-    #playerNameModal button[data-state="confirm"] { background: linear-gradient(to bottom, #e63946 0%, #c62835 100%); }
-    #playerNameModal button.light { background: #f8f9fa; color: #0f172a; border: 1px solid #262626; }
+    #playerNameModal button[data-state="confirm"] {
+      background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+    }
+    #playerNameModal button.light {
+      background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
+    }
 
     /* Segmented control */
     .segmented-control {
@@ -373,60 +383,110 @@
     #roundManagementModal select#themeColorSelect::-ms-expand { display: none; }
     #roundManagementModal select#themeColorSelect option { text-align: center; }
 
-    /* Score Pad (custom popup keyboard) */
-    #scorePad {
-      display: none;
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: #ffffff; border: none; padding: 16px 20px 20px 20px; z-index: 1002;
-      width: 260px; max-width: 90%; font-family: 'Economica', sans-serif;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.18); border-radius: 12px;
+    * { -webkit-tap-highlight-color: transparent; }
+
+    /* Remove bottom border under player header cells (name columns only) */
+    #scoreTable thead th[data-player] {
+      border-bottom: none !important;
     }
-    #scorePad h2 {
-      font-size: 24px; margin: 10px 0 6px; padding: 0; line-height: 1.2;
+    /* Keep bottom border on the left headers */
+    #scoreTable thead th.hole-header,
+    #scoreTable thead th.par-header {
+      border-bottom: 1px solid #666;
     }
-    #scorePad .pad-subtitle { font-size: 16px; color: #555; margin-bottom: 10px; }
-    #scorePad .pad-row {
-      display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; margin: 8px 0 12px;
+
+    /* Remove right border from par cells (hole rows only) */
+    #scoreTable tbody tr:not(.summary-row) td.par-cell {
+      border-right: none !important;
     }
-    #scorePad .pad-value {
-      min-width: 60px; text-align: center; font-size: 40px; font-weight: 700; line-height: 1; padding: 6px 0;
-      border-radius: 8px; background: #f3f4f6; color: #111827;
+    /* Keep the OUT/IN summary par cell borders the same */
+    #scoreTable tbody tr.summary-row td.par-cell {
+      border-right: 1px solid #666 !important;
     }
-    #scorePad .pad-btn {
-      font-size: 34px; padding: 10px 0; cursor: pointer; border: none; border-radius: 8px;
-      background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); color: #fff;
-      transition: filter 0.12s ease; -webkit-appearance: none; appearance: none;
+
+    /* Hole lock visuals */
+    #scoreBody tr.active-hole td.score-cell {
+      background: rgba(0, 0, 0, 0.03);
     }
-    #scorePad .pad-btn:active { filter: brightness(1.08); }
-    #scorePad .pad-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    #scorePad .pad-actions .light {
-      background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
+
+    /* Make the clicked row (show-placeholders) match locked row highlight */
+    #scoreBody tr.show-placeholders td.score-cell {
+      background: rgba(0, 0, 0, 0.03);
     }
-    #scorePad .pad-actions button {
-      font-size: 20px; padding: 10px 0; border-radius: 8px; cursor: pointer; border: none;
-      background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); color: #fff;
+
+    /* Show player name placeholders on empty cells in the active row */
+    #scoreBody tr.show-placeholders td.score-cell:empty::before {
+      content: attr(data-placeholder);
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      pointer-events: none;
+
+      /* Keep single-line and centered visually */
+      display: block;
+      width: 100%;
+      line-height: var(--row-h);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    #scorePad .close-btn { top: -2px; right: 2px; }
+
+    /* Placeholder color for inline input — unified and subtle */
+    .inline-number::-webkit-input-placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
+    }
+    .inline-number::-moz-placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
+    }
+    .inline-number:-ms-input-placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
+    }
+    .inline-number::placeholder {
+      color: var(--ph-color);
+      font-weight: normal;
+      font-style: normal;
+      opacity: 1;
+    }
+
+    /* Make hole number tappable to manually lock/unlock a hole */
+    #scoreBody tr:not(.summary-row) .hole-cell { cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <!-- Viewport container -->
-  <div id="appViewport">
-    <!-- Score Table -->
-    <table id="scoreTable">
-      <thead>
-        <tr id="playerRow">
-          <th class="hole-header" onclick="showRoundManagement()"><button class="gear" title="Round settings">☰</button></th>
-          <th class="par-header" onclick="showParResetPopup()">Par</th>
-          <!-- Player headers are generated dynamically -->
-        </tr>
-      </thead>
-      <tbody id="scoreBody"></tbody>
-    </table>
-  </div>
+  <!-- Score Table -->
+  <table id="scoreTable">
+    <thead>
+      <tr id="playerRow">
+        <th class="hole-header" onclick="showRoundManagement()"><button class="gear" title="Round settings">☰</button></th>
+        <th class="par-header" onclick="showParResetPopup()">Par</th>
+      <th data-player="P1" title="🩰" draggable="true">
+          <span class="player-name" data-full="🩰" title="🩰">🩰</span>
+          <div id="totalP1"></div>
+          <div class="to-par-line" id="toParP1"></div>
+        </th><th data-player="P2" title="🌹" draggable="true">
+          <span class="player-name" data-full="🌹" title="🌹">🌹</span>
+          <div id="totalP2"></div>
+          <div class="to-par-line" id="toParP2"></div>
+        </th><th data-player="P3" title="3️⃣" draggable="true">
+          <span class="player-name" data-full="3️⃣" title="3️⃣">3️⃣</span>
+          <div id="totalP3"></div>
+          <div class="to-par-line" id="toParP3"></div>
+        </th></tr>
+    </thead>
+    <tbody id="scoreBody"><tr><td class="hole-cell">1</td><td class="par-cell" data-hole="H1">3</td><td class="score-cell" data-player="P1" data-hole="H1"></td><td class="score-cell" data-player="P2" data-hole="H1"></td><td class="score-cell" data-player="P3" data-hole="H1"></td></tr><tr><td class="hole-cell">2</td><td class="par-cell" data-hole="H2">3</td><td class="score-cell" data-player="P1" data-hole="H2"></td><td class="score-cell" data-player="P2" data-hole="H2"></td><td class="score-cell" data-player="P3" data-hole="H2"></td></tr><tr><td class="hole-cell">3</td><td class="par-cell" data-hole="H3">3</td><td class="score-cell" data-player="P1" data-hole="H3"></td><td class="score-cell" data-player="P2" data-hole="H3"></td><td class="score-cell" data-player="P3" data-hole="H3"></td></tr><tr><td class="hole-cell">4</td><td class="par-cell" data-hole="H4">3</td><td class="score-cell" data-player="P1" data-hole="H4"></td><td class="score-cell" data-player="P2" data-hole="H4"></td><td class="score-cell" data-player="P3" data-hole="H4"></td></tr><tr><td class="hole-cell">5</td><td class="par-cell" data-hole="H5">3</td><td class="score-cell" data-player="P1" data-hole="H5"></td><td class="score-cell" data-player="P2" data-hole="H5"></td><td class="score-cell" data-player="P3" data-hole="H5"></td></tr><tr><td class="hole-cell">6</td><td class="par-cell" data-hole="H6">3</td><td class="score-cell" data-player="P1" data-hole="H6"></td><td class="score-cell" data-player="P2" data-hole="H6"></td><td class="score-cell" data-player="P3" data-hole="H6"></td></tr><tr><td class="hole-cell">7</td><td class="par-cell" data-hole="H7">3</td><td class="score-cell" data-player="P1" data-hole="H7"></td><td class="score-cell" data-player="P2" data-hole="H7"></td><td class="score-cell" data-player="P3" data-hole="H7"></td></tr><tr><td class="hole-cell">8</td><td class="par-cell" data-hole="H8">3</td><td class="score-cell" data-player="P1" data-hole="H8"></td><td class="score-cell" data-player="P2" data-hole="H8"></td><td class="score-cell" data-player="P3" data-hole="H8"></td></tr><tr><td class="hole-cell">9</td><td class="par-cell" data-hole="H9">3</td><td class="score-cell" data-player="P1" data-hole="H9"></td><td class="score-cell" data-player="P2" data-hole="H9"></td><td class="score-cell" data-player="P3" data-hole="H9"></td></tr><tr class="summary-row"><td class="hole-cell">OUT</td><td class="par-cell" data-sum="out-par">27</td><td data-sum="out-P1">0</td><td data-sum="out-P2">0</td><td data-sum="out-P3">0</td></tr><tr><td class="hole-cell">10</td><td class="par-cell" data-hole="H10">3</td><td class="score-cell" data-player="P1" data-hole="H10"></td><td class="score-cell" data-player="P2" data-hole="H10"></td><td class="score-cell" data-player="P3" data-hole="H10"></td></tr><tr><td class="hole-cell">11</td><td class="par-cell" data-hole="H11">3</td><td class="score-cell" data-player="P1" data-hole="H11"></td><td class="score-cell" data-player="P2" data-hole="H11"></td><td class="score-cell" data-player="P3" data-hole="H11"></td></tr><tr><td class="hole-cell">12</td><td class="par-cell" data-hole="H12">3</td><td class="score-cell" data-player="P1" data-hole="H12"></td><td class="score-cell" data-player="P2" data-hole="H12"></td><td class="score-cell" data-player="P3" data-hole="H12"></td></tr><tr><td class="hole-cell">13</td><td class="par-cell" data-hole="H13">3</td><td class="score-cell" data-player="P1" data-hole="H13"></td><td class="score-cell" data-player="P2" data-hole="H13"></td><td class="score-cell" data-player="P3" data-hole="H13"></td></tr><tr><td class="hole-cell">14</td><td class="par-cell" data-hole="H14">3</td><td class="score-cell" data-player="P1" data-hole="H14"></td><td class="score-cell" data-player="P2" data-hole="H14"></td><td class="score-cell" data-player="P3" data-hole="H14"></td></tr><tr><td class="hole-cell">15</td><td class="par-cell" data-hole="H15">3</td><td class="score-cell" data-player="P1" data-hole="H15"></td><td class="score-cell" data-player="P2" data-hole="H15"></td><td class="score-cell" data-player="P3" data-hole="H15"></td></tr><tr><td class="hole-cell">16</td><td class="par-cell" data-hole="H16">3</td><td class="score-cell" data-player="P1" data-hole="H16"></td><td class="score-cell" data-player="P2" data-hole="H16"></td><td class="score-cell" data-player="P3" data-hole="H16"></td></tr><tr><td class="hole-cell">17</td><td class="par-cell" data-hole="H17">3</td><td class="score-cell" data-player="P1" data-hole="H17"></td><td class="score-cell" data-player="P2" data-hole="H17"></td><td class="score-cell" data-player="P3" data-hole="H17"></td></tr><tr><td class="hole-cell">18</td><td class="par-cell" data-hole="H18">3</td><td class="score-cell" data-player="P1" data-hole="H18"></td><td class="score-cell" data-player="P2" data-hole="H18"></td><td class="score-cell" data-player="P3" data-hole="H18"></td></tr><tr class="summary-row"><td class="hole-cell">IN</td><td class="par-cell" data-sum="in-par">27</td><td data-sum="in-P1">0</td><td data-sum="in-P2">0</td><td data-sum="in-P3">0</td></tr></tbody>
+  </table>
 
-  <!-- Par popup -->
+  <!-- Popup -->
   <div id="popupModal">
     <h2 id="popupTitle">Select</h2>
     <span class="close-btn" onclick="closePopupModal()">×</span>
@@ -457,36 +517,20 @@
     </div>
 
     <button id="sortByRankBtn" onclick="toggleSortByRank()">Sort by Rank</button>
-    <select id="themeColorSelect" onchange="setThemeColor(this.value)">
-      <option value="blue">Blue</option>
-      <option value="purple">Purple</option>
-      <option value="pink">Pink</option>
-      <option value="red">Red</option>
-      <option value="yellow">Yellow</option>
-      <option value="green">Green</option>
-      <option value="grey">Grey</option>
+    <select id="themeColorSelect" onchange="setThemeColor(this.value)" style="color: rgb(13, 87, 160);">
+      <option value="blue" style="color: rgb(13, 87, 160);">Blue</option>
+      <option value="purple" style="color: rgb(83, 26, 147);">Purple</option>
+      <option value="pink" style="color: rgb(147, 26, 87);">Pink</option>
+      <option value="red" style="color: rgb(154, 19, 19);">Red</option>
+      <option value="yellow" style="color: rgb(155, 118, 8);">Yellow</option>
+      <option value="green" style="color: rgb(43, 130, 43);">Green</option>
+      <option value="grey" style="color: rgb(87, 87, 87);">Grey</option>
     </select>
     <button id="resetButton" onclick="handleResetClick()">Reset</button>
   </div>
 
   <!-- Player Name Modal -->
   <div id="playerNameModal"></div>
-
-  <!-- Custom Score Pad (no native keyboard) -->
-  <div id="scorePad" role="dialog" aria-modal="true" aria-labelledby="padTitle">
-    <h2 id="padTitle">Hole 1 — Player</h2>
-    <div class="pad-subtitle" id="padSubtitle"></div>
-    <span class="close-btn" onclick="closeScorePad()">×</span>
-    <div class="pad-row">
-      <button type="button" id="padMinus" class="pad-btn" aria-label="Decrease">−</button>
-      <div id="padValue" class="pad-value">3</div>
-      <button type="button" id="padPlus" class="pad-btn" aria-label="Increase">+</button>
-    </div>
-    <div class="pad-actions">
-      <button type="button" id="padClear" class="light">Clear Score</button>
-      <button type="button" id="padNext">Next Player ➜</button>
-    </div>
-  </div>
 
   <!-- Overlay -->
   <div id="overlay"></div>
@@ -554,13 +598,27 @@
     let sortByRankEnabled = localStorage.getItem(LS.sort) === 'true';
     let emojiModeEnabled = localStorage.getItem(LS.emojiMode) === 'true';
 
-    // Score pad state
-    let padState = { mode: 'score', hole: null, holeId: null, player: null, td: null, value: null };
+    // Inline edit state
+    let activeCell = null;
+    let activeInput = null;
+    let activeMode = null; // 'score' | 'par'
+    let resetConfirm = false;
+
+    // NEW: remember if current lock was created by this click (to auto-unlock on no-edit)
+    let lockPrimedHole = null; // e.g., "H3"
 
     // One-hole-at-a-time scoring
-    let lockedHole = null;
-    function setLockedHole(holeId) { lockedHole = holeId; updateHoleLockVisuals(); syncHolePlaceholderState(); }
-    function clearLockedHole() { lockedHole = null; updateHoleLockVisuals(); syncHolePlaceholderState(); }
+    let lockedHole = null; // e.g., "H3"
+    function setLockedHole(holeId) {
+      lockedHole = holeId;
+      updateHoleLockVisuals();
+      syncHolePlaceholderState();
+    }
+    function clearLockedHole() {
+      lockedHole = null;
+      updateHoleLockVisuals();
+      syncHolePlaceholderState();
+    }
     function updateHoleLockVisuals() {
       const rows = document.querySelectorAll('#scoreBody tr');
       rows.forEach(tr => {
@@ -574,20 +632,48 @@
     function getScoreCellsInHole(holeId) {
       return Array.from(document.querySelectorAll(`#scoreBody td.score-cell[data-hole="${holeId}"]`));
     }
+    function getNextEmptyScoreCellInHole(currentTd, currentDisplayText) {
+      const holeId = lockedHole || currentTd.getAttribute('data-hole');
+      const cells = getScoreCellsInHole(holeId);
+      const idx = cells.indexOf(currentTd);
+
+      const treatCurrentAsEmpty = String(currentDisplayText ?? '').trim() === '';
+      const isEmpty = (td) => td.textContent.trim() === '';
+
+      const empties = cells.filter(td => td === currentTd ? treatCurrentAsEmpty : isEmpty(td));
+      if (empties.length === 0) return null;
+
+      const after = empties.find(td => cells.indexOf(td) > idx);
+      return after || empties[0];
+    }
     function clearLockedHoleIfComplete(holeNum) {
       if (!lockedHole || !holeNum) return;
       if (`H${holeNum}` === lockedHole && isHoleComplete(holeNum)) {
         clearLockedHole();
       }
     }
+    // Optional: unlock if hole becomes empty (not used now to keep lock on click)
+    function isHoleEmpty(h) {
+      if (!h || h < 1 || h > holesCount) return false;
+      for (let p = 1; p <= playerCount; p++) {
+        if (getScore(`P${p}`, h) != null) return false;
+      }
+      return true;
+    }
+    function updateEnterKeyHintForInput(input, td) {
+      try {
+        const next = getNextEmptyScoreCellInHole(td, input.value);
+        input.setAttribute('enterkeyhint', next ? 'next' : 'done');
+      } catch (_) {}
+    }
 
-    /* -------- Placeholders -------- */
+    /* -------- Placeholders (trimmed names) -------- */
     function getHoleRowEl(holeId) {
       const parCell = document.querySelector(`#scoreBody td.par-cell[data-hole="${holeId}"]`);
       return parCell ? parCell.parentElement : null;
     }
     function showHolePlaceholders(holeId) {
-      const target = lockedHole || holeId;
+      const target = lockedHole || holeId; // if locked, always show placeholders for the locked row
       document.querySelectorAll('#scoreBody tr.show-placeholders')
         .forEach(tr => tr.classList.remove('show-placeholders'));
       const row = getHoleRowEl(target);
@@ -600,8 +686,8 @@
     function syncHolePlaceholderState() {
       if (lockedHole) {
         showHolePlaceholders(lockedHole);
-      } else if (padState.td) {
-        const hid = padState.td.getAttribute('data-hole');
+      } else if (activeCell) {
+        const hid = activeCell.getAttribute('data-hole');
         if (hid) showHolePlaceholders(hid);
         else clearHolePlaceholders();
       } else {
@@ -613,6 +699,7 @@
       return el?.getAttribute('data-full') || el?.textContent || pid;
     }
     function getPlayerTrimmedName(pid) {
+      // Use whatever is currently visible in the header (already clipped to fit)
       const el = document.querySelector(`#scoreTable thead th[data-player="${pid}"] .player-name`);
       const trimmed = el?.textContent?.trim();
       return trimmed || getPlayerDisplayName(pid);
@@ -621,11 +708,27 @@
       const nm = getPlayerTrimmedName(pid);
       document.querySelectorAll(`#scoreBody td.score-cell[data-player="${pid}"]`)
         .forEach(td => td.setAttribute('data-placeholder', nm));
+      if (activeInput && activeMode === 'score' && activeCell?.getAttribute('data-player') === pid) {
+        activeInput.placeholder = nm;
+      }
     }
-    function updateAllPlaceholders() { for (let p = 1; p <= playerCount; p++) updatePlaceholdersForPlayer(`P${p}`); }
+    function updateAllPlaceholders() {
+      for (let p = 1; p <= playerCount; p++) updatePlaceholdersForPlayer(`P${p}`);
+    }
 
-    // Drag & drop
+    // Outside tap management
+    let suppressNextCellEditClick = false;
+    let suppressClickTimeout = null;
+    let isApplyingInline = false;
+
+    // Drag & drop state
     let draggedIndex = -1;
+
+    /* ---------------- Height sync ---------------- */
+    function setFullHeight() {
+      const table = document.getElementById('scoreTable');
+      if (table) table.style.height = `${window.innerHeight}px`;
+    }
 
     /* ---------------- Init ---------------- */
     document.addEventListener('DOMContentLoaded', () => {
@@ -647,7 +750,9 @@
       updateAllTotals();
       updateRanks();
       fitRowsToViewport();
+      setFullHeight();
 
+      // Important: clip headers first, then sync placeholders to the trimmed names
       clipPlayerNamesToCell();
       updateAllPlaceholders();
 
@@ -655,25 +760,22 @@
 
       const sortBtn = document.getElementById('sortByRankBtn');
       if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
-
-      initScorePad();
     });
 
     window.addEventListener('resize', () => {
+      setFullHeight();
       clipPlayerNamesToCell();
       updateAllPlaceholders();
       fitRowsToViewport();
     });
     window.addEventListener('orientationchange', () => {
       setTimeout(() => {
+        setFullHeight();
         clipPlayerNamesToCell();
         updateAllPlaceholders();
         fitRowsToViewport();
       }, 250);
     });
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', fitRowsToViewport);
-    }
 
     function onHeaderClick(e) {
       const th = e.currentTarget;
@@ -739,24 +841,31 @@
       clearLockedHole();
       updateAllPlaceholders();
     }
-    function makeStickyCell(cls, text) { const td = document.createElement('td'); td.className = cls; td.textContent = text; return td; }
+    function makeStickyCell(cls, text) {
+      const td = document.createElement('td');
+      td.className = cls;
+      td.textContent = text;
+      return td;
+    }
     function makeHoleRow(h) {
       const tr = document.createElement('tr');
 
       const tdHole = document.createElement('td');
       tdHole.className = 'hole-cell';
       tdHole.textContent = String(h);
+      // Manual lock/unlock by tapping the hole number — ignore other rows while locked
       tdHole.addEventListener('click', () => {
         const holeId = `H${h}`;
         if (!lockedHole) setLockedHole(holeId);
         else if (lockedHole === holeId) clearLockedHole();
+        // else: ignore clicking other hole numbers while locked
       });
       tr.appendChild(tdHole);
 
       const tdPar = document.createElement('td');
       tdPar.className = 'par-cell';
       tdPar.setAttribute('data-hole', `H${h}`);
-      tdPar.addEventListener('click', () => openParPad(h));
+      tdPar.addEventListener('click', () => startInlineEdit(tdPar, 'par'));
       tdPar.textContent = '3';
       tr.appendChild(tdPar);
 
@@ -765,7 +874,7 @@
         td.className = 'score-cell';
         td.setAttribute('data-player', `P${p}`);
         td.setAttribute('data-hole', `H${h}`);
-        td.addEventListener('click', () => openScorePad(td));
+        td.addEventListener('click', () => startInlineEdit(td, 'score'));
         tr.appendChild(td);
       }
       return tr;
@@ -801,187 +910,234 @@
       updateAllPlaceholders();
     }
 
-    /* ---------------- Custom Score Pad ---------------- */
-    function initScorePad() {
-      const minus = document.getElementById('padMinus');
-      const plus = document.getElementById('padPlus');
-      const clearBtn = document.getElementById('padClear');
-      const nextBtn = document.getElementById('padNext');
+    /* ---------------- Inline editing (no popup) ---------------- */
+    function startInlineEdit(td, mode, options = {}) {
+      const holeId = td.getAttribute('data-hole');
 
-      minus.addEventListener('click', () => {
-        if (padState.value == null) padState.value = 1;
-        padState.value = Math.max(1, (parseInt(padState.value, 10) || 1) - 1);
-        applyPadValue();
-      });
-      plus.addEventListener('click', () => {
-        if (padState.value == null) padState.value = 1;
-        padState.value = Math.max(1, (parseInt(padState.value, 10) || 1) + 1);
-        applyPadValue();
-      });
-      clearBtn.addEventListener('click', () => {
-        if (padState.mode !== 'score' || !padState.td) return;
-        const { player, hole } = padState;
-        padState.value = null;
-        setScore(player, hole, null, true);
-        updatePadUI();
-      });
-      nextBtn.addEventListener('click', () => {
-        if (padState.mode !== 'score' || !padState.td) return;
-        goToNextPlayerInHole();
-      });
-    }
+      if (mode === 'score') {
+        // If locked and this isn't the locked row, ignore
+        if (lockedHole && lockedHole !== holeId) return;
 
-    function openScorePad(td) {
-      const holeId = td.getAttribute('data-hole'); // e.g. "H3"
-      if (lockedHole && lockedHole !== holeId) return;
-
-      if (!lockedHole) setLockedHole(holeId);
-
-      const hole = parseInt(holeId.replace('H',''), 10);
-      const pid = td.getAttribute('data-player');
-      const playerName = getPlayerTrimmedName(pid);
-      const par = getPar(hole);
-
-      if (td.textContent.trim() === '') {
-        td.textContent = String(par);
-        localStorage.setItem(LS.score(pid, hole), String(par));
+        // Lock immediately on score click (and keep it locked unless mis-click)
+        if (!lockedHole && holeId) {
+          setLockedHole(holeId);
+          lockPrimedHole = holeId; // we just locked due to this click
+        } else {
+          // Already locked (same row) or no holeId
+          lockPrimedHole = null;
+        }
+      } else if (mode === 'par') {
+        // Prevent editing par of another row while locked
+        if (lockedHole && lockedHole !== holeId) return;
       }
 
-      padState.mode = 'score';
-      padState.hole = hole;
-      padState.holeId = holeId;
-      padState.player = pid;
-      padState.td = td;
-      padState.value = (parseInt(td.textContent || '', 10) || null);
+      // Show placeholders (respect locked row if any)
+      if (holeId) showHolePlaceholders(holeId);
 
-      const pad = document.getElementById('scorePad');
-      const title = document.getElementById('padTitle');
-      const subtitle = document.getElementById('padSubtitle');
-      const clearBtn = document.getElementById('padClear');
-      const nextBtn = document.getElementById('padNext');
+      const preserveKeyboard = !!options.preserveKeyboard;
+      const prevCell = activeCell;
+      const prevInput = activeInput;
+      const prevDisplayText = options.prevDisplayText;
 
-      title.textContent = `Hole ${hole} — ${playerName}`;
-      subtitle.textContent = 'Adjust strokes with − / +';
-      clearBtn.style.display = '';
-      nextBtn.style.display = '';
+      if (!preserveKeyboard) {
+        endInlineEdit(true);
+      }
 
-      updatePadUI();
+      const prevText = td.textContent.trim();
+      activeCell = td;
+      activeMode = mode;
 
-      pad.style.display = 'block';
-      showOverlay();
-      syncHolePlaceholderState();
-    }
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.className = 'inline-number';
+      input.inputMode = 'numeric';
+      input.autocomplete = 'off';
+      input.autocorrect = 'off';
+      input.spellcheck = false;
+      input.value = prevText;
+      input.setAttribute('enterkeyhint', mode === 'score' ? 'next' : 'done');
+      input._edited = false;
+      input._clearedOnFirstInsert = false;
 
-    function openParPad(hole) {
-      const holeId = `H${hole}`;
-      if (lockedHole && lockedHole !== holeId) return;
+      // Input placeholder uses the trimmed player name
+      if (mode === 'score') {
+        const pid = td.getAttribute('data-player');
+        if (pid) input.placeholder = getPlayerTrimmedName(pid);
+      }
 
-      if (!lockedHole) setLockedHole(holeId);
+      td.dataset.prev = prevText;
+      td.textContent = '';
+      td.classList.add('editing');
+      td.appendChild(input);
 
-      const parCell = document.querySelector(`.par-cell[data-hole="${holeId}"]`);
-      const currentPar = parseInt(parCell?.textContent || '3', 10) || 3;
+      input.addEventListener('beforeinput', (e) => {
+        if (!input._clearedOnFirstInsert && e.inputType && e.inputType.startsWith('insert')) {
+          input.value = '';
+          input._clearedOnFirstInsert = true;
+        }
+      });
+      input.addEventListener('keydown', (e) => {
+        if (!input._clearedOnFirstInsert && e.key && e.key.length === 1 && /[0-9]/.test(e.key)) {
+          input.value = '';
+          input._clearedOnFirstInsert = true;
+        }
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyInlineEdit(input.value, true);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          cancelInlineEdit();
+        }
+      });
+      input.addEventListener('input', () => {
+        input._edited = true;
+        updateEnterKeyHintForInput(input, td);
+      });
+      input.addEventListener('blur', () => {
+        if (input !== activeInput) return;
+        applyInlineEdit(input.value, false);
+      });
 
-      padState.mode = 'par';
-      padState.hole = hole;
-      padState.holeId = holeId;
-      padState.player = null;
-      padState.td = parCell;
-      padState.value = currentPar;
+      activeInput = input;
+      try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+      updateEnterKeyHintForInput(input, td);
 
-      const pad = document.getElementById('scorePad');
-      const title = document.getElementById('padTitle');
-      const subtitle = document.getElementById('padSubtitle');
-      const clearBtn = document.getElementById('padClear');
-      const nextBtn = document.getElementById('padNext');
-
-      title.textContent = `Hole ${hole} — Par`;
-      subtitle.textContent = 'Adjust par with − / +';
-      clearBtn.style.display = 'none';
-      nextBtn.style.display = 'none';
-
-      updatePadUI();
-
-      pad.style.display = 'block';
-      showOverlay();
-      syncHolePlaceholderState();
-    }
-
-    function updatePadUI() {
-      const valEl = document.getElementById('padValue');
-      valEl.textContent = padState.value == null ? '—' : String(padState.value);
-      if (padState.mode === 'score' && padState.player && padState.hole) {
-        setScore(padState.player, padState.hole, padState.value, true);
-      } else if (padState.mode === 'par' && padState.hole) {
-        setPar(padState.hole, Math.max(1, parseInt(padState.value || 3, 10)), true);
+      if (preserveKeyboard && prevInput && prevCell) {
+        prevCell.classList.remove('editing');
+        delete prevCell.dataset.prev;
+        if (prevInput.parentElement) prevInput.parentElement.removeChild(prevInput);
+        if (prevDisplayText !== undefined) prevCell.textContent = prevDisplayText;
       }
     }
 
-    function applyPadValue() {
-      updatePadUI();
+    function getNextScoreCell(currentTd) {
+      const cells = Array.from(document.querySelectorAll('#scoreBody td.score-cell'));
+      const idx = cells.indexOf(currentTd);
+      if (idx !== -1) {
+        return cells[idx + 1] || null;
+      }
+      return null;
+    }
+
+    function applyInlineEdit(val, advanceOnEnter) {
+      if (!activeCell || !activeInput || isApplyingInline) return;
+      isApplyingInline = true;
+
+      const td = activeCell;
+      const mode = activeMode;
+      const hole = parseInt(td.getAttribute('data-hole')?.replace('H','') || '0', 10) || null;
+      const player = td.getAttribute('data-player') || null;
+      const trimmed = String(val ?? '').trim();
+      const prevText = td.dataset.prev ?? '';
+      const userTyped = !!activeInput._edited;
+
+      let displayText = prevText;
+      if (mode === 'score') {
+        if (!userTyped && trimmed === '') {
+          displayText = prevText;
+        } else if (trimmed === '') {
+          displayText = '';
+          if (player && hole) localStorage.removeItem(LS.score(player, hole));
+        } else {
+          const n = Math.max(0, parseInt(trimmed, 10) || 0);
+          displayText = String(n);
+          if (player && hole) localStorage.setItem(LS.score(player, hole), displayText);
+        }
+
+        // NEW: mis-click unlock — only if this click created the lock, no typing happened,
+        // and the hole is still empty (no scores for any player)
+        if (hole && lockPrimedHole === `H${hole}` && !userTyped) {
+          if (isHoleEmpty(hole)) {
+            clearLockedHole();
+          }
+          lockPrimedHole = null;
+        }
+      } else if (mode === 'par') {
+        if (!userTyped && trimmed === '') {
+          displayText = prevText || '3';
+        } else if (trimmed === '') {
+          displayText = '3';
+          if (hole) localStorage.setItem(LS.par(hole), '3');
+        } else {
+          const n = Math.max(1, parseInt(trimmed, 10) || 3);
+          displayText = String(n);
+          if (hole) localStorage.setItem(LS.par(hole), displayText);
+        }
+      }
+
+      // Advance only within the current hole to the next empty score cell; else close keyboard
+      let nextCell = null;
+      if (advanceOnEnter && mode === 'score') {
+        nextCell = getNextEmptyScoreCellInHole(td, displayText);
+      }
+
+      if (nextCell) {
+        startInlineEdit(nextCell, 'score', { preserveKeyboard: true, prevDisplayText: displayText });
+        updateAllTotals();
+        if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
+        updateRanks();
+        clearLockedHoleIfComplete(hole);
+        isApplyingInline = false;
+        return;
+      }
+
+      td.textContent = displayText;
+      endInlineEdit(false);
       updateAllTotals();
+      if (sortByRankEnabled && mode === 'score' && hole) applySortByRankIfHoleComplete(hole, true);
       updateRanks();
-      if (padState.mode === 'score') clearLockedHoleIfComplete(padState.hole);
+      clearLockedHoleIfComplete(hole);
+      isApplyingInline = false;
     }
 
-    function goToNextPlayerInHole() {
-      const cells = getScoreCellsInHole(padState.holeId);
-      const idx = cells.indexOf(padState.td);
-      if (idx === -1) { closeScorePad(); return; }
-      let nextIdx = idx + 1;
-      let wrapped = false;
-      if (nextIdx >= cells.length) { nextIdx = 0; wrapped = true; }
-      const nextTd = cells[nextIdx];
-      if (!nextTd) { closeScorePad(); return; }
+    function cancelInlineEdit() {
+      if (!activeCell) return;
 
-      const hole = padState.hole;
-      const nextPid = nextTd.getAttribute('data-player');
-      if (nextTd.textContent.trim() === '') {
-        const par = getPar(hole);
-        nextTd.textContent = String(par);
-        localStorage.setItem(LS.score(nextPid, hole), String(par));
+      // Apply same mis-click unlock logic on cancel (e.g., Escape)
+      if (activeMode === 'score') {
+        const holeId = activeCell.getAttribute('data-hole');
+        const h = parseInt(holeId?.replace('H','') || '0', 10);
+        if (lockPrimedHole === holeId && h && isHoleEmpty(h)) {
+          clearLockedHole();
+        }
+        lockPrimedHole = null;
       }
 
-      openScorePad(nextTd);
-
-      if (wrapped && isHoleComplete(hole)) {
-        closeScorePad();
-        clearLockedHole();
-      }
+      if (activeCell.dataset.prev != null) activeCell.textContent = activeCell.dataset.prev;
+      endInlineEdit(false);
     }
 
-    function closeScorePad() {
-      const pad = document.getElementById('scorePad');
-      pad.style.display = 'none';
-      hideOverlay();
-      updateAllTotals();
-      updateRanks();
-      clearLockedHoleIfComplete(padState.hole);
-      padState = { mode: 'score', hole: null, holeId: null, player: null, td: null, value: null };
+    function endInlineEdit(clearOnly) {
+      if (activeCell) {
+        activeCell.classList.remove('editing');
+        delete activeCell.dataset.prev;
+      }
+      if (activeInput && activeInput.parentElement) activeInput.parentElement.removeChild(activeInput);
+      activeCell = null; activeInput = null; activeMode = null;
+      if (!clearOnly) fitRowsToViewport();
       syncHolePlaceholderState();
     }
 
-    // Helpers to persist score/par
-    function setScore(player, hole, value, quiet = false) {
-      const td = document.querySelector(`td.score-cell[data-player="${player}"][data-hole="H${hole}"]`);
-      if (!td) return;
-      if (value == null || value === '') {
-        td.textContent = '';
-        localStorage.removeItem(LS.score(player, hole));
-      } else {
-        const n = Math.max(1, parseInt(value, 10) || 1);
-        td.textContent = String(n);
-        localStorage.setItem(LS.score(player, hole), String(n));
+    /* ---------------- Outside tap handling ---------------- */
+    document.addEventListener('pointerdown', (e) => {
+      if (activeInput && !activeInput.contains(e.target)) {
+        const cellHit = e.target.closest('td.score-cell, td.par-cell');
+        if (cellHit) {
+          suppressNextCellEditClick = true;
+          clearTimeout(suppressClickTimeout);
+          suppressClickTimeout = setTimeout(() => { suppressNextCellEditClick = false; }, 300);
+        }
+        applyInlineEdit(activeInput.value, false);
       }
-      if (!quiet) { updateAllTotals(); updateRanks(); }
-    }
-    function setPar(hole, value, quiet = false) {
-      const cell = document.querySelector(`.par-cell[data-hole="H${hole}"]`);
-      if (!cell) return;
-      const n = Math.max(1, parseInt(value, 10) || 3);
-      cell.textContent = String(n);
-      localStorage.setItem(LS.par(hole), String(n));
-      if (!quiet) { updateAllTotals(); updateRanks(); }
-    }
+    }, true);
+
+    document.addEventListener('click', (e) => {
+      if (suppressNextCellEditClick && e.target.closest('td.score-cell, td.par-cell')) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        suppressNextCellEditClick = false;
+      }
+    }, true);
 
     /* ---------------- Round Management ---------------- */
     function showRoundManagement() {
@@ -1011,7 +1167,6 @@
       hideOverlay();
     }
 
-    let resetConfirm = false;
     function handleResetClick() {
       const btn = document.getElementById('resetButton');
       if (!resetConfirm) {
@@ -1074,7 +1229,7 @@
               td.className = 'score-cell';
               td.setAttribute('data-player', pid);
               td.setAttribute('data-hole', `H${holeNo}`);
-              td.addEventListener('click', () => openScorePad(td));
+              td.addEventListener('click', () => startInlineEdit(td, 'score'));
               const saved = localStorage.getItem(LS.score(pid, holeNo));
               if (saved != null) td.textContent = saved;
             } else {
@@ -1131,7 +1286,10 @@
         for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
       }
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
+
+      // NEW: also clear any active row lock and its placeholders
       clearLockedHole();
+
       updateAllTotals();
       updateRanks();
       closeRoundManagement();
@@ -1394,8 +1552,8 @@
 
       header.setAttribute('data-player', pid);
       localStorage.setItem(LS.name(pid), newName);
-      clipPlayerNamesToCell();
-      updatePlaceholdersForPlayer(pid);
+      clipPlayerNamesToCell();        // trims header to fit
+      updatePlaceholdersForPlayer(pid); // placeholders follow trimmed name
       updateRanks();
     }
 
@@ -1488,7 +1646,7 @@
           clearTimeout(pressTimer);
           pressTimer = setTimeout(() => enterBulk(), 500);
         };
-        const cancel = () => { clearTimeout(pressTimer); pressTimer = null; }
+        const cancel = () => { clearTimeout(pressTimer); pressTimer = null; };
         btn.addEventListener('pointerdown', start);
         btn.addEventListener('pointerup', cancel);
         btn.addEventListener('pointerleave', cancel);
@@ -1536,21 +1694,14 @@
 
     /* ---------------- Totals / ranks / layout ---------------- */
     function fitRowsToViewport() {
-      const viewport = document.getElementById('appViewport');
       const table = document.getElementById('scoreTable');
-      if (!viewport || !table) return;
-
       const header = table.querySelector('thead');
       const headerH = header ? header.getBoundingClientRect().height : 0;
       const rows = document.querySelectorAll('#scoreBody tr').length;
-
-      const visH = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : window.innerHeight;
-      const top = viewport.getBoundingClientRect().top;
-      const containerVisibleH = Math.max(1, visH - top); // portion actually visible above bottom toolbar
-
+      const viewportH = Math.max(window.innerHeight, document.documentElement.clientHeight || 0);
       if (rows > 0) {
         const approxBorders = rows;
-        const avail = Math.max(1, containerVisibleH - headerH);
+        const avail = Math.max(1, viewportH - headerH);
         const rowH = Math.max(20, Math.floor((avail - approxBorders) / rows));
         document.documentElement.style.setProperty('--row-h', rowH + 'px');
       }
@@ -1718,6 +1869,14 @@
       clipPlayerNamesToCell();
     }
 
+    function ordinalSuffixOf(i) {
+      const j = i % 10, k = i % 100;
+      if (j === 1 && k !== 11) return i + "st";
+      if (j === 2 && k !== 12) return i + "nd";
+      if (j === 3 && k !== 13) return i + "rd";
+      return i + "th";
+    }
+
     function clipPlayerNamesToCell() {
       const seg = (typeof Intl !== 'undefined' && Intl.Segmenter)
         ? new Intl.Segmenter('en', { granularity: 'grapheme' })
@@ -1740,6 +1899,7 @@
           el.textContent = clusters.slice(0, best).join('');
         }
 
+        // Keep placeholders in sync with whatever is visible in the header
         const th = el.closest('th[data-player]');
         const pid = th?.getAttribute('data-player');
         if (pid) updatePlaceholdersForPlayer(pid);
@@ -1968,10 +2128,12 @@
         try { event.dataTransfer.setData('text/plain', ''); } catch (_) {}
       }
     }
+
     function handleDragOver(event) {
       event.preventDefault();
       if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     }
+
     function handleDrop(event, dropIndex) {
       event.preventDefault();
 
@@ -2124,7 +2286,11 @@
       closeRoundManagement();
       closePlayerNameModal();
       closePopupModal();
-      closeScorePad();
+      if (activeInput) {
+        applyInlineEdit(activeInput.value, false);
+      } else {
+        endInlineEdit(true);
+      }
     });
   </script>
 </body>
