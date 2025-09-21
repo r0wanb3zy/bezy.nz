@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Golf Scorecard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link href="https://fonts.googleapis.com/css?family=Economica&amp;display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
   <style>
-    /* Base (match reference app) */
+    /* Base */
     html, body { height: 100%; margin: 0; }
     body {
       font-family: 'Economica', sans-serif;
@@ -17,20 +17,35 @@
       margin-right: auto;
       min-height: 100vh;
       background-size: cover;
+      overflow: hidden;             /* Prevent page scroll/creep */
+      overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
     }
 
     :root {
       --hole-w: 30px;
       --par-w: 30px;
-      --row-h: 34px; /* JS will set this so all rows fit exactly in the viewport */
+      --row-h: 34px;   /* JS updates this so all rows fit exactly */
+      --header-h: 80px;
+      --app-h: 100dvh; /* JS updates to VisualViewport height for stability */
 
-      /* Unified, lighter placeholder color */
       --ph-color: rgba(0, 0, 0, 0.24);
+    }
+
+    /* Fixed full-viewport app container (no padding to avoid over-height) */
+    #app {
+      position: fixed;
+      inset: 0;
+      height: var(--app-h);
+      overflow: hidden;
+      box-sizing: border-box;
+      will-change: height;
     }
 
     /* Table base */
     table {
       width: 100%;
+      height: 100%;            /* Fill app container */
       border-collapse: collapse;
       font-size: 20px;
       table-layout: fixed;
@@ -38,21 +53,10 @@
     }
     table, table th, table td { font-weight: bold; }
 
-    /* Score table shell (match reference) */
+    /* Score table shell */
     #scoreTable {
-      height: 100vh;   /* legacy fallback */
-      height: 100dvh;  /* modern browsers use dynamic viewport height */
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Orientation-specific scrolling */
-    @media screen and (orientation: portrait) {
-      html, body { overflow: hidden; touch-action: none; }
-      #scoreTable { overflow-y: hidden; }
-    }
-    @media screen and (orientation: landscape) {
-      html, body { overflow: auto; touch-action: auto; }
-      #scoreTable { overflow-y: auto; }
+      overflow: hidden; /* No inner scroll; rows fit the space */
     }
 
     /* Header row */
@@ -63,19 +67,19 @@
       cursor: pointer;
     }
     #scoreTable thead th {
-      height: 80px;
+      height: var(--header-h);
       font-size: 22px;
     }
 
-    /* Top-left settings cell: solid dark bg + divider to Par */
+    /* Top-left settings cell */
     #scoreTable thead th:first-child {
       background: #3b3b3b;
       color: #fff;
-      border-right: 1px solid #666; /* divider between settings and Par */
+      border-right: 1px solid #666;
       border-bottom: 1px solid #666;
     }
 
-    /* Table cells (light borders) */
+    /* Cell base */
     table th, table td {
       text-align: center;
       padding: 5px;
@@ -89,7 +93,7 @@
     table td:last-child { border-right: none; }
     table tr:last-child td { border-bottom: none; }
 
-    /* First two columns: sticky + darker borders */
+    /* Sticky first two columns */
     th.hole-header, td.hole-cell {
       position: sticky; left: 0; z-index: 2;
       background: #3b3b3b; color: #fff;
@@ -111,7 +115,7 @@
     }
     th.par-header { border-right: none; }
 
-    /* Make all body rows rock-solid height */
+    /* Rock-solid body row height */
     #scoreTable tbody td, #scoreTable tbody th {
       height: var(--row-h);
       line-height: var(--row-h);
@@ -120,14 +124,14 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Summary rows (OUT/IN) dark */
+    /* Summary rows */
     .summary-row td {
       background: #3b3b3b; color: white;
       border-bottom: 1px solid #666; border-right: 1px solid #666;
     }
     .summary-row td:last-child { border-right: none; }
 
-    /* Header — THREE LINES */
+    /* Header content */
     #scoreTable thead th .player-name {
       display: block;
       max-width: 100%;
@@ -199,8 +203,6 @@
       caret-color: transparent;
       user-select: none; -webkit-user-select: none;
       cursor: default;
-
-      /* Keep placeholder/value single-line */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -264,11 +266,7 @@
       -webkit-appearance: none; -moz-appearance: none; appearance: none;
       background-image: none !important; padding-right: 12px;
     }
-    #roundManagementModal select#playerCount {
-      text-align: center; text-align-last: center; -moz-text-align-last: center;
-      -webkit-appearance: none; -moz-appearance: none; appearance: none;
-      background-image: none !important; background-color: #f8f9fa; padding-right: 12px;
-    }
+    #roundManagementModal select#playerCount { text-align: center; text-align-last: center; }
     #roundManagementModal select#playerCount::-ms-expand { display: none; }
     #roundManagementModal select#playerCount option { text-align: center; }
 
@@ -357,13 +355,8 @@
       pointer-events: none; z-index: 2;
     }
 
-    /* Bulk toolbar spacing */
     .bulk-actions { display: none; margin: 5px 0 0 0; width: 100%; }
     .bulk-actions .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center; width: 100%; }
-    #playerNameModal .segmented-control { margin-top: 5px; }
-    #playerNameModal .emoji-grid { margin: 5px 0 10px; }
-    #playerNameModal.bulk-mode .emoji-grid { margin-bottom: 5px; }
-    #playerNameModal .bulk-actions { margin-top: 0; }
 
     /* Overlay */
     #overlay {
@@ -376,7 +369,7 @@
 
     /* Round modal: theme-colored option text */
     #roundManagementModal select#themeColorSelect {
-      text-align: center; text-align-last: center; -moz-text-align-last: center;
+      text-align: center; text-align-last: center;
       -webkit-appearance: none; -moz-appearance: none; appearance: none;
       background-image: none !important; background-color: #f8f9fa; padding-right: 12px;
     }
@@ -386,43 +379,25 @@
     * { -webkit-tap-highlight-color: transparent; }
 
     /* Remove bottom border under player header cells (name columns only) */
-    #scoreTable thead th[data-player] {
-      border-bottom: none !important;
-    }
+    #scoreTable thead th[data-player] { border-bottom: none !important; }
     /* Keep bottom border on the left headers */
-    #scoreTable thead th.hole-header,
-    #scoreTable thead th.par-header {
-      border-bottom: 1px solid #666;
-    }
+    #scoreTable thead th.hole-header, #scoreTable thead th.par-header { border-bottom: 1px solid #666; }
 
     /* Remove right border from par cells (hole rows only) */
-    #scoreTable tbody tr:not(.summary-row) td.par-cell {
-      border-right: none !important;
-    }
-    /* Keep the OUT/IN summary par cell borders the same */
-    #scoreTable tbody tr.summary-row td.par-cell {
-      border-right: 1px solid #666 !important;
-    }
+    #scoreTable tbody tr:not(.summary-row) td.par-cell { border-right: none !important; }
+    #scoreTable tbody tr.summary-row td.par-cell { border-right: 1px solid #666 !important; }
 
     /* Hole lock visuals */
-    #scoreBody tr.active-hole td.score-cell {
-      background: rgba(0, 0, 0, 0.03);
-    }
+    #scoreBody tr.active-hole td.score-cell { background: rgba(0, 0, 0, 0.03); }
+    #scoreBody tr.show-placeholders td.score-cell { background: rgba(0, 0, 0, 0.03); }
 
-    /* Make the clicked row (show-placeholders) match locked row highlight */
-    #scoreBody tr.show-placeholders td.score-cell {
-      background: rgba(0, 0, 0, 0.03);
-    }
-
-    /* Show player name placeholders on empty cells in the active row */
+    /* Placeholders */
     #scoreBody tr.show-placeholders td.score-cell:empty::before {
       content: attr(data-placeholder);
       color: var(--ph-color);
       font-weight: normal;
       font-style: normal;
       pointer-events: none;
-
-      /* Keep single-line and centered visually */
       display: block;
       width: 100%;
       line-height: var(--row-h);
@@ -431,60 +406,61 @@
       text-overflow: ellipsis;
     }
 
-    /* Placeholder color for inline input — unified and subtle */
-    .inline-number::-webkit-input-placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
-    .inline-number::-moz-placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
-    .inline-number:-ms-input-placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
-    .inline-number::placeholder {
-      color: var(--ph-color);
-      font-weight: normal;
-      font-style: normal;
-      opacity: 1;
-    }
-
-    /* Make hole number tappable to manually lock/unlock a hole */
+    .inline-number::placeholder { color: var(--ph-color); opacity: 1; }
     #scoreBody tr:not(.summary-row) .hole-cell { cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <!-- Score Table -->
-  <table id="scoreTable">
-    <thead>
-      <tr id="playerRow">
-        <th class="hole-header" onclick="showRoundManagement()"><button class="gear" title="Round settings">☰</button></th>
-        <th class="par-header" onclick="showParResetPopup()">Par</th>
-      <th data-player="P1" title="🩰" draggable="true">
-          <span class="player-name" data-full="🩰" title="🩰">🩰</span>
-          <div id="totalP1"></div>
-          <div class="to-par-line" id="toParP1"></div>
-        </th><th data-player="P2" title="🌹" draggable="true">
-          <span class="player-name" data-full="🌹" title="🌹">🌹</span>
-          <div id="totalP2"></div>
-          <div class="to-par-line" id="toParP2"></div>
-        </th><th data-player="P3" title="3️⃣" draggable="true">
-          <span class="player-name" data-full="3️⃣" title="3️⃣">3️⃣</span>
-          <div id="totalP3"></div>
-          <div class="to-par-line" id="toParP3"></div>
-        </th></tr>
-    </thead>
-    <tbody id="scoreBody"><tr><td class="hole-cell">1</td><td class="par-cell" data-hole="H1">3</td><td class="score-cell" data-player="P1" data-hole="H1"></td><td class="score-cell" data-player="P2" data-hole="H1"></td><td class="score-cell" data-player="P3" data-hole="H1"></td></tr><tr><td class="hole-cell">2</td><td class="par-cell" data-hole="H2">3</td><td class="score-cell" data-player="P1" data-hole="H2"></td><td class="score-cell" data-player="P2" data-hole="H2"></td><td class="score-cell" data-player="P3" data-hole="H2"></td></tr><tr><td class="hole-cell">3</td><td class="par-cell" data-hole="H3">3</td><td class="score-cell" data-player="P1" data-hole="H3"></td><td class="score-cell" data-player="P2" data-hole="H3"></td><td class="score-cell" data-player="P3" data-hole="H3"></td></tr><tr><td class="hole-cell">4</td><td class="par-cell" data-hole="H4">3</td><td class="score-cell" data-player="P1" data-hole="H4"></td><td class="score-cell" data-player="P2" data-hole="H4"></td><td class="score-cell" data-player="P3" data-hole="H4"></td></tr><tr><td class="hole-cell">5</td><td class="par-cell" data-hole="H5">3</td><td class="score-cell" data-player="P1" data-hole="H5"></td><td class="score-cell" data-player="P2" data-hole="H5"></td><td class="score-cell" data-player="P3" data-hole="H5"></td></tr><tr><td class="hole-cell">6</td><td class="par-cell" data-hole="H6">3</td><td class="score-cell" data-player="P1" data-hole="H6"></td><td class="score-cell" data-player="P2" data-hole="H6"></td><td class="score-cell" data-player="P3" data-hole="H6"></td></tr><tr><td class="hole-cell">7</td><td class="par-cell" data-hole="H7">3</td><td class="score-cell" data-player="P1" data-hole="H7"></td><td class="score-cell" data-player="P2" data-hole="H7"></td><td class="score-cell" data-player="P3" data-hole="H7"></td></tr><tr><td class="hole-cell">8</td><td class="par-cell" data-hole="H8">3</td><td class="score-cell" data-player="P1" data-hole="H8"></td><td class="score-cell" data-player="P2" data-hole="H8"></td><td class="score-cell" data-player="P3" data-hole="H8"></td></tr><tr><td class="hole-cell">9</td><td class="par-cell" data-hole="H9">3</td><td class="score-cell" data-player="P1" data-hole="H9"></td><td class="score-cell" data-player="P2" data-hole="H9"></td><td class="score-cell" data-player="P3" data-hole="H9"></td></tr><tr class="summary-row"><td class="hole-cell">OUT</td><td class="par-cell" data-sum="out-par">27</td><td data-sum="out-P1">0</td><td data-sum="out-P2">0</td><td data-sum="out-P3">0</td></tr><tr><td class="hole-cell">10</td><td class="par-cell" data-hole="H10">3</td><td class="score-cell" data-player="P1" data-hole="H10"></td><td class="score-cell" data-player="P2" data-hole="H10"></td><td class="score-cell" data-player="P3" data-hole="H10"></td></tr><tr><td class="hole-cell">11</td><td class="par-cell" data-hole="H11">3</td><td class="score-cell" data-player="P1" data-hole="H11"></td><td class="score-cell" data-player="P2" data-hole="H11"></td><td class="score-cell" data-player="P3" data-hole="H11"></td></tr><tr><td class="hole-cell">12</td><td class="par-cell" data-hole="H12">3</td><td class="score-cell" data-player="P1" data-hole="H12"></td><td class="score-cell" data-player="P2" data-hole="H12"></td><td class="score-cell" data-player="P3" data-hole="H12"></td></tr><tr><td class="hole-cell">13</td><td class="par-cell" data-hole="H13">3</td><td class="score-cell" data-player="P1" data-hole="H13"></td><td class="score-cell" data-player="P2" data-hole="H13"></td><td class="score-cell" data-player="P3" data-hole="H13"></td></tr><tr><td class="hole-cell">14</td><td class="par-cell" data-hole="H14">3</td><td class="score-cell" data-player="P1" data-hole="H14"></td><td class="score-cell" data-player="P2" data-hole="H14"></td><td class="score-cell" data-player="P3" data-hole="H14"></td></tr><tr><td class="hole-cell">15</td><td class="par-cell" data-hole="H15">3</td><td class="score-cell" data-player="P1" data-hole="H15"></td><td class="score-cell" data-player="P2" data-hole="H15"></td><td class="score-cell" data-player="P3" data-hole="H15"></td></tr><tr><td class="hole-cell">16</td><td class="par-cell" data-hole="H16">3</td><td class="score-cell" data-player="P1" data-hole="H16"></td><td class="score-cell" data-player="P2" data-hole="H16"></td><td class="score-cell" data-player="P3" data-hole="H16"></td></tr><tr><td class="hole-cell">17</td><td class="par-cell" data-hole="H17">3</td><td class="score-cell" data-player="P1" data-hole="H17"></td><td class="score-cell" data-player="P2" data-hole="H17"></td><td class="score-cell" data-player="P3" data-hole="H17"></td></tr><tr><td class="hole-cell">18</td><td class="par-cell" data-hole="H18">3</td><td class="score-cell" data-player="P1" data-hole="H18"></td><td class="score-cell" data-player="P2" data-hole="H18"></td><td class="score-cell" data-player="P3" data-hole="H18"></td></tr><tr class="summary-row"><td class="hole-cell">IN</td><td class="par-cell" data-sum="in-par">27</td><td data-sum="in-P1">0</td><td data-sum="in-P2">0</td><td data-sum="in-P3">0</td></tr></tbody>
-  </table>
+  <!-- Fixed, full-viewport app container -->
+  <div id="app">
+    <!-- Score Table -->
+    <table id="scoreTable">
+      <thead>
+        <tr id="playerRow">
+          <th class="hole-header" onclick="showRoundManagement()"><button class="gear" title="Round settings">☰</button></th>
+          <th class="par-header" onclick="showParResetPopup()">Par</th>
+          <th data-player="P1" title="🩰" draggable="true">
+            <span class="player-name" data-full="🩰" title="🩰">🩰</span>
+            <div id="totalP1"></div>
+            <div class="to-par-line" id="toParP1"></div>
+          </th>
+          <th data-player="P2" title="🌹" draggable="true">
+            <span class="player-name" data-full="🌹" title="🌹">🌹</span>
+            <div id="totalP2"></div>
+            <div class="to-par-line" id="toParP2"></div>
+          </th>
+          <th data-player="P3" title="3️⃣" draggable="true">
+            <span class="player-name" data-full="3️⃣" title="3️⃣">3️⃣</span>
+            <div id="totalP3"></div>
+            <div class="to-par-line" id="toParP3"></div>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="scoreBody">
+        <tr><td class="hole-cell">1</td><td class="par-cell" data-hole="H1">3</td><td class="score-cell" data-player="P1" data-hole="H1"></td><td class="score-cell" data-player="P2" data-hole="H1"></td><td class="score-cell" data-player="P3" data-hole="H1"></td></tr>
+        <tr><td class="hole-cell">2</td><td class="par-cell" data-hole="H2">3</td><td class="score-cell" data-player="P1" data-hole="H2"></td><td class="score-cell" data-player="P2" data-hole="H2"></td><td class="score-cell" data-player="P3" data-hole="H2"></td></tr>
+        <tr><td class="hole-cell">3</td><td class="par-cell" data-hole="H3">3</td><td class="score-cell" data-player="P1" data-hole="H3"></td><td class="score-cell" data-player="P2" data-hole="H3"></td><td class="score-cell" data-player="P3" data-hole="H3"></td></tr>
+        <tr><td class="hole-cell">4</td><td class="par-cell" data-hole="H4">3</td><td class="score-cell" data-player="P1" data-hole="H4"></td><td class="score-cell" data-player="P2" data-hole="H4"></td><td class="score-cell" data-player="P3" data-hole="H4"></td></tr>
+        <tr><td class="hole-cell">5</td><td class="par-cell" data-hole="H5">3</td><td class="score-cell" data-player="P1" data-hole="H5"></td><td class="score-cell" data-player="P2" data-hole="H5"></td><td class="score-cell" data-player="P3" data-hole="H5"></td></tr>
+        <tr><td class="hole-cell">6</td><td class="par-cell" data-hole="H6">3</td><td class="score-cell" data-player="P1" data-hole="H6"></td><td class="score-cell" data-player="P2" data-hole="H6"></td><td class="score-cell" data-player="P3" data-hole="H6"></td></tr>
+        <tr><td class="hole-cell">7</td><td class="par-cell" data-hole="H7">3</td><td class="score-cell" data-player="P1" data-hole="H7"></td><td class="score-cell" data-player="P2" data-hole="H7"></td><td class="score-cell" data-player="P3" data-hole="H7"></td></tr>
+        <tr><td class="hole-cell">8</td><td class="par-cell" data-hole="H8">3</td><td class="score-cell" data-player="P1" data-hole="H8"></td><td class="score-cell" data-player="P2" data-hole="H8"></td><td class="score-cell" data-player="P3" data-hole="H8"></td></tr>
+        <tr><td class="hole-cell">9</td><td class="par-cell" data-hole="H9">3</td><td class="score-cell" data-player="P1" data-hole="H9"></td><td class="score-cell" data-player="P2" data-hole="H9"></td><td class="score-cell" data-player="P3" data-hole="H9"></td></tr>
+        <tr class="summary-row"><td class="hole-cell">OUT</td><td class="par-cell" data-sum="out-par">27</td><td data-sum="out-P1">0</td><td data-sum="out-P2">0</td><td data-sum="out-P3">0</td></tr>
+        <tr><td class="hole-cell">10</td><td class="par-cell" data-hole="H10">3</td><td class="score-cell" data-player="P1" data-hole="H10"></td><td class="score-cell" data-player="P2" data-hole="H10"></td><td class="score-cell" data-player="P3" data-hole="H10"></td></tr>
+        <tr><td class="hole-cell">11</td><td class="par-cell" data-hole="H11">3</td><td class="score-cell" data-player="P1" data-hole="H11"></td><td class="score-cell" data-player="P2" data-hole="H11"></td><td class="score-cell" data-player="P3" data-hole="H11"></td></tr>
+        <tr><td class="hole-cell">12</td><td class="par-cell" data-hole="H12">3</td><td class="score-cell" data-player="P1" data-hole="H12"></td><td class="score-cell" data-player="P2" data-hole="H12"></td><td class="score-cell" data-player="P3" data-hole="H12"></td></tr>
+        <tr><td class="hole-cell">13</td><td class="par-cell" data-hole="H13">3</td><td class="score-cell" data-player="P1" data-hole="H13"></td><td class="score-cell" data-player="P2" data-hole="H13"></td><td class="score-cell" data-player="P3" data-hole="H13"></td></tr>
+        <tr><td class="hole-cell">14</td><td class="par-cell" data-hole="H14">3</td><td class="score-cell" data-player="P1" data-hole="H14"></td><td class="score-cell" data-player="P2" data-hole="H14"></td><td class="score-cell" data-player="P3" data-hole="H14"></td></tr>
+        <tr><td class="hole-cell">15</td><td class="par-cell" data-hole="H15">3</td><td class="score-cell" data-player="P1" data-hole="H15"></td><td class="score-cell" data-player="P2" data-hole="H15"></td><td class="score-cell" data-player="P3" data-hole="H15"></td></tr>
+        <tr><td class="hole-cell">16</td><td class="par-cell" data-hole="H16">3</td><td class="score-cell" data-player="P1" data-hole="H16"></td><td class="score-cell" data-player="P2" data-hole="H16"></td><td class="score-cell" data-player="P3" data-hole="H16"></td></tr>
+        <tr><td class="hole-cell">17</td><td class="par-cell" data-hole="H17">3</td><td class="score-cell" data-player="P1" data-hole="H17"></td><td class="score-cell" data-player="P2" data-hole="H17"></td><td class="score-cell" data-player="P3" data-hole="H17"></td></tr>
+        <tr><td class="hole-cell">18</td><td class="par-cell" data-hole="H18">3</td><td class="score-cell" data-player="P1" data-hole="H18"></td><td class="score-cell" data-player="P2" data-hole="H18"></td><td class="score-cell" data-player="P3" data-hole="H18"></td></tr>
+        <tr class="summary-row"><td class="hole-cell">IN</td><td class="par-cell" data-sum="in-par">27</td><td data-sum="in-P1">0</td><td data-sum="in-P2">0</td><td data-sum="in-P3">0</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <!-- Popup -->
   <div id="popupModal">
@@ -604,7 +580,7 @@
     let activeMode = null; // 'score' | 'par'
     let resetConfirm = false;
 
-    // NEW: remember if current lock was created by this click (to auto-unlock on no-edit)
+    // NEW: remember if lock was created by this click
     let lockPrimedHole = null; // e.g., "H3"
 
     // One-hole-at-a-time scoring
@@ -652,7 +628,6 @@
         clearLockedHole();
       }
     }
-    // Optional: unlock if hole becomes empty (not used now to keep lock on click)
     function isHoleEmpty(h) {
       if (!h || h < 1 || h > holesCount) return false;
       for (let p = 1; p <= playerCount; p++) {
@@ -667,13 +642,13 @@
       } catch (_) {}
     }
 
-    /* -------- Placeholders (trimmed names) -------- */
+    /* -------- Placeholders -------- */
     function getHoleRowEl(holeId) {
       const parCell = document.querySelector(`#scoreBody td.par-cell[data-hole="${holeId}"]`);
       return parCell ? parCell.parentElement : null;
     }
     function showHolePlaceholders(holeId) {
-      const target = lockedHole || holeId; // if locked, always show placeholders for the locked row
+      const target = lockedHole || holeId;
       document.querySelectorAll('#scoreBody tr.show-placeholders')
         .forEach(tr => tr.classList.remove('show-placeholders'));
       const row = getHoleRowEl(target);
@@ -699,7 +674,6 @@
       return el?.getAttribute('data-full') || el?.textContent || pid;
     }
     function getPlayerTrimmedName(pid) {
-      // Use whatever is currently visible in the header (already clipped to fit)
       const el = document.querySelector(`#scoreTable thead th[data-player="${pid}"] .player-name`);
       const trimmed = el?.textContent?.trim();
       return trimmed || getPlayerDisplayName(pid);
@@ -724,10 +698,17 @@
     // Drag & drop state
     let draggedIndex = -1;
 
-    /* ---------------- Height sync ---------------- */
-    function setFullHeight() {
-      const table = document.getElementById('scoreTable');
-      if (table) table.style.height = `${window.innerHeight}px`;
+    /* ---------------- VisualViewport sync (stable height, no translate) ---------------- */
+    function syncAppViewport() {
+      const vv = window.visualViewport;
+      if (vv) {
+        document.documentElement.style.setProperty('--app-h', Math.round(vv.height) + 'px');
+      } else {
+        document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+      }
+      fitRowsToViewport();
+      clipPlayerNamesToCell();
+      updateAllPlaceholders();
     }
 
     /* ---------------- Init ---------------- */
@@ -749,10 +730,11 @@
       loadFromStorage();
       updateAllTotals();
       updateRanks();
-      fitRowsToViewport();
-      setFullHeight();
 
-      // Important: clip headers first, then sync placeholders to the trimmed names
+      // First layout pass + Viewport sizing
+      syncAppViewport();
+
+      // Clip headers then sync placeholders
       clipPlayerNamesToCell();
       updateAllPlaceholders();
 
@@ -760,21 +742,16 @@
 
       const sortBtn = document.getElementById('sortByRankBtn');
       if (sortBtn) sortBtn.classList.toggle('active', sortByRankEnabled);
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', syncAppViewport);
+        window.visualViewport.addEventListener('scroll', syncAppViewport);
+      }
     });
 
-    window.addEventListener('resize', () => {
-      setFullHeight();
-      clipPlayerNamesToCell();
-      updateAllPlaceholders();
-      fitRowsToViewport();
-    });
+    window.addEventListener('resize', () => { syncAppViewport(); });
     window.addEventListener('orientationchange', () => {
-      setTimeout(() => {
-        setFullHeight();
-        clipPlayerNamesToCell();
-        updateAllPlaceholders();
-        fitRowsToViewport();
-      }, 250);
+      setTimeout(() => { syncAppViewport(); }, 250);
     });
 
     function onHeaderClick(e) {
@@ -853,12 +830,10 @@
       const tdHole = document.createElement('td');
       tdHole.className = 'hole-cell';
       tdHole.textContent = String(h);
-      // Manual lock/unlock by tapping the hole number — ignore other rows while locked
       tdHole.addEventListener('click', () => {
         const holeId = `H${h}`;
         if (!lockedHole) setLockedHole(holeId);
         else if (lockedHole === holeId) clearLockedHole();
-        // else: ignore clicking other hole numbers while locked
       });
       tr.appendChild(tdHole);
 
@@ -910,28 +885,22 @@
       updateAllPlaceholders();
     }
 
-    /* ---------------- Inline editing (no popup) ---------------- */
+    /* ---------------- Inline editing ---------------- */
     function startInlineEdit(td, mode, options = {}) {
       const holeId = td.getAttribute('data-hole');
 
       if (mode === 'score') {
-        // If locked and this isn't the locked row, ignore
         if (lockedHole && lockedHole !== holeId) return;
-
-        // Lock immediately on score click (and keep it locked unless mis-click)
         if (!lockedHole && holeId) {
           setLockedHole(holeId);
-          lockPrimedHole = holeId; // we just locked due to this click
+          lockPrimedHole = holeId;
         } else {
-          // Already locked (same row) or no holeId
           lockPrimedHole = null;
         }
       } else if (mode === 'par') {
-        // Prevent editing par of another row while locked
         if (lockedHole && lockedHole !== holeId) return;
       }
 
-      // Show placeholders (respect locked row if any)
       if (holeId) showHolePlaceholders(holeId);
 
       const preserveKeyboard = !!options.preserveKeyboard;
@@ -939,9 +908,7 @@
       const prevInput = activeInput;
       const prevDisplayText = options.prevDisplayText;
 
-      if (!preserveKeyboard) {
-        endInlineEdit(true);
-      }
+      if (!preserveKeyboard) endInlineEdit(true);
 
       const prevText = td.textContent.trim();
       activeCell = td;
@@ -959,7 +926,6 @@
       input._edited = false;
       input._clearedOnFirstInsert = false;
 
-      // Input placeholder uses the trimmed player name
       if (mode === 'score') {
         const pid = td.getAttribute('data-player');
         if (pid) input.placeholder = getPlayerTrimmedName(pid);
@@ -1013,9 +979,7 @@
     function getNextScoreCell(currentTd) {
       const cells = Array.from(document.querySelectorAll('#scoreBody td.score-cell'));
       const idx = cells.indexOf(currentTd);
-      if (idx !== -1) {
-        return cells[idx + 1] || null;
-      }
+      if (idx !== -1) return cells[idx + 1] || null;
       return null;
     }
 
@@ -1044,12 +1008,8 @@
           if (player && hole) localStorage.setItem(LS.score(player, hole), displayText);
         }
 
-        // NEW: mis-click unlock — only if this click created the lock, no typing happened,
-        // and the hole is still empty (no scores for any player)
         if (hole && lockPrimedHole === `H${hole}` && !userTyped) {
-          if (isHoleEmpty(hole)) {
-            clearLockedHole();
-          }
+          if (isHoleEmpty(hole)) clearLockedHole();
           lockPrimedHole = null;
         }
       } else if (mode === 'par') {
@@ -1065,7 +1025,6 @@
         }
       }
 
-      // Advance only within the current hole to the next empty score cell; else close keyboard
       let nextCell = null;
       if (advanceOnEnter && mode === 'score') {
         nextCell = getNextEmptyScoreCellInHole(td, displayText);
@@ -1092,17 +1051,12 @@
 
     function cancelInlineEdit() {
       if (!activeCell) return;
-
-      // Apply same mis-click unlock logic on cancel (e.g., Escape)
       if (activeMode === 'score') {
         const holeId = activeCell.getAttribute('data-hole');
         const h = parseInt(holeId?.replace('H','') || '0', 10);
-        if (lockPrimedHole === holeId && h && isHoleEmpty(h)) {
-          clearLockedHole();
-        }
+        if (lockPrimedHole === holeId && h && isHoleEmpty(h)) clearLockedHole();
         lockPrimedHole = null;
       }
-
       if (activeCell.dataset.prev != null) activeCell.textContent = activeCell.dataset.prev;
       endInlineEdit(false);
     }
@@ -1192,7 +1146,6 @@
       const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
       const existing = headerRow.children.length - 2; // exclude hole + par
 
-      // Remove extra players
       if (newCount < existing) {
         for (let i = existing; i > newCount; i--) {
           const pid = `P${i}`;
@@ -1203,7 +1156,6 @@
         }
       }
 
-      // Add new players
       if (newCount > existing) {
         for (let i = existing + 1; i <= newCount; i++) {
           const pid = `P${i}`;
@@ -1280,16 +1232,12 @@
       updateRanks();
     }
 
-    // Only reset scores; do NOT reset pars
     function resetScores() {
       for (let p = 1; p <= 8; p++) {
         for (let h = 1; h <= 18; h++) localStorage.removeItem(LS.score(`P${p}`, h));
       }
       document.querySelectorAll('#scoreBody td.score-cell').forEach(td => td.textContent = '');
-
-      // NEW: also clear any active row lock and its placeholders
       clearLockedHole();
-
       updateAllTotals();
       updateRanks();
       closeRoundManagement();
@@ -1552,8 +1500,8 @@
 
       header.setAttribute('data-player', pid);
       localStorage.setItem(LS.name(pid), newName);
-      clipPlayerNamesToCell();        // trims header to fit
-      updatePlaceholdersForPlayer(pid); // placeholders follow trimmed name
+      clipPlayerNamesToCell();
+      updatePlaceholdersForPlayer(pid);
       updateRanks();
     }
 
@@ -1646,7 +1594,7 @@
           clearTimeout(pressTimer);
           pressTimer = setTimeout(() => enterBulk(), 500);
         };
-        const cancel = () => { clearTimeout(pressTimer); pressTimer = null; };
+        const cancel = () => { clearTimeout(pressTimer); pressTimer = null; }
         btn.addEventListener('pointerdown', start);
         btn.addEventListener('pointerup', cancel);
         btn.addEventListener('pointerleave', cancel);
@@ -1694,17 +1642,20 @@
 
     /* ---------------- Totals / ranks / layout ---------------- */
     function fitRowsToViewport() {
-      const table = document.getElementById('scoreTable');
-      const header = table.querySelector('thead');
-      const headerH = header ? header.getBoundingClientRect().height : 0;
-      const rows = document.querySelectorAll('#scoreBody tr').length;
-      const viewportH = Math.max(window.innerHeight, document.documentElement.clientHeight || 0);
-      if (rows > 0) {
-        const approxBorders = rows;
-        const avail = Math.max(1, viewportH - headerH);
-        const rowH = Math.max(20, Math.floor((avail - approxBorders) / rows));
-        document.documentElement.style.setProperty('--row-h', rowH + 'px');
-      }
+      const rowsCount = document.querySelectorAll('#scoreBody tr').length;
+      if (rowsCount <= 0) return;
+
+      const tableEl = document.getElementById('scoreTable');
+      const thead = tableEl ? tableEl.querySelector('thead') : null;
+      const headerH = thead ? Math.round(thead.getBoundingClientRect().height) : 0;
+      const containerH = tableEl ? tableEl.clientHeight : Math.max(window.innerHeight, document.documentElement.clientHeight || 0);
+
+      // Account for 1px bottom border per body row
+      const approxBorders = rowsCount;
+
+      const avail = Math.max(1, containerH - headerH - approxBorders);
+      const rowH = Math.max(20, Math.floor(avail / rowsCount));
+      document.documentElement.style.setProperty('--row-h', rowH + 'px');
     }
 
     function getPar(h) {
@@ -1899,14 +1850,13 @@
           el.textContent = clusters.slice(0, best).join('');
         }
 
-        // Keep placeholders in sync with whatever is visible in the header
         const th = el.closest('th[data-player]');
         const pid = th?.getAttribute('data-player');
         if (pid) updatePlaceholdersForPlayer(pid);
       });
     }
 
-    /* ---------------- Resort gating: only after a hole is complete ---------------- */
+    /* ---------------- Resort gating ---------------- */
     function isHoleComplete(h) {
       if (!h || h < 1 || h > holesCount) return false;
       for (let p = 1; p <= playerCount; p++) {
@@ -1930,7 +1880,7 @@
       applySortByRank(silent);
     }
 
-    /* ---------------- Sort by rank (reindex left->right) ---------------- */
+    /* ---------------- Sort by rank ---------------- */
     function applySortByRank(silent = false) {
       const headerRow = document.getElementById('playerRow');
       const rows = Array.from(document.querySelectorAll('#scoreBody tr'));
@@ -2030,7 +1980,7 @@
       updateAllPlaceholders();
     }
 
-    /* ---------------- Rebuild preserving (used for holes toggle) ---------------- */
+    /* ---------------- Rebuild preserving ---------------- */
     function rebuildPreserving() {
       const names = {};
       for (let p = 1; p <= 8; p++) {
@@ -2041,7 +1991,7 @@
       const pars = {};
       for (let h = 1; h <= 18; h++) {
         const k = LS.par(h);
-        const v = localStorage.getItem(k);
+               const v = localStorage.getItem(k);
         if (v != null) pars[h] = v;
       }
       const scores = {};
