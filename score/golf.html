@@ -454,10 +454,25 @@
   #playerNameModal .bulk-actions { 
     margin-top: 0 !important;        /* no extra gap above Cancel/Select */
   }
+  /* Center the player name vertically when header has no totals/badges */
+#scoreTable thead th[data-player].blank-header {
+  position: relative;
+}
+#scoreTable thead th[data-player].blank-header .player-name {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Optional: hide the empty lines while blank (not required, but cleaner) */
+#scoreTable thead th[data-player].blank-header div[id^="total"],
+#scoreTable thead th[data-player].blank-header .to-par-line {
+  display: none;
+}
 </style>
 </head>
 <body>
-
   <!-- Score Table -->
   <table id="scoreTable" style="height: 628px;">
     <thead>
@@ -1668,59 +1683,78 @@ const exitBulkEmojiMode = () => {
       });
     }
 
-    function updateAllTotals() {
-      const outRange = [...Array(Math.min(9, holesCount)).keys()].map(i => i + 1);
-      const inRange  = (holesCount > 9) ? [...Array(holesCount - 9).keys()].map(i => i + 10) : [];
+// Helper: toggle 'blank-header' when both total and to-par are empty
+function syncBlankHeaderStates() {
+  for (let p = 1; p <= playerCount; p++) {
+    const pid = `P${p}`;
+    const th = document.querySelector(`#scoreTable thead th[data-player="${pid}"]`);
+    if (!th) continue;
+    const totalDiv = th.querySelector(`#total${pid}`);
+    const toParDiv = th.querySelector(`#toPar${pid}`);
+    const isBlank =
+      (!totalDiv || totalDiv.textContent.trim() === '') &&
+      (!toParDiv || toParDiv.textContent.trim() === '');
+    th.classList.toggle('blank-header', isBlank);
+  }
+}
 
-      const parOut = outRange.reduce((s, h) => s + getPar(h), 0);
-      const parIn  = inRange.reduce((s, h) => s + getPar(h), 0);
+/* REPLACE your existing updateAllTotals with this version */
+function updateAllTotals() {
+  const outRange = [...Array(Math.min(9, holesCount)).keys()].map(i => i + 1);
+  const inRange  = (holesCount > 9) ? [...Array(holesCount - 9).keys()].map(i => i + 10) : [];
 
-      const setSumCell = (key, val) => {
-        const el = document.querySelector(`[data-sum="${key}"]`);
-        if (el) el.textContent = String(val);
-      };
-      setSumCell('out-par', parOut);
-      if (holesCount > 9) setSumCell('in-par', parIn);
+  const parOut = outRange.reduce((s, h) => s + getPar(h), 0);
+  const parIn  = inRange.reduce((s, h) => s + getPar(h), 0);
 
-      const any = hasAnyEntry();
+  const setSumCell = (key, val) => {
+    const el = document.querySelector(`[data-sum="${key}"]`);
+    if (el) el.textContent = String(val);
+  };
+  setSumCell('out-par', parOut);
+  if (holesCount > 9) setSumCell('in-par', parIn);
 
-      for (let p = 1; p <= playerCount; p++) {
-        const pid = `P${p}`;
-        const sumOut = outRange.reduce((s, h) => s + (getScore(pid, h) ?? 0), 0);
-        const sumIn  = inRange.reduce((s, h) => s + (getScore(pid, h) ?? 0), 0);
-        const played = [...outRange, ...inRange];
-        let playedPar = 0, playedStrokes = 0, hasScore = false;
-        for (const h of played) {
-          const sc = getScore(pid, h);
-          if (sc != null) { hasScore = true; playedStrokes += sc; playedPar += getPar(h); }
-        }
-        setSumCell(`out-${pid}`, sumOut);
-        if (holesCount > 9) setSumCell(`in-${pid}`, sumIn);
+  const any = hasAnyEntry();
 
-        const totalDiv = document.getElementById(`total${pid}`);
-        const toParDiv = document.getElementById(`toPar${pid}`);
-        if (!totalDiv || !toParDiv) continue;
-
-        if (hasScore) {
-          const toPar = (playedPar === 0) ? 0 : (playedStrokes - playedPar);
-          const tp = toPar === 0 ? 'E' : (toPar > 0 ? `+${toPar}` : `${toPar}`);
-
-          totalDiv.innerHTML = `<span class="strokes">${playedStrokes}</span>`;
-          toParDiv.innerHTML = `<span class="to-par-badge" data-value="${toPar}">${tp}</span>`;
-        } else {
-          if (any) {
-            totalDiv.innerHTML = `<span class="strokes">0</span>`;
-            toParDiv.innerHTML = `<span class="to-par-badge" data-value="0">E</span>`;
-          } else {
-            totalDiv.innerHTML = '';
-            toParDiv.innerHTML = '';
-          }
-        }
-      }
-
-      updateScoreColors();
-      updateToParBadgeColors();
+  for (let p = 1; p <= playerCount; p++) {
+    const pid = `P${p}`;
+    const sumOut = outRange.reduce((s, h) => s + (getScore(pid, h) ?? 0), 0);
+    const sumIn  = inRange.reduce((s, h) => s + (getScore(pid, h) ?? 0), 0);
+    const played = [...outRange, ...inRange];
+    let playedPar = 0, playedStrokes = 0, hasScore = false;
+    for (const h of played) {
+      const sc = getScore(pid, h);
+      if (sc != null) { hasScore = true; playedStrokes += sc; playedPar += getPar(h); }
     }
+    setSumCell(`out-${pid}`, sumOut);
+    if (holesCount > 9) setSumCell(`in-${pid}`, sumIn);
+
+    const totalDiv = document.getElementById(`total${pid}`);
+    const toParDiv = document.getElementById(`toPar${pid}`);
+    if (!totalDiv || !toParDiv) continue;
+
+    if (hasScore) {
+      const toPar = (playedPar === 0) ? 0 : (playedStrokes - playedPar);
+      const tp = toPar === 0 ? 'E' : (toPar > 0 ? `+${toPar}` : `${toPar}`);
+
+      totalDiv.innerHTML = `<span class="strokes">${playedStrokes}</span>`;
+      toParDiv.innerHTML = `<span class="to-par-badge" data-value="${toPar}">${tp}</span>`;
+    } else {
+      if (any) {
+        totalDiv.innerHTML = `<span class="strokes">0</span>`;
+        toParDiv.innerHTML = `<span class="to-par-badge" data-value="0">E</span>`;
+      } else {
+        totalDiv.innerHTML = '';
+        toParDiv.innerHTML = '';
+      }
+    }
+  }
+
+  updateScoreColors();
+  updateToParBadgeColors();
+
+  // Ensure headers with no totals/badges are visually centered
+  syncBlankHeaderStates();
+}
 
     function updateToParBadgeColors() {
       const { h: H, s: S } = getThemeHS(themeColor);
