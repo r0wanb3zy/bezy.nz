@@ -470,6 +470,29 @@
 #scoreTable thead th[data-player].blank-header .to-par-line {
   display: none;
 }
+/* EXACT match to Yahtzee when no scores are loaded */
+#scoreTable thead th[data-player].blank-header {
+  position: relative;
+}
+#scoreTable thead th[data-player].blank-header .player-name {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* Important: use the cell’s full inner width (th has 5px L/R padding) */
+  width: calc(100% - 10px);
+  text-align: center;
+
+  /* Remove the base 2px bottom padding so it’s truly centered */
+  padding: 0;
+}
+
+/* Hide the empty lines while blank */
+#scoreTable thead th[data-player].blank-header div[id^="total"],
+#scoreTable thead th[data-player].blank-header .to-par-line {
+  display: none;
+}
 </style>
 </head>
 <body>
