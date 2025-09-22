@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,434 +7,454 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css?family=Economica&amp;display=swap" rel="stylesheet">
 
-  <style>
-    /* Base (match reference app) */
-    html, body { height: 100%; margin: 0; }
-    body {
-      font-family: 'Economica', sans-serif;
-      font-size: 22px;
-      max-width: 1200px;
-      margin-left: auto;
-      margin-right: auto;
-      min-height: 100vh;
-      background-size: cover;
-    }
+<style>
+  /* Base (match reference app) */
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: 'Economica', sans-serif;
+    font-size: 22px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    min-height: 100vh;
+    background-size: cover;
+  }
 
-    :root {
-      --hole-w: 30px;
-      --par-w: 30px;
-      --row-h: 34px; /* JS will set this so all rows fit exactly in the viewport */
-      --emoji-gap: 8px;
-    }
+  :root {
+    --hole-w: 30px;
+    --par-w: 30px;
+    --row-h: 34px; /* JS will set this so all rows fit exactly in the viewport */
+    --emoji-gap: 8px;
+  }
 
-    /* Table base */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 20px;
-      table-layout: fixed;
-      font-family: 'Economica', sans-serif;
-    }
-    table, table th, table td { font-weight: bold; }
+  /* Table base */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 20px;
+    table-layout: fixed;
+    font-family: 'Economica', sans-serif;
+  }
+  table, table th, table td { font-weight: bold; }
 
-    /* Score table shell (match reference) */
-    #scoreTable {
-      height: 100vh;   /* legacy fallback */
-      height: 100dvh;  /* modern browsers use dynamic viewport height */
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
+  /* Score table shell (match reference) */
+  #scoreTable {
+    height: 100vh;   /* legacy fallback */
+    height: 100dvh;  /* modern browsers use dynamic viewport height */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
 
-    /* Orientation-specific scrolling */
-    @media screen and (orientation: portrait) {
-      html, body { overflow: hidden; touch-action: none; }
-      #scoreTable { overflow-y: hidden; }
-    }
-    @media screen and (orientation: landscape) {
-      html, body { overflow: auto; touch-action: auto; }
-      #scoreTable { overflow-y: auto; }
-    }
+  /* Orientation-specific scrolling */
+  @media screen and (orientation: portrait) {
+    html, body { overflow: hidden; touch-action: none; }
+    #scoreTable { overflow-y: hidden; }
+  }
+  @media screen and (orientation: landscape) {
+    html, body { overflow: auto; touch-action: auto; }
+    #scoreTable { overflow-y: auto; }
+  }
 
-    /* Header row */
-    table th {
-      background: linear-gradient(to bottom, #3b3b3b 0%, #3b3b3b 100%);
-      color: white;
-      border-bottom: none;
-      cursor: pointer;
-    }
-    #scoreTable thead th {
-      height: 80px;
-      font-size: 22px;
-    }
+  /* Header row */
+  table th {
+    background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+    color: white;
+    border-bottom: none;
+    cursor: pointer;
+  }
+  #scoreTable thead th {
+    height: 80px;
+    font-size: 22px;
+  }
 
-    /* Top-left settings cell */
-    #scoreTable thead th:first-child {
-      background: #3b3b3b;
-      color: #fff;
-      border-right: 1px solid #666; /* divider between settings and Par */
-      border-bottom: 1px solid #666;
-    }
+  /* Top-left settings cell */
+  #scoreTable thead th:first-child {
+    background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+    color: #fff;
+    border-right: 1px solid #666; /* divider between settings and Par */
+    border-bottom: 1px solid #666;
+  }
 
-    /* Table cells (light borders) */
-    table th, table td {
-      text-align: center;
-      padding: 5px;
-      word-wrap: break-word;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      vertical-align: middle;
-      border-bottom: 1px solid rgba(200, 200, 200, 0.3);
-    }
-    table td { border-right: 1px solid rgba(200, 200, 200, 0.3); }
-    table td:last-child { border-right: none; }
-    table tr:last-child td { border-bottom: none; }
+  /* Table cells (light borders) */
+  table th, table td {
+    text-align: center;
+    padding: 5px;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(200, 200, 200, 0.3);
+  }
+  table td { border-right: 1px solid rgba(200, 200, 200, 0.3); }
+  table td:last-child { border-right: none; }
+  table tr:last-child td { border-bottom: none; }
 
-    /* First two columns: sticky + darker borders */
-    th.hole-header, td.hole-cell {
-      position: sticky; left: 0; z-index: 2;
-      background: #3b3b3b; color: #fff;
-      width: var(--hole-w); min-width: var(--hole-w); max-width: var(--hole-w);
-      border-right: 1px solid #666;
-      border-bottom: 1px solid #666;
-      cursor: default;
-    }
-    th.hole-header { cursor: pointer; }
+  /* First two columns: sticky + darker borders */
+  th.hole-header {
+    position: sticky; left: 0; z-index: 2;
+    background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+    color: #fff;
+    width: var(--hole-w); min-width: var(--hole-w); max-width: var(--hole-w);
+    border-right: 1px solid #666;
+    border-bottom: 1px solid #666;
+    cursor: pointer;
+  }
+  td.hole-cell {
+    position: sticky; left: 0; z-index: 2;
+    background: #3b3b3b; color: #fff;
+    width: var(--hole-w); min-width: var(--hole-w); max-width: var(--hole-w);
+    border-right: 1px solid #666;
+    border-bottom: 1px solid #666;
+    cursor: default;
+  }
 
-    th.par-header, td.par-cell {
-      position: sticky;
-      left: calc(var(--hole-w) + 1px);
-      z-index: 2;
-      background: #3b3b3b; color: #fff;
-      width: var(--par-w); min-width: var(--par-w); max-width: var(--par-w);
-      border-right: 1px solid #666;
-      border-bottom: 1px solid #666;
-    }
-    th.par-header { border-right: none; }
+  th.par-header {
+    position: sticky;
+    left: calc(var(--hole-w) + 1px);
+    z-index: 2;
+    background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+    color: #fff;
+    width: var(--par-w); min-width: var(--par-w); max-width: var(--par-w);
+    border-right: none;
+    border-bottom: 1px solid #666;
+  }
+  td.par-cell {
+    position: sticky;
+    left: calc(var(--hole-w) + 1px);
+    z-index: 2;
+    background: #3b3b3b; color: #fff;
+    width: var(--par-w); min-width: var(--par-w); max-width: var(--par-w);
+    border-right: 1px solid #666;
+    border-bottom: 1px solid #666;
+  }
 
-    /* Make all body rows rock-solid height */
-    #scoreTable tbody td, #scoreTable tbody th {
-      height: var(--row-h);
-      line-height: var(--row-h);
-      padding-top: 0;
-      padding-bottom: 0;
-      font-variant-numeric: tabular-nums;
-    }
+  /* Make all body rows rock-solid height */
+  #scoreTable tbody td, #scoreTable tbody th {
+    height: var(--row-h);
+    line-height: var(--row-h);
+    padding-top: 0;
+    padding-bottom: 0;
+    font-variant-numeric: tabular-nums;
+  }
 
-    /* Summary rows (OUT/IN) dark */
-    .summary-row td {
-      background: #3b3b3b; color: white;
-      border-bottom: 1px solid #666; border-right: 1px solid #666;
-    }
-    .summary-row td:last-child { border-right: none; }
+  /* Summary rows (OUT/IN) dark */
+  .summary-row td {
+    background: #3b3b3b; color: white;
+    border-bottom: 1px solid #666; border-right: 1px solid #666;
+  }
+  .summary-row td:last-child { border-right: none; }
 
-    /* Header — THREE LINES */
-    #scoreTable thead th .player-name {
-      display: block;
-      max-width: 100%;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: clip;
-      text-align: center;
-      font-size: 22px;
-      line-height: 22px;
-      margin: 0;
-      padding-bottom: 2px;
-    }
-    #scoreTable thead th div[id^="total"] {
-      display: block;
-      font-size: 22px;
-      color: rgba(255, 255, 255, 0.95);
-      margin: 0;
-    }
-    #scoreTable thead th .to-par-line {
-      display: block;
-      line-height: 1;
-      margin-top: 0;
-    }
-    .to-par-badge {
-      display: inline-block;
-      font-size: 16px;
-      line-height: 1;
-      padding: 4px 10px;
-      border-radius: 9999px;
-      background: #ffffff;
-      color: #000000;
-      vertical-align: middle;
-      margin: 0;
-    }
-    #scoreTable.small-scores thead th .to-par-badge { font-size: 12px; }
-    #scoreTable.small-scores thead th .player-name {
-      font-size: 18px;
-      line-height: 18px;
-      padding-bottom: 2px;
-    }
+  /* Header — THREE LINES */
+  #scoreTable thead th .player-name {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
+    text-align: center;
+    font-size: 22px;
+    line-height: 22px;
+    margin: 0;
+    padding-bottom: 2px;
+  }
+  #scoreTable thead th div[id^="total"] {
+    display: block;
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0;
+  }
+  #scoreTable thead th .to-par-line {
+    display: block;
+    line-height: 1;
+    margin-top: 0;
+  }
+  .to-par-badge {
+    display: inline-block;
+    font-size: 16px;
+    line-height: 1;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    background: #ffffff;
+    color: #000000;
+    vertical-align: middle;
+    margin: 0;
+  }
+  #scoreTable.small-scores thead th .to-par-badge { font-size: 12px; }
+  #scoreTable.small-scores thead th .player-name {
+    font-size: 18px;
+    line-height: 18px;
+    padding-bottom: 2px;
+  }
 
-    .gear {
-      font-size: 20px; cursor: inherit; color: #fff; background: none; border: none;
-      padding: 0; margin: 0; line-height: 1;
-    }
+  /* Hamburger (use literal glyph like Yahtzee) */
+  .gear {
+    font-size: 1em; /* match the header font size */
+    color: #fff;
+    background: none;
+    border: none;
+    padding: 0; margin: 0;
+    line-height: 1;
+    cursor: inherit;       /* header cell handles the pointer */
+    pointer-events: none;  /* click goes to the <th>, like Yahtzee */
+  }
 
-    /* Popup/modal */
-    #popupModal {
-      display: none;
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: #ffffff; border: none; padding: 5px 20px 12px 20px;
-      z-index: 1000; text-align: center;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
-      font-family: 'Economica', sans-serif;
-      width: 200px; max-width: 90%;
-    }
-    #popupModal, #roundManagementModal { text-align: center; }
-    #popupModal h2, #roundManagementModal h2, #playerNameModal h2 { margin: 15px 0; padding: 0; }
+  /* Popup/modal */
+  #popupModal {
+    display: none;
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: #ffffff; border: none; padding: 5px 20px 12px 20px;
+    z-index: 1000; text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
+    font-family: 'Economica', sans-serif;
+    width: 200px; max-width: 90%;
+  }
+  #popupModal, #roundManagementModal { text-align: center; }
+  #popupModal h2, #roundManagementModal h2, #playerNameModal h2 { margin: 15px 0; padding: 0; }
 
-    /* Popup keypad layout (3 columns) */
-    #popupOptions {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: var(--emoji-gap);
-      padding: 0;
-      margin: 5px 0;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    #popupOptions .keypad-input {
-      font-size: 24px;
-      padding: 10px;
-      width: 100%;
-      box-sizing: border-box;
-      text-align: center;
-      font-family: 'Economica', sans-serif;
-      border: 1px solid #d0d7de;
-      border-radius: 6px;
-      background: #ffffff;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-      grid-column: 1 / -1;
-    }
-    #popupOptions .key-btn {
-      display: grid; place-items: center;
-      aspect-ratio: 1 / 1;
-      width: 100%;
-      font-size: 22px;
-      line-height: 1;
-      padding: 0; margin: 0;
-      color: #ffffff; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-      border: none; border-radius: 6px;
-      cursor: pointer; user-select: none;
-      transition: transform 0.05s ease, filter 0.1s ease;
-      -webkit-appearance: none; appearance: none; outline: none;
-      font-family: 'Economica', sans-serif; /* ensure keypad buttons use main font */
-    }
-/* Buttons stay bold */
-#popupOptions .key-btn[data-type="digit"] {
-  font-weight: 700;
-}
+  /* Popup keypad layout (3 columns) */
+  #popupOptions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--emoji-gap);
+    padding: 0;
+    margin: 5px 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  #popupOptions .keypad-input {
+    font-size: 24px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    font-family: 'Economica', sans-serif;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    background: #ffffff;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    grid-column: 1 / -1;
+    font-weight: 700;
+  }
+  /* Buttons stay bold */
+  #popupOptions .key-btn[data-type="digit"] {
+    font-weight: 700;
+  }
+  /* ...but placeholder not bold */
+  #popupOptions .keypad-input::placeholder { font-weight: 400; opacity: 0.8; }
+  #popupOptions .keypad-input::-webkit-input-placeholder { font-weight: 400; opacity: 0.8; }
+  #popupOptions .keypad-input::-moz-placeholder { font-weight: 400; opacity: 1; }
+  #popupOptions .keypad-input:-ms-input-placeholder { font-weight: 400; opacity: 1; }
+  #popupOptions .keypad-input::-ms-input-placeholder { font-weight: 400; opacity: 1; }
+  #popupOptions .key-btn {
+    display: grid; place-items: center;
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    font-size: 22px;
+    line-height: 1;
+    padding: 0; margin: 0;
+    color: #ffffff;
+    background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+    border: none; border-radius: 6px;
+    cursor: pointer; user-select: none;
+    transition: transform 0.05s ease, filter 0.1s ease;
+    -webkit-appearance: none; appearance: none; outline: none;
+    font-family: 'Economica', sans-serif; /* ensure keypad buttons use main font */
+  }
+  #popupOptions .key-btn:active { transform: scale(0.95); filter: brightness(1.05); }
 
-/* Input bold... */
-#popupOptions .keypad-input {
-  font-weight: 700;
-}
+  /* Action button inside popup (e.g., Reset Pars) */
+  #popupOptions .action-btn {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: auto;
+    padding: 10px 20px;
+    font-size: 24px;
+    font-family: 'Economica', sans-serif;
+    background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease, filter 0.1s ease, transform 0.05s ease;
+  }
+  #popupOptions .action-btn:active { transform: scale(0.98); filter: brightness(1.05); }
 
-/* ...but placeholder not bold */
-#popupOptions .keypad-input::placeholder { font-weight: 400; opacity: 0.8; }
-#popupOptions .keypad-input::-webkit-input-placeholder { font-weight: 400; opacity: 0.8; }
-#popupOptions .keypad-input::-moz-placeholder { font-weight: 400; opacity: 1; }
-#popupOptions .keypad-input:-ms-input-placeholder { font-weight: 400; opacity: 1; }
-#popupOptions .keypad-input::-ms-input-placeholder { font-weight: 400; opacity: 1; }
-    #popupOptions .key-btn:active { transform: scale(0.95); filter: brightness(1.05); }
+  .close-btn {
+    position: absolute; top: 0px; right: 0px;
+    font-size: 48px; color: #000000; cursor: pointer; background: none; border: none;
+    padding: 0; line-height: 1; width: 40px; height: 40px; text-align: center; transition: color 0.2s ease;
+  }
 
-    /* Action button inside popup (e.g., Reset Pars) */
-    #popupOptions .action-btn {
-      grid-column: 1 / -1;
-      width: 100%;
-      height: auto;
-      padding: 10px 20px;
-      font-size: 24px;
-      font-family: 'Economica', sans-serif;
-      background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s ease, filter 0.1s ease, transform 0.05s ease;
-    }
-    #popupOptions .action-btn:active { transform: scale(0.98); filter: brightness(1.05); }
+  /* Round management modal */
+  #roundManagementModal {
+    display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: #ffffff; border: none; padding: 5px 20px 20px 20px; z-index: 1001;
+    width: 200px; max-width: 90%; font-family: 'Economica', sans-serif;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px; text-align: center;
+  }
+  #roundManagementModal select {
+    font-size: 24px; padding: 10px; margin: 5px 0;
+    font-family: 'Economica', sans-serif; border: 1px solid #262626; border-radius: 6px;
+    background: #f8f9fa; width: 100%; box-sizing: border-box;
+    text-align: center; text-align-last: center; -moz-text-align-last: center;
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+    background-image: none !important; padding-right: 12px;
+  }
+  #roundManagementModal select#playerCount::-ms-expand { display: none; }
+  #roundManagementModal select#playerCount option { text-align: center; }
 
-    .close-btn {
-      position: absolute; top: 0px; right: 0px;
-      font-size: 48px; color: #000000; cursor: pointer; background: none; border: none;
-      padding: 0; line-height: 1; width: 40px; height: 40px; text-align: center; transition: color 0.2s ease;
-    }
+  #roundManagementModal button {
+    font-size: 24px; padding: 10px 20px; margin: 5px 0; cursor: pointer;
+    font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+    color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
+  }
+  #roundManagementModal button#sortByRankBtn {
+    background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
+  }
+  #roundManagementModal button#sortByRankBtn.active {
+    background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); color: #ffffff; border: 1px solid #262626;
+  }
+  #roundManagementModal button#resetButton[data-confirm="true"] {
+    background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+  }
 
-    /* Round management modal */
-    #roundManagementModal {
-      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: #ffffff; border: none; padding: 5px 20px 20px 20px; z-index: 1001;
-      width: 200px; max-width: 90%; font-family: 'Economica', sans-serif;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px; text-align: center;
-    }
-    #roundManagementModal select {
-      font-size: 24px; padding: 10px; margin: 5px 0;
-      font-family: 'Economica', sans-serif; border: 1px solid #262626; border-radius: 6px;
-      background: #f8f9fa; width: 100%; box-sizing: border-box;
-      text-align: center; text-align-last: center; -moz-text-align-last: center;
-      -webkit-appearance: none; -moz-appearance: none; appearance: none;
-      background-image: none !important; padding-right: 12px;
-    }
-    #roundManagementModal select#playerCount::-ms-expand { display: none; }
-    #roundManagementModal select#playerCount option { text-align: center; }
+  /* Player Name Modal */
+  #playerNameModal {
+    display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: #ffffff; border: none; padding: 5px 20px 20px 20px; z-index: 1001;
+    width: 200px; max-width: 90%; text-align: center; font-family: 'Economica', sans-serif;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
+  }
+  #playerNameModal h2 { margin: 15px 0; padding: 0; }
+  #playerNameModal input[type="text"] {
+    font-size: 24px; padding: 10px; width: 100%; box-sizing: border-box; margin: 5px 0; text-align: center;
+    font-family: 'Economica', sans-serif; border: 1px solid #d0d7de; border-radius: 6px; background: #ffffff;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s ease;
+  }
+  #playerNameModal input[type="text"]:focus { outline: none; border: 1px solid #262626; }
+  #playerNameModal button {
+    font-size: 24px; padding: 10px 20px; margin: 5px 0; cursor: pointer;
+    font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+    color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
+  }
+  #playerNameModal button[data-state="confirm"] {
+    background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
+  }
+  #playerNameModal button.light {
+    background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
+  }
 
-    #roundManagementModal button {
-      font-size: 24px; padding: 10px 20px; margin: 5px 0; cursor: pointer;
-      font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-      color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
-    }
-    #roundManagementModal button#sortByRankBtn {
-      background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
-    }
-    #roundManagementModal button#sortByRankBtn.active {
-      background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); color: #ffffff; border: 1px solid #262626;
-    }
-    #roundManagementModal button#resetButton[data-confirm="true"] {
-      background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
-    }
+  /* Segmented control */
+  .segmented-control {
+    display: flex; width: 100%; box-sizing: border-box; margin: 5px 0;
+    background: #f8f9fa; border-radius: 6px; overflow: hidden; border: 1px solid #262626;
+  }
+  .segmented-control input[type="radio"] { display: none; }
+  .segmented-control label {
+    flex: 1 1 0; padding: 10px 0; text-align: center; font-size: 24px; font-family: 'Economica', sans-serif;
+    cursor: pointer; user-select: none; background: #f8f9fa; margin: 0;
+  }
+  .segmented-control input[type="radio"]:checked + label {
+    background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); color: #fff;
+  }
 
-    /* Player Name Modal */
-    #playerNameModal {
-      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: #ffffff; border: none; padding: 5px 20px 20px 20px; z-index: 1001;
-      width: 200px; max-width: 90%; text-align: center; font-family: 'Economica', sans-serif;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-radius: 10px;
-    }
-    #playerNameModal h2 { margin: 15px 0; padding: 0; }
-    #playerNameModal input[type="text"] {
-      font-size: 24px; padding: 10px; width: 100%; box-sizing: border-box; margin: 5px 0; text-align: center;
-      font-family: 'Economica', sans-serif; border: 1px solid #d0d7de; border-radius: 6px; background: #ffffff;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s ease;
-    }
-    #playerNameModal input[type="text"]:focus { outline: none; border: 1px solid #262626; }
-    #playerNameModal button {
-      font-size: 24px; padding: 10px 20px; margin: 5px 0; cursor: pointer;
-      font-family: 'Economica', sans-serif; background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-      color: white; border: none; border-radius: 6px; transition: background 0.2s; width: 100%; box-sizing: border-box;
-    }
-    #playerNameModal button[data-state="confirm"] {
-      background: linear-gradient(to bottom, #e63946 0%, #c62835 100%);
-    }
-    #playerNameModal button.light {
-      background: #f8f9fa; color: #0f172a; border: 1px solid #262626;
-    }
+  /* Emoji grid */
+  .emoji-grid {
+    --emoji-gap: 8px;
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--emoji-gap); padding: 0; margin: 5px 0; width: 100%; box-sizing: border-box;
+    user-select: none; -webkit-user-select: none;
+  }
+  #playerNameModal .emoji-grid .emoji-pick {
+    background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
+    color: #ffffff; border: none; border-radius: 6px;
+    font-family: 'Economica', sans-serif; font-size: 22px;
+    display: grid; place-items: center;
+    width: 100%; aspect-ratio: 1 / 1; padding: 0; margin: 0; line-height: 1; cursor: pointer;
+    transition: transform 0.05s ease, filter 0.1s ease;
+    box-sizing: border-box; position: relative;
+    -webkit-appearance: none; appearance: none; outline: none;
+    padding-bottom: 2px;
+  }
+  #playerNameModal .emoji-grid .emoji-pick:active { transform: scale(0.95); filter: brightness(1.05); }
+  .emoji-grid .emoji-pick.selected { box-shadow: 0 0 0 2px #262626 inset; }
+  .emoji-grid .emoji-pick.selected::before {
+    content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35);
+    border-radius: 6px; pointer-events: none; z-index: 1;
+  }
+  .emoji-grid .emoji-pick.selected::after {
+    content: attr(data-order); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%);
+    font-size: 28px; font-weight: 700; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.7), 0 0 3px rgba(0,0,0,0.7);
+    pointer-events: none; z-index: 2;
+  }
 
-    /* Segmented control */
-    .segmented-control {
-      display: flex; width: 100%; box-sizing: border-box; margin: 5px 0;
-      background: #f8f9fa; border-radius: 6px; overflow: hidden; border: 1px solid #262626;
-    }
-    .segmented-control input[type="radio"] { display: none; }
-    .segmented-control label {
-      flex: 1 1 0; padding: 10px 0; text-align: center; font-size: 24px; font-family: 'Economica', sans-serif;
-      cursor: pointer; user-select: none; background: #f8f9fa; margin: 0;
-    }
-    .segmented-control input[type="radio"]:checked + label {
-      background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%); color: #fff;
-    }
+  /* Bulk emoji multi-select actions */
+  .bulk-actions {
+    display: none;
+    margin: 5px 0 0 0;
+    width: 100%;
+  }
+  .bulk-actions .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+  }
 
-    /* Emoji grid */
-    .emoji-grid {
-      --emoji-gap: 8px;
-      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: var(--emoji-gap); padding: 0; margin: 5px 0; width: 100%; box-sizing: border-box;
-      user-select: none; -webkit-user-select: none;
-    }
-    #playerNameModal .emoji-grid .emoji-pick {
-      background: linear-gradient(to bottom, #262626 0%, #3b3b3b 100%);
-      color: #ffffff; border: none; border-radius: 6px;
-      font-family: 'Economica', sans-serif; font-size: 22px;
-      display: grid; place-items: center;
-      width: 100%; aspect-ratio: 1 / 1; padding: 0; margin: 0; line-height: 1; cursor: pointer;
-      transition: transform 0.05s ease, filter 0.1s ease;
-      box-sizing: border-box; position: relative;
-      -webkit-appearance: none; appearance: none; outline: none;
-      padding-bottom: 2px;
-    }
-    #playerNameModal .emoji-grid .emoji-pick:active { transform: scale(0.95); filter: brightness(1.05); }
-    .emoji-grid .emoji-pick.selected { box-shadow: 0 0 0 2px #262626 inset; }
-    .emoji-grid .emoji-pick.selected::before {
-      content: ""; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35);
-      border-radius: 6px; pointer-events: none; z-index: 1;
-    }
-    .emoji-grid .emoji-pick.selected::after {
-      content: attr(data-order); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%);
-      font-size: 28px; font-weight: 700; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.7), 0 0 3px rgba(0,0,0,0.7);
-      pointer-events: none; z-index: 2;
-    }
+  /* Overlay */
+  #overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 999; cursor: pointer;
+  }
 
-    /* Bulk emoji multi-select actions */
-    .bulk-actions {
-      display: none;
-      margin: 5px 0 0 0;
-      width: 100%;
-    }
-    .bulk-actions .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      align-items: center;
-      width: 100%;
-    }
+  /* Drag feedback */
+  th.dragging { opacity: 0.5; }
 
-    /* Overlay */
-    #overlay {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); z-index: 999; cursor: pointer;
-    }
+  /* Round modal: theme-colored option text */
+  #roundManagementModal select#themeColorSelect {
+    text-align: center; text-align-last: center; -moz-text-align-last: center;
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+    background-image: none !important; background-color: #f8f9fa; padding-right: 12px;
+  }
+  #roundManagementModal select#themeColorSelect::-ms-expand { display: none; }
+  #roundManagementModal select#themeColorSelect option { text-align: center; }
 
-    /* Drag feedback */
-    th.dragging { opacity: 0.5; }
+  * { -webkit-tap-highlight-color: transparent; }
 
-    /* Round modal: theme-colored option text */
-    #roundManagementModal select#themeColorSelect {
-      text-align: center; text-align-last: center; -moz-text-align-last: center;
-      -webkit-appearance: none; -moz-appearance: none; appearance: none;
-      background-image: none !important; background-color: #f8f9fa; padding-right: 12px;
-    }
-    #roundManagementModal select#themeColorSelect::-ms-expand { display: none; }
-    #roundManagementModal select#themeColorSelect option { text-align: center; }
+  /* Remove bottom border under player header cells (name columns only) */
+  #scoreTable thead th[data-player] {
+    border-bottom: none !important;
+  }
+  /* Keep bottom border on the left headers */
+  #scoreTable thead th.hole-header,
+  #scoreTable thead th.par-header {
+    border-bottom: 1px solid #666;
+  }
 
-    * { -webkit-tap-highlight-color: transparent; }
+  /* Remove right border from par cells (hole rows only) */
+  #scoreTable tbody tr:not(.summary-row) td.par-cell {
+    border-right: none !important;
+  }
+  /* Keep the OUT/IN summary par cell borders the same */
+  #scoreTable tbody tr.summary-row td.par-cell {
+    border-right: 1px solid #666 !important;
+  }
 
-    /* Remove bottom border under player header cells (name columns only) */
-    #scoreTable thead th[data-player] {
-      border-bottom: none !important;
-    }
-    /* Keep bottom border on the left headers */
-    #scoreTable thead th.hole-header,
-    #scoreTable thead th.par-header {
-      border-bottom: 1px solid #666;
-    }
-
-    /* Remove right border from par cells (hole rows only) */
-    #scoreTable tbody tr:not(.summary-row) td.par-cell {
-      border-right: none !important;
-    }
-    /* Keep the OUT/IN summary par cell borders the same */
-    #scoreTable tbody tr.summary-row td.par-cell {
-      border-right: 1px solid #666 !important;
-    }
-
-/* Match scoring app spacing inside the player popup */
-#playerNameModal .emoji-grid {
-  margin: 5px 0 10px !important;  /* default (non-bulk) spacing */
-}
-#playerNameModal .segmented-control {
-  margin-top: 5px !important;      /* gap above Name/Emoji toggle */
-}
-/* Bulk mode spacing (when multi-select is active) */
-#playerNameModal.bulk-mode .emoji-grid {
-  margin-bottom: 5px !important;   /* reduced gap before Cancel/Select */
-}
-#playerNameModal .bulk-actions { 
-  margin-top: 0 !important;        /* no extra gap above Cancel/Select */
-}
-  </style>
+  /* Match scoring app spacing inside the player popup */
+  #playerNameModal .emoji-grid {
+    margin: 5px 0 10px !important;  /* default (non-bulk) spacing */
+  }
+  #playerNameModal .segmented-control {
+    margin-top: 5px !important;      /* gap above Name/Emoji toggle */
+  }
+  /* Bulk mode spacing (when multi-select is active) */
+  #playerNameModal.bulk-mode .emoji-grid {
+    margin-bottom: 5px !important;   /* reduced gap before Cancel/Select */
+  }
+  #playerNameModal .bulk-actions { 
+    margin-top: 0 !important;        /* no extra gap above Cancel/Select */
+  }
+</style>
 </head>
 <body>
 
