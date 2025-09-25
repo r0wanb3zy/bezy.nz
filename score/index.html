@@ -2,20 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
   <title>Scorecard</title>
   <link href="https://fonts.googleapis.com/css?family=Economica&display=swap" rel="stylesheet">
 
   <!-- Icons for various platforms -->
-  <link rel="icon" href="/score/assets/images/favicon.ico" type="image/x-icon">
-  <link rel="apple-touch-icon" sizes="180x180" href="/score/assets/images/icon-180.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/score/assets/images/icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="/score/assets/images/icon-512.png">
+  <link rel="icon" href="https://r0wanb3zy.gitlab.io/bezy/score/assets/images/favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://r0wanb3zy.gitlab.io/bezy/score/assets/images/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://r0wanb3zy.gitlab.io/bezy/score/assets/images/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="https://r0wanb3zy.gitlab.io/bezy/score/assets/images/icon-512.png">
 
   <!-- Web Manifest for Android -->
-  <link rel="manifest" href="/score/assets/manifest.json">
+  <link rel="manifest" href="https://r0wanb3zy.gitlab.io/bezy/score/assets/manifest.json">
 
   <style>
+    :root {
+      /* VisualViewport-driven height (JS updates this) */
+      --app-h: 100dvh;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -28,13 +36,28 @@
 
     body {
       display: grid;
-      grid-template-rows: repeat(auto-fit, 1fr);
-      height: 100vh; /* Full viewport height */
+      /* Make one column and as many equal-height rows as there are items */
+      grid-auto-rows: 1fr;
+
+      /* True visible viewport height, but allow the page to grow if content needs it */
+      min-height: var(--app-h);
+
+      /* Keep content away from notches/home indicators (esp. in standalone PWAs) */
+      padding:
+        env(safe-area-inset-top)
+        env(safe-area-inset-right)
+        env(safe-area-inset-bottom)
+        env(safe-area-inset-left);
+
+      /* Match page background to sections so padding areas look seamless */
+      background: #000;
+
       -webkit-tap-highlight-color: rgba(0,0,0,0);
     }
 
     a {
       text-decoration: none;
+      color: inherit;
       -webkit-tap-highlight-color: rgba(0,0,0,0);
     }
 
@@ -44,6 +67,7 @@
       align-items: center;
       text-align: center;
       color: white;
+      width: 100%;
     }
 
     .section:nth-child(odd) {
@@ -56,34 +80,56 @@
     h1 {
       font-size: 50px;
       font-family: 'Economica', sans-serif;
+      line-height: 1.1;
     }
 
     img[src$=".svg"] {
-  height: 60px;
-  width: auto;
-  filter: invert(100%); /* Inverts black to white */
-}
+      height: 60px;
+      width: auto;
+      filter: invert(100%); /* Inverts black to white */
+    }
   </style>
 </head>
 <body>
-  <a href="/score/scorecard" class="section">
+  <a href="https://r0wanb3zy.gitlab.io/bezy/score/scorecard" class="section">
     <h1>
-      <img src="/score/assets/images/icon-scorecard.svg" alt="Playing Cards"><br>
+      <img src="https://r0wanb3zy.gitlab.io/bezy/score/assets/images/icon-scorecard.svg" alt="Playing Cards"><br>
       Scorecard
     </h1>
   </a>
-  <a href="/score/yahtzee" class="section">
+
+  <a href="https://r0wanb3zy.gitlab.io/bezy/score/yahtzee" class="section">
     <h1>
-      <img src="/score/assets/images/icon-yahtzee.svg" alt="Dice"><br>
+      <img src="https://r0wanb3zy.gitlab.io/bezy/score/assets/images/icon-yahtzee.svg" alt="Dice"><br>
       Yahtzee
     </h1>
   </a>
-    </a>
-  <a href="/score/golf" class="section">
+
+  <a href="https://r0wanb3zy.gitlab.io/bezy/score/golf" class="section">
     <h1>
-      <img src="/score/assets/images/icon-golf.svg" alt="Dice"><br>
+      <img src="https://r0wanb3zy.gitlab.io/bezy/score/assets/images/icon-golf.svg" alt="Golf"><br>
       Golf
     </h1>
   </a>
+
+  <script>
+    // Keep --app-h equal to the true visible viewport height (works in standalone PWAs)
+    function updateAppHeightVar() {
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.documentElement.style.setProperty('--app-h', `${vh}px`);
+    }
+
+    // Initial set
+    updateAppHeightVar();
+
+    // Keep it in sync with changes (keyboard, toolbar, orientation, PWA chrome)
+    window.addEventListener('resize', updateAppHeightVar);
+    window.addEventListener('orientationchange', updateAppHeightVar);
+
+    if (window.visualViewport) {
+      visualViewport.addEventListener('resize', updateAppHeightVar, { passive: true });
+      visualViewport.addEventListener('scroll', updateAppHeightVar, { passive: true });
+    }
+  </script>
 </body>
 </html>
